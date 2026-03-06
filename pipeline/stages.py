@@ -10,6 +10,7 @@ Stage 5: Final LLM Recovery
 
 import json
 import re
+from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Callable, List, Optional, Tuple
 
 from config import AppConfig
@@ -85,26 +86,58 @@ def run_context_enrichment(
     task: str, error_log: str,
     mcp: MCPClient, llm: LLMClient, config: AppConfig,
 ) -> str:
-    """Stage 3: Retrieve API chunks and optionally decompose task. Returns enriched task."""
+    """Stage 3: Retrieve API chunks and optionally decompose task. Returns enriched task.
+
+    Runs retrieval and decomposition in parallel when both are enabled.
+    """
     parts = [task]
 
-    # 3a: Retrieve API chunks
-    if config.pipeline.use_retrieve_on_llm_fail:
-        chunks = mcp.retrieve(
-            task,
-            limit=config.pipeline.retrieve_limit,
-            exclude_namespaces=list(config.mcp.exclude_namespaces),
-        )
-        chunks_text = MCPClient.format_chunks(chunks, config.pipeline.retrieve_max_chars)
+    do_retrieve = config.pipeline.use_retrieve_on_llm_fail
+    do_decompose = config.pipeline.decompose_on_llm_fail and llm.available
+
+    # Run both network calls in parallel when both are enabled
+    if do_retrieve and do_decompose:
+        chunks_text = ""
+        decomposed = None
+
+        def _retrieve():
+            chunks = mcp.retrieve(
+                task,
+                limit=config.pipeline.retrieve_limit,
+                exclude_namespaces=list(config.mcp.exclude_namespaces),
+            )
+            return MCPClient.format_chunks(chunks, config.pipeline.retrieve_max_chars)
+
+        def _decompose():
+            return llm.decompose_task(task, "")
+
+        with ThreadPoolExecutor(max_workers=2) as pool:
+            fut_retrieve = pool.submit(_retrieve)
+            fut_decompose = pool.submit(_decompose)
+            chunks_text = fut_retrieve.result()
+            decomposed = fut_decompose.result()
+
+        if decomposed:
+            parts.append(decomposed)
         if chunks_text:
             parts.append(chunks_text)
+    else:
+        # Only one (or neither) is enabled — run sequentially
+        if do_retrieve:
+            chunks = mcp.retrieve(
+                task,
+                limit=config.pipeline.retrieve_limit,
+                exclude_namespaces=list(config.mcp.exclude_namespaces),
+            )
+            chunks_text = MCPClient.format_chunks(chunks, config.pipeline.retrieve_max_chars)
+            if chunks_text:
+                parts.append(chunks_text)
 
-    # 3b: Task decomposition
-    if config.pipeline.decompose_on_llm_fail and llm.available:
-        context = "\n".join(parts[1:]) if len(parts) > 1 else ""
-        decomposed = llm.decompose_task(task, context)
-        if decomposed:
-            parts.insert(1, decomposed)
+        if do_decompose:
+            context = "\n".join(parts[1:]) if len(parts) > 1 else ""
+            decomposed = llm.decompose_task(task, context)
+            if decomposed:
+                parts.insert(1, decomposed)
 
     return "\n\n".join(parts)
 

@@ -7,10 +7,25 @@ Override any value via environment variable.
 """
 
 import os
+from pathlib import Path
 from dataclasses import dataclass, field
 from dotenv import load_dotenv
 
-load_dotenv()
+# Load environment-specific .env file:
+#   APP_ENV=production  →  .env.production
+#   APP_ENV=staging     →  .env.staging
+#   (unset / default)   →  .env
+_env_name = os.getenv("APP_ENV", "").strip().lower()
+_base_dir = Path(__file__).resolve().parent
+if _env_name:
+    _env_file = _base_dir / f".env.{_env_name}"
+    if _env_file.exists():
+        load_dotenv(_env_file, override=True)
+    else:
+        print(f"Warning: APP_ENV={_env_name} but {_env_file} not found, falling back to .env")
+        load_dotenv(_base_dir / ".env")
+else:
+    load_dotenv(_base_dir / ".env")
 
 # Suppress HuggingFace tokenizer fork warning (harmless in our subprocess usage)
 os.environ.setdefault("TOKENIZERS_PARALLELISM", "false")
@@ -35,7 +50,7 @@ class DotnetConfig:
 @dataclass
 class PipelineConfig:
     """Retry counts and feature flags for the 5-stage pipeline."""
-    llm_fix_attempts: int = 3
+    llm_fix_attempts: int = 0
     regen_attempts: int = 3
     retrieve_limit: int = 20
     retrieve_max_chars: int = 12000
@@ -63,7 +78,7 @@ class LLMConfig:
     """LLM client config. Secrets from .env."""
     api_base: str = "https://llm.professionalize.com/v1"
     api_key: str = "sk-V9KD0Qxe5R1psEVZNeKxCA"
-    model: str = "qwen3-next"
+    model: str = "gpt-oss"
 
 
 @dataclass
@@ -151,6 +166,7 @@ def load_config() -> AppConfig:
 
     # MCP
     cfg.mcp.generate_url = _env("API_URL", cfg.mcp.generate_url)
+    cfg.mcp.retrieve_url = _env("MCP_RETRIEVE_URL", cfg.mcp.retrieve_url)
     cfg.mcp.product = _env("MCP_PRODUCT", cfg.mcp.product)
     cfg.mcp.platform = _env("MCP_PLATFORM", cfg.mcp.platform)
     cfg.mcp.retrieval_mode = _env("MCP_RETRIEVAL_MODE", cfg.mcp.retrieval_mode)

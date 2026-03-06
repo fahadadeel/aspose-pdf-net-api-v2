@@ -2,7 +2,7 @@
 pipeline/mcp_client.py — MCP API client for code generation and retrieval.
 """
 
-import os
+import time
 from typing import List, Optional
 
 import requests
@@ -10,6 +10,9 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from config import AppConfig
+
+_MAX_RETRIES = 3
+_RETRY_BACKOFF = 2  # seconds between retries
 
 
 class MCPClient:
@@ -22,6 +25,25 @@ class MCPClient:
         adapter = HTTPAdapter(max_retries=retry, pool_connections=4, pool_maxsize=4)
         self._session.mount("http://", adapter)
         self._session.mount("https://", adapter)
+
+    def _post_with_retry(self, url: str, payload: dict, timeout: int) -> Optional[requests.Response]:
+        """POST with automatic retry on timeout / connection errors."""
+        for attempt in range(1, _MAX_RETRIES + 1):
+            try:
+                resp = self._session.post(url, json=payload, timeout=timeout)
+                resp.raise_for_status()
+                return resp
+            except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
+                if attempt < _MAX_RETRIES:
+                    print(f"MCP request failed (attempt {attempt}/{_MAX_RETRIES}): {e} — retrying in {_RETRY_BACKOFF}s...")
+                    time.sleep(_RETRY_BACKOFF)
+                else:
+                    print(f"MCP request failed after {_MAX_RETRIES} attempts: {e}")
+                    return None
+            except Exception as e:
+                print(f"MCP request error: {e}")
+                return None
+        return None
 
     def generate(
         self,
@@ -56,15 +78,12 @@ class MCPClient:
             "limit": limit or cfg.retrieval_limit,
         }
 
-        try:
-            resp = self._session.post(cfg.generate_url, json=payload, timeout=cfg.timeout)
-            resp.raise_for_status()
-            data = resp.json()
-            # Look for code in common response fields
-            return data.get("code") or data.get("example") or data.get("content") or data.get("program_cs") or data.get("generated_code")
-        except Exception as e:
-            print(f"MCP generate error: {e}")
+        resp = self._post_with_retry(cfg.generate_url, payload, cfg.timeout)
+        if not resp:
             return None
+
+        data = resp.json()
+        return data.get("code") or data.get("example") or data.get("content") or data.get("program_cs") or data.get("generated_code")
 
     def retrieve(
         self,
@@ -75,7 +94,6 @@ class MCPClient:
     ) -> List[dict]:
         """Call /mcp/retrieve and return list of chunks."""
         cfg = self.config.mcp
-        retrieve_url = cfg.retrieve_url
 
         # Always use config product/platform (same fix as generate)
         payload = {
@@ -87,14 +105,12 @@ class MCPClient:
             "exclude_namespaces": exclude_namespaces or list(cfg.exclude_namespaces),
         }
 
-        try:
-            resp = self._session.post(retrieve_url, json=payload, timeout=cfg.timeout)
-            resp.raise_for_status()
-            data = resp.json()
-            return data.get("chunks", [])
-        except Exception as e:
-            print(f"MCP retrieve error: {e}")
+        resp = self._post_with_retry(cfg.retrieve_url, payload, cfg.timeout)
+        if not resp:
             return []
+
+        data = resp.json()
+        return data.get("chunks", [])
 
     @staticmethod
     def format_chunks(chunks: List[dict], max_chars: int = 12000) -> str:

@@ -100,20 +100,21 @@ class PipelineRunner:
             current_error = output
 
         # ── Stage 2: LLM Fix Attempts ──
-        self._notify("llm_fix", "Stage 2: LLM fix attempts...")
-        outcome = stages.run_llm_fix_loop(
-            current_code, current_error, task_input.task,
-            self.llm, self.builder, self._notify,
-            max_attempts=self.config.pipeline.llm_fix_attempts,
-        )
-        if outcome.success:
-            result.fixed_code = outcome.code
-            result.status = "SUCCESS"
-            result.stage = "llm_fix"
-            return result
+        if self.config.pipeline.llm_fix_attempts > 0:
+            self._notify("llm_fix", "Stage 2: LLM fix attempts...")
+            outcome = stages.run_llm_fix_loop(
+                current_code, current_error, task_input.task,
+                self.llm, self.builder, self._notify,
+                max_attempts=self.config.pipeline.llm_fix_attempts,
+            )
+            if outcome.success:
+                result.fixed_code = outcome.code
+                result.status = "SUCCESS"
+                result.stage = "llm_fix"
+                return result
 
-        current_code = outcome.code
-        current_error = outcome.build_log
+            current_code = outcome.code
+            current_error = outcome.build_log
 
         # ── Stage 3: Context Enrichment ──
         self._notify("enrich", "Stage 3: Enriching context...")

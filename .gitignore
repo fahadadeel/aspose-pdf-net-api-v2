@@ -1,6 +1,8 @@
 __pycache__/
 *.pyc
 .env
+.env.production
+.env.staging
 *.xlsx
 *.log
 logs/

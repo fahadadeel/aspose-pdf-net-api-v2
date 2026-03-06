@@ -1,0 +1,112 @@
+[
+  {
+    "pattern": "'Document' does not contain a definition for 'IsTagged'",
+    "error_code": "CS1061",
+    "fix_guidance": "CRITICAL API FIX: Document.IsTagged does NOT exist in Aspose.PDF.\n  - To check if tagged: use (doc.TaggedContent != null)\n  - To get tagged content: var taggedContent = doc.TaggedContent;\n  - Do NOT use doc.IsTagged — this property does not exist."
+  },
+  {
+    "pattern": "'ITaggedContent' does not contain a definition for '(Language|Title)'",
+    "error_code": "CS1061",
+    "fix_guidance": "CRITICAL API FIX: ITaggedContent.Language and ITaggedContent.Title are NOT direct properties.\n  - Use taggedContent.SetLanguage(\"en-US\") instead of taggedContent.Language = \"en-US\"\n  - Use taggedContent.SetTitle(\"...\") instead of taggedContent.Title = \"...\"\n  - These are setter methods, not properties."
+  },
+  {
+    "pattern": "'Element' does not contain a definition for '(ActualText|AlternativeText|Alt|Lang)'",
+    "error_code": "CS1061",
+    "fix_guidance": "CRITICAL API FIX: Element does not have ActualText/AlternativeText properties directly.\n  - Cast Element to StructureElement first: var se = (StructureElement)element;\n  - Then access: se.ActualText, se.AlternativeText, se.Language\n  - Use Aspose.Pdf.LogicalStructure.StructureElement, NOT Aspose.Pdf.Structure.Element."
+  },
+  {
+    "pattern": "'Element' is an ambiguous reference between.*LogicalStructure.*Structure",
+    "error_code": "CS0104",
+    "fix_guidance": "CRITICAL: 'Element' is ambiguous. Use fully qualified name:\n  - Use Aspose.Pdf.LogicalStructure.Element (for tagged PDF structure)\n  - Do NOT use Aspose.Pdf.Structure.Element\n  - For casting: (Aspose.Pdf.LogicalStructure.StructureElement)element"
+  },
+  {
+    "pattern": "'XImage' does not contain a definition for '(AlternativeText|TryGetAlternativeText)'",
+    "error_code": "CS1061",
+    "fix_guidance": "API FIX: XImage does not have AlternativeText property.\n  - To extract images, use: page.Resources.Images[index]\n  - To save an image: xImage.Save(stream)\n  - Alt text for images is stored in the tagged structure, not on XImage itself."
+  },
+  {
+    "pattern": "'Saving' does not exist in the namespace 'Aspose\\.Pdf'",
+    "error_code": "CS0234",
+    "fix_guidance": "CRITICAL: The namespace Aspose.Pdf.Saving does NOT exist.\n  - Remove 'using Aspose.Pdf.Saving;'\n  - Save options classes are in the Aspose.Pdf namespace directly:\n    Aspose.Pdf.DocSaveOptions, Aspose.Pdf.HtmlSaveOptions, etc."
+  },
+  {
+    "pattern": "Cannot convert type.*'Aspose\\.Pdf\\.LogicalStructure\\.Element' to 'Aspose\\.Pdf\\.Structure\\.Element'",
+    "error_code": "CS0030",
+    "fix_guidance": "TYPE MISMATCH: Do not mix LogicalStructure.Element and Structure.Element.\n  - Use only Aspose.Pdf.LogicalStructure namespace for tagged content.\n  - Cast to Aspose.Pdf.LogicalStructure.StructureElement\n  - Remove 'using Aspose.Pdf.Structure;' if present."
+  },
+  {
+    "pattern": "'ITaggedContent' does not exist in the namespace 'Aspose\\.Pdf'",
+    "error_code": "CS0234",
+    "fix_guidance": "NAMESPACE FIX: ITaggedContent is in Aspose.Pdf.Tagged namespace.\n  - Add 'using Aspose.Pdf.Tagged;'\n  - Access via: Aspose.Pdf.Tagged.ITaggedContent\n  - Get instance: doc.TaggedContent (returns ITaggedContent)"
+  },
+  {
+    "pattern": "'(?:Pdf|Document)Comparer' does not contain a definition for",
+    "error_code": "CS1061",
+    "fix_guidance": "CRITICAL API FIX: PdfComparer / DocumentComparer method names.\n  - Use Aspose.Pdf.Comparison.PdfComparer for comparing PDF documents.\n  - To compare: var comparer = new Aspose.Pdf.Comparison.PdfComparer();\n  - Methods: comparer.Compare(doc1, doc2) — returns comparison result.\n  - Do NOT use non-existent methods like ComparePages, GetDifferences, etc."
+  },
+  {
+    "pattern": "'GraphicalPdfComparer' does not contain a definition for",
+    "error_code": "CS1061",
+    "fix_guidance": "CRITICAL API FIX: GraphicalPdfComparer available methods.\n  - Use Aspose.Pdf.Comparison.GraphicalPdfComparer for visual comparison.\n  - var comparer = new Aspose.Pdf.Comparison.GraphicalPdfComparer();\n  - Use comparer.CompareDocumentsPageByPage(doc1, doc2, outputDir) to compare.\n  - Use comparer.CompareDocumentsToPdf(doc1, doc2, outputPath) for PDF output.\n  - Do NOT call non-existent methods."
+  },
+  {
+    "pattern": "(?:Comparison|Comparer|ComparisonOptions).*does not exist in the namespace",
+    "error_code": "CS0234",
+    "fix_guidance": "NAMESPACE FIX: PDF Comparison classes are in Aspose.Pdf.Comparison namespace.\n  - Add 'using Aspose.Pdf.Comparison;'\n  - Classes: PdfComparer, GraphicalPdfComparer, ComparisonOptions\n  - Do NOT use Aspose.Pdf.Compare or Aspose.Pdf.Comparing — they don't exist."
+  },
+  {
+    "pattern": "Cannot implicitly convert type.*'Aspose\\.Pdf\\.Comparison\\.",
+    "error_code": "CS0029",
+    "fix_guidance": "TYPE MISMATCH in PDF comparison result handling.\n  - CompareDocumentsToPdf returns void — it writes directly to a file.\n  - CompareDocumentsPageByPage returns void — it writes to a directory.\n  - Do NOT try to assign the result to a variable. Just call the method.\n  - Example: comparer.CompareDocumentsToPdf(doc1, doc2, \"result.pdf\");"
+  },
+  {
+    "pattern": "'ComparisonOptions' does not contain a definition for",
+    "error_code": "CS1061",
+    "fix_guidance": "API FIX: ComparisonOptions properties.\n  - Use: var options = new ComparisonOptions();\n  - Valid: options.EditOperationsOrder (EditOperationsOrder enum)\n  - Valid: options.ExcludeAreas (list of Rectangle areas to exclude)\n  - Do NOT use non-existent properties like Tolerance, Mode, etc."
+  },
+  {
+    "pattern": "no argument given that corresponds to the required parameter.*of 'Layer\\(",
+    "error_code": "CS7036",
+    "fix_guidance": "CRITICAL API FIX: Layer constructor requires a name parameter.\n  - Use: var layer = new Aspose.Pdf.Layer(\"layerId\", \"Layer Name\");\n  - The Layer constructor takes (string id, string name) — both required.\n  - Do NOT use new Layer() without arguments."
+  },
+  {
+    "pattern": "'Layer\\.Name' cannot be assigned to.*read only",
+    "error_code": "CS0200",
+    "fix_guidance": "API FIX: Layer.Name is read-only. Set the name via constructor.\n  - Use: var layer = new Layer(\"id\", \"My Layer Name\");\n  - Layer.Name and Layer.Id are set at construction time."
+  },
+  {
+    "pattern": "'(?:Layer|Document)' does not contain a definition for '(?:Layers|AddText|Operators)'",
+    "error_code": "CS1061",
+    "fix_guidance": "CRITICAL API FIX: Layer content is added via Page.Layers.\n  - Access layers: page.Layers (LayerCollection on a Page).\n  - Create layer: var layer = new Layer(\"id\", \"name\");\n  - Add content via layer.Contents (Operator list).\n  - Add layer to page: page.Layers.Add(layer);\n  - Do NOT use Layer.AddText() or Layer.Operators."
+  },
+  {
+    "pattern": "no argument given that corresponds to the required parameter.*of 'CrashReport(?:Options)?\\(",
+    "error_code": "CS7036",
+    "fix_guidance": "CRITICAL API FIX: CrashReportOptions requires an Exception parameter.\n  - Use: var options = new CrashReportOptions(exception);\n  - The constructor requires a System.Exception object.\n  - Wrap in try/catch to capture the exception first."
+  },
+  {
+    "pattern": "'CrashReportOptions' does not contain a definition for '(?:OutputFile|Output)'",
+    "error_code": "CS1061",
+    "fix_guidance": "API FIX: CrashReportOptions does not have OutputFile.\n  - Use CrashReportOptions.CrashReportDirectory for output dir.\n  - The report file path is managed by the generator.\n  - Do NOT use options.OutputFile or options.Output."
+  },
+  {
+    "pattern": "'CrashReportOptions\\.Exception' cannot be assigned to.*read only",
+    "error_code": "CS0200",
+    "fix_guidance": "API FIX: CrashReportOptions.Exception is read-only.\n  - Pass exception via constructor: new CrashReportOptions(ex);\n  - Do NOT assign options.Exception = ex after construction."
+  },
+  {
+    "pattern": "'Heading' does not contain a definition for '(?:Title|IsInToc|TocPage)'",
+    "error_code": "CS1061",
+    "fix_guidance": "CRITICAL API FIX: Heading class for table of contents.\n  - Heading inherits from TextFragment. Set text via Segments.\n  - Heading does NOT have .Title or .IsInToc properties.\n  - Create: var heading = new Heading(level);\n  - Set text: heading.Segments.Add(new TextSegment(\"text\"));\n  - heading.IsAutoSequence = true; for auto-numbering.\n  - Add to page: page.Paragraphs.Add(heading);"
+  },
+  {
+    "pattern": "'TableOfContents' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "CRITICAL: No TableOfContents class in Aspose.PDF.\n  - To create TOC: use TocInfo on a Page: page.TocInfo = new TocInfo();\n  - Then add Heading objects to page.Paragraphs.\n  - Do NOT look for TableOfContents — it does not exist."
+  },
+  {
+    "pattern": "Cannot.*convert type.*'TextSegment\\[\\]' to '.*TextSegmentCollection'",
+    "error_code": "CS0029",
+    "fix_guidance": "TYPE MISMATCH: TextSegment[] vs TextSegmentCollection.\n  - TextFragment.Segments is TextSegmentCollection, not an array.\n  - Use: textFragment.Segments.Add(new TextSegment(\"text\"));\n  - Do NOT assign an array to Segments."
+  }
+]
