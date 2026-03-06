@@ -1,0 +1,377 @@
+"""
+jobs.py — Background worker (run_job, retry_pr).
+
+Runs in a daemon thread — NOT in the async event loop.
+This keeps heavy CPU/IO work (dotnet build, ML models) off Uvicorn's event loop.
+
+Fully in-memory — no database. Results tracked via state.BUILD_STATE.
+"""
+
+import uuid
+
+from config import load_config
+from pipeline.models import TaskInput
+from pipeline.runner import PipelineRunner
+from git_ops.repo import RepoManager
+from git_ops.committer import CodeCommitter
+from git_ops.pr import PRManager
+from pipeline.llm_client import LLMClient
+from state import (
+    add_failed, add_log, add_passed, is_cancelled,
+    init_build, set_current_task, set_pr_url, set_pr_branch,
+    set_results_summary, set_status, set_total,
+    JOB_CANCEL_FLAGS, JOB_LOCK,
+)
+
+
+def _compute_badge(result) -> str:
+    """Compute a display badge from the pipeline result."""
+    if result.status == "FAILED":
+        return "FAILED"
+
+    stage_labels = {
+        "baseline": "MCP",
+        "pattern_fix": "MCP + Pattern Fix",
+        "llm_fix": "MCP + LLM Fix",
+        "regen": "MCP + Rules",
+        "final_llm": "MCP + Final LLM",
+    }
+    label = stage_labels.get(result.stage, "MCP")
+    return f"{label} - {result.stage}"
+
+
+def _make_progress_callback(job_id: str):
+    def callback(stage: str, message: str):
+        add_log(job_id, message)
+    return callback
+
+
+def _setup_pr_workflow(config, job_id: str, notify):
+    """Setup repo + PR branch. Returns (repo, committer, pr_manager) or None."""
+    repo = RepoManager(
+        repo_path=config.git.repo_path,
+        repo_url=config.git.repo_url,
+        repo_branch=config.git.repo_branch,
+        repo_token=config.git.repo_token,
+        repo_user=config.git.repo_user,
+        notify=notify,
+    )
+    if not repo.ensure_ready():
+        add_log(job_id, "Git repository not ready - PR will be skipped")
+        return None, None, None
+
+    branch_name = f"examples/batch-{job_id[:8]}"
+    if not repo.setup_pr_branch(branch_name):
+        add_log(job_id, "Could not create PR branch - pushing to default branch")
+        return None, None, None
+
+    add_log(job_id, f"PR branch created: {branch_name}")
+
+    llm = LLMClient(config)
+    committer = CodeCommitter(
+        repo_path=config.git.repo_path,
+        repo_push=True,
+        pr_branch=repo.pr_branch,
+        repo_branch=config.git.repo_branch,
+        default_category=config.git.default_category,
+        batch_git=True,
+        notify=notify,
+        llm_client=llm,
+    )
+    pr_manager = PRManager(config, repo, notify=notify, llm_client=llm)
+    return repo, committer, pr_manager
+
+
+def run_job(
+    job_id: str,
+    mode: str,
+    prompt: str = None,
+    prompts: list = None,
+    category: str = None,
+    product: str = None,
+    repo_push: bool = False,
+    force: bool = False,
+    api_url: str = None,
+):
+    """Run a test job. Called from a daemon thread."""
+    notify = _make_progress_callback(job_id)
+    config = load_config()
+
+    # Override API URL if provided
+    if api_url:
+        config.mcp.generate_url = api_url
+
+    try:
+        if mode == "single":
+            init_build(job_id, total=1)
+            add_log(job_id, f"Testing: {prompt[:100]}...")
+            set_current_task(job_id, prompt[:100])
+
+            runner = PipelineRunner(config, progress_callback=notify)
+
+            # Setup PR branch before running
+            repo, committer, pr_manager = None, None, None
+            if repo_push:
+                repo, committer, pr_manager = _setup_pr_workflow(config, job_id, notify)
+
+            task_input = TaskInput(
+                task=prompt,
+                category=category or "",
+                product=product or config.git.default_product,
+            )
+            result = runner.execute(task_input)
+            badge = _compute_badge(result)
+            final_code = result.fixed_code or result.generated_code or ""
+            status_str = "PASSED" if result.status == "SUCCESS" else "FAILED"
+
+            if result.status == "SUCCESS":
+                add_passed(job_id, "1", prompt[:100], badge, code=final_code)
+                add_log(job_id, f"Passed ({badge})")
+                # Commit code to repo
+                if committer:
+                    committer.commit_code(prompt, category or "", final_code)
+            else:
+                add_failed(job_id, "1", prompt[:100], badge, code=final_code)
+                add_log(job_id, f"Failed ({badge})")
+
+            # Batch commit + PR
+            if committer and committer._pending_commits:
+                committer.batch_commit_and_push()
+            if pr_manager and repo and repo.pr_branch:
+                results_summary = [{"task": prompt[:100], "category": category or "", "status": status_str}]
+                pr_url = pr_manager.create_pull_request(results_summary)
+                if pr_url:
+                    set_pr_url(job_id, pr_url)
+                    add_log(job_id, f"Pull request created: {pr_url}")
+
+            set_status(job_id, "completed")
+            add_log(job_id, "Pipeline complete.")
+            return
+
+        if mode == "csv":
+            if not prompts:
+                init_build(job_id, total=0)
+                set_status(job_id, "completed")
+                add_log(job_id, "No prompts to process.")
+                return
+
+            total = len(prompts)
+            init_build(job_id, total=total)
+            add_log(job_id, f"Starting batch: {total} task(s)")
+
+            runner = PipelineRunner(config, progress_callback=notify)
+
+            # Setup PR branch before running
+            repo, committer, pr_manager = None, None, None
+            if repo_push:
+                repo, committer, pr_manager = _setup_pr_workflow(config, job_id, notify)
+                if repo and repo.pr_branch:
+                    set_pr_branch(job_id, repo.pr_branch)
+
+            results_summary = []
+
+            for idx, p in enumerate(prompts, 1):
+                if is_cancelled(job_id):
+                    break
+
+                task_text = p.get("prompt", p.get("task", ""))
+                task_id = str(p.get("id", idx))
+                task_display = task_text[:100] if task_text else f"Task {idx}"
+
+                separator = "=" * 60
+                add_log(job_id, separator)
+                add_log(job_id, f"Testing: {p.get('category', '')} - {task_display}")
+                add_log(job_id, separator)
+                set_current_task(job_id, f"Processing task #{task_id} ({idx}/{total})...")
+
+                task_input = TaskInput(
+                    task=task_text,
+                    category=p.get("category", ""),
+                    product=p.get("product", config.git.default_product),
+                )
+                result = runner.execute(task_input)
+                badge = _compute_badge(result)
+                final_code = result.fixed_code or result.generated_code or ""
+                status_str = "PASSED" if result.status == "SUCCESS" else "FAILED"
+
+                results_summary.append({
+                    "task": task_display,
+                    "category": p.get("category", ""),
+                    "status": status_str,
+                })
+
+                if result.status == "SUCCESS":
+                    add_passed(job_id, task_id, task_display, badge, code=final_code)
+                    add_log(job_id, f"Task {task_id} passed ({badge})")
+                    if committer:
+                        committer.commit_code(task_text, p.get("category", ""), final_code)
+                else:
+                    add_failed(job_id, task_id, task_display, badge, code=final_code)
+                    add_log(job_id, f"Task {task_id} failed ({badge})")
+
+            # Persist results for PR retry
+            set_results_summary(job_id, results_summary)
+
+            # Batch commit + PR
+            if committer and committer._pending_commits:
+                add_log(job_id, f"Batch committing {len(committer._pending_commits)} file(s)...")
+                committer.batch_commit_and_push()
+
+            if pr_manager and repo and repo.pr_branch and results_summary:
+                add_log(job_id, "Creating pull request...")
+                set_current_task(job_id, "Creating pull request...")
+                pr_url = pr_manager.create_pull_request(results_summary)
+                if pr_url:
+                    set_pr_url(job_id, pr_url)
+                    add_log(job_id, f"Pull request created: {pr_url}")
+                else:
+                    add_log(job_id, "PR creation failed - changes are on the feature branch")
+
+            with JOB_LOCK:
+                was_cancelled = JOB_CANCEL_FLAGS.pop(job_id, False)
+
+            if was_cancelled:
+                set_status(job_id, "cancelled")
+                add_log(job_id, f"Job cancelled after {idx}/{total} task(s)")
+            else:
+                set_status(job_id, "completed")
+                add_log(job_id, "Pipeline complete.")
+            return
+
+        # Unknown mode
+        set_status(job_id, "failed")
+        add_log(job_id, f"Invalid job mode: {mode}")
+
+    except Exception as exc:
+        with JOB_LOCK:
+            JOB_CANCEL_FLAGS.pop(job_id, None)
+        add_log(job_id, f"Job failed: {exc}")
+        set_status(job_id, "failed")
+
+
+def create_pr(job_id: str, passed_results: list, results_summary: list):
+    """Create a fresh PR from code stored in state's passed results.
+
+    This handles the case where the job ran WITHOUT repo_push=true,
+    and the user clicks "Create PR" afterwards.
+    Commits each passed result's code to a new branch, then creates a PR.
+    """
+    notify = _make_progress_callback(job_id)
+    config = load_config()
+
+    try:
+        add_log(job_id, "Creating PR from results...")
+        set_current_task(job_id, "Setting up repository...")
+
+        repo = RepoManager(
+            repo_path=config.git.repo_path,
+            repo_url=config.git.repo_url,
+            repo_branch=config.git.repo_branch,
+            repo_token=config.git.repo_token,
+            repo_user=config.git.repo_user,
+            notify=notify,
+        )
+        if not repo.ensure_ready():
+            add_log(job_id, "Git repository not ready - cannot create PR")
+            set_current_task(job_id, "PR retry complete.")
+            return
+
+        branch_name = f"examples/batch-{job_id[:8]}"
+        if not repo.setup_pr_branch(branch_name):
+            add_log(job_id, "Could not create PR branch")
+            set_current_task(job_id, "PR retry complete.")
+            return
+
+        set_pr_branch(job_id, branch_name)
+        add_log(job_id, f"PR branch created: {branch_name}")
+
+        llm = LLMClient(config)
+        committer = CodeCommitter(
+            repo_path=config.git.repo_path,
+            repo_push=True,
+            pr_branch=repo.pr_branch,
+            repo_branch=config.git.repo_branch,
+            default_category=config.git.default_category,
+            batch_git=True,
+            notify=notify,
+            llm_client=llm,
+        )
+
+        # Commit each passed result's code
+        committed = 0
+        for item in passed_results:
+            code = item.get("code", "")
+            task = item.get("task", "")
+            if not code or not task:
+                continue
+            # Find the category from results_summary
+            category = ""
+            for rs in results_summary:
+                if rs.get("task", "") == task:
+                    category = rs.get("category", "")
+                    break
+            committer.commit_code(task, category, code)
+            committed += 1
+
+        if committer._pending_commits:
+            add_log(job_id, f"Batch committing {committed} file(s)...")
+            committer.batch_commit_and_push()
+        else:
+            add_log(job_id, "No files to commit")
+            set_current_task(job_id, "PR retry complete.")
+            return
+
+        # Create PR
+        add_log(job_id, "Creating pull request...")
+        set_current_task(job_id, "Creating pull request...")
+        pr_manager = PRManager(config, repo, notify=notify, llm_client=llm)
+        pr_url = pr_manager.create_pull_request(results_summary)
+        if pr_url:
+            set_pr_url(job_id, pr_url)
+            add_log(job_id, f"Pull request created: {pr_url}")
+        else:
+            add_log(job_id, "PR creation failed - changes are on the feature branch")
+
+        set_current_task(job_id, "PR retry complete.")
+
+    except Exception as exc:
+        add_log(job_id, f"PR creation failed: {exc}")
+        set_current_task(job_id, "PR retry complete.")
+
+
+def retry_pr(job_id: str, old_pr_branch: str, results_summary: list):
+    """Create a new conflict-free PR from already-generated examples.
+
+    Recovers .cs files from an existing old feature branch.
+    """
+    notify = _make_progress_callback(job_id)
+    config = load_config()
+
+    try:
+        add_log(job_id, "PR retry started...")
+        set_current_task(job_id, "Setting up repository...")
+
+        repo = RepoManager(
+            repo_path=config.git.repo_path,
+            repo_url=config.git.repo_url,
+            repo_branch=config.git.repo_branch,
+            repo_token=config.git.repo_token,
+            repo_user=config.git.repo_user,
+            notify=notify,
+        )
+
+        llm = LLMClient(config)
+        pr_manager = PRManager(config, repo, notify=notify, llm_client=llm)
+
+        pr_url = pr_manager.retry_pr(old_pr_branch, results_summary)
+        if pr_url:
+            set_pr_url(job_id, pr_url)
+            set_pr_branch(job_id, repo.pr_branch or "")
+            add_log(job_id, f"Pull request created: {pr_url}")
+        else:
+            add_log(job_id, "PR retry failed - branch may have been pushed but no PR created")
+
+        set_current_task(job_id, "PR retry complete.")
+
+    except Exception as exc:
+        add_log(job_id, f"PR retry failed: {exc}")

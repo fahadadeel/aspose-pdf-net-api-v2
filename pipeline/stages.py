@@ -1,0 +1,238 @@
+"""
+pipeline/stages.py — The 5-stage retry pipeline functions.
+
+Stage 1: Baseline Generation
+Stage 2: LLM Fix Attempts
+Stage 3: Context Enrichment
+Stage 4: Regeneration with enriched context
+Stage 5: Final LLM Recovery
+"""
+
+import json
+import re
+from typing import Callable, List, Optional, Tuple
+
+from config import AppConfig
+from pipeline.models import StageOutcome, TaskInput
+from pipeline.build import DotnetBuilder
+from pipeline.mcp_client import MCPClient
+from pipeline.llm_client import LLMClient
+from pipeline.error_parser import extract_errors, parse_error_codes, detect_and_fix_known_patterns
+from pipeline.prompt_builder import (
+    build_enriched_prompt, build_retry_instruction,
+    format_rules_for_prompt,
+)
+from knowledge.error_catalog import match_error_catalog
+from knowledge.error_fixes import match_error_fixes, format_error_fixes_for_prompt
+from knowledge.fix_history import get_boosted_rule_ids, record_successful_fix
+from knowledge.rule_search import RuleSearchEngine
+from knowledge.reranker import llm_rerank_rules
+
+Notify = Callable[[str, str], None]
+
+
+def run_baseline(task_input: TaskInput, mcp: MCPClient, builder: DotnetBuilder, notify: Notify) -> StageOutcome:
+    """Stage 1: Generate code via MCP and build/run."""
+    notify("baseline", "Generating code via MCP...")
+    code = mcp.generate(task_input.task, category=task_input.category, product=task_input.product)
+    if not code:
+        return StageOutcome(success=False, stage="baseline", build_log="API call failed")
+
+    builder.write_csproj()
+    builder.write_program_cs(code)
+    notify("baseline", "Building and running...")
+    success, output = builder.build_and_run()
+
+    if success:
+        return StageOutcome(success=True, code=code, stage="baseline")
+    return StageOutcome(success=False, code=code, stage="baseline", build_log=output)
+
+
+def run_llm_fix_loop(
+    code: str, error_log: str, task: str,
+    llm: LLMClient, builder: DotnetBuilder, notify: Notify,
+    max_attempts: int = 3, user_rules: str = "",
+) -> StageOutcome:
+    """Stage 2: Loop LLM fix attempts."""
+    if not llm.available:
+        return StageOutcome(success=False, stage="llm_fix", build_log="LLM not configured")
+
+    last_err = error_log
+    current_code = code
+
+    for attempt in range(1, max_attempts + 1):
+        notify("llm_fix", f"LLM fix attempt {attempt}/{max_attempts}...")
+        error_lines = extract_errors(last_err, limit=10)
+        error_summary = "\n".join(error_lines[:5]) if error_lines else "Build errors detected."
+
+        fixed_code = llm.fix_code(task, current_code, error_summary, user_rules)
+        if not fixed_code:
+            continue
+
+        builder.write_program_cs(fixed_code)
+        success, output = builder.build_and_run()
+
+        if success:
+            return StageOutcome(success=True, code=fixed_code, stage="llm_fix")
+
+        last_err = output
+        current_code = fixed_code
+
+    return StageOutcome(success=False, code=current_code, stage="llm_fix", build_log=last_err)
+
+
+def run_context_enrichment(
+    task: str, error_log: str,
+    mcp: MCPClient, llm: LLMClient, config: AppConfig,
+) -> str:
+    """Stage 3: Retrieve API chunks and optionally decompose task. Returns enriched task."""
+    parts = [task]
+
+    # 3a: Retrieve API chunks
+    if config.pipeline.use_retrieve_on_llm_fail:
+        chunks = mcp.retrieve(
+            task,
+            limit=config.pipeline.retrieve_limit,
+            exclude_namespaces=list(config.mcp.exclude_namespaces),
+        )
+        chunks_text = MCPClient.format_chunks(chunks, config.pipeline.retrieve_max_chars)
+        if chunks_text:
+            parts.append(chunks_text)
+
+    # 3b: Task decomposition
+    if config.pipeline.decompose_on_llm_fail and llm.available:
+        context = "\n".join(parts[1:]) if len(parts) > 1 else ""
+        decomposed = llm.decompose_task(task, context)
+        if decomposed:
+            parts.insert(1, decomposed)
+
+    return "\n\n".join(parts)
+
+
+def run_regen_loop(
+    enriched_task: str, task_input: TaskInput,
+    original_error_log: str,
+    mcp: MCPClient, builder: DotnetBuilder, llm: LLMClient,
+    notify: Notify, config: AppConfig,
+    rule_engine: Optional[RuleSearchEngine] = None,
+    error_catalog: list = None,
+    error_fixes_data: dict = None,
+) -> StageOutcome:
+    """Stage 4: Regeneration with enriched context and KB rules."""
+    max_attempts = config.pipeline.regen_attempts
+    retry_mode = config.pipeline.retry_mode
+
+    error_lines = extract_errors(original_error_log, limit=10)
+    parsed = parse_error_codes(error_lines)
+    error_codes = list(dict.fromkeys(e.code for e in parsed))
+    error_summary = "\n".join(error_lines[:5]) if error_lines else "Build errors detected."
+
+    history_boosts = get_boosted_rule_ids(config.fix_history_path, error_codes)
+    prev_codes: List[str] = []
+    prev_count = 0
+    last_code = ""
+    last_err = original_error_log
+
+    for attempt in range(1, max_attempts + 1):
+        if retry_mode == "simple":
+            prompt = (
+                f"{enriched_task}\n\n"
+                f"The previous code failed with:\n{error_summary}\n\n"
+                f"Please generate corrected code."
+            )
+            top_rules = []
+            catalog_patterns = []
+        else:
+            # Full mode: catalog + error fixes + KB rules
+            cat_guidance = match_error_catalog(error_catalog or [], last_err) if error_catalog else []
+            matched_catalog = [e.get("pattern", "") for e in (error_catalog or []) if re.search(e.get("pattern", "x^"), last_err)]
+            fixes = match_error_fixes(error_fixes_data or {}, last_err, error_codes)
+            fixes_text = format_error_fixes_for_prompt(fixes)
+
+            query = f"{task_input.task}\n{error_summary}"
+            if attempt == 1 and rule_engine:
+                top_rules = rule_engine.find_top_rules(query, config.reranker.attempt1_top_k, error_codes, history_boosts)
+            elif rule_engine:
+                candidates = rule_engine.find_top_rules(query, config.reranker.candidate_count, error_codes, history_boosts)
+                reranked = llm_rerank_rules(candidates, error_summary, task_input.task, config.reranker.top_k, llm)
+                if reranked:
+                    top_rules = reranked
+                else:
+                    top_k = RuleSearchEngine.compute_adaptive_top_k(attempt, error_codes, prev_codes, len(error_lines), prev_count)
+                    top_rules = candidates[:top_k]
+            else:
+                top_rules = []
+
+            rules_text = format_rules_for_prompt(top_rules)
+            retry_inst = build_retry_instruction(attempt, error_codes)
+            catalog_patterns = matched_catalog
+
+            prompt = build_enriched_prompt(
+                enriched_task, error_summary,
+                catalog_guidance=cat_guidance,
+                error_fixes_text=fixes_text,
+                retry_instruction=retry_inst,
+                rules_text=rules_text,
+            )
+
+        notify("regen", f"MCP regen attempt {attempt}/{max_attempts}...")
+        code = mcp.generate(prompt, category=task_input.category, product=task_input.product, limit=config.pipeline.retrieve_limit)
+        if not code:
+            continue
+
+        builder.write_program_cs(code)
+        success, output = builder.build_and_run()
+        last_code = code
+
+        if success:
+            # Record fix for future learning
+            rule_ids = [r.get("id", "") for r in top_rules if r.get("id")]
+            try:
+                record_successful_fix(
+                    config.fix_history_path, error_codes, rule_ids,
+                    catalog_patterns, attempt, task_input.task[:120],
+                )
+            except Exception:
+                pass
+            rule_desc = json.dumps({
+                "description": f"MCP regen attempt {attempt} ({len(top_rules)} rules)",
+                "pattern": "Regeneration with context enrichment",
+            }, indent=2)
+            return StageOutcome(success=True, code=code, stage="regen", rule=rule_desc)
+
+        # Update error state for next attempt
+        prev_codes = error_codes[:]
+        prev_count = len(error_lines)
+        last_err = output
+        error_lines = extract_errors(output, limit=10)
+        parsed = parse_error_codes(error_lines)
+        error_codes = list(dict.fromkeys(e.code for e in parsed))
+        error_summary = "\n".join(error_lines[:5]) if error_lines else "Build errors detected."
+        history_boosts = get_boosted_rule_ids(config.fix_history_path, error_codes)
+
+    return StageOutcome(success=False, code=last_code, stage="regen", build_log=last_err)
+
+
+def run_final_llm_recovery(
+    code: str, error_log: str, task: str,
+    llm: LLMClient, builder: DotnetBuilder, notify: Notify,
+    config: AppConfig,
+) -> StageOutcome:
+    """Stage 5: One last LLM fix attempt using last regen code."""
+    if not llm.available or not code:
+        return StageOutcome(success=False, stage="final_llm")
+
+    notify("final_llm", "Final LLM recovery attempt...")
+    error_lines = extract_errors(error_log, limit=10)
+    error_summary = "\n".join(error_lines[:5]) if error_lines else "Build errors detected."
+
+    fixed = llm.fix_code(task, code, error_summary)
+    if not fixed:
+        return StageOutcome(success=False, stage="final_llm")
+
+    builder.write_program_cs(fixed)
+    success, output = builder.build_and_run()
+
+    if success:
+        return StageOutcome(success=True, code=fixed, stage="final_llm")
+    return StageOutcome(success=False, code=fixed, stage="final_llm", build_log=output)

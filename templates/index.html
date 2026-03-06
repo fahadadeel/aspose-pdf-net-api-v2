@@ -1,0 +1,1827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Aspose.Pdf for .NET Examples Generator</title>
+  <style>
+    /* ── Reset & Root ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #1c2333;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --text-dim:  #8b949e;
+      --green:     #2ea043;
+      --green-bg:  rgba(46,160,67,0.12);
+      --red:       #da3633;
+      --red-bg:    rgba(218,54,51,0.12);
+      --yellow:    #d29922;
+      --yellow-bg: rgba(210,153,34,0.12);
+      --blue:      #58a6ff;
+      --blue-bg:   rgba(88,166,255,0.12);
+      --purple:    #bc8cff;
+      --radius:    8px;
+      --radius-lg: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    /* ── Scrollbar ────────────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    /* ── Header ───────────────────────────────────────────────────── */
+    .app-header {
+      background: var(--surface);
+      border-bottom: 2px solid transparent;
+      border-image: linear-gradient(90deg, var(--blue), var(--purple), var(--blue)) 1;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .header-brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+    .app-header h1 {
+      font-size: 20px;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .app-header .subtitle {
+      font-size: 12px;
+      color: var(--text-dim);
+      font-weight: 400;
+      letter-spacing: 0.3px;
+      padding-left: 20px;
+    }
+    .app-header h1 .logo-dot {
+      width: 10px; height: 10px;
+      background: var(--green);
+      border-radius: 50%;
+      display: inline-block;
+      animation: pulse-dot 2s ease-in-out infinite;
+    }
+    @keyframes pulse-dot {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+    .repo-badge {
+      font-size: 12px;
+      background: var(--blue-bg);
+      color: var(--blue);
+      padding: 3px 10px;
+      border-radius: 12px;
+      font-weight: 500;
+    }
+    .header-actions {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    /* ── Buttons ───────────────────────────────────────────────────── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 18px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface2);
+      color: var(--text);
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      white-space: nowrap;
+    }
+    .btn:hover { background: var(--border); }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--green), #3fb950);
+      border-color: var(--green);
+      color: #fff;
+      font-size: 16px;
+      padding: 12px 40px;
+      box-shadow: 0 2px 8px rgba(46,160,67,0.3);
+    }
+    .btn-primary:hover { background: linear-gradient(135deg, #3fb950, #56d364); border-color: #3fb950; box-shadow: 0 4px 12px rgba(46,160,67,0.4); }
+    .btn-danger {
+      background: var(--red);
+      border-color: var(--red);
+      color: #fff;
+    }
+    .btn-danger:hover { background: #f85149; border-color: #f85149; }
+    .btn-sm { padding: 5px 12px; font-size: 13px; }
+
+    /* ── Container ─────────────────────────────────────────────────── */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 24px 32px 64px;
+    }
+
+    /* ── Cards ──────────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 20px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .card-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 16px;
+      color: var(--text);
+    }
+
+    /* ── Tabs ──────────────────────────────────────────────────────── */
+    .tabs {
+      display: flex;
+      gap: 0;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 20px;
+    }
+    .tab {
+      padding: 12px 24px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-dim);
+      cursor: pointer;
+      border-bottom: 2px solid transparent;
+      transition: all 0.2s ease;
+      background: none;
+      border-top: none;
+      border-left: none;
+      border-right: none;
+    }
+    .tab:hover { color: var(--text); background: rgba(88,166,255,0.05); }
+    .tab.active {
+      color: var(--blue);
+      border-bottom-color: var(--blue);
+      font-weight: 600;
+    }
+    .tab-content { display: none; }
+    .tab-content.active { display: block; }
+
+    /* ── Form Elements ─────────────────────────────────────────────── */
+    textarea, input[type="text"], input[type="file"], select {
+      width: 100%;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: inherit;
+      transition: border-color 0.15s ease;
+    }
+    textarea:focus, input[type="text"]:focus, select:focus {
+      outline: none;
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(88,166,255,0.15);
+    }
+    textarea { min-height: 120px; resize: vertical; }
+    select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238b949e' viewBox='0 0 16 16'%3E%3Cpath d='M4.427 7.427l3.396 3.396a.25.25 0 00.354 0l3.396-3.396A.25.25 0 0011.396 7H4.604a.25.25 0 00-.177.427z'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      padding-right: 36px;
+      cursor: pointer;
+    }
+    input[type="file"] {
+      padding: 8px 14px;
+      cursor: pointer;
+    }
+    input[type="file"]::file-selector-button {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text);
+      padding: 6px 14px;
+      font-size: 13px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    input[type="file"]::file-selector-button:hover {
+      background: var(--border);
+    }
+    label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .form-group { margin-bottom: 16px; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+
+    /* ── Checkboxes ────────────────────────────────────────────────── */
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 0;
+    }
+    .checkbox-row input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+    .checkbox-row label {
+      text-transform: none;
+      font-weight: 400;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 0;
+      cursor: pointer;
+    }
+
+    /* ── Options Collapsible ───────────────────────────────────────── */
+    .options-toggle {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 14px;
+      font-weight: 500;
+      color: var(--text-dim);
+      cursor: pointer;
+      padding: 8px 0;
+      border: none;
+      background: none;
+      transition: color 0.15s ease;
+    }
+    .options-toggle:hover { color: var(--text); }
+    .options-toggle .arrow {
+      transition: transform 0.2s ease;
+      font-size: 10px;
+    }
+    .options-toggle.open .arrow { transform: rotate(90deg); }
+    .options-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease;
+    }
+    .options-body.open {
+      max-height: 400px;
+    }
+    .options-inner {
+      padding: 12px 0;
+    }
+    .admin-section {
+      display: none;
+      margin-top: 12px;
+      padding: 12px 16px;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .admin-section.visible { display: block; }
+    .radio-group {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .radio-group label {
+      text-transform: none;
+      font-weight: 400;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+    }
+    .radio-group input[type="radio"] {
+      accent-color: var(--blue);
+      cursor: pointer;
+    }
+
+    /* ── Search Input ─────────────────────────────────────────────── */
+    .search-input {
+      margin-bottom: 8px;
+      padding: 8px 12px !important;
+      font-size: 13px !important;
+      background: var(--bg) !important;
+    }
+
+    /* ── Task Generator ────────────────────────────────────────────── */
+    .task-gen-layout {
+      display: grid;
+      grid-template-columns: 220px 1fr;
+      gap: 16px;
+      min-height: 300px;
+    }
+    .category-list {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow-y: auto;
+      max-height: 360px;
+    }
+    .category-item {
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--text-dim);
+      cursor: pointer;
+      border-bottom: 1px solid var(--border);
+      transition: all 0.1s ease;
+    }
+    .category-item:last-child { border-bottom: none; }
+    .category-item:hover { background: var(--surface2); color: var(--text); }
+    .category-item.active {
+      background: var(--blue-bg);
+      color: var(--blue);
+      font-weight: 500;
+    }
+    .task-list-panel {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 16px;
+      overflow-y: auto;
+      max-height: 360px;
+    }
+    .task-list-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+    .task-list-header span {
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .task-list-header .btn-group {
+      display: flex;
+      gap: 6px;
+    }
+    .task-check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(48,54,61,0.5);
+    }
+    .task-check-item:last-child { border-bottom: none; }
+    .task-check-item input[type="checkbox"] {
+      width: 16px; height: 16px;
+      margin-top: 2px;
+      accent-color: var(--blue);
+      flex-shrink: 0;
+      cursor: pointer;
+    }
+    .task-check-item label {
+      text-transform: none;
+      font-weight: 400;
+      font-size: 14px;
+      color: var(--text);
+      margin-bottom: 0;
+      cursor: pointer;
+      line-height: 1.4;
+    }
+    .task-placeholder {
+      color: var(--text-dim);
+      font-size: 14px;
+      padding: 40px 20px;
+      text-align: center;
+    }
+    .loading-spinner {
+      display: inline-block;
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      margin-right: 8px;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Start Section ─────────────────────────────────────────────── */
+    .start-section {
+      display: flex;
+      justify-content: center;
+      padding: 24px 0 8px;
+    }
+
+    /* ═══════════════════════════════════════════════════════════════
+       MONITOR PANEL
+       ═══════════════════════════════════════════════════════════════ */
+
+    /* ── Stats Bar ─────────────────────────────────────────────────── */
+    .stats-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px 16px;
+      text-align: center;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .stat-box:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    .stat-box .stat-label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-dim);
+      margin-bottom: 6px;
+    }
+    .stat-box .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      line-height: 1.1;
+    }
+    .stat-box .stat-value.white { color: var(--text); }
+    .stat-box .stat-value.green { color: var(--green); }
+    .stat-box .stat-value.red   { color: var(--red); }
+    .stat-box .stat-value.yellow { color: var(--yellow); }
+
+    /* ── Status Line ───────────────────────────────────────────────── */
+    .status-line {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px 16px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 20px;
+      font-size: 14px;
+      min-height: 48px;
+    }
+    .now-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: var(--blue-bg);
+      color: var(--blue);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 3px 10px;
+      border-radius: 10px;
+      flex-shrink: 0;
+    }
+    .now-badge .pulse {
+      width: 6px; height: 6px;
+      background: var(--blue);
+      border-radius: 50%;
+      animation: pulse-dot 1.2s ease-in-out infinite;
+    }
+    .status-text {
+      color: var(--text);
+      font-size: 14px;
+    }
+    .done-badge {
+      background: var(--green-bg);
+      color: var(--green);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.8px;
+      padding: 3px 10px;
+      border-radius: 10px;
+    }
+
+    /* ── Results Two-Column ─────────────────────────────────────────── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .results-col {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      display: flex;
+      flex-direction: column;
+      max-height: 420px;
+    }
+    .results-col-header {
+      padding: 14px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      border-bottom: 1px solid var(--border);
+      flex-shrink: 0;
+    }
+    .results-col-header.passed { color: var(--green); }
+    .results-col-header.failed { color: var(--red); }
+    .results-col-body {
+      padding: 8px 12px;
+      overflow-y: auto;
+      flex: 1;
+    }
+    .result-item {
+      padding: 10px 12px;
+      border-radius: var(--radius);
+      margin-bottom: 6px;
+      font-size: 13px;
+      line-height: 1.5;
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+    .result-item:hover {
+      transform: translateX(2px);
+      box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    }
+    .result-item.pass {
+      background: var(--green-bg);
+      border-left: 3px solid var(--green);
+    }
+    .result-item.fail {
+      background: var(--red-bg);
+      border-left: 3px solid var(--red);
+    }
+    .result-item .result-id {
+      font-weight: 700;
+      margin-right: 6px;
+      opacity: 0.8;
+    }
+    .result-item .result-task {
+      color: var(--text);
+    }
+    .result-item .result-badge {
+      display: inline-block;
+      margin-top: 4px;
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .result-item.pass .result-badge {
+      background: rgba(46,160,67,0.25);
+      color: #3fb950;
+    }
+    .result-item.fail .result-badge {
+      background: rgba(218,54,51,0.25);
+      color: #f85149;
+    }
+
+    /* ── Result Header Row (badge + toggle) ───────────────────────── */
+    .result-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 4px;
+    }
+    .code-toggle {
+      font-size: 11px;
+      color: var(--blue);
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-weight: 500;
+      transition: background 0.1s ease;
+      flex-shrink: 0;
+    }
+    .code-toggle:hover {
+      background: var(--blue-bg);
+    }
+
+    /* ── Code Block ───────────────────────────────────────────────── */
+    .result-code-wrap {
+      display: none;
+      margin-top: 8px;
+      position: relative;
+    }
+    .result-code-wrap.open {
+      display: block;
+    }
+    .result-code-block {
+      background: #010409;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 12px 14px;
+      max-height: 280px;
+      overflow: auto;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #e6edf3;
+      white-space: pre;
+      tab-size: 4;
+    }
+    .copy-btn {
+      position: absolute;
+      top: 6px;
+      right: 6px;
+      font-size: 11px;
+      padding: 4px 10px;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s ease;
+      z-index: 1;
+    }
+    .copy-btn:hover {
+      background: var(--border);
+      color: var(--text);
+    }
+    .copy-btn.copied {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+    }
+
+    /* ── Console Log ───────────────────────────────────────────────── */
+    .console-panel {
+      background: #010409;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      overflow: hidden;
+    }
+    .console-header {
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-dim);
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .console-header .terminal-dots {
+      display: flex;
+      gap: 5px;
+    }
+    .console-header .terminal-dots span {
+      width: 10px; height: 10px;
+      border-radius: 50%;
+    }
+    .console-header .terminal-dots span:nth-child(1) { background: #da3633; }
+    .console-header .terminal-dots span:nth-child(2) { background: #d29922; }
+    .console-header .terminal-dots span:nth-child(3) { background: #2ea043; }
+    .console-body {
+      padding: 14px 18px;
+      max-height: 300px;
+      overflow-y: auto;
+      font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', 'JetBrains Mono', Menlo, Monaco, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-dim);
+    }
+    .console-body .log-line {
+      white-space: pre-wrap;
+      word-break: break-all;
+    }
+    .console-body .log-line .log-ts {
+      color: #484f58;
+      margin-right: 8px;
+    }
+
+    /* ── PR Link ────────────────────────────────────────────────────── */
+    .pr-link-banner {
+      display: none;
+      margin-top: 12px;
+      padding: 10px 16px;
+      background: rgba(56, 139, 253, 0.1);
+      border: 1px solid rgba(56, 139, 253, 0.3);
+      border-radius: 8px;
+      font-size: 14px;
+    }
+    .pr-link-banner.visible {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pr-link-banner a {
+      color: var(--blue);
+      text-decoration: none;
+      font-weight: 600;
+    }
+    .pr-link-banner a:hover {
+      text-decoration: underline;
+    }
+
+    /* ── Monitor Actions ─────────────────────────────────────────────── */
+    .monitor-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .btn-create-pr {
+      background: rgba(46,160,67,0.15);
+      border: 1px solid rgba(46,160,67,0.4);
+      color: var(--green);
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-create-pr:hover:not(:disabled) {
+      background: rgba(46,160,67,0.25);
+      border-color: var(--green);
+    }
+    .btn-create-pr:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-download {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--text);
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 500;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn-download:hover {
+      background: var(--border);
+      box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    }
+
+    /* ── Hidden ─────────────────────────────────────────────────────── */
+    .hidden { display: none !important; }
+
+    /* ── Responsive ─────────────────────────────────────────────────── */
+    @media (max-width: 840px) {
+      .stats-bar { grid-template-columns: repeat(3, 1fr); }
+      .results-grid { grid-template-columns: 1fr; }
+      .form-row { grid-template-columns: 1fr; }
+      .task-gen-layout { grid-template-columns: 1fr; }
+      .container { padding: 16px 12px 64px; }
+      .app-header { padding: 14px 16px; }
+    }
+    @media (max-width: 540px) {
+      .stats-bar { grid-template-columns: repeat(2, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     SETUP PANEL
+     ═══════════════════════════════════════════════════════════════════ -->
+<div id="setup-panel">
+  <header class="app-header">
+    <div class="header-brand">
+      <h1>
+        <span class="logo-dot"></span>
+        Aspose.Pdf for .NET Examples Generator
+      </h1>
+      <span class="subtitle">Automated Code Generation &amp; Testing Pipeline</span>
+    </div>
+    <span class="repo-badge">{{ repo_display }} : {{ repo_branch }}</span>
+  </header>
+
+  <div class="container">
+    <!-- Mode Tabs -->
+    <div class="card">
+      <div class="tabs">
+        <button class="tab active" data-tab="single" onclick="switchTab('single')">Single</button>
+        <button class="tab" data-tab="csv" onclick="switchTab('csv')">CSV</button>
+        <button class="tab" data-tab="taskgen" onclick="switchTab('taskgen')">Task Generator</button>
+      </div>
+
+      <!-- Single Mode -->
+      <div id="tab-single" class="tab-content active">
+        <div class="form-group">
+          <label for="prompt-input">Prompt</label>
+          <textarea id="prompt-input" placeholder="Describe the API wrapper task to execute..."></textarea>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="category-input">Category</label>
+            <select id="category-input">
+              <option value="">Loading categories...</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label for="product-input">Product</label>
+            <select id="product-input">
+              <option value="aspose.pdf" selected>aspose.pdf</option>
+              <option value="aspose.words">aspose.words</option>
+              <option value="aspose.cells">aspose.cells</option>
+              <option value="aspose.slides">aspose.slides</option>
+              <option value="aspose.imaging">aspose.imaging</option>
+              <option value="aspose.email">aspose.email</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <!-- CSV Mode -->
+      <div id="tab-csv" class="tab-content">
+        <div class="form-group">
+          <label for="csv-input">Upload CSV File</label>
+          <input type="file" id="csv-input" accept=".csv" />
+        </div>
+        <p style="font-size: 13px; color: var(--text-dim); margin-top: 4px;">
+          CSV should have columns: <strong>prompt</strong>, <strong>category</strong>, <strong>product</strong>
+        </p>
+      </div>
+
+      <!-- Task Generator Mode -->
+      <div id="tab-taskgen" class="tab-content">
+        <div class="task-gen-layout">
+          <div>
+            <label>Categories</label>
+            <input type="text" id="category-search" class="search-input" placeholder="Search categories..." oninput="filterCategories()" />
+            <div class="category-list" id="category-list">
+              <div class="task-placeholder">Loading categories...</div>
+            </div>
+          </div>
+          <div>
+            <label>Tasks</label>
+            <input type="text" id="task-search" class="search-input" placeholder="Search tasks..." oninput="filterTasks()" />
+            <div class="task-list-panel" id="task-list-panel">
+              <div class="task-placeholder">Select a category to load tasks</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Options (collapsible) -->
+    <div class="card">
+      <button class="options-toggle" id="options-toggle" onclick="toggleOptions()">
+        <span class="arrow">&#9654;</span> Options
+      </button>
+      <div class="options-body" id="options-body">
+        <div class="options-inner">
+          <div class="checkbox-row">
+            <input type="checkbox" id="opt-create-pr" />
+            <label for="opt-create-pr">Create Pull Request after successful builds</label>
+          </div>
+
+          <!-- Admin Section -->
+          <div class="admin-section" id="admin-section">
+            <label style="margin-bottom: 10px;">API URL Override</label>
+            <div class="radio-group">
+              <label>
+                <input type="radio" name="api-url-mode" value="default" checked onchange="toggleApiUrlInput()" />
+                Default
+              </label>
+              <label>
+                <input type="radio" name="api-url-mode" value="custom" onchange="toggleApiUrlInput()" />
+                Custom
+              </label>
+            </div>
+            <div id="custom-api-url-wrap" class="hidden">
+              <input type="text" id="api-url-input" value="{{ default_api_url }}" placeholder="https://..." />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Start Button -->
+    <div class="start-section">
+      <button class="btn btn-primary" id="start-btn" onclick="startJob()">
+        &#9654; Start
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     MONITOR PANEL
+     ═══════════════════════════════════════════════════════════════════ -->
+<div id="monitor-panel" class="hidden">
+  <header class="app-header">
+    <div class="header-brand">
+      <h1>
+        <span class="logo-dot"></span>
+        Aspose.Pdf for .NET Examples Generator
+      </h1>
+      <span class="subtitle">Automated Code Generation &amp; Testing Pipeline</span>
+    </div>
+    <div class="header-actions">
+      <span class="repo-badge">{{ repo_display }} : {{ repo_branch }}</span>
+      <button class="btn" id="run-again-btn" onclick="runAgain()">&#9654; Run Again</button>
+      <button class="btn btn-danger" id="stop-btn" onclick="stopJob()">&#9209; Stop</button>
+    </div>
+  </header>
+
+  <div class="container">
+    <!-- Stats Bar -->
+    <div class="stats-bar">
+      <div class="stat-box">
+        <div class="stat-label">&#128202; Total</div>
+        <div class="stat-value white" id="stat-total">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">&#9989; Passed</div>
+        <div class="stat-value green" id="stat-passed">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">&#10060; Failed</div>
+        <div class="stat-value red" id="stat-failed">0</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">&#128200; Pass Rate</div>
+        <div class="stat-value green" id="stat-rate">--%</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-label">&#9201; Elapsed</div>
+        <div class="stat-value white" id="stat-elapsed">00:00</div>
+      </div>
+    </div>
+
+    <!-- Monitor Actions -->
+    <div class="monitor-actions">
+      <button class="btn-create-pr hidden" id="create-pr-btn" onclick="createPR()">&#128279; Create PR</button>
+      <button class="btn-download hidden" id="download-csv-btn" onclick="downloadCSV()">&#11015; Download CSV</button>
+    </div>
+
+    <!-- PR Link Banner -->
+    <div class="pr-link-banner" id="pr-link-banner">
+      &#128279; Pull Request created: <a id="pr-link-url" href="#" target="_blank" rel="noopener"></a>
+    </div>
+
+    <!-- Status Line -->
+    <div class="status-line" id="status-line">
+      <span class="now-badge" id="now-badge"><span class="pulse"></span> NOW</span>
+      <span class="status-text" id="status-text">Initializing...</span>
+    </div>
+
+    <!-- Results Grid -->
+    <div class="results-grid">
+      <div class="results-col">
+        <div class="results-col-header passed" id="passed-header">Passed (0)</div>
+        <div class="results-col-body" id="passed-list"></div>
+      </div>
+      <div class="results-col">
+        <div class="results-col-header failed" id="failed-header">Failed (0)</div>
+        <div class="results-col-body" id="failed-list"></div>
+      </div>
+    </div>
+
+    <!-- Console Log -->
+    <div class="console-panel">
+      <div class="console-header">
+        <span class="terminal-dots"><span></span><span></span><span></span></span>
+        Console Output
+      </div>
+      <div class="console-body" id="console-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════════════
+     JAVASCRIPT
+     ═══════════════════════════════════════════════════════════════════ -->
+<script>
+(function() {
+  'use strict';
+
+  /* ── State ──────────────────────────────────────────────────── */
+  let currentJobId   = null;
+  let eventSource    = null;
+  let pollTimer      = null;
+  let elapsedTimer   = null;
+  let startTime      = null;
+  let elapsedSeconds = 0;
+  let activeTab      = 'single';
+  let selectedTasks  = [];
+  let isAdmin        = window.location.search.indexOf('admin') !== -1;
+  let categoriesLoaded = false;
+  let lastProcessed  = 0;
+  let _allPassed     = [];
+  let _allFailed     = [];
+
+  /* ── Init ───────────────────────────────────────────────────── */
+  if (isAdmin) {
+    document.getElementById('admin-section').classList.add('visible');
+  }
+  loadSingleCategories();
+
+  /* ── Tab Switching ──────────────────────────────────────────── */
+  window.switchTab = function(tab) {
+    activeTab = tab;
+    document.querySelectorAll('.tab').forEach(function(t) {
+      t.classList.toggle('active', t.getAttribute('data-tab') === tab);
+    });
+    document.querySelectorAll('.tab-content').forEach(function(tc) {
+      tc.classList.toggle('active', tc.id === 'tab-' + tab);
+    });
+    if (tab === 'taskgen' && !categoriesLoaded) {
+      loadCategories();
+    }
+  };
+
+  /* ── Options Toggle ─────────────────────────────────────────── */
+  window.toggleOptions = function() {
+    var toggle = document.getElementById('options-toggle');
+    var body   = document.getElementById('options-body');
+    toggle.classList.toggle('open');
+    body.classList.toggle('open');
+  };
+
+  window.toggleApiUrlInput = function() {
+    var mode = document.querySelector('input[name="api-url-mode"]:checked').value;
+    var wrap = document.getElementById('custom-api-url-wrap');
+    if (mode === 'custom') {
+      wrap.classList.remove('hidden');
+    } else {
+      wrap.classList.add('hidden');
+    }
+  };
+
+  // toggleRepoUrl removed — repo config is now in .env only
+
+  /* ── Helpers ────────────────────────────────────────────────── */
+  function getApiUrl() {
+    if (!isAdmin) return '';
+    var mode = document.querySelector('input[name="api-url-mode"]:checked');
+    if (mode && mode.value === 'custom') {
+      return document.getElementById('api-url-input').value.trim();
+    }
+    return '';
+  }
+
+  function getOptions() {
+    return {
+      repo_push:   document.getElementById('opt-create-pr').checked,
+      force:       false,
+      api_url:     getApiUrl()
+    };
+  }
+
+  function formatElapsed(sec) {
+    var m = Math.floor(sec / 60);
+    var s = sec % 60;
+    return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
+  }
+
+  function escapeHtml(str) {
+    var div = document.createElement('div');
+    div.textContent = str;
+    return div.innerHTML;
+  }
+
+  function escapeAttr(str) {
+    // Escape for safe use inside HTML attributes (handles single quotes, double quotes, etc.)
+    return str.replace(/&/g, '&amp;').replace(/'/g, '&#39;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  }
+
+  function addLogLine(text) {
+    var body = document.getElementById('console-body');
+    var line = document.createElement('div');
+    line.className = 'log-line';
+    var now  = new Date();
+    var ts   = String(now.getHours()).padStart(2,'0') + ':' +
+               String(now.getMinutes()).padStart(2,'0') + ':' +
+               String(now.getSeconds()).padStart(2,'0');
+    line.innerHTML = '<span class="log-ts">[' + ts + ']</span>' + escapeHtml(text);
+    body.appendChild(line);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  function updatePassRateColor(rate) {
+    var el = document.getElementById('stat-rate');
+    el.className = 'stat-value';
+    if (rate >= 90)      el.classList.add('green');
+    else if (rate >= 70) el.classList.add('yellow');
+    else                 el.classList.add('red');
+  }
+
+  var _codeCounter = 0;
+
+  function appendResult(container, item, type) {
+    var div = document.createElement('div');
+    div.className = 'result-item ' + (type === 'pass' ? 'pass' : 'fail');
+
+    var codeId = 'code-' + (++_codeCounter);
+    var hasCode = item.code && item.code.trim().length > 0;
+
+    var html = '<span class="result-id">#' + escapeHtml(String(item.id || '')) + '</span>'
+             + '<span class="result-task">' + escapeHtml(item.task || '') + '</span>';
+
+    // Badge + code toggle on same row
+    html += '<div class="result-meta">';
+    if (item.badge) {
+      html += '<span class="result-badge">' + escapeHtml(item.badge) + '</span>';
+    } else {
+      html += '<span></span>';
+    }
+    if (hasCode) {
+      html += '<button class="code-toggle" onclick="toggleCode(\'' + codeId + '\', this)">View Code</button>';
+    }
+    html += '</div>';
+
+    // Collapsible code block
+    if (hasCode) {
+      html += '<div class="result-code-wrap" id="' + codeId + '">'
+            + '<button class="copy-btn" onclick="copyCode(\'' + codeId + '\', this)">Copy</button>'
+            + '<pre class="result-code-block">' + escapeHtml(item.code) + '</pre>'
+            + '</div>';
+    }
+
+    div.innerHTML = html;
+    container.appendChild(div);
+    container.scrollTop = container.scrollHeight;
+  }
+
+  window.toggleCode = function(id, btn) {
+    var wrap = document.getElementById(id);
+    if (!wrap) return;
+    var isOpen = wrap.classList.toggle('open');
+    btn.textContent = isOpen ? 'Hide Code' : 'View Code';
+  };
+
+  window.copyCode = function(id, btn) {
+    var wrap = document.getElementById(id);
+    if (!wrap) return;
+    var pre = wrap.querySelector('pre');
+    if (!pre) return;
+    var text = pre.textContent;
+    navigator.clipboard.writeText(text).then(function() {
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function() {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    }).catch(function() {
+      // Fallback for older browsers
+      var ta = document.createElement('textarea');
+      ta.value = text;
+      ta.style.position = 'fixed';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand('copy');
+      document.body.removeChild(ta);
+      btn.textContent = 'Copied!';
+      btn.classList.add('copied');
+      setTimeout(function() {
+        btn.textContent = 'Copy';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  };
+
+  /* ── Single Mode Category Dropdown ─────────────────────────── */
+  function loadSingleCategories() {
+    var sel = document.getElementById('category-input');
+    fetch('/api/categories')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var categories = data.categories || data || [];
+        if (!Array.isArray(categories)) categories = [];
+        sel.innerHTML = '<option value="">— Select Category —</option>';
+        categories.forEach(function(cat) {
+          var catName = (typeof cat === 'string') ? cat : (cat.name || cat.title || cat.category || '');
+          if (!catName) return;
+          var opt = document.createElement('option');
+          opt.value = catName;
+          opt.textContent = catName;
+          sel.appendChild(opt);
+        });
+      })
+      .catch(function() {
+        sel.innerHTML = '<option value="">— Failed to load —</option>';
+      });
+  }
+
+  /* ── Task Generator ─────────────────────────────────────────── */
+  function loadCategories() {
+    var listEl = document.getElementById('category-list');
+    listEl.innerHTML = '<div class="task-placeholder"><span class="loading-spinner"></span>Loading categories...</div>';
+
+    fetch('/api/categories')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        categoriesLoaded = true;
+        var categories = data.categories || data || [];
+        if (!Array.isArray(categories)) categories = [];
+        if (categories.length === 0) {
+          listEl.innerHTML = '<div class="task-placeholder">No categories found</div>';
+          return;
+        }
+        listEl.innerHTML = '';
+        categories.forEach(function(cat) {
+          var catName = (typeof cat === 'string') ? cat : (cat.name || cat.title || cat.category || JSON.stringify(cat));
+          var item = document.createElement('div');
+          item.className = 'category-item';
+          item.textContent = catName;
+          item.onclick = function() {
+            document.querySelectorAll('.category-item').forEach(function(c) { c.classList.remove('active'); });
+            item.classList.add('active');
+            loadTasks(catName);
+          };
+          listEl.appendChild(item);
+        });
+      })
+      .catch(function(err) {
+        listEl.innerHTML = '<div class="task-placeholder">Failed to load categories</div>';
+        console.error('loadCategories error:', err);
+      });
+  }
+
+  function loadTasks(category) {
+    var panel = document.getElementById('task-list-panel');
+    panel.innerHTML = '<div class="task-placeholder"><span class="loading-spinner"></span>Loading tasks...</div>';
+    // Clear task search when loading new category
+    document.getElementById('task-search').value = '';
+
+    // Fetch all pages of tasks
+    var allTasks = [];
+    function fetchPage(page) {
+      return fetch('/api/tasks?category=' + encodeURIComponent(category) + '&page=' + page)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          var tasks = data.items || data.tasks || [];
+          if (!Array.isArray(tasks)) tasks = [];
+          allTasks = allTasks.concat(tasks);
+          var totalPages = data.total_pages || 1;
+          if (page < totalPages) {
+            return fetchPage(page + 1);
+          }
+        });
+    }
+
+    fetchPage(1)
+      .then(function() {
+        renderTasks(panel, allTasks);
+      })
+      .catch(function(err) {
+        panel.innerHTML = '<div class="task-placeholder">Failed to load tasks</div>';
+        console.error('loadTasks error:', err);
+      });
+  }
+
+  function renderTasks(panel, tasks) {
+    if (tasks.length === 0) {
+      panel.innerHTML = '<div class="task-placeholder">No tasks in this category</div>';
+      return;
+    }
+    var headerHtml =
+      '<div class="task-list-header">' +
+        '<span id="task-count">0 / ' + tasks.length + ' selected</span>' +
+        '<div class="btn-group">' +
+          '<button class="btn btn-sm" onclick="selectAllTasks(true)">Select All</button>' +
+          '<button class="btn btn-sm" onclick="selectAllTasks(false)">Deselect All</button>' +
+        '</div>' +
+      '</div>';
+    var itemsHtml = '';
+    tasks.forEach(function(t, i) {
+      var taskStr = (typeof t === 'string') ? t : (t.prompt || t.task || t.description || JSON.stringify(t));
+      itemsHtml +=
+        '<div class="task-check-item">' +
+          '<input type="checkbox" id="task-cb-' + i + '" data-task=\'' + escapeAttr(JSON.stringify(t)) + '\' onchange="updateTaskCount()" />' +
+          '<label for="task-cb-' + i + '">' + escapeHtml(taskStr) + '</label>' +
+        '</div>';
+    });
+    panel.innerHTML = headerHtml + itemsHtml;
+  }
+
+  /* ── Search / Filter ─────────────────────────────────────────── */
+  window.filterCategories = function() {
+    var query = document.getElementById('category-search').value.toLowerCase().trim();
+    document.querySelectorAll('#category-list .category-item').forEach(function(item) {
+      var text = item.textContent.toLowerCase();
+      item.style.display = (!query || text.indexOf(query) !== -1) ? '' : 'none';
+    });
+  };
+
+  window.filterTasks = function() {
+    var query = document.getElementById('task-search').value.toLowerCase().trim();
+    document.querySelectorAll('#task-list-panel .task-check-item').forEach(function(item) {
+      var label = item.querySelector('label');
+      var text = label ? label.textContent.toLowerCase() : '';
+      item.style.display = (!query || text.indexOf(query) !== -1) ? '' : 'none';
+    });
+  };
+
+  window.selectAllTasks = function(checked) {
+    // Only affect visible (non-filtered) tasks
+    document.querySelectorAll('#task-list-panel .task-check-item').forEach(function(item) {
+      if (item.style.display === 'none') return;
+      var cb = item.querySelector('input[type="checkbox"]');
+      if (cb) cb.checked = checked;
+    });
+    updateTaskCount();
+  };
+
+  window.updateTaskCount = function() {
+    var all     = document.querySelectorAll('#task-list-panel input[type="checkbox"]');
+    var checked = document.querySelectorAll('#task-list-panel input[type="checkbox"]:checked');
+    var countEl = document.getElementById('task-count');
+    if (countEl) {
+      countEl.textContent = checked.length + ' / ' + all.length + ' selected';
+    }
+  };
+
+  function getSelectedTasks() {
+    var tasks = [];
+    document.querySelectorAll('#task-list-panel input[type="checkbox"]:checked').forEach(function(cb) {
+      try {
+        tasks.push(JSON.parse(cb.getAttribute('data-task')));
+      } catch(e) {
+        tasks.push(cb.getAttribute('data-task'));
+      }
+    });
+    return tasks;
+  }
+
+  /* ── Start Job ──────────────────────────────────────────────── */
+  window.startJob = function() {
+    var btn = document.getElementById('start-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Starting...';
+
+    var opts = getOptions();
+    var promise;
+
+    if (activeTab === 'single') {
+      var fd = new FormData();
+      fd.append('mode', 'single');
+      fd.append('prompt', document.getElementById('prompt-input').value);
+      fd.append('category', document.getElementById('category-input').value);
+      fd.append('product', document.getElementById('product-input').value);
+      fd.append('repo_push', opts.repo_push);
+      fd.append('force', opts.force);
+      if (opts.api_url) fd.append('api_url', opts.api_url);
+      promise = fetch('/api/start', { method: 'POST', body: fd });
+
+    } else if (activeTab === 'csv') {
+      var fileInput = document.getElementById('csv-input');
+      if (!fileInput.files.length) {
+        alert('Please select a CSV file.');
+        btn.disabled = false;
+        btn.innerHTML = '&#9654; Start';
+        return;
+      }
+      var fd2 = new FormData();
+      fd2.append('mode', 'csv');
+      fd2.append('csv', fileInput.files[0]);
+      fd2.append('repo_push', opts.repo_push);
+      fd2.append('force', opts.force);
+      if (opts.api_url) fd2.append('api_url', opts.api_url);
+      promise = fetch('/api/start', { method: 'POST', body: fd2 });
+
+    } else if (activeTab === 'taskgen') {
+      var tasks = getSelectedTasks();
+      if (tasks.length === 0) {
+        alert('Please select at least one task.');
+        btn.disabled = false;
+        btn.innerHTML = '&#9654; Start';
+        return;
+      }
+      promise = fetch('/api/start-tasks', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          tasks:      tasks,
+          repo_push:  opts.repo_push,
+          force:      opts.force,
+          api_url:    opts.api_url || undefined
+        })
+      });
+    }
+
+    promise
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          alert('Error: ' + data.error);
+          btn.disabled = false;
+          btn.innerHTML = '&#9654; Start';
+          return;
+        }
+        currentJobId = data.job_id || data.id;
+        showMonitor();
+        connectSSE(currentJobId);
+      })
+      .catch(function(err) {
+        alert('Failed to start job: ' + err);
+        btn.disabled = false;
+        btn.innerHTML = '&#9654; Start';
+      });
+  };
+
+  /* ── Show / Hide Panels ─────────────────────────────────────── */
+  function showMonitor() {
+    document.getElementById('setup-panel').classList.add('hidden');
+    document.getElementById('monitor-panel').classList.remove('hidden');
+
+    // Reset monitor state
+    document.getElementById('stat-total').textContent   = '0';
+    document.getElementById('stat-passed').textContent  = '0';
+    document.getElementById('stat-failed').textContent  = '0';
+    document.getElementById('stat-rate').textContent    = '--%';
+    document.getElementById('stat-rate').className      = 'stat-value white';
+    document.getElementById('stat-elapsed').textContent = '00:00';
+    document.getElementById('passed-header').innerHTML  = '&#10004; Passed (0)';
+    document.getElementById('failed-header').innerHTML  = '&#10008; Failed (0)';
+    document.getElementById('passed-list').innerHTML    = '';
+    document.getElementById('failed-list').innerHTML    = '';
+    document.getElementById('console-body').innerHTML   = '';
+    document.getElementById('status-text').textContent  = 'Initializing...';
+    document.getElementById('now-badge').className      = 'now-badge';
+    document.getElementById('now-badge').innerHTML      = '<span class="pulse"></span> NOW';
+    document.getElementById('stop-btn').classList.remove('hidden');
+    document.getElementById('run-again-btn').classList.add('hidden');
+    document.getElementById('download-csv-btn').classList.add('hidden');
+    document.getElementById('create-pr-btn').classList.add('hidden');
+    document.getElementById('pr-link-banner').classList.remove('visible');
+    lastProcessed = 0;
+    _allPassed = [];
+    _allFailed = [];
+
+    // Start elapsed timer
+    startTime = Date.now();
+    elapsedSeconds = 0;
+    if (elapsedTimer) clearInterval(elapsedTimer);
+    elapsedTimer = setInterval(function() {
+      elapsedSeconds = Math.floor((Date.now() - startTime) / 1000);
+      document.getElementById('stat-elapsed').textContent = formatElapsed(elapsedSeconds);
+    }, 1000);
+
+    addLogLine('Job started. Connecting to event stream...');
+  }
+
+  window.runAgain = function() {
+    // Cleanup
+    cleanup();
+    // Reset start button
+    var btn = document.getElementById('start-btn');
+    btn.disabled = false;
+    btn.innerHTML = '&#9654; Start';
+    // Show setup
+    document.getElementById('monitor-panel').classList.add('hidden');
+    document.getElementById('setup-panel').classList.remove('hidden');
+  };
+
+  /* ── SSE Connection ─────────────────────────────────────────── */
+  function connectSSE(jobId) {
+    if (eventSource) {
+      eventSource.close();
+      eventSource = null;
+    }
+
+    try {
+      eventSource = new EventSource('/api/stream/' + jobId);
+
+      eventSource.onmessage = function(e) {
+        handleSSEData(e.data);
+      };
+
+      eventSource.addEventListener('done', function(e) {
+        addLogLine('All tasks complete.');
+        jobFinished();
+        if (eventSource) { eventSource.close(); eventSource = null; }
+      });
+
+      eventSource.onerror = function(e) {
+        console.warn('SSE error, falling back to polling');
+        if (eventSource) { eventSource.close(); eventSource = null; }
+        addLogLine('Event stream disconnected. Switching to polling...');
+        startPolling(jobId);
+      };
+
+    } catch(err) {
+      console.warn('SSE not supported, using polling');
+      addLogLine('Event stream unavailable. Using polling...');
+      startPolling(jobId);
+    }
+  }
+
+  function startPolling(jobId) {
+    if (pollTimer) clearInterval(pollTimer);
+    pollTimer = setInterval(function() {
+      fetch('/api/status/' + jobId)
+        .then(function(r) { return r.json(); })
+        .then(function(data) {
+          handleSSEData(JSON.stringify(data));
+          if (data.status === 'done' || data.status === 'cancelled' || data.status === 'error') {
+            clearInterval(pollTimer);
+            pollTimer = null;
+            jobFinished();
+          }
+        })
+        .catch(function(err) {
+          console.error('Poll error:', err);
+        });
+    }, 2000);
+  }
+
+  function handleSSEData(raw) {
+    var data;
+    try {
+      data = JSON.parse(raw);
+    } catch(e) {
+      return;
+    }
+
+    // Update stats
+    if (data.total !== undefined) {
+      document.getElementById('stat-total').textContent = data.total;
+    }
+    if (data.passed_count !== undefined) {
+      document.getElementById('stat-passed').textContent = data.passed_count;
+    }
+    if (data.failed_count !== undefined) {
+      document.getElementById('stat-failed').textContent = data.failed_count;
+    }
+    if (data.pass_rate !== undefined) {
+      var rateVal = parseFloat(data.pass_rate);
+      document.getElementById('stat-rate').textContent = (isNaN(rateVal) ? '--' : rateVal.toFixed(0)) + '%';
+      if (!isNaN(rateVal)) updatePassRateColor(rateVal);
+    }
+    if (data.elapsed !== undefined) {
+      // Use server-provided elapsed if available (still keep client timer running)
+      var serverSec = Math.floor(parseFloat(data.elapsed));
+      document.getElementById('stat-elapsed').textContent = formatElapsed(serverSec);
+    }
+
+    // Update status line
+    if (data.current_task) {
+      document.getElementById('status-text').textContent = data.current_task;
+    }
+
+    // Append passed items
+    if (data.new_passed && Array.isArray(data.new_passed)) {
+      var passedList = document.getElementById('passed-list');
+      data.new_passed.forEach(function(item) {
+        _allPassed.push(item);
+        appendResult(passedList, item, 'pass');
+      });
+      var pc = parseInt(document.getElementById('stat-passed').textContent) || 0;
+      document.getElementById('passed-header').innerHTML = '&#10004; Passed (' + pc + ')';
+    }
+
+    // Append failed items
+    if (data.new_failed && Array.isArray(data.new_failed)) {
+      var failedList = document.getElementById('failed-list');
+      data.new_failed.forEach(function(item) {
+        _allFailed.push(item);
+        appendResult(failedList, item, 'fail');
+      });
+      var fc = parseInt(document.getElementById('stat-failed').textContent) || 0;
+      document.getElementById('failed-header').innerHTML = '&#10008; Failed (' + fc + ')';
+    }
+
+    // Show download CSV button when results exist
+    if (_allPassed.length + _allFailed.length > 0) {
+      document.getElementById('download-csv-btn').classList.remove('hidden');
+    }
+
+    // Show PR link when available
+    if (data.pr_url) {
+      var banner = document.getElementById('pr-link-banner');
+      var link = document.getElementById('pr-link-url');
+      link.href = data.pr_url;
+      link.textContent = data.pr_url;
+      banner.classList.add('visible');
+    }
+
+    // Append log lines
+    if (data.new_logs && Array.isArray(data.new_logs)) {
+      data.new_logs.forEach(function(line) {
+        addLogLine(line);
+      });
+    }
+
+    // Check completion
+    if (data.status === 'done' || data.status === 'cancelled' || data.status === 'error') {
+      jobFinished();
+    }
+  }
+
+  function jobFinished() {
+    // Stop timers
+    if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+    if (pollTimer)    { clearInterval(pollTimer);    pollTimer = null; }
+    if (eventSource)  { eventSource.close();         eventSource = null; }
+
+    // Update UI
+    document.getElementById('stop-btn').classList.add('hidden');
+    document.getElementById('run-again-btn').classList.remove('hidden');
+    document.getElementById('now-badge').innerHTML = '';
+    document.getElementById('now-badge').className = 'done-badge';
+    document.getElementById('now-badge').textContent = 'DONE';
+    document.getElementById('status-text').textContent = 'All tasks complete.';
+
+    // Show "Create PR" button if there are passed results
+    if (_allPassed.length > 0) {
+      var prBtn = document.getElementById('create-pr-btn');
+      prBtn.classList.remove('hidden');
+      // Update label based on whether PR already exists
+      var banner = document.getElementById('pr-link-banner');
+      if (banner.classList.contains('visible')) {
+        prBtn.textContent = '🔄 Retry PR';
+      } else {
+        prBtn.innerHTML = '&#128279; Create PR';
+      }
+    }
+  }
+
+  /* ── Create / Retry PR ──────────────────────────────────────── */
+  var _prPollTimer = null;
+  var _prPollLastLogCount = 0;
+
+  window.createPR = function() {
+    if (!currentJobId) return;
+    var btn = document.getElementById('create-pr-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Creating PR...';
+
+    fetch('/api/retry-pr/' + currentJobId, { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          alert('PR retry failed: ' + data.error);
+          btn.disabled = false;
+          btn.innerHTML = '&#128279; Create PR';
+          return;
+        }
+        addLogLine('🔄 PR creation started...');
+        _prPollLastLogCount = 0;
+        _startPRPoll();
+      })
+      .catch(function(err) {
+        alert('Request failed: ' + err);
+        btn.disabled = false;
+        btn.innerHTML = '&#128279; Create PR';
+      });
+  };
+
+  function _startPRPoll() {
+    if (_prPollTimer) clearInterval(_prPollTimer);
+    _prPollTimer = setInterval(function() {
+      if (!currentJobId) { clearInterval(_prPollTimer); return; }
+      fetch('/api/status/' + currentJobId)
+        .then(function(r) { return r.json(); })
+        .then(function(state) {
+          // Append new log lines
+          var logs = state.logs || [];
+          for (var i = _prPollLastLogCount; i < logs.length; i++) {
+            addLogLine(logs[i]);
+          }
+          _prPollLastLogCount = logs.length;
+
+          // PR created — show banner and stop polling
+          if (state.pr_url) {
+            clearInterval(_prPollTimer);
+            _prPollTimer = null;
+            var banner = document.getElementById('pr-link-banner');
+            var link   = document.getElementById('pr-link-url');
+            link.href = state.pr_url;
+            link.textContent = state.pr_url;
+            banner.classList.add('visible');
+            var btn = document.getElementById('create-pr-btn');
+            btn.classList.add('hidden');
+            btn.disabled = false;
+          } else if (state.current_task === 'PR retry complete.' || state.current_task === 'All tasks complete.') {
+            // Retry finished but no PR URL — re-enable button
+            clearInterval(_prPollTimer);
+            _prPollTimer = null;
+            var btn = document.getElementById('create-pr-btn');
+            btn.disabled = false;
+            btn.innerHTML = '&#128279; Create PR';
+          }
+        })
+        .catch(function() { /* ignore transient errors */ });
+    }, 2000);
+  }
+
+  function cleanup() {
+    if (elapsedTimer) { clearInterval(elapsedTimer); elapsedTimer = null; }
+    if (pollTimer)    { clearInterval(pollTimer);    pollTimer = null; }
+    if (eventSource)  { eventSource.close();         eventSource = null; }
+    currentJobId = null;
+    lastProcessed = 0;
+  }
+
+  /* ── Download CSV ───────────────────────────────────────────── */
+  window.downloadCSV = function() {
+    function csvEscape(val) {
+      if (val === null || val === undefined) return '""';
+      var str = String(val);
+      // Wrap in quotes if contains comma, newline, or quote
+      if (str.indexOf(',') !== -1 || str.indexOf('\n') !== -1 || str.indexOf('"') !== -1 || str.indexOf('\r') !== -1) {
+        return '"' + str.replace(/"/g, '""') + '"';
+      }
+      return str;
+    }
+
+    var rows = [];
+    rows.push('Task #,Task,Generated Code,Status');
+
+    _allPassed.forEach(function(item) {
+      rows.push(
+        csvEscape(item.id) + ',' +
+        csvEscape(item.task) + ',' +
+        csvEscape(item.code || '') + ',' +
+        'PASSED'
+      );
+    });
+
+    _allFailed.forEach(function(item) {
+      rows.push(
+        csvEscape(item.id) + ',' +
+        csvEscape(item.task) + ',' +
+        csvEscape(item.code || '') + ',' +
+        'FAILED'
+      );
+    });
+
+    var csvContent = rows.join('\n');
+    var blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    var url = URL.createObjectURL(blob);
+
+    var ts = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+    var filename = 'results-' + (currentJobId ? currentJobId.slice(0, 8) : 'export') + '-' + ts + '.csv';
+
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
+
+  /* ── Stop Job ───────────────────────────────────────────────── */
+  window.stopJob = function() {
+    if (!currentJobId) return;
+    var btn = document.getElementById('stop-btn');
+    btn.disabled = true;
+    btn.textContent = 'Stopping...';
+
+    fetch('/api/cancel/' + currentJobId, { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        addLogLine('Job cancellation requested.');
+      })
+      .catch(function(err) {
+        addLogLine('Failed to cancel job: ' + err);
+      })
+      .finally(function() {
+        btn.disabled = false;
+        btn.innerHTML = '&#9209; Stop';
+      });
+  };
+
+})();
+</script>
+</body>
+</html>

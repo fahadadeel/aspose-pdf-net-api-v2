@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xfdf xmlns="http://ns.adobe.com/xfdf/" xml:space="preserve">
+  <f href="/Users/fahadadeelqazi/Projects/Aspose/agents/aspose-pdf-api-v2/callout.pdf" />
+  <ids original="35452D34462D44452D44322D39332D43" modified="35452D34462D44452D44322D39332D43" />
+  <annots>
+    <freetext page="0" color="#FFFF00" flags="print" rect="100,500,300,550" creationdate="D:20260306010435+05'00'" IT="FreeTextCallout" callout="150,540,200,600,250,650" head="OpenArrow" tail="OpenArrow">
+      <defaultstyle>font: Helvetica 12pt;color: #000000</defaultstyle>
+      <contents-richtext><b>Callout annotation</b></contents-richtext>
+      <defaultappearance> 0 0 0 rg 0.000 0.000 0.000 RG /Helvetica 12.000 Tf</defaultappearance>
+    </freetext>
+  </annots>
+</xfdf>

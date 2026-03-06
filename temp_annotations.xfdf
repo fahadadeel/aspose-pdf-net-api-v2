@@ -1,0 +1,10 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<xfdf xmlns="http://ns.adobe.com/xfdf/" xml:space="preserve">
+  <f href="/Users/fahadadeelqazi/Projects/Aspose/agents/aspose-pdf-api-v2/input.pdf" />
+  <ids original="42302D43342D38322D43392D41342D39" modified="35422D31422D36452D41332D43372D44" />
+  <annots>
+    <text page="0" color="#FFFF00" flags="print" rect="100,500,300,550" title="Extra Note" creationdate="D:20260306104549+05'00'" icon="Note">
+      <contents>This is an extra annotation added programmatically.</contents>
+    </text>
+  </annots>
+</xfdf>

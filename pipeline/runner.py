@@ -1,0 +1,158 @@
+"""
+pipeline/runner.py — PipelineRunner: orchestrates the 5-stage retry pipeline.
+
+Framework-agnostic: no FastAPI, no threading, no state.py dependencies.
+Usable from CLI, API, or UI modes.
+"""
+
+from typing import Callable, Optional
+
+from config import AppConfig
+from pipeline.models import TaskInput, PipelineResult
+from pipeline.build import DotnetBuilder
+from pipeline.mcp_client import MCPClient
+from pipeline.llm_client import LLMClient
+from pipeline.error_parser import detect_and_fix_known_patterns
+from pipeline import stages
+from knowledge.rule_search import RuleSearchEngine
+from knowledge.error_catalog import load_error_catalog
+from knowledge.error_fixes import load_error_fixes
+
+
+class PipelineRunner:
+    """Orchestrates the 5-stage code generation and testing pipeline."""
+
+    def __init__(
+        self,
+        config: AppConfig,
+        progress_callback: Callable = None,
+        shared_sentence_model=None,
+    ):
+        self.config = config
+        self._notify_fn = progress_callback
+        self.mcp = MCPClient(config)
+        self.llm = LLMClient(config)
+        self.builder = DotnetBuilder(config)
+
+        # Knowledge base (lazy-loaded on first regen)
+        self._rule_engine = RuleSearchEngine()
+        self._shared_model = shared_sentence_model
+        self._kb_loaded = False
+        self._error_catalog = None
+        self._error_fixes = None
+
+    def _notify(self, stage: str, message: str):
+        if self._notify_fn:
+            try:
+                self._notify_fn(stage, message)
+            except Exception:
+                pass
+
+    def _ensure_kb(self):
+        """Lazy-load knowledge base resources."""
+        if self._kb_loaded:
+            return
+        self._rule_engine.load(self.config.rules_examples_path, self._shared_model)
+        self._error_catalog = load_error_catalog(self.config.error_catalog_path)
+        self._error_fixes = load_error_fixes(self.config.error_fixes_path)
+        self._kb_loaded = True
+
+    def execute(self, task_input: TaskInput) -> PipelineResult:
+        """Run the 5-stage pipeline. Returns PipelineResult."""
+        result = PipelineResult(
+            task=task_input.task,
+            category=task_input.category,
+            product=task_input.product,
+        )
+
+        # ── Stage 1: Baseline Generation ──
+        self._notify("baseline", f"Stage 1: Generating code for: {task_input.task[:80]}...")
+        outcome = stages.run_baseline(task_input, self.mcp, self.builder, self._notify)
+
+        if outcome.success:
+            result.generated_code = outcome.code
+            result.status = "SUCCESS"
+            result.stage = "baseline"
+            return result
+
+        if not outcome.code:
+            result.status = "API_FAILED"
+            result.stage = "baseline"
+            return result
+
+        result.generated_code = outcome.code
+        current_code = outcome.code
+        current_error = outcome.build_log
+
+        # ── Pattern fix (between stages 1 and 2) ──
+        fixed, rule = detect_and_fix_known_patterns(current_code, current_error)
+        if fixed:
+            self._notify("pattern_fix", "Applying known pattern fix...")
+            self.builder.write_program_cs(fixed)
+            success, output = self.builder.build_and_run()
+            if success:
+                result.fixed_code = fixed
+                result.rule = rule or ""
+                result.status = "SUCCESS"
+                result.stage = "pattern_fix"
+                return result
+            current_code = fixed
+            current_error = output
+
+        # ── Stage 2: LLM Fix Attempts ──
+        self._notify("llm_fix", "Stage 2: LLM fix attempts...")
+        outcome = stages.run_llm_fix_loop(
+            current_code, current_error, task_input.task,
+            self.llm, self.builder, self._notify,
+            max_attempts=self.config.pipeline.llm_fix_attempts,
+        )
+        if outcome.success:
+            result.fixed_code = outcome.code
+            result.status = "SUCCESS"
+            result.stage = "llm_fix"
+            return result
+
+        current_code = outcome.code
+        current_error = outcome.build_log
+
+        # ── Stage 3: Context Enrichment ──
+        self._notify("enrich", "Stage 3: Enriching context...")
+        enriched_task = stages.run_context_enrichment(
+            task_input.task, current_error,
+            self.mcp, self.llm, self.config,
+        )
+
+        # ── Stage 4: Regeneration with enriched context ──
+        self._ensure_kb()
+        self._notify("regen", "Stage 4: Regeneration attempts...")
+        outcome = stages.run_regen_loop(
+            enriched_task, task_input, current_error,
+            self.mcp, self.builder, self.llm, self._notify, self.config,
+            rule_engine=self._rule_engine,
+            error_catalog=self._error_catalog,
+            error_fixes_data=self._error_fixes,
+        )
+        if outcome.success:
+            result.fixed_code = outcome.code
+            result.rule = outcome.rule
+            result.status = "SUCCESS"
+            result.stage = "regen"
+            return result
+
+        # ── Stage 5: Final LLM Recovery ──
+        if self.config.pipeline.final_llm_after_regen_fail:
+            self._notify("final_llm", "Stage 5: Final LLM recovery...")
+            outcome = stages.run_final_llm_recovery(
+                outcome.code, outcome.build_log, task_input.task,
+                self.llm, self.builder, self._notify, self.config,
+            )
+            if outcome.success:
+                result.fixed_code = outcome.code
+                result.status = "SUCCESS"
+                result.stage = "final_llm"
+                return result
+
+        # ── All stages failed ──
+        result.status = "FAILED"
+        result.stage = "exhausted"
+        return result
