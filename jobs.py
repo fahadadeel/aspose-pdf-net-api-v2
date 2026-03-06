@@ -169,6 +169,8 @@ def run_job(
                     set_pr_branch(job_id, repo.pr_branch)
 
             results_summary = []
+            retry_queue = []  # Tasks to retry after transient failures
+            max_retries = 3   # Max retry attempts for API_FAILED tasks
 
             for idx, p in enumerate(prompts, 1):
                 if is_cancelled(job_id):
@@ -194,6 +196,17 @@ def run_job(
                 final_code = result.fixed_code or result.generated_code or ""
                 status_str = "PASSED" if result.status == "SUCCESS" else "FAILED"
 
+                if result.status == "API_FAILED":
+                    # Transient error (MCP timeout, network issue) — requeue
+                    retry_count = p.get("_retry_count", 0)
+                    if retry_count < max_retries:
+                        p["_retry_count"] = retry_count + 1
+                        retry_queue.append(p)
+                        add_log(job_id, f"Task {task_id} hit a transient API error — queued for retry ({retry_count + 1}/{max_retries})")
+                        continue
+                    else:
+                        add_log(job_id, f"Task {task_id} failed after {max_retries} retries (API unreachable)")
+
                 results_summary.append({
                     "task": task_display,
                     "category": p.get("category", ""),
@@ -208,6 +221,52 @@ def run_job(
                 else:
                     add_failed(job_id, task_id, task_display, badge, code=final_code)
                     add_log(job_id, f"Task {task_id} failed ({badge})")
+
+            # ── Process retry queue ──
+            if retry_queue and not is_cancelled(job_id):
+                add_log(job_id, f"Retrying {len(retry_queue)} task(s) that had transient API errors...")
+                for p in retry_queue:
+                    if is_cancelled(job_id):
+                        break
+
+                    task_text = p.get("prompt", p.get("task", ""))
+                    task_id = str(p.get("id", ""))
+                    task_display = task_text[:100] if task_text else "Task"
+                    retry_num = p.get("_retry_count", 1)
+
+                    add_log(job_id, f"Retry {retry_num}/{max_retries} for task #{task_id}")
+                    set_current_task(job_id, f"Retrying task #{task_id}...")
+
+                    task_input = TaskInput(
+                        task=task_text,
+                        category=p.get("category", ""),
+                        product=p.get("product", config.git.default_product),
+                    )
+                    result = runner.execute(task_input)
+                    badge = _compute_badge(result)
+                    final_code = result.fixed_code or result.generated_code or ""
+                    status_str = "PASSED" if result.status == "SUCCESS" else "FAILED"
+
+                    if result.status == "API_FAILED" and retry_num < max_retries:
+                        p["_retry_count"] = retry_num + 1
+                        retry_queue.append(p)
+                        add_log(job_id, f"Task {task_id} still failing — queued again ({retry_num + 1}/{max_retries})")
+                        continue
+
+                    results_summary.append({
+                        "task": task_display,
+                        "category": p.get("category", ""),
+                        "status": status_str,
+                    })
+
+                    if result.status == "SUCCESS":
+                        add_passed(job_id, task_id, task_display, badge, code=final_code)
+                        add_log(job_id, f"Task {task_id} passed on retry ({badge})")
+                        if committer:
+                            committer.commit_code(task_text, p.get("category", ""), final_code)
+                    else:
+                        add_failed(job_id, task_id, task_display, badge, code=final_code)
+                        add_log(job_id, f"Task {task_id} failed after retries ({badge})")
 
             # Persist results for PR retry
             set_results_summary(job_id, results_summary)
