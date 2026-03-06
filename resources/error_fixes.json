@@ -1,0 +1,226 @@
+{
+  "annotation-collection-one-based-indexing": {
+    "note": "Aspose.Pdf annotation collections use 1-based indexing, same as Pages. page.Annotations[1] is the first annotation. page.Annotations[0] throws an exception. page.Annotations.Delete(index) also expects a 1-based index. Always iterate from 1 to page.Annotations.Count inclusive.",
+    "errors": [
+      "System.IndexOutOfRangeException: Index was outside the bounds of the array — caused by page.Annotations[0]",
+      "Off-by-one when deleting: page.Annotations.Delete(page.Annotations.Count - 1) deletes the second-to-last annotation instead of the last"
+    ],
+    "code": "// CORRECT:\nfor (int i = 1; i <= page.Annotations.Count; i++)\n{\n    Annotation ann = page.Annotations[i];\n}\n\n// CORRECT — delete the last annotation:\npage.Annotations.Delete(page.Annotations.Count);\n\n// WRONG:\n// page.Annotations[0]; // throws IndexOutOfRangeException\n// page.Annotations.Delete(page.Annotations.Count - 1); // deletes second-to-last",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "annotation-title-requires-markup-annotation": {
+    "note": "The 'Title' property belongs to MarkupAnnotation, NOT the base Annotation class. When iterating page.Annotations or using FindByName(), the returned type is Annotation which does not have Title. You must cast to MarkupAnnotation before accessing Title. The 'Contents' property IS on the base Annotation class and can be accessed directly.",
+    "errors": [
+      "CS1061: 'Annotation' does not contain a definition for 'Title' and no accessible extension method 'Title' accepting a first argument of type 'Annotation' could be found (are you missing a using directive or an assembly reference?)"
+    ],
+    "code": "// CORRECT:\nAnnotation ann = page.Annotations[1];\nstring title = ann is MarkupAnnotation markup ? markup.Title : \"N/A\";\nConsole.WriteLine($\"Title={title}, Contents={ann.Contents}\");\n\n// CORRECT — when retrieved via FindByName:\nAnnotation retrieved = page.Annotations.FindByName(\"MyNote\");\nif (retrieved is MarkupAnnotation ma)\n{\n    Console.WriteLine(ma.Title);\n}\n\n// WRONG — does not compile:\n// Annotation ann = page.Annotations[1];\n// Console.WriteLine(ann.Title); // CS1061",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "border-requires-parent-annotation": {
+    "note": "The Border class has no parameterless constructor — it requires an Annotation parent argument: new Border(annotation). Border also has NO Color property; border color is controlled by the annotation's own Color property. Because of the parent parameter requirement, Border cannot be used inside the object initializer of the annotation it belongs to (the variable is not yet assigned). Set Border separately after construction.",
+    "errors": [
+      "CS1729: 'Border' does not contain a constructor that takes 0 arguments",
+      "CS1061: 'Border' does not contain a definition for 'Color' and no accessible extension method 'Color' accepting a first argument of type 'Border' could be found",
+      "CS0165: Use of unassigned local variable — when referencing the annotation variable inside its own object initializer for new Border(ann)"
+    ],
+    "code": "// CORRECT:\nTextAnnotation ann = new TextAnnotation(page, rect)\n{\n    Title = \"Note\",\n    Contents = \"Hello\",\n    Color = Aspose.Pdf.Color.Yellow\n};\nann.Border = new Border(ann) { Width = 1 };\n\n// WRONG — Border has no parameterless constructor and no Color property:\n// var ann = new TextAnnotation(page, rect)\n// {\n//     Border = new Border { Width = 1, Color = Aspose.Pdf.Color.Black }\n// };\n// Errors: CS1729, CS1061\n\n// WRONG — circular reference, ann is not assigned yet:\n// var ann = new TextAnnotation(page, rect)\n// {\n//     Border = new Border(ann) { Width = 1 }\n// };\n// Error: CS0165",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "qualify-rectangle-and-color": {
+    "note": "Always use fully qualified Aspose.Pdf.Rectangle and Aspose.Pdf.Color to avoid ambiguity with System.Drawing types. Even if System.Drawing is not explicitly referenced, implicit usings or transitive dependencies can pull it in.",
+    "errors": [
+      "CS0104: 'Rectangle' is an ambiguous reference between 'Aspose.Pdf.Rectangle' and 'System.Drawing.Rectangle'",
+      "CS0104: 'Color' is an ambiguous reference between 'Aspose.Pdf.Color' and 'System.Drawing.Color'"
+    ],
+    "code": "// CORRECT:\nAspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(100, 500, 300, 550);\ntxtAnn.Color = Aspose.Pdf.Color.Yellow;\n\n// WRONG — may cause CS0104 ambiguity:\n// Rectangle rect = new Rectangle(100, 500, 300, 550);\n// txtAnn.Color = Color.Yellow;",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "mhtsaveoptions-namespace-missing": {
+    "note": "The MhtSaveOptions class is not in the Aspose.Pdf namespace — it resides in Aspose.Pdf.Facades. You must add 'using Aspose.Pdf.Facades;' and ensure the Aspose.PDF.dll reference includes the Facades assembly. Also, note that saving to MHT format is only supported via the Document.Save() method with MhtSaveOptions from the Aspose.Pdf.Facades namespace in newer versions.",
+    "errors": [
+      "CS0246: The type or namespace name 'MhtSaveOptions' could not be found",
+      "CS0103: The name 'MhtSaveOptions' does not exist in the current context"
+    ],
+    "code": "// CORRECT:\nusing Aspose.Pdf;\nusing Aspose.Pdf.Annotations;\nusing Aspose.Pdf.Facades; // ← Required for MhtSaveOptions\n\n// WRONG:\n// using Aspose.Pdf; // alone is insufficient\n// MhtSaveOptions mhtOptions = new MhtSaveOptions(); // ❌ CS0246\n\n// CORRECT usage:\nMhtSaveOptions mhtOptions = new MhtSaveOptions\n{\n    PartsEmbeddingMode = MhtSaveOptions.PartsEmbeddingModes.EmbedAllIntoMht\n};",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "caret-annotation-symbol-missing": {
+    "note": "The enum 'CaretAnnotationSymbol' does not exist in Aspose.Pdf.Annotations. The 'Symbol' property of 'CaretAnnotation' expects a value of type 'Aspose.Pdf.Annotations.CaretSymbol', which is an enum defined in the same namespace. Use 'CaretSymbol.Insert' instead of 'CaretAnnotationSymbol.Insert'.",
+    "errors": [
+      "CS0103: The name 'CaretAnnotationSymbol' does not exist in the current context"
+    ],
+    "code": "// CORRECT:\nusing Aspose.Pdf.Annotations;\n...\nCaretAnnotation caret = new CaretAnnotation(page, rect)\n{\n    Symbol = CaretSymbol.Insert,\n    Contents = \"...\",\n    Color = Aspose.Pdf.Color.Red\n};\n\n// WRONG:\nSymbol = CaretAnnotationSymbol.Insert // ❌ enum does not exist",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "fix-texfragment-margin-and-color-ambiguity": {
+    "note": "The TeXFragment class does not have a 'Margin' property; instead, use 'TopMargin', 'BottomMargin', etc. Also, 'Color' is ambiguous between System.Drawing.Color and Aspose.Pdf.Color — use fully qualified Aspose.Pdf.Color in constructor parameters to avoid ambiguity.",
+    "errors": [
+      "CS0246: The type or namespace name 'Margin' could not be found",
+      "CS0104: 'Color' is an ambiguous reference between 'System.Drawing.Color' and 'Aspose.Pdf.Color'"
+    ],
+    "code": "// CORRECT:\nTeXFragment texFragment = new TeXFragment(@\"\\frac{a}{b} = c\", true);\ntexFragment.HorizontalAlignment = HorizontalAlignment.Center;\ntexFragment.TopMargin = 20;\ntexFragment.BottomMargin = 20;\n\nDefaultAppearance appearance = new DefaultAppearance(\"Helvetica\", 12, Aspose.Pdf.Color.Black);\n\n// WRONG:\n// TeXFragment texFragment = new TeXFragment(...);\n// texFragment.Margin = new Margin { Top = 20, Bottom = 20 }; // ❌ No such property\n// DefaultAppearance appearance = new DefaultAppearance(..., Color.Black); // ❌ ambiguous\n",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "resolve-color-ambiguity-in-defaultappearance": {
+    "note": "When constructing DefaultAppearance, use fully qualified Aspose.Pdf.Color (not System.Drawing.Color) to avoid ambiguity. The constructor expects Aspose.Pdf.Color, and System.Drawing.Color is not implicitly convertible in this context.",
+    "errors": [
+      "CS0104: 'Color' is an ambiguous reference between 'System.Drawing.Color' and 'Aspose.Pdf.Color'"
+    ],
+    "code": "// CORRECT:\nDefaultAppearance appearance = new DefaultAppearance(\"Helvetica\", 12, Aspose.Pdf.Color.Black);\n\n// WRONG:\n// DefaultAppearance appearance = new DefaultAppearance(\"Helvetica\", 12, Color.Black); // ❌ ambiguous\n",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "resolve-rectangle-ambiguity-and-fix-constructor-types": {
+    "note": "The error CS0104 occurs because both Aspose.Pdf.Drawing.Rectangle and Aspose.Pdf.Rectangle exist, causing ambiguity. Use fully qualified name Aspose.Pdf.Drawing.Rectangle for drawing shapes. Also, Graph constructor now expects double parameters (not float), and Ellipse/Rectangle constructors require float arguments — ensure float literals use 'F' suffix. Line constructor expects float[] (already correct), but other numeric literals must be explicitly float.",
+    "errors": [
+      "CS0104: 'Rectangle' is an ambiguous reference between 'Aspose.Pdf.Drawing.Rectangle' and 'Aspose.Pdf.Rectangle'",
+      "CS0664: Literal of type double cannot be implicitly converted to type 'float'; use an 'F' suffix to create a literal of this type",
+      "CS0618: 'Graph.Graph(float, float)' is obsolete: 'Constructor is deprecated. Please use constructor with double instead'"
+    ],
+    "code": "// CORRECT:\nGraph graph = new Graph(500.0, 800.0); // Use double literals\n\n// Use fully qualified name for drawing shapes\nAspose.Pdf.Drawing.Rectangle rect = new Aspose.Pdf.Drawing.Rectangle(50.0F, 600.0F, 200.0F, 100.0F);\nAspose.Pdf.Drawing.Ellipse ellipse = new Aspose.Pdf.Drawing.Ellipse(300.0F, 600.0F, 150.0F, 100.0F);\n\n// WRONG:\n// Graph graph = new Graph(500, 800); // obsolete & wrong types\n// Rectangle rect = new Rectangle(...); // ambiguous\n// new Ellipse(300, 600, 150, 100); // double literals → CS0664",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "resolve-rectangle-ambiguous-reference": {
+    "note": "The error occurs because both Aspose.Pdf.Drawing and Aspose.Pdf namespaces define a Rectangle class. When using 'using Aspose.Pdf.Drawing;' and 'using Aspose.Pdf;', the compiler cannot determine which Rectangle is intended. To fix this, fully qualify the Aspose.Pdf.Rectangle (used for annotations) with its full namespace, while Aspose.Pdf.Drawing.Rectangle (used for shapes) can remain unqualified or also be fully qualified for clarity.",
+    "errors": [
+      "error CS0104: 'Rectangle' is an ambiguous reference between 'Aspose.Pdf.Drawing.Rectangle' and 'Aspose.Pdf.Rectangle'"
+    ],
+    "code": "// CORRECT:\nusing Aspose.Pdf;\nusing Aspose.Pdf.Drawing;\n\n// ... inside method:\nGraph graph = new Graph(400.0, 200.0); // Use double instead of float to avoid obsolete warning\n\n// Use fully qualified name for Aspose.Pdf.Rectangle in annotations\nSquareAnnotation square = new SquareAnnotation(page,\n    new Aspose.Pdf.Rectangle(100, 500, 200, 600))\n{\n    Color = Color.Yellow,\n    Contents = \"Square figure annotation\"\n};\n\n// WRONG:\n// Graph graph = new Graph(400, 200); // obsolete float constructor\n// Rectangle rectShape = new Rectangle(...); // ambiguous\n// new Rectangle(100, 500, 200, 600); // ambiguous\n",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "use-double-for-graph-constructor": {
+    "note": "The Graph constructor taking float parameters is obsolete. Use the double overload instead to avoid the CS0618 warning. Aspose.Pdf v22+ uses double for dimensions.",
+    "errors": [
+      "warning CS0618: 'Graph.Graph(float, float)' is obsolete: 'Constructor is deprecated. Please use constructor with double instead'"
+    ],
+    "code": "// CORRECT:\nGraph graph = new Graph(400.0, 200.0); // Use double literals\n\n// WRONG:\nGraph graph = new Graph(400, 200); // uses obsolete float constructor\n",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "ambiguous-rectangle-type": {
+    "note": "The error occurs because both Aspose.Pdf and Aspose.Pdf.Drawing namespaces define a Rectangle class, causing ambiguity. To resolve this, explicitly qualify the type with its full namespace (e.g., Aspose.Pdf.Drawing.Rectangle) or use a using alias directive (e.g., using DrawingRect = Aspose.Pdf.Drawing.Rectangle;). The same applies to Ellipse and Line — ensure you use the drawing types from Aspose.Pdf.Drawing, not the layout/page rectangle types.",
+    "errors": [
+      "CS0104: 'Rectangle' is an ambiguous reference between 'Aspose.Pdf.Drawing.Rectangle' and 'Aspose.Pdf.Rectangle'",
+      "CS0104: 'Ellipse' is an ambiguous reference between 'Aspose.Pdf.Drawing.Ellipse' and 'Aspose.Pdf.Ellipse'",
+      "CS0104: 'Line' is an ambiguous reference between 'Aspose.Pdf.Drawing.Line' and 'Aspose.Pdf.Line'"
+    ],
+    "code": "// CORRECT: Use fully qualified names or using aliases\nusing Aspose.Pdf;\nusing Aspose.Pdf.Drawing;\n\n// Option 1: Fully qualify types\nGraph graph = new Graph(page.PageInfo.Width, page.PageInfo.Height);\nAspose.Pdf.Drawing.Rectangle rect = new Aspose.Pdf.Drawing.Rectangle(100, 500, 200, 100);\n\n// Option 2: Using alias at top of file:\n// using DrawingRect = Aspose.Pdf.Drawing.Rectangle;\n// using DrawingEllipse = Aspose.Pdf.Drawing.Ellipse;\n// using DrawingLine = Aspose.Pdf.Drawing.Line;\n\n// WRONG: Unqualified types cause ambiguity\n// Rectangle rect = new Rectangle(...); // ambiguous\n\n// Also ensure GraphInfo is used correctly:\nrect.GraphInfo = new GraphInfo { ... }; // ✅ valid\n\n// Attach graph to page\npage.Paragraphs.Add(graph);",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "line-annotation-api-mismatch": {
+    "note": "The Aspose.Pdf.Annotations.LineAnnotation class does not have a constructor accepting (Page, Rectangle), nor properties like StartPoint, EndPoint, LineWidth, StartPointEndingStyle, or EndPointEndingStyle. These are properties of the older Aspose.Pdf.Annotations.LineAnnotation in outdated versions or belong to other annotation types. In modern Aspose.PDF for .NET (v22+), line/arrow annotations are created using the Aspose.Pdf.Annotations.LineAnnotation class with a parameterless constructor, and properties like StartPoint, EndPoint, LineEndingStyle, etc., are set via the LineProperties object. Alternatively, use Aspose.Pdf.Annotations.ArrowAnnotation for arrows, or draw lines directly using Aspose.Pdf.Drawing.Graph or Aspose.Pdf.FixContentEditor.",
+    "errors": [
+      "CS1729: 'LineAnnotation' does not contain a constructor that takes 2 arguments",
+      "CS0117: 'LineAnnotation' does not contain a definition for 'StartPoint'",
+      "CS0117: 'LineAnnotation' does not contain a definition for 'EndPoint'",
+      "CS0117: 'LineAnnotation' does not contain a definition for 'LineWidth'",
+      "CS0117: 'LineAnnotation' does not contain a definition for 'StartPointEndingStyle'",
+      "CS0117: 'LineAnnotation' does not contain a definition for 'EndPointEndingStyle'"
+    ],
+    "code": "// CORRECT: Using LineAnnotation with LineProperties (modern API)\nusing Aspose.Pdf;\nusing Aspose.Pdf.Annotations;\n\nDocument doc = new Document();\nPage page = doc.Pages.Add();\n\nLineAnnotation line = new LineAnnotation(page, new Rectangle(100, 500, 300, 500))\n{\n    LineEndingStyle = LineEnding.OpenArrow\n};\nline.LineProperties.StartPoint = new Point(100, 500);\nline.LineProperties.EndPoint = new Point(300, 500);\nline.LineProperties.Color = Aspose.Pdf.Color.Blue;\nline.LineProperties.LineWidth = 2;\n\npage.Annotations.Add(line);\n\n// WRONG (causes errors):\n// LineAnnotation line = new LineAnnotation(page, rect)\n// {\n//     StartPoint = new Point(100, 500),\n//     EndPoint = new Point(300, 500),\n//     LineWidth = 2,\n//     StartPointEndingStyle = LineEnding.None,\n//     EndPointEndingStyle = LineEnding.ClosedArrow\n// };\n",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "screenannotation-activateon-removed": {
+    "note": "In Aspose.PDF for .NET, the ScreenAnnotation class does not have an 'ActivateOn' property or 'ActivationEvent' enum. This API was removed or changed in newer versions. Instead, multimedia annotations (ScreenAnnotation) are typically activated on page open by default when embedded correctly, or activation behavior is controlled via the annotation's flags (e.g., SetFlags) or by using the underlying PdfAnnotation properties. To ensure activation on page open, set the annotation's Flags to include 'Print' and ensure the annotation is visible and interactive. Alternatively, use the 'IsNoView' flag appropriately. However, direct control like 'ActivateOn' is not supported. Remove the invalid property assignment.",
+    "errors": [
+      "CS0117: 'ScreenAnnotation' does not contain a definition for 'ActivateOn'",
+      "CS0117: 'ScreenAnnotation' does not contain a definition for 'ActivationEvent'"
+    ],
+    "code": "// CORRECT:\nScreenAnnotation mediaAnnotation = new ScreenAnnotation(page, rect, mediaFilePath)\n{\n    Contents = \"Embedded video\",\n    Color = Aspose.Pdf.Color.Yellow\n    // Do NOT set ActivateOn — it's not supported\n};\n\n// WRONG:\n// ScreenAnnotation mediaAnnotation = new ScreenAnnotation(page, rect, mediaFilePath)\n// {\n//     Contents = \"Embedded video\",\n//     Color = Aspose.Pdf.Color.Yellow,\n//     ActivateOn = ScreenAnnotation.ActivationEvent.E  // ❌ Not supported\n// };",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "watermark-annotation-no-rotation-property": {
+    "note": "The WatermarkAnnotation class in Aspose.PDF does not have a Rotation property. To rotate a watermark annotation, you must set the Rotation via the Annotation.Rotate property (inherited from Annotation class), or use a TextStamp with rotation if you want to stamp rotated text. For annotations, use watermarkAnnotation.Rotate = value (note: this property exists only in newer versions; in older versions, use Annotation.Rotate). However, in current Aspose.Pdf versions (e.g., 23.1+), WatermarkAnnotation does NOT have a Rotation property at all — rotation must be applied via the underlying TextState or by using a Stamp instead. The correct approach is to use TextStamp for rotated watermarks, or set the annotation's Rotate property if available (but it's not for WatermarkAnnotation). Therefore, the only reliable fix is to replace WatermarkAnnotation with TextStamp for rotated content.",
+    "errors": [
+      "CS0117: 'WatermarkAnnotation' does not contain a definition for 'Rotation'"
+    ],
+    "code": "// CORRECT: Use TextStamp for rotated watermark (recommended for rotation)\nusing (Document pdfDoc = new Document(xslFoPath, loadOptions))\n{\n    Page page = pdfDoc.Pages[1];\n    TextStamp stamp = new TextStamp(\"CONFIDENTIAL\")\n    {\n        Opacity = 0.3,\n        TextState = { FontSize = 24, ForegroundColor = Aspose.Pdf.Color.Gray }\n    };\n    stamp.Rotate = Rotation.on90; // or on180, on270, etc.\n    stamp.HorizontalAlignment = HorizontalAlignment.Center;\n    stamp.VerticalAlignment = VerticalAlignment.Center;\n    stamp.Margin = new MarginInfo(0, 0, 0, 0);\n    stamp.Position = new Aspose.Pdf.Rectangle(100, 400, 500, 600).Location;\n    page.AddStamp(stamp);\n    pdfDoc.Save(outputPdf);\n}\n\n// WRONG: Attempting to set Rotation on WatermarkAnnotation (not supported)\n// WatermarkAnnotation watermark = new WatermarkAnnotation(page, rect)\n// {\n//     Rotation = 45 // ❌ CS0117: Rotation property does not exist\n// };\n// page.Annotations.Add(watermark);",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  },
+  "remove-invalid-using-static-loadoptions": {
+    "note": "The error occurs because 'LoadOptions' is a class (type), not a namespace, and cannot be used in a 'using' directive. In Aspose.PDF for .NET, XslFoLoadOptions resides directly in the Aspose.Pdf namespace, so no separate 'using' for LoadOptions is needed. Simply remove the invalid 'using Aspose.Pdf.LoadOptions;' line.",
+    "errors": [
+      "CS0138: A 'using namespace' directive can only be applied to namespaces; 'LoadOptions' is a type not a namespace. Consider a 'using static' directive instead"
+    ],
+    "code": "// CORRECT:\nusing System;\nusing System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Annotations;\n// NO 'using Aspose.Pdf.LoadOptions;' — XslFoLoadOptions is in Aspose.Pdf namespace\n\nclass Program\n{\n    static void Main()\n    {\n        const string xslFoPath = \"input.xslfo\";\n        XslFoLoadOptions loadOptions = new XslFoLoadOptions(); // no path in constructor\n        using (Document doc = new Document(xslFoPath, loadOptions))\n        {\n            // ...\n        }\n    }\n}\n\n// WRONG:\n// using Aspose.Pdf.LoadOptions; // ❌ invalid: LoadOptions is a type, not a namespace",
+    "works_on": [
+      "Windows",
+      "macOS",
+      "Linux"
+    ],
+    "fails_on": []
+  }
+}
