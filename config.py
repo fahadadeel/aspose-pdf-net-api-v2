@@ -50,7 +50,7 @@ class DotnetConfig:
 @dataclass
 class PipelineConfig:
     """Retry counts and feature flags for the 5-stage pipeline."""
-    llm_fix_attempts: int = 0
+    llm_fix_attempts: int = 3
     regen_attempts: int = 3
     retrieve_limit: int = 20
     retrieve_max_chars: int = 12000

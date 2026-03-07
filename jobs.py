@@ -93,10 +93,14 @@ def _run_rule_learning(job_id, config, failed_results, builder, notify):
     if not config.pipeline.learn_rules_from_failures:
         return
 
+    import re
     from pipeline.anthropic_client import AnthropicClient
     from knowledge.auto_fixes import save_auto_fix, is_duplicate_rule
+    from knowledge.error_fixes import load_error_fixes, match_error_fixes, format_error_fixes_for_prompt
 
     anthropic_client = AnthropicClient(config)
+    # Load curated error fixes to provide as context to Claude
+    all_fixes = load_error_fixes(config.error_fixes_path)
     if not anthropic_client.available:
         add_log(job_id, "Rule learning skipped: ANTHROPIC_API_KEY not configured")
         return
@@ -121,7 +125,12 @@ def _run_rule_learning(job_id, config, failed_results, builder, notify):
 
         add_log(job_id, f"  Rule learning [{idx}/{len(learnable)}]: {task_text[:80]}...")
 
-        result = anthropic_client.fix_and_extract_rule(task_text, code, build_log)
+        # Find relevant existing fixes to give Claude proven patterns
+        error_codes = re.findall(r"CS\d{4}", build_log)
+        matched_fixes = match_error_fixes(all_fixes, build_log, error_codes)
+        fixes_context = format_error_fixes_for_prompt(matched_fixes) if matched_fixes else ""
+
+        result = anthropic_client.fix_and_extract_rule(task_text, code, build_log, fixes_context)
         if not result:
             add_log(job_id, f"  Claude could not fix task #{idx}")
             continue
@@ -145,7 +154,16 @@ def _run_rule_learning(job_id, config, failed_results, builder, notify):
             else:
                 add_log(job_id, f"  Rule '{rule_id}' verified but save failed")
         else:
-            add_log(job_id, f"  Claude's fix for task #{idx} did not compile/run — rule discarded")
+            # Determine error type and log useful context
+            is_runtime = "--- RUNTIME OUTPUT ---" in output and "error CS" not in output.split("--- RUNTIME OUTPUT ---")[0]
+            error_type = "runtime crash" if is_runtime else "compile error"
+            error_lines = output.strip().split("\n") if output else ["(no output)"]
+            error_preview = error_lines[-8:]
+            add_log(job_id, f"  Claude's fix for task #{idx} failed ({error_type}) — rule discarded")
+            for line in error_preview:
+                stripped = line.strip()
+                if stripped:
+                    add_log(job_id, f"    | {stripped}")
 
     add_log(job_id, f"Rule learning complete: {rules_learned} new rule(s) saved to auto_fixes.json")
 
@@ -193,13 +211,13 @@ def run_job(
             status_str = "PASSED" if result.status == "SUCCESS" else "FAILED"
 
             if result.status == "SUCCESS":
-                add_passed(job_id, "1", prompt[:100], badge, code=final_code)
+                add_passed(job_id, "1", prompt[:100], badge, code=final_code, category=category or "", product=product or "")
                 add_log(job_id, f"Passed ({badge})")
                 # Commit code to repo
                 if committer:
                     committer.commit_code(prompt, category or "", final_code)
             else:
-                add_failed(job_id, "1", prompt[:100], badge, code=final_code)
+                add_failed(job_id, "1", prompt[:100], badge, code=final_code, category=category or "", product=product or "")
                 add_log(job_id, f"Failed ({badge})")
                 # Post-pipeline rule learning for single task
                 if result.build_log:
@@ -293,12 +311,12 @@ def run_job(
                 })
 
                 if result.status == "SUCCESS":
-                    add_passed(job_id, task_id, task_display, badge, code=final_code)
+                    add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                     add_log(job_id, f"Task {task_id} passed ({badge})")
                     if committer:
                         committer.commit_code(task_text, p.get("category", ""), final_code)
                 else:
-                    add_failed(job_id, task_id, task_display, badge, code=final_code)
+                    add_failed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                     add_log(job_id, f"Task {task_id} failed ({badge})")
                     if result.build_log:
                         failed_for_learning.append({
@@ -345,12 +363,12 @@ def run_job(
                     })
 
                     if result.status == "SUCCESS":
-                        add_passed(job_id, task_id, task_display, badge, code=final_code)
+                        add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                         add_log(job_id, f"Task {task_id} passed on retry ({badge})")
                         if committer:
                             committer.commit_code(task_text, p.get("category", ""), final_code)
                     else:
-                        add_failed(job_id, task_id, task_display, badge, code=final_code)
+                        add_failed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                         add_log(job_id, f"Task {task_id} failed after retries ({badge})")
                         if result.build_log:
                             failed_for_learning.append({
