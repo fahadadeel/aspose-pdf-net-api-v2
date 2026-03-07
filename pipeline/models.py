@@ -43,6 +43,7 @@ class PipelineResult:
     status: str = ""  # SUCCESS, FAILED, API_FAILED
     stage: str = ""   # baseline, pattern_fix, llm_fix, regen, final_llm
     attempts: int = 1
+    build_log: str = ""  # Last build error log (for post-pipeline rule learning)
 
 
 @dataclass

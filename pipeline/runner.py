@@ -55,6 +55,10 @@ class PipelineRunner:
         self._rule_engine.load(self.config.rules_examples_path, self._shared_model)
         self._error_catalog = load_error_catalog(self.config.error_catalog_path)
         self._error_fixes = load_error_fixes(self.config.error_fixes_path)
+        # Merge auto-learned fixes (curated takes precedence on key collision)
+        auto_fixes = load_error_fixes(self.config.auto_fixes_path)
+        if auto_fixes:
+            self._error_fixes = {**auto_fixes, **self._error_fixes}
         self._kb_loaded = True
 
     def execute(self, task_input: TaskInput) -> PipelineResult:
@@ -78,6 +82,7 @@ class PipelineRunner:
         if not outcome.code:
             result.status = "API_FAILED"
             result.stage = "baseline"
+            result.build_log = outcome.build_log
             return result
 
         result.generated_code = outcome.code
@@ -156,4 +161,5 @@ class PipelineRunner:
         # ── All stages failed ──
         result.status = "FAILED"
         result.stage = "exhausted"
+        result.build_log = outcome.build_log
         return result
