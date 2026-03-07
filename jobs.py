@@ -82,6 +82,74 @@ def _setup_pr_workflow(config, job_id: str, notify):
     return repo, committer, pr_manager
 
 
+def _run_rule_learning(job_id, config, failed_results, builder, notify):
+    """Post-pipeline rule learning: analyze failed tasks with Anthropic Claude.
+
+    For each failed task:
+    1. Send original code + build error to Claude
+    2. If Claude returns a fix, build+run it to verify
+    3. If verified, save the extracted rule to auto_fixes.json
+    """
+    if not config.pipeline.learn_rules_from_failures:
+        return
+
+    from pipeline.anthropic_client import AnthropicClient
+    from knowledge.auto_fixes import save_auto_fix, is_duplicate_rule
+
+    anthropic_client = AnthropicClient(config)
+    if not anthropic_client.available:
+        add_log(job_id, "Rule learning skipped: ANTHROPIC_API_KEY not configured")
+        return
+
+    learnable = [f for f in failed_results if f.get("code") and f.get("build_log")]
+    if not learnable:
+        add_log(job_id, "Rule learning: no failed tasks with code+errors to analyze")
+        return
+
+    add_log(job_id, f"Rule learning: analyzing {len(learnable)} failed task(s) with Claude...")
+    set_current_task(job_id, "Learning rules from failures...")
+
+    rules_learned = 0
+
+    for idx, failure in enumerate(learnable, 1):
+        if is_cancelled(job_id):
+            break
+
+        task_text = failure["task"]
+        code = failure["code"]
+        build_log = failure["build_log"]
+
+        add_log(job_id, f"  Rule learning [{idx}/{len(learnable)}]: {task_text[:80]}...")
+
+        result = anthropic_client.fix_and_extract_rule(task_text, code, build_log)
+        if not result:
+            add_log(job_id, f"  Claude could not fix task #{idx}")
+            continue
+
+        fixed_code = result["fixed_code"]
+        rule_id = result["rule_id"]
+        rule = result["rule"]
+
+        if is_duplicate_rule(config.auto_fixes_path, rule_id, rule.get("errors", [])):
+            add_log(job_id, f"  Rule '{rule_id}' is a duplicate — skipped")
+            continue
+
+        builder.write_program_cs(fixed_code)
+        success, output = builder.build_and_run()
+
+        if success:
+            saved = save_auto_fix(config.auto_fixes_path, rule_id, rule)
+            if saved:
+                rules_learned += 1
+                add_log(job_id, f"  Learned rule: '{rule_id}' (verified via build+run)")
+            else:
+                add_log(job_id, f"  Rule '{rule_id}' verified but save failed")
+        else:
+            add_log(job_id, f"  Claude's fix for task #{idx} did not compile/run — rule discarded")
+
+    add_log(job_id, f"Rule learning complete: {rules_learned} new rule(s) saved to auto_fixes.json")
+
+
 def run_job(
     job_id: str,
     mode: str,
@@ -133,6 +201,16 @@ def run_job(
             else:
                 add_failed(job_id, "1", prompt[:100], badge, code=final_code)
                 add_log(job_id, f"Failed ({badge})")
+                # Post-pipeline rule learning for single task
+                if result.build_log:
+                    try:
+                        _run_rule_learning(
+                            job_id, config,
+                            [{"task": prompt, "code": result.generated_code or "", "build_log": result.build_log}],
+                            runner.builder, notify,
+                        )
+                    except Exception as e:
+                        add_log(job_id, f"Rule learning error: {e}")
 
             # Batch commit + PR
             if committer and committer._pending_commits:
@@ -170,6 +248,7 @@ def run_job(
 
             results_summary = []
             retry_queue = []  # Tasks to retry after transient failures
+            failed_for_learning = []  # Collect failed tasks for post-pipeline rule learning
             max_retries = 3   # Max retry attempts for API_FAILED tasks
 
             for idx, p in enumerate(prompts, 1):
@@ -221,6 +300,12 @@ def run_job(
                 else:
                     add_failed(job_id, task_id, task_display, badge, code=final_code)
                     add_log(job_id, f"Task {task_id} failed ({badge})")
+                    if result.build_log:
+                        failed_for_learning.append({
+                            "task": task_text,
+                            "code": result.generated_code or "",
+                            "build_log": result.build_log,
+                        })
 
             # ── Process retry queue ──
             if retry_queue and not is_cancelled(job_id):
@@ -267,9 +352,25 @@ def run_job(
                     else:
                         add_failed(job_id, task_id, task_display, badge, code=final_code)
                         add_log(job_id, f"Task {task_id} failed after retries ({badge})")
+                        if result.build_log:
+                            failed_for_learning.append({
+                                "task": task_text,
+                                "code": result.generated_code or "",
+                                "build_log": result.build_log,
+                            })
 
             # Persist results for PR retry
             set_results_summary(job_id, results_summary)
+
+            # ── Post-pipeline rule learning ──
+            if failed_for_learning and not is_cancelled(job_id):
+                try:
+                    _run_rule_learning(
+                        job_id, config, failed_for_learning,
+                        runner.builder, notify,
+                    )
+                except Exception as e:
+                    add_log(job_id, f"Rule learning error: {e}")
 
             # Batch commit + PR
             if committer and committer._pending_commits:

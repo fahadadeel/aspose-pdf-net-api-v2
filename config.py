@@ -58,6 +58,7 @@ class PipelineConfig:
     decompose_on_llm_fail: bool = False
     final_llm_after_regen_fail: bool = True
     retry_mode: str = "full"
+    learn_rules_from_failures: bool = False
 
 
 @dataclass
@@ -91,6 +92,13 @@ class RerankerConfig:
 
 
 @dataclass
+class AnthropicConfig:
+    """Anthropic Claude API configuration for post-pipeline rule learning."""
+    api_key: str = ""
+    model: str = "claude-sonnet-4-20250514"
+
+
+@dataclass
 class GitConfig:
     """Git repo and PR config. Secrets from .env."""
     repo_url: str = "https://github.com/aspose-pdf/agentic-net-examples.git"
@@ -113,6 +121,7 @@ class AppConfig:
     mcp: MCPConfig = field(default_factory=MCPConfig)
     llm: LLMConfig = field(default_factory=LLMConfig)
     reranker: RerankerConfig = field(default_factory=RerankerConfig)
+    anthropic: AnthropicConfig = field(default_factory=AnthropicConfig)
     git: GitConfig = field(default_factory=GitConfig)
 
     workspace_path: str = "."
@@ -120,6 +129,7 @@ class AppConfig:
     fix_history_path: str = "./fix_history.json"
     error_catalog_path: str = "./resources/error_catalog.json"
     error_fixes_path: str = "./resources/error_fixes.json"
+    auto_fixes_path: str = "./resources/auto_fixes.json"
 
     # External API proxies (for UI task generator)
     categories_api_url: str = "http://172.20.1.175:7001/api/categories"
@@ -163,6 +173,7 @@ def load_config() -> AppConfig:
     cfg.pipeline.decompose_on_llm_fail = _env_bool("DECOMPOSE_ON_LLM_FAIL", cfg.pipeline.decompose_on_llm_fail)
     cfg.pipeline.final_llm_after_regen_fail = _env_bool("FINAL_LLM_AFTER_REGEN_FAIL", cfg.pipeline.final_llm_after_regen_fail)
     cfg.pipeline.retry_mode = _env("RETRY_MODE", cfg.pipeline.retry_mode)
+    cfg.pipeline.learn_rules_from_failures = _env_bool("LEARN_RULES_FROM_FAILURES", cfg.pipeline.learn_rules_from_failures)
 
     # MCP
     cfg.mcp.generate_url = _env("API_URL", cfg.mcp.generate_url)
@@ -185,6 +196,10 @@ def load_config() -> AppConfig:
     cfg.reranker.attempt1_top_k = _env_int("RERANK_ATTEMPT1_TOP_K", cfg.reranker.attempt1_top_k)
     cfg.reranker.timeout = _env_int("RERANK_TIMEOUT", cfg.reranker.timeout)
 
+    # Anthropic
+    cfg.anthropic.api_key = _env("ANTHROPIC_API_KEY", cfg.anthropic.api_key)
+    cfg.anthropic.model = _env("ANTHROPIC_MODEL", cfg.anthropic.model)
+
     # Git (secrets from .env)
     cfg.git.repo_url = _env("REPO_URL", cfg.git.repo_url)
     cfg.git.repo_path = _env("REPO_PATH", cfg.git.repo_path)
@@ -201,6 +216,7 @@ def load_config() -> AppConfig:
     cfg.fix_history_path = _env("FIX_HISTORY_PATH", cfg.fix_history_path)
     cfg.error_catalog_path = _env("ERROR_CATALOG_PATH", cfg.error_catalog_path)
     cfg.error_fixes_path = _env("ERROR_FIXES_PATH", cfg.error_fixes_path)
+    cfg.auto_fixes_path = _env("AUTO_FIXES_PATH", cfg.auto_fixes_path)
     cfg.categories_api_url = _env("CATEGORIES_API_URL", cfg.categories_api_url)
     cfg.tasks_api_url = _env("TASKS_API_URL", cfg.tasks_api_url)
 
