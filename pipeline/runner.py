@@ -5,6 +5,7 @@ Framework-agnostic: no FastAPI, no threading, no state.py dependencies.
 Usable from CLI, API, or UI modes.
 """
 
+import re
 from typing import Callable, Optional
 
 from config import AppConfig
@@ -12,11 +13,11 @@ from pipeline.models import TaskInput, PipelineResult
 from pipeline.build import DotnetBuilder
 from pipeline.mcp_client import MCPClient
 from pipeline.llm_client import LLMClient
-from pipeline.error_parser import detect_and_fix_known_patterns
+from pipeline.error_parser import detect_and_fix_known_patterns, extract_errors, parse_error_codes
 from pipeline import stages
 from knowledge.rule_search import RuleSearchEngine
 from knowledge.error_catalog import load_error_catalog
-from knowledge.error_fixes import load_error_fixes
+from knowledge.error_fixes import load_error_fixes, match_error_fixes, format_error_fixes_for_prompt
 
 
 class PipelineRunner:
@@ -48,18 +49,30 @@ class PipelineRunner:
             except Exception:
                 pass
 
+    def _ensure_error_fixes(self):
+        """Load error fixes (lightweight, needed from Stage 2 onward)."""
+        if self._error_fixes is not None:
+            return
+        self._error_fixes = load_error_fixes(self.config.error_fixes_path)
+        auto_fixes = load_error_fixes(self.config.auto_fixes_path)
+        if auto_fixes:
+            self._error_fixes = {**auto_fixes, **self._error_fixes}
+
     def _ensure_kb(self):
-        """Lazy-load knowledge base resources."""
+        """Lazy-load full knowledge base resources (rules, catalog, fixes)."""
         if self._kb_loaded:
             return
         self._rule_engine.load(self.config.rules_examples_path, self._shared_model)
         self._error_catalog = load_error_catalog(self.config.error_catalog_path)
-        self._error_fixes = load_error_fixes(self.config.error_fixes_path)
-        # Merge auto-learned fixes (curated takes precedence on key collision)
-        auto_fixes = load_error_fixes(self.config.auto_fixes_path)
-        if auto_fixes:
-            self._error_fixes = {**auto_fixes, **self._error_fixes}
+        self._ensure_error_fixes()
         self._kb_loaded = True
+
+    def _get_fixes_for_error(self, error_log: str) -> str:
+        """Match error fixes against a build error and return formatted text."""
+        self._ensure_error_fixes()
+        error_codes = re.findall(r"CS\d{4}", error_log)
+        fixes = match_error_fixes(self._error_fixes or {}, error_log, error_codes)
+        return format_error_fixes_for_prompt(fixes) if fixes else ""
 
     def execute(self, task_input: TaskInput) -> PipelineResult:
         """Run the 5-stage pipeline. Returns PipelineResult."""
@@ -105,12 +118,14 @@ class PipelineRunner:
             current_error = output
 
         # ── Stage 2: LLM Fix Attempts ──
+        self._ensure_error_fixes()
         if self.config.pipeline.llm_fix_attempts > 0:
             self._notify("llm_fix", "Stage 2: LLM fix attempts...")
             outcome = stages.run_llm_fix_loop(
                 current_code, current_error, task_input.task,
                 self.llm, self.builder, self._notify,
                 max_attempts=self.config.pipeline.llm_fix_attempts,
+                error_fixes_data=self._error_fixes,
             )
             if outcome.success:
                 result.fixed_code = outcome.code
@@ -126,6 +141,7 @@ class PipelineRunner:
         enriched_task = stages.run_context_enrichment(
             task_input.task, current_error,
             self.mcp, self.llm, self.config,
+            category=task_input.category,
         )
 
         # ── Stage 4: Regeneration with enriched context ──
@@ -151,6 +167,7 @@ class PipelineRunner:
             outcome = stages.run_final_llm_recovery(
                 outcome.code, outcome.build_log, task_input.task,
                 self.llm, self.builder, self._notify, self.config,
+                error_fixes_data=self._error_fixes,
             )
             if outcome.success:
                 result.fixed_code = outcome.code

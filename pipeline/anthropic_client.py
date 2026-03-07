@@ -31,6 +31,7 @@ class AnthropicClient:
         task: str,
         original_code: str,
         build_error: str,
+        fixes_context: str = "",
     ) -> Optional[dict]:
         """Ask Claude to fix the code AND generate a structured rule.
 
@@ -46,11 +47,31 @@ class AnthropicClient:
         if not self.available:
             return None
 
+        tfm = self.config.build.tfm
+        nuget_pkg = self.config.build.nuget_package
+        nuget_ver = self.config.build.nuget_version
+
         system_prompt = (
             "You are a senior C#/.NET developer specializing in Aspose.PDF for .NET. "
             "Your job is to:\n"
             "1. Fix the broken C# code so it compiles and runs successfully.\n"
             "2. Extract a reusable rule that describes what was wrong and how to fix it.\n\n"
+            f"BUILD ENVIRONMENT:\n"
+            f"- Target framework: {tfm}\n"
+            f"- NuGet package: {nuget_pkg} v{nuget_ver}\n"
+            f"- ImplicitUsings: disable (you must include ALL using directives explicitly)\n"
+            f"- The program runs as a standalone console app\n\n"
+            "CRITICAL RULES FOR WORKING CODE:\n"
+            "- Use explicit casts for float literals: use (float)0.5 or 0.5f, never assign double to float.\n"
+            "- Always use fully qualified Aspose.Pdf.Rectangle and Aspose.Pdf.Color to avoid ambiguity with System.Drawing.\n"
+            "- Do NOT create or load external PDF files (no File.Open, no loading from disk paths). "
+            "Create new Document() from scratch and save to a simple filename like 'output.pdf'.\n"
+            "- Wrap Document operations in using statements or try/finally with doc.Dispose().\n"
+            "- When adding Graph objects: create Graph with dimensions, add shapes to Graph.Shapes, "
+            "then add Graph to page.Paragraphs.\n"
+            "- For runtime errors at Document.Save(): check that all objects are properly initialized "
+            "before saving — null references in page content cause Save() to crash internally.\n"
+            "- Ensure all added objects (graphs, shapes, annotations) have valid non-null properties.\n\n"
             "Return ONLY a JSON object with this exact structure:\n"
             "{\n"
             '  "fixed_code": "...the complete fixed C# program...",\n'
@@ -80,6 +101,13 @@ class AnthropicClient:
             f"ORIGINAL CODE (Program.cs):\n```csharp\n{original_code}\n```\n\n"
             f"BUILD/RUN ERROR:\n```\n{build_error[:4000]}\n```"
         )
+
+        # Append matched error fixes as proven reference patterns
+        if fixes_context:
+            user_prompt += (
+                f"\n\nREFERENCE — These are proven fixes for similar errors. "
+                f"Study them carefully and apply the same patterns:\n{fixes_context}"
+            )
 
         try:
             message = self._client.messages.create(

@@ -1763,12 +1763,13 @@
     }
 
     var rows = [];
-    rows.push('Task #,Task,Generated Code,Status');
+    rows.push('prompt,category,product,generated_code,status');
 
     _allPassed.forEach(function(item) {
       rows.push(
-        csvEscape(item.id) + ',' +
         csvEscape(item.task) + ',' +
+        csvEscape(item.category || '') + ',' +
+        csvEscape(item.product || '') + ',' +
         csvEscape(item.code || '') + ',' +
         'PASSED'
       );
@@ -1776,8 +1777,9 @@
 
     _allFailed.forEach(function(item) {
       rows.push(
-        csvEscape(item.id) + ',' +
         csvEscape(item.task) + ',' +
+        csvEscape(item.category || '') + ',' +
+        csvEscape(item.product || '') + ',' +
         csvEscape(item.code || '') + ',' +
         'FAILED'
       );
