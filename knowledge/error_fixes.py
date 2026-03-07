@@ -29,6 +29,8 @@ def match_error_fixes(fixes: Dict[str, dict], error_output: str, error_codes: Li
     error_lower = error_output.lower()
 
     for fix_id, fix in fixes.items():
+        if not isinstance(fix, dict):
+            continue
         score = 0.0
         for err_str in fix.get("errors", []):
             codes_in_fix = re.findall(r"CS\d{4}", err_str)
