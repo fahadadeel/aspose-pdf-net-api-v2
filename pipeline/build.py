@@ -1,7 +1,11 @@
 """
 pipeline/build.py — .NET build and run operations.
+
+Uses an isolated `_build` subdirectory so generated code output
+(files, folders) doesn't pollute the project root.
 """
 
+import shutil
 import subprocess
 import textwrap
 from pathlib import Path
@@ -9,13 +13,16 @@ from pathlib import Path
 from config import AppConfig
 from pipeline.models import BuildResult
 
+_BUILD_DIR_NAME = "_build"
+
 
 class DotnetBuilder:
     """Handles writing .csproj/Program.cs and running dotnet build/run."""
 
     def __init__(self, config: AppConfig):
         self.config = config
-        self.workspace = Path(config.workspace_path)
+        self.workspace = Path(config.workspace_path) / _BUILD_DIR_NAME
+        self.workspace.mkdir(parents=True, exist_ok=True)
         self.csproj_path = self.workspace / "AsposePdfApi.csproj"
         self.program_cs_path = self.workspace / "Program.cs"
 
@@ -80,8 +87,23 @@ class DotnetBuilder:
         except Exception as e:
             return BuildResult(ok=False, log=f"Runtime error: {e}")
 
+    def clean_output_artifacts(self):
+        """Remove runtime-generated files/dirs (PDFs, images, etc.) but keep .csproj, Program.cs, bin, obj."""
+        keep = {"AsposePdfApi.csproj", "Program.cs", "bin", "obj"}
+        for item in self.workspace.iterdir():
+            if item.name in keep:
+                continue
+            try:
+                if item.is_dir():
+                    shutil.rmtree(item, ignore_errors=True)
+                else:
+                    item.unlink(missing_ok=True)
+            except OSError:
+                pass
+
     def build_and_run(self) -> tuple:
         """Build then run. Returns (success: bool, combined_output: str)."""
+        self.clean_output_artifacts()
         build_result = self.build()
         if not build_result.ok:
             return False, build_result.log

@@ -20,5 +20,6 @@ extracted*.txt
 fields*.json
 formdata.json
 conversion_log.txt
+_build/
 .venv/
 venv/
