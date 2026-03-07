@@ -281,7 +281,8 @@ def run_job(
                 add_log(job_id, separator)
                 add_log(job_id, f"Testing: {p.get('category', '')} - {task_display}")
                 add_log(job_id, separator)
-                set_current_task(job_id, f"Processing task #{task_id} ({idx}/{total})...")
+                cat_label = p.get("category", "")
+                set_current_task(job_id, f"[{cat_label}] Processing task #{task_id} ({idx}/{total})..." if cat_label else f"Processing task #{task_id} ({idx}/{total})...")
 
                 task_input = TaskInput(
                     task=task_text,
@@ -337,8 +338,9 @@ def run_job(
                     task_display = task_text[:100] if task_text else "Task"
                     retry_num = p.get("_retry_count", 1)
 
+                    cat_label = p.get("category", "")
                     add_log(job_id, f"Retry {retry_num}/{max_retries} for task #{task_id}")
-                    set_current_task(job_id, f"Retrying task #{task_id}...")
+                    set_current_task(job_id, f"[{cat_label}] Retrying task #{task_id}..." if cat_label else f"Retrying task #{task_id}...")
 
                     task_input = TaskInput(
                         task=task_text,
