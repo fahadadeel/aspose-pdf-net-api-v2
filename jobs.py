@@ -8,6 +8,7 @@ Fully in-memory — no database. Results tracked via state.BUILD_STATE.
 """
 
 import uuid
+from pathlib import Path
 
 from config import load_config
 from pipeline.models import TaskInput
@@ -166,6 +167,80 @@ def _run_rule_learning(job_id, config, failed_results, builder, notify):
                     add_log(job_id, f"    | {stripped}")
 
     add_log(job_id, f"Rule learning complete: {rules_learned} new rule(s) saved to auto_fixes.json")
+
+
+def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_summary, notify):
+    """Commit and create one PR per category.
+
+    Each category gets its own branch, commit, and PR.
+    agents.md is NOT included (use 'Update Repo Docs' after merging).
+    """
+    import subprocess
+    from git_ops.repo import _git_lock
+
+    groups = committer.get_pending_by_category()
+    base_branch = config.git.repo_branch or "main"
+    pr_urls = []
+
+    for cat_name, commits in sorted(groups.items()):
+        if is_cancelled(job_id):
+            break
+
+        branch_suffix = cat_name.lower().replace(" ", "-")[:30]
+        cat_branch = f"examples/{job_id[:8]}-{branch_suffix}"
+        add_log(job_id, f"[{cat_name}] Creating branch {cat_branch} ({len(commits)} file(s))...")
+        set_current_task(job_id, f"PR: {cat_name}...")
+
+        try:
+            with _git_lock:
+                # Create a fresh branch from base for this category
+                subprocess.run(
+                    ["git", "checkout", f"origin/{base_branch}"],
+                    cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                )
+                subprocess.run(
+                    ["git", "checkout", "-b", cat_branch],
+                    cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                )
+
+                # Stage only this category's files
+                for c in commits:
+                    subprocess.run(
+                        ["git", "add", str(c["path"])],
+                        cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                    )
+
+                subprocess.run(
+                    ["git", "commit", "-m", f"Add {len(commits)} example(s) for {cat_name}"],
+                    cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                )
+                subprocess.run(
+                    ["git", "push", "-u", "origin", cat_branch],
+                    cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                    timeout=60,
+                )
+
+            # Create PR for this category (no agents.md)
+            repo.pr_branch = cat_branch
+            pr_url = pr_manager.create_category_pr(cat_name, len(commits))
+            if pr_url:
+                pr_urls.append(pr_url)
+                add_log(job_id, f"[{cat_name}] PR created: {pr_url}")
+            else:
+                add_log(job_id, f"[{cat_name}] PR creation failed")
+
+        except subprocess.TimeoutExpired:
+            add_log(job_id, f"[{cat_name}] Push timed out")
+        except Exception as e:
+            add_log(job_id, f"[{cat_name}] Error: {str(e)[:100]}")
+
+    committer._pending_commits.clear()
+
+    if pr_urls:
+        set_pr_url(job_id, pr_urls[0])  # Show first PR in UI
+        add_log(job_id, f"Created {len(pr_urls)} category PR(s)")
+    else:
+        add_log(job_id, "No category PRs created")
 
 
 def run_job(
@@ -394,18 +469,27 @@ def run_job(
 
             # Batch commit + PR
             if committer and committer._pending_commits:
-                add_log(job_id, f"Batch committing {len(committer._pending_commits)} file(s)...")
-                committer.batch_commit_and_push()
+                pending_count = len(committer._pending_commits)
+                split_threshold = config.git.pr_split_threshold
 
-            if pr_manager and repo and repo.pr_branch and results_summary:
-                add_log(job_id, "Creating pull request...")
-                set_current_task(job_id, "Creating pull request...")
-                pr_url = pr_manager.create_pull_request(results_summary)
-                if pr_url:
-                    set_pr_url(job_id, pr_url)
-                    add_log(job_id, f"Pull request created: {pr_url}")
+                if split_threshold > 0 and pending_count > split_threshold:
+                    # ── Split by category: one PR per category ──
+                    add_log(job_id, f"Splitting {pending_count} file(s) into per-category PRs (threshold={split_threshold})...")
+                    _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_summary, notify)
                 else:
-                    add_log(job_id, "PR creation failed - changes are on the feature branch")
+                    # ── Single PR (original behaviour) ──
+                    add_log(job_id, f"Batch committing {pending_count} file(s)...")
+                    committer.batch_commit_and_push()
+
+                    if pr_manager and repo and repo.pr_branch and results_summary:
+                        add_log(job_id, "Creating pull request...")
+                        set_current_task(job_id, "Creating pull request...")
+                        pr_url = pr_manager.create_pull_request(results_summary)
+                        if pr_url:
+                            set_pr_url(job_id, pr_url)
+                            add_log(job_id, f"Pull request created: {pr_url}")
+                        else:
+                            add_log(job_id, "PR creation failed - changes are on the feature branch")
 
             with JOB_LOCK:
                 was_cancelled = JOB_CANCEL_FLAGS.pop(job_id, False)
@@ -555,3 +639,151 @@ def retry_pr(job_id: str, old_pr_branch: str, results_summary: list):
 
     except Exception as exc:
         add_log(job_id, f"PR retry failed: {exc}")
+
+
+def update_repo_docs(job_id: str, update_readme: bool = False):
+    """Scan the repo and create a PR with cumulative agents.md (+ optional README update).
+
+    Runs in a background thread. Creates a fresh branch, commits all
+    generated docs, and opens a PR.
+    """
+    import subprocess
+    import uuid as _uuid
+    from git_ops.repo import _git_lock
+    from git_ops.repo_docs import (
+        scan_repo,
+        generate_cumulative_agents_md,
+        generate_cumulative_category_agents_md,
+        update_readme_categories,
+    )
+    from git_ops.agents_md import _generate_run_id
+
+    notify = _make_progress_callback(job_id)
+    config = load_config()
+
+    try:
+        init_build(job_id, total=0)
+        add_log(job_id, "Repo docs: starting...")
+        set_current_task(job_id, "Scanning repository...")
+
+        repo = RepoManager(
+            repo_path=config.git.repo_path,
+            repo_url=config.git.repo_url,
+            repo_branch=config.git.repo_branch,
+            repo_token=config.git.repo_token,
+            repo_user=config.git.repo_user,
+            notify=notify,
+        )
+        if not repo.ensure_ready():
+            add_log(job_id, "Repository not ready")
+            set_status(job_id, "failed")
+            return
+
+        # Scan repo on main branch
+        scan = scan_repo(config.git.repo_path)
+        total_files = sum(len(files) for files in scan.values())
+        add_log(job_id, f"Found {total_files} .cs file(s) across {len(scan)} categories")
+
+        if not scan:
+            add_log(job_id, "No .cs files found — nothing to do")
+            set_status(job_id, "completed")
+            return
+
+        # Create docs branch
+        branch_name = f"docs/update-{_uuid.uuid4().hex[:8]}"
+        if not repo.setup_pr_branch(branch_name):
+            add_log(job_id, "Could not create docs branch")
+            set_status(job_id, "failed")
+            return
+
+        run_id = _generate_run_id()
+        repo_path = config.git.repo_path
+
+        # Generate and write root agents.md
+        set_current_task(job_id, "Generating agents.md...")
+        agents_content = generate_cumulative_agents_md(
+            scan, tfm=config.build.tfm,
+            nuget_version=config.build.nuget_version, run_id=run_id,
+        )
+        agents_path = Path(repo_path) / "agents.md"
+        agents_path.write_text(agents_content, encoding="utf-8")
+        add_log(job_id, f"Root agents.md: {total_files} examples, {len(scan)} categories")
+
+        # Generate per-category agents.md
+        for cat_name, files in sorted(scan.items()):
+            cat_agents = generate_cumulative_category_agents_md(cat_name, files, run_id)
+            cat_path = Path(repo_path) / cat_name / "agents.md"
+            cat_path.parent.mkdir(parents=True, exist_ok=True)
+            cat_path.write_text(cat_agents, encoding="utf-8")
+
+        add_log(job_id, f"Generated {len(scan)} category agents.md files")
+
+        # Optionally update README.md
+        if update_readme:
+            set_current_task(job_id, "Updating README.md...")
+            readme_path = Path(repo_path) / "README.md"
+            if readme_path.exists():
+                readme_content = readme_path.read_text(encoding="utf-8")
+                updated = update_readme_categories(readme_content, scan)
+                if updated != readme_content:
+                    readme_path.write_text(updated, encoding="utf-8")
+                    add_log(job_id, "README.md category listing updated")
+                else:
+                    add_log(job_id, "README.md unchanged (category section not found or identical)")
+            else:
+                add_log(job_id, "README.md not found — skipping")
+
+        # Commit and push
+        set_current_task(job_id, "Committing docs...")
+        try:
+            with _git_lock:
+                subprocess.run(
+                    ["git", "add", "-A"],
+                    cwd=repo_path, check=True, capture_output=True, text=True,
+                )
+                subprocess.run(
+                    ["git", "commit", "-m", f"Update repo docs ({total_files} examples, {len(scan)} categories)"],
+                    cwd=repo_path, check=True, capture_output=True, text=True,
+                )
+                subprocess.run(
+                    ["git", "push", "-u", "origin", branch_name],
+                    cwd=repo_path, check=True, capture_output=True, text=True, timeout=30,
+                )
+        except subprocess.TimeoutExpired:
+            add_log(job_id, "Push timed out")
+            set_status(job_id, "failed")
+            return
+
+        # Create PR
+        set_current_task(job_id, "Creating PR...")
+        from git_ops.github_api import GitHubAPI
+        gh = GitHubAPI(config.git.repo_token)
+        owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
+        base = config.git.repo_branch or "main"
+
+        title = f"Update repo docs ({total_files} examples)"
+        body = (
+            f"## Repository Documentation Update\n\n"
+            f"Cumulative agents.md generated from repo scan.\n\n"
+            f"- **{total_files}** examples across **{len(scan)}** categories\n"
+            f"- Root agents.md updated\n"
+            f"- {len(scan)} category agents.md files updated\n"
+            + (f"- README.md category listing updated\n" if update_readme else "")
+            + f"\n---\n*Generated by Examples Generator*"
+        )
+
+        pr_url = gh.create_pull_request(owner, repo_name, title, body, branch_name, base)
+        if pr_url:
+            set_pr_url(job_id, pr_url)
+            add_log(job_id, f"Docs PR created: {pr_url}")
+        else:
+            add_log(job_id, "PR creation failed — docs are on the branch")
+
+        set_status(job_id, "completed")
+        set_current_task(job_id, "Repo docs update complete.")
+        add_log(job_id, "Done.")
+
+    except Exception as exc:
+        add_log(job_id, f"Repo docs update failed: {exc}")
+        set_status(job_id, "failed")
+        set_current_task(job_id, "Repo docs update failed.")
