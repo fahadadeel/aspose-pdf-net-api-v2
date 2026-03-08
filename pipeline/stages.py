@@ -53,6 +53,7 @@ def run_llm_fix_loop(
     code: str, error_log: str, task: str,
     llm: LLMClient, builder: DotnetBuilder, notify: Notify,
     max_attempts: int = 3, user_rules: str = "",
+    error_fixes_data: dict = None,
 ) -> StageOutcome:
     """Stage 2: Loop LLM fix attempts."""
     if not llm.available:
@@ -66,7 +67,17 @@ def run_llm_fix_loop(
         error_lines = extract_errors(last_err, limit=10)
         error_summary = "\n".join(error_lines[:5]) if error_lines else "Build errors detected."
 
-        fixed_code = llm.fix_code(task, current_code, error_summary, user_rules)
+        # Match relevant error fixes for the current errors
+        rules_for_llm = user_rules
+        if error_fixes_data:
+            parsed = parse_error_codes(error_lines)
+            error_codes = list(dict.fromkeys(e.code for e in parsed))
+            fixes = match_error_fixes(error_fixes_data, last_err, error_codes)
+            fixes_text = format_error_fixes_for_prompt(fixes)
+            if fixes_text:
+                rules_for_llm = f"{user_rules}\n\n{fixes_text}" if user_rules else fixes_text
+
+        fixed_code = llm.fix_code(task, current_code, error_summary, rules_for_llm)
         if not fixed_code:
             continue
 
@@ -85,6 +96,7 @@ def run_llm_fix_loop(
 def run_context_enrichment(
     task: str, error_log: str,
     mcp: MCPClient, llm: LLMClient, config: AppConfig,
+    category: str = "",
 ) -> str:
     """Stage 3: Retrieve API chunks and optionally decompose task. Returns enriched task.
 
@@ -103,8 +115,8 @@ def run_context_enrichment(
         def _retrieve():
             chunks = mcp.retrieve(
                 task,
+                category=category,
                 limit=config.pipeline.retrieve_limit,
-                exclude_namespaces=list(config.mcp.exclude_namespaces),
             )
             return MCPClient.format_chunks(chunks, config.pipeline.retrieve_max_chars)
 
@@ -126,8 +138,8 @@ def run_context_enrichment(
         if do_retrieve:
             chunks = mcp.retrieve(
                 task,
+                category=category,
                 limit=config.pipeline.retrieve_limit,
-                exclude_namespaces=list(config.mcp.exclude_namespaces),
             )
             chunks_text = MCPClient.format_chunks(chunks, config.pipeline.retrieve_max_chars)
             if chunks_text:
@@ -250,6 +262,7 @@ def run_final_llm_recovery(
     code: str, error_log: str, task: str,
     llm: LLMClient, builder: DotnetBuilder, notify: Notify,
     config: AppConfig,
+    error_fixes_data: dict = None,
 ) -> StageOutcome:
     """Stage 5: One last LLM fix attempt using last regen code."""
     if not llm.available or not code:
@@ -259,7 +272,15 @@ def run_final_llm_recovery(
     error_lines = extract_errors(error_log, limit=10)
     error_summary = "\n".join(error_lines[:5]) if error_lines else "Build errors detected."
 
-    fixed = llm.fix_code(task, code, error_summary)
+    # Match relevant error fixes for this final attempt
+    fixes_text = ""
+    if error_fixes_data:
+        parsed = parse_error_codes(error_lines)
+        error_codes = list(dict.fromkeys(e.code for e in parsed))
+        fixes = match_error_fixes(error_fixes_data, error_log, error_codes)
+        fixes_text = format_error_fixes_for_prompt(fixes)
+
+    fixed = llm.fix_code(task, code, error_summary, fixes_text)
     if not fixed:
         return StageOutcome(success=False, stage="final_llm")
 

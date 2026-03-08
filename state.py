@@ -68,19 +68,19 @@ def init_build(job_id: str, total: int = 0):
     _notify_listeners(job_id)
 
 
-def add_passed(job_id: str, task_id: str, task: str, badge: str, code: str = ""):
+def add_passed(job_id: str, task_id: str, task: str, badge: str, code: str = "", category: str = "", product: str = ""):
     with JOB_LOCK:
         state = BUILD_STATE.get(job_id)
         if state:
-            state["passed"].append({"id": task_id, "task": task, "badge": badge, "code": code})
+            state["passed"].append({"id": task_id, "task": task, "badge": badge, "code": code, "category": category, "product": product})
     _notify_listeners(job_id)
 
 
-def add_failed(job_id: str, task_id: str, task: str, badge: str, code: str = ""):
+def add_failed(job_id: str, task_id: str, task: str, badge: str, code: str = "", category: str = "", product: str = ""):
     with JOB_LOCK:
         state = BUILD_STATE.get(job_id)
         if state:
-            state["failed"].append({"id": task_id, "task": task, "badge": badge, "code": code})
+            state["failed"].append({"id": task_id, "task": task, "badge": badge, "code": code, "category": category, "product": product})
     _notify_listeners(job_id)
 
 

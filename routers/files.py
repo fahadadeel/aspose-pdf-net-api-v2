@@ -13,19 +13,22 @@ from fastapi.responses import JSONResponse
 router = APIRouter()
 
 APP_ROOT = Path(__file__).resolve().parent.parent
+BUILD_DIR = APP_ROOT / "_build"
 
 
 @router.post("/api/upload-files")
 async def api_upload_files(files: List[UploadFile] = File(...)):
-    """Upload test files to the workspace root directory."""
+    """Upload test files to the build workspace directory."""
     if not files:
         return JSONResponse({"error": "No files selected"}, status_code=400)
+
+    BUILD_DIR.mkdir(parents=True, exist_ok=True)
 
     uploaded_count = 0
     for file in files:
         if file and file.filename:
             filename = Path(file.filename).name
-            filepath = APP_ROOT / filename
+            filepath = BUILD_DIR / filename
             try:
                 content = await file.read()
                 filepath.write_bytes(content)
