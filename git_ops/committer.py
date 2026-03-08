@@ -66,6 +66,17 @@ class CodeCommitter:
         self._llm = llm_client
         self._pending_commits: List[dict] = []
 
+    def get_pending_by_category(self) -> dict:
+        """Group pending commits by category name.
+
+        Returns ``{category_name: [commit_dicts...]}``.
+        """
+        groups: dict = {}
+        for c in self._pending_commits:
+            cat = c.get("category") or self.default_category
+            groups.setdefault(cat, []).append(c)
+        return groups
+
     def _build_file_path(self, category: str, task: str) -> Path:
         cat_slug = normalize_category(category, self.default_category)
         filename = f"{slugify(task, max_len=120)}.cs"

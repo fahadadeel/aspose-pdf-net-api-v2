@@ -88,12 +88,20 @@ class MCPClient:
     def retrieve(
         self,
         task: str,
+        category: str = "",
         retrieval_mode: str = None,
         limit: int = None,
         exclude_namespaces: list = None,
     ) -> List[dict]:
         """Call /mcp/retrieve and return list of chunks."""
         cfg = self.config.mcp
+
+        # Facade handling: same logic as generate()
+        cat_lower = (category or "").lower()
+        if "facades" in cat_lower or "facades" in task.lower():
+            ns = ["Aspose.Pdf.Plugins"]
+        else:
+            ns = exclude_namespaces or list(cfg.exclude_namespaces)
 
         # Always use config product/platform (same fix as generate)
         payload = {
@@ -102,7 +110,7 @@ class MCPClient:
             "platform": cfg.platform,
             "retrieval_mode": retrieval_mode or cfg.retrieval_mode,
             "limit": limit or self.config.pipeline.retrieve_limit,
-            "exclude_namespaces": exclude_namespaces or list(cfg.exclude_namespaces),
+            "exclude_namespaces": ns,
         }
 
         resp = self._post_with_retry(cfg.retrieve_url, payload, cfg.timeout)

@@ -8,6 +8,7 @@ Fully in-memory — no database. Results tracked via state.BUILD_STATE.
 """
 
 import uuid
+from pathlib import Path
 
 from config import load_config
 from pipeline.models import TaskInput
@@ -82,6 +83,166 @@ def _setup_pr_workflow(config, job_id: str, notify):
     return repo, committer, pr_manager
 
 
+def _run_rule_learning(job_id, config, failed_results, builder, notify):
+    """Post-pipeline rule learning: analyze failed tasks with Anthropic Claude.
+
+    For each failed task:
+    1. Send original code + build error to Claude
+    2. If Claude returns a fix, build+run it to verify
+    3. If verified, save the extracted rule to auto_fixes.json
+    """
+    if not config.pipeline.learn_rules_from_failures:
+        return
+
+    import re
+    from pipeline.anthropic_client import AnthropicClient
+    from knowledge.auto_fixes import save_auto_fix, is_duplicate_rule
+    from knowledge.error_fixes import load_error_fixes, match_error_fixes, format_error_fixes_for_prompt
+
+    anthropic_client = AnthropicClient(config)
+    # Load curated error fixes to provide as context to Claude
+    all_fixes = load_error_fixes(config.error_fixes_path)
+    if not anthropic_client.available:
+        add_log(job_id, "Rule learning skipped: ANTHROPIC_API_KEY not configured")
+        return
+
+    learnable = [f for f in failed_results if f.get("code") and f.get("build_log")]
+    if not learnable:
+        add_log(job_id, "Rule learning: no failed tasks with code+errors to analyze")
+        return
+
+    add_log(job_id, f"Rule learning: analyzing {len(learnable)} failed task(s) with Claude...")
+    set_current_task(job_id, "Learning rules from failures...")
+
+    rules_learned = 0
+
+    for idx, failure in enumerate(learnable, 1):
+        if is_cancelled(job_id):
+            break
+
+        task_text = failure["task"]
+        code = failure["code"]
+        build_log = failure["build_log"]
+
+        add_log(job_id, f"  Rule learning [{idx}/{len(learnable)}]: {task_text[:80]}...")
+
+        # Find relevant existing fixes to give Claude proven patterns
+        error_codes = re.findall(r"CS\d{4}", build_log)
+        matched_fixes = match_error_fixes(all_fixes, build_log, error_codes)
+        fixes_context = format_error_fixes_for_prompt(matched_fixes) if matched_fixes else ""
+
+        result = anthropic_client.fix_and_extract_rule(task_text, code, build_log, fixes_context)
+        if not result:
+            add_log(job_id, f"  Claude could not fix task #{idx}")
+            continue
+
+        fixed_code = result["fixed_code"]
+        rule_id = result["rule_id"]
+        rule = result["rule"]
+
+        if is_duplicate_rule(config.auto_fixes_path, rule_id, rule.get("errors", [])):
+            add_log(job_id, f"  Rule '{rule_id}' is a duplicate — skipped")
+            continue
+
+        builder.write_program_cs(fixed_code)
+        success, output = builder.build_and_run()
+
+        if success:
+            saved = save_auto_fix(config.auto_fixes_path, rule_id, rule)
+            if saved:
+                rules_learned += 1
+                add_log(job_id, f"  Learned rule: '{rule_id}' (verified via build+run)")
+            else:
+                add_log(job_id, f"  Rule '{rule_id}' verified but save failed")
+        else:
+            # Determine error type and log useful context
+            is_runtime = "--- RUNTIME OUTPUT ---" in output and "error CS" not in output.split("--- RUNTIME OUTPUT ---")[0]
+            error_type = "runtime crash" if is_runtime else "compile error"
+            error_lines = output.strip().split("\n") if output else ["(no output)"]
+            error_preview = error_lines[-8:]
+            add_log(job_id, f"  Claude's fix for task #{idx} failed ({error_type}) — rule discarded")
+            for line in error_preview:
+                stripped = line.strip()
+                if stripped:
+                    add_log(job_id, f"    | {stripped}")
+
+    add_log(job_id, f"Rule learning complete: {rules_learned} new rule(s) saved to auto_fixes.json")
+
+
+def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_summary, notify):
+    """Commit and create one PR per category.
+
+    Each category gets its own branch, commit, and PR.
+    agents.md is NOT included (use 'Update Repo Docs' after merging).
+    """
+    import subprocess
+    from git_ops.repo import _git_lock
+
+    groups = committer.get_pending_by_category()
+    base_branch = config.git.repo_branch or "main"
+    pr_urls = []
+
+    for cat_name, commits in sorted(groups.items()):
+        if is_cancelled(job_id):
+            break
+
+        branch_suffix = cat_name.lower().replace(" ", "-")[:30]
+        cat_branch = f"examples/{job_id[:8]}-{branch_suffix}"
+        add_log(job_id, f"[{cat_name}] Creating branch {cat_branch} ({len(commits)} file(s))...")
+        set_current_task(job_id, f"PR: {cat_name}...")
+
+        try:
+            with _git_lock:
+                # Create a fresh branch from base for this category
+                subprocess.run(
+                    ["git", "checkout", f"origin/{base_branch}"],
+                    cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                )
+                subprocess.run(
+                    ["git", "checkout", "-b", cat_branch],
+                    cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                )
+
+                # Stage only this category's files
+                for c in commits:
+                    subprocess.run(
+                        ["git", "add", str(c["path"])],
+                        cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                    )
+
+                subprocess.run(
+                    ["git", "commit", "-m", f"Add {len(commits)} example(s) for {cat_name}"],
+                    cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                )
+                subprocess.run(
+                    ["git", "push", "-u", "origin", cat_branch],
+                    cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                    timeout=60,
+                )
+
+            # Create PR for this category (no agents.md)
+            repo.pr_branch = cat_branch
+            pr_url = pr_manager.create_category_pr(cat_name, len(commits))
+            if pr_url:
+                pr_urls.append(pr_url)
+                add_log(job_id, f"[{cat_name}] PR created: {pr_url}")
+            else:
+                add_log(job_id, f"[{cat_name}] PR creation failed")
+
+        except subprocess.TimeoutExpired:
+            add_log(job_id, f"[{cat_name}] Push timed out")
+        except Exception as e:
+            add_log(job_id, f"[{cat_name}] Error: {str(e)[:100]}")
+
+    committer._pending_commits.clear()
+
+    if pr_urls:
+        set_pr_url(job_id, pr_urls[0])  # Show first PR in UI
+        add_log(job_id, f"Created {len(pr_urls)} category PR(s)")
+    else:
+        add_log(job_id, "No category PRs created")
+
+
 def run_job(
     job_id: str,
     mode: str,
@@ -125,14 +286,24 @@ def run_job(
             status_str = "PASSED" if result.status == "SUCCESS" else "FAILED"
 
             if result.status == "SUCCESS":
-                add_passed(job_id, "1", prompt[:100], badge, code=final_code)
+                add_passed(job_id, "1", prompt[:100], badge, code=final_code, category=category or "", product=product or "")
                 add_log(job_id, f"Passed ({badge})")
                 # Commit code to repo
                 if committer:
                     committer.commit_code(prompt, category or "", final_code)
             else:
-                add_failed(job_id, "1", prompt[:100], badge, code=final_code)
+                add_failed(job_id, "1", prompt[:100], badge, code=final_code, category=category or "", product=product or "")
                 add_log(job_id, f"Failed ({badge})")
+                # Post-pipeline rule learning for single task
+                if result.build_log:
+                    try:
+                        _run_rule_learning(
+                            job_id, config,
+                            [{"task": prompt, "code": result.generated_code or "", "build_log": result.build_log}],
+                            runner.builder, notify,
+                        )
+                    except Exception as e:
+                        add_log(job_id, f"Rule learning error: {e}")
 
             # Batch commit + PR
             if committer and committer._pending_commits:
@@ -170,6 +341,7 @@ def run_job(
 
             results_summary = []
             retry_queue = []  # Tasks to retry after transient failures
+            failed_for_learning = []  # Collect failed tasks for post-pipeline rule learning
             max_retries = 3   # Max retry attempts for API_FAILED tasks
 
             for idx, p in enumerate(prompts, 1):
@@ -184,7 +356,8 @@ def run_job(
                 add_log(job_id, separator)
                 add_log(job_id, f"Testing: {p.get('category', '')} - {task_display}")
                 add_log(job_id, separator)
-                set_current_task(job_id, f"Processing task #{task_id} ({idx}/{total})...")
+                cat_label = p.get("category", "")
+                set_current_task(job_id, f"[{cat_label}] Processing task #{task_id} ({idx}/{total})..." if cat_label else f"Processing task #{task_id} ({idx}/{total})...")
 
                 task_input = TaskInput(
                     task=task_text,
@@ -214,13 +387,19 @@ def run_job(
                 })
 
                 if result.status == "SUCCESS":
-                    add_passed(job_id, task_id, task_display, badge, code=final_code)
+                    add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                     add_log(job_id, f"Task {task_id} passed ({badge})")
                     if committer:
                         committer.commit_code(task_text, p.get("category", ""), final_code)
                 else:
-                    add_failed(job_id, task_id, task_display, badge, code=final_code)
+                    add_failed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                     add_log(job_id, f"Task {task_id} failed ({badge})")
+                    if result.build_log:
+                        failed_for_learning.append({
+                            "task": task_text,
+                            "code": result.generated_code or "",
+                            "build_log": result.build_log,
+                        })
 
             # ── Process retry queue ──
             if retry_queue and not is_cancelled(job_id):
@@ -234,8 +413,9 @@ def run_job(
                     task_display = task_text[:100] if task_text else "Task"
                     retry_num = p.get("_retry_count", 1)
 
+                    cat_label = p.get("category", "")
                     add_log(job_id, f"Retry {retry_num}/{max_retries} for task #{task_id}")
-                    set_current_task(job_id, f"Retrying task #{task_id}...")
+                    set_current_task(job_id, f"[{cat_label}] Retrying task #{task_id}..." if cat_label else f"Retrying task #{task_id}...")
 
                     task_input = TaskInput(
                         task=task_text,
@@ -260,31 +440,56 @@ def run_job(
                     })
 
                     if result.status == "SUCCESS":
-                        add_passed(job_id, task_id, task_display, badge, code=final_code)
+                        add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                         add_log(job_id, f"Task {task_id} passed on retry ({badge})")
                         if committer:
                             committer.commit_code(task_text, p.get("category", ""), final_code)
                     else:
-                        add_failed(job_id, task_id, task_display, badge, code=final_code)
+                        add_failed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                         add_log(job_id, f"Task {task_id} failed after retries ({badge})")
+                        if result.build_log:
+                            failed_for_learning.append({
+                                "task": task_text,
+                                "code": result.generated_code or "",
+                                "build_log": result.build_log,
+                            })
 
             # Persist results for PR retry
             set_results_summary(job_id, results_summary)
 
+            # ── Post-pipeline rule learning ──
+            if failed_for_learning and not is_cancelled(job_id):
+                try:
+                    _run_rule_learning(
+                        job_id, config, failed_for_learning,
+                        runner.builder, notify,
+                    )
+                except Exception as e:
+                    add_log(job_id, f"Rule learning error: {e}")
+
             # Batch commit + PR
             if committer and committer._pending_commits:
-                add_log(job_id, f"Batch committing {len(committer._pending_commits)} file(s)...")
-                committer.batch_commit_and_push()
+                pending_count = len(committer._pending_commits)
+                split_threshold = config.git.pr_split_threshold
 
-            if pr_manager and repo and repo.pr_branch and results_summary:
-                add_log(job_id, "Creating pull request...")
-                set_current_task(job_id, "Creating pull request...")
-                pr_url = pr_manager.create_pull_request(results_summary)
-                if pr_url:
-                    set_pr_url(job_id, pr_url)
-                    add_log(job_id, f"Pull request created: {pr_url}")
+                if split_threshold > 0 and pending_count > split_threshold:
+                    # ── Split by category: one PR per category ──
+                    add_log(job_id, f"Splitting {pending_count} file(s) into per-category PRs (threshold={split_threshold})...")
+                    _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_summary, notify)
                 else:
-                    add_log(job_id, "PR creation failed - changes are on the feature branch")
+                    # ── Single PR (original behaviour) ──
+                    add_log(job_id, f"Batch committing {pending_count} file(s)...")
+                    committer.batch_commit_and_push()
+
+                    if pr_manager and repo and repo.pr_branch and results_summary:
+                        add_log(job_id, "Creating pull request...")
+                        set_current_task(job_id, "Creating pull request...")
+                        pr_url = pr_manager.create_pull_request(results_summary)
+                        if pr_url:
+                            set_pr_url(job_id, pr_url)
+                            add_log(job_id, f"Pull request created: {pr_url}")
+                        else:
+                            add_log(job_id, "PR creation failed - changes are on the feature branch")
 
             with JOB_LOCK:
                 was_cancelled = JOB_CANCEL_FLAGS.pop(job_id, False)
@@ -434,3 +639,151 @@ def retry_pr(job_id: str, old_pr_branch: str, results_summary: list):
 
     except Exception as exc:
         add_log(job_id, f"PR retry failed: {exc}")
+
+
+def update_repo_docs(job_id: str, update_readme: bool = False):
+    """Scan the repo and create a PR with cumulative agents.md (+ optional README update).
+
+    Runs in a background thread. Creates a fresh branch, commits all
+    generated docs, and opens a PR.
+    """
+    import subprocess
+    import uuid as _uuid
+    from git_ops.repo import _git_lock
+    from git_ops.repo_docs import (
+        scan_repo,
+        generate_cumulative_agents_md,
+        generate_cumulative_category_agents_md,
+        update_readme_categories,
+    )
+    from git_ops.agents_md import _generate_run_id
+
+    notify = _make_progress_callback(job_id)
+    config = load_config()
+
+    try:
+        init_build(job_id, total=0)
+        add_log(job_id, "Repo docs: starting...")
+        set_current_task(job_id, "Scanning repository...")
+
+        repo = RepoManager(
+            repo_path=config.git.repo_path,
+            repo_url=config.git.repo_url,
+            repo_branch=config.git.repo_branch,
+            repo_token=config.git.repo_token,
+            repo_user=config.git.repo_user,
+            notify=notify,
+        )
+        if not repo.ensure_ready():
+            add_log(job_id, "Repository not ready")
+            set_status(job_id, "failed")
+            return
+
+        # Scan repo on main branch
+        scan = scan_repo(config.git.repo_path)
+        total_files = sum(len(files) for files in scan.values())
+        add_log(job_id, f"Found {total_files} .cs file(s) across {len(scan)} categories")
+
+        if not scan:
+            add_log(job_id, "No .cs files found — nothing to do")
+            set_status(job_id, "completed")
+            return
+
+        # Create docs branch
+        branch_name = f"docs/update-{_uuid.uuid4().hex[:8]}"
+        if not repo.setup_pr_branch(branch_name):
+            add_log(job_id, "Could not create docs branch")
+            set_status(job_id, "failed")
+            return
+
+        run_id = _generate_run_id()
+        repo_path = config.git.repo_path
+
+        # Generate and write root agents.md
+        set_current_task(job_id, "Generating agents.md...")
+        agents_content = generate_cumulative_agents_md(
+            scan, tfm=config.build.tfm,
+            nuget_version=config.build.nuget_version, run_id=run_id,
+        )
+        agents_path = Path(repo_path) / "agents.md"
+        agents_path.write_text(agents_content, encoding="utf-8")
+        add_log(job_id, f"Root agents.md: {total_files} examples, {len(scan)} categories")
+
+        # Generate per-category agents.md
+        for cat_name, files in sorted(scan.items()):
+            cat_agents = generate_cumulative_category_agents_md(cat_name, files, run_id)
+            cat_path = Path(repo_path) / cat_name / "agents.md"
+            cat_path.parent.mkdir(parents=True, exist_ok=True)
+            cat_path.write_text(cat_agents, encoding="utf-8")
+
+        add_log(job_id, f"Generated {len(scan)} category agents.md files")
+
+        # Optionally update README.md
+        if update_readme:
+            set_current_task(job_id, "Updating README.md...")
+            readme_path = Path(repo_path) / "README.md"
+            if readme_path.exists():
+                readme_content = readme_path.read_text(encoding="utf-8")
+                updated = update_readme_categories(readme_content, scan)
+                if updated != readme_content:
+                    readme_path.write_text(updated, encoding="utf-8")
+                    add_log(job_id, "README.md category listing updated")
+                else:
+                    add_log(job_id, "README.md unchanged (category section not found or identical)")
+            else:
+                add_log(job_id, "README.md not found — skipping")
+
+        # Commit and push
+        set_current_task(job_id, "Committing docs...")
+        try:
+            with _git_lock:
+                subprocess.run(
+                    ["git", "add", "-A"],
+                    cwd=repo_path, check=True, capture_output=True, text=True,
+                )
+                subprocess.run(
+                    ["git", "commit", "-m", f"Update repo docs ({total_files} examples, {len(scan)} categories)"],
+                    cwd=repo_path, check=True, capture_output=True, text=True,
+                )
+                subprocess.run(
+                    ["git", "push", "-u", "origin", branch_name],
+                    cwd=repo_path, check=True, capture_output=True, text=True, timeout=30,
+                )
+        except subprocess.TimeoutExpired:
+            add_log(job_id, "Push timed out")
+            set_status(job_id, "failed")
+            return
+
+        # Create PR
+        set_current_task(job_id, "Creating PR...")
+        from git_ops.github_api import GitHubAPI
+        gh = GitHubAPI(config.git.repo_token)
+        owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
+        base = config.git.repo_branch or "main"
+
+        title = f"Update repo docs ({total_files} examples)"
+        body = (
+            f"## Repository Documentation Update\n\n"
+            f"Cumulative agents.md generated from repo scan.\n\n"
+            f"- **{total_files}** examples across **{len(scan)}** categories\n"
+            f"- Root agents.md updated\n"
+            f"- {len(scan)} category agents.md files updated\n"
+            + (f"- README.md category listing updated\n" if update_readme else "")
+            + f"\n---\n*Generated by Examples Generator*"
+        )
+
+        pr_url = gh.create_pull_request(owner, repo_name, title, body, branch_name, base)
+        if pr_url:
+            set_pr_url(job_id, pr_url)
+            add_log(job_id, f"Docs PR created: {pr_url}")
+        else:
+            add_log(job_id, "PR creation failed — docs are on the branch")
+
+        set_status(job_id, "completed")
+        set_current_task(job_id, "Repo docs update complete.")
+        add_log(job_id, "Done.")
+
+    except Exception as exc:
+        add_log(job_id, f"Repo docs update failed: {exc}")
+        set_status(job_id, "failed")
+        set_current_task(job_id, "Repo docs update failed.")
