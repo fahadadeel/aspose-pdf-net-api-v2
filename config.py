@@ -110,6 +110,7 @@ class GitConfig:
     default_category: str = "uncategorized"
     default_product: str = "aspose.pdf"
     update_agents_md: bool = True
+    pr_split_threshold: int = 0  # 0 = single PR; >0 = split by category when total files exceed this
 
 
 @dataclass
@@ -209,6 +210,7 @@ def load_config() -> AppConfig:
     cfg.git.repo_user = _env("REPO_USER", "")
     cfg.git.default_category = _env("DEFAULT_CATEGORY", cfg.git.default_category)
     cfg.git.default_product = _env("DEFAULT_PRODUCT", cfg.git.default_product)
+    cfg.git.pr_split_threshold = _env_int("PR_SPLIT_THRESHOLD", cfg.git.pr_split_threshold)
 
     # App-level
     cfg.workspace_path = _env("WORKSPACE_PATH", cfg.workspace_path)

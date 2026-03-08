@@ -7,6 +7,7 @@ GET  /api/status/{job_id}
 GET  /api/stream/{job_id}   (SSE)
 POST /api/cancel/{job_id}
 POST /api/retry-pr/{job_id}
+POST /api/update-repo-docs
 """
 
 import asyncio
@@ -19,7 +20,7 @@ import uuid
 from fastapi import APIRouter, Body, File, Form, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from jobs import run_job, retry_pr, create_pr
+from jobs import run_job, retry_pr, create_pr, update_repo_docs
 from state import (
     JOB_CANCEL_FLAGS, JOB_LOCK,
     get_build_state, add_log,
@@ -294,3 +295,22 @@ async def api_cancel(job_id: str):
         JOB_CANCEL_FLAGS[job_id] = True
     add_log(job_id, "Cancellation requested - finishing current task...")
     return {"status": "cancel_requested"}
+
+
+@router.post("/api/update-repo-docs")
+async def api_update_repo_docs(data: dict = Body(None)):
+    """Scan the repo and create a PR with cumulative agents.md + optional README update."""
+    update_readme = False
+    if data:
+        update_readme = bool(data.get("update_readme", False))
+
+    job_id = str(uuid.uuid4())
+
+    thread = threading.Thread(
+        target=update_repo_docs,
+        args=(job_id,),
+        kwargs={"update_readme": update_readme},
+        daemon=True,
+    )
+    thread.start()
+    return {"job_id": job_id}

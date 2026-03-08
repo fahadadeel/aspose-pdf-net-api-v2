@@ -103,9 +103,13 @@ class PipelineRunner:
         current_error = outcome.build_log
 
         # ── Pattern fix (between stages 1 and 2) ──
-        fixed, rule = detect_and_fix_known_patterns(current_code, current_error)
-        if fixed:
-            self._notify("pattern_fix", "Applying known pattern fix...")
+        # Loop: a single call only applies the first matching fix, so
+        # keep applying until no more known patterns match (max 5).
+        for _pf_round in range(5):
+            fixed, rule = detect_and_fix_known_patterns(current_code, current_error)
+            if not fixed:
+                break
+            self._notify("pattern_fix", f"Applying known pattern fix (round {_pf_round + 1})...")
             self.builder.write_program_cs(fixed)
             success, output = self.builder.build_and_run()
             if success:
@@ -163,9 +167,13 @@ class PipelineRunner:
 
         # ── Stage 5: Final LLM Recovery ──
         if self.config.pipeline.final_llm_after_regen_fail:
+            # Fall back to pre-regen code if Stage 4 produced nothing
+            # (e.g. all MCP regen attempts returned None).
+            stage5_code = outcome.code or current_code
+            stage5_error = outcome.build_log or current_error
             self._notify("final_llm", "Stage 5: Final LLM recovery...")
             outcome = stages.run_final_llm_recovery(
-                outcome.code, outcome.build_log, task_input.task,
+                stage5_code, stage5_error, task_input.task,
                 self.llm, self.builder, self._notify, self.config,
                 error_fixes_data=self._error_fixes,
             )
