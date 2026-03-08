@@ -368,6 +368,16 @@
       color: var(--blue);
       font-weight: 500;
     }
+    .task-category-header {
+      padding: 8px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--blue);
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
     .task-list-panel {
       background: var(--bg);
       border: 1px solid var(--border);
@@ -793,6 +803,29 @@
       background: var(--border);
       box-shadow: 0 2px 6px rgba(0,0,0,0.2);
     }
+    .btn-docs {
+      background: rgba(88,166,255,0.12);
+      border: 1px solid rgba(88,166,255,0.35);
+      color: var(--blue);
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn-docs:hover:not(:disabled) {
+      background: rgba(88,166,255,0.22);
+      border-color: var(--blue);
+    }
+    .btn-docs:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 
     /* ── Hidden ─────────────────────────────────────────────────────── */
     .hidden { display: none !important; }
@@ -879,7 +912,7 @@
       <div id="tab-taskgen" class="tab-content">
         <div class="task-gen-layout">
           <div>
-            <label>Categories</label>
+            <label>Categories <span style="font-weight:normal;font-size:0.78em;color:#888;margin-left:6px;">Shift+click to select multiple</span></label>
             <input type="text" id="category-search" class="search-input" placeholder="Search categories..." oninput="filterCategories()" />
             <div class="category-list" id="category-list">
               <div class="task-placeholder">Loading categories...</div>
@@ -951,6 +984,7 @@
       <span class="subtitle">Automated Code Generation &amp; Testing Pipeline</span>
     </div>
     <div class="header-actions">
+      <button class="btn-docs" id="update-docs-btn" onclick="updateRepoDocs()">&#128196; Update Repo Docs</button>
       <span class="repo-badge">{{ repo_display }} : {{ repo_branch }}</span>
       <button class="btn" id="run-again-btn" onclick="runAgain()">&#9654; Run Again</button>
       <button class="btn btn-danger" id="stop-btn" onclick="stopJob()">&#9209; Stop</button>
@@ -1240,6 +1274,9 @@
   }
 
   /* ── Task Generator ─────────────────────────────────────────── */
+  var _categoryTasks = {};  // { categoryName: [tasks...] }
+  var _taskIdCounter = 0;
+
   function loadCategories() {
     var listEl = document.getElementById('category-list');
     listEl.innerHTML = '<div class="task-placeholder"><span class="loading-spinner"></span>Loading categories...</div>';
@@ -1260,10 +1297,33 @@
           var item = document.createElement('div');
           item.className = 'category-item';
           item.textContent = catName;
-          item.onclick = function() {
-            document.querySelectorAll('.category-item').forEach(function(c) { c.classList.remove('active'); });
-            item.classList.add('active');
-            loadTasks(catName);
+          item.setAttribute('data-category', catName);
+          item.onclick = function(e) {
+            if (e.shiftKey) {
+              // Shift+click: toggle this category (accumulate)
+              item.classList.toggle('active');
+              if (item.classList.contains('active')) {
+                loadTasksForCategory(catName);
+              } else {
+                removeTasksForCategory(catName);
+              }
+            } else {
+              // Normal click: single-select (clear others)
+              var wasActive = item.classList.contains('active');
+              document.querySelectorAll('.category-item.active').forEach(function(c) {
+                var cn = c.getAttribute('data-category');
+                c.classList.remove('active');
+                if (cn !== catName) delete _categoryTasks[cn];
+              });
+              if (!wasActive) {
+                item.classList.add('active');
+                _categoryTasks = {};
+                loadTasksForCategory(catName);
+              } else {
+                _categoryTasks = {};
+                rerenderAllTasks();
+              }
+            }
           };
           listEl.appendChild(item);
         });
@@ -1274,13 +1334,11 @@
       });
   }
 
-  function loadTasks(category) {
-    var panel = document.getElementById('task-list-panel');
-    panel.innerHTML = '<div class="task-placeholder"><span class="loading-spinner"></span>Loading tasks...</div>';
-    // Clear task search when loading new category
-    document.getElementById('task-search').value = '';
+  function loadTasksForCategory(category) {
+    _categoryTasks[category] = [];
+    rerenderAllTasks();
 
-    // Fetch all pages of tasks
+    // Fetch all pages of tasks for this category
     var allTasks = [];
     function fetchPage(page) {
       return fetch('/api/tasks?category=' + encodeURIComponent(category) + '&page=' + page)
@@ -1298,36 +1356,70 @@
 
     fetchPage(1)
       .then(function() {
-        renderTasks(panel, allTasks);
+        _categoryTasks[category] = allTasks;
+        rerenderAllTasks();
       })
       .catch(function(err) {
-        panel.innerHTML = '<div class="task-placeholder">Failed to load tasks</div>';
+        delete _categoryTasks[category];
+        // Deselect the category item on error
+        var catItem = document.querySelector('.category-item[data-category="' + CSS.escape(category) + '"]');
+        if (catItem) catItem.classList.remove('active');
+        rerenderAllTasks();
         console.error('loadTasks error:', err);
       });
   }
 
-  function renderTasks(panel, tasks) {
-    if (tasks.length === 0) {
-      panel.innerHTML = '<div class="task-placeholder">No tasks in this category</div>';
+  function removeTasksForCategory(category) {
+    delete _categoryTasks[category];
+    rerenderAllTasks();
+  }
+
+  function rerenderAllTasks() {
+    var panel = document.getElementById('task-list-panel');
+    var selectedCategories = Object.keys(_categoryTasks);
+
+    if (selectedCategories.length === 0) {
+      panel.innerHTML = '<div class="task-placeholder">Select one or more categories to load tasks</div>';
       return;
     }
+
+    // Count total tasks across all categories
+    var totalCount = 0;
+    selectedCategories.forEach(function(cat) { totalCount += _categoryTasks[cat].length; });
+
+    // Check if any category is still loading
+    var loading = selectedCategories.some(function(cat) { return _categoryTasks[cat].length === 0; });
+
     var headerHtml =
       '<div class="task-list-header">' +
-        '<span id="task-count">0 / ' + tasks.length + ' selected</span>' +
+        '<span id="task-count">0 / ' + totalCount + ' selected</span>' +
         '<div class="btn-group">' +
           '<button class="btn btn-sm" onclick="selectAllTasks(true)">Select All</button>' +
           '<button class="btn btn-sm" onclick="selectAllTasks(false)">Deselect All</button>' +
         '</div>' +
       '</div>';
+
     var itemsHtml = '';
-    tasks.forEach(function(t, i) {
-      var taskStr = (typeof t === 'string') ? t : (t.prompt || t.task || t.description || JSON.stringify(t));
-      itemsHtml +=
-        '<div class="task-check-item">' +
-          '<input type="checkbox" id="task-cb-' + i + '" data-task=\'' + escapeAttr(JSON.stringify(t)) + '\' onchange="updateTaskCount()" />' +
-          '<label for="task-cb-' + i + '">' + escapeHtml(taskStr) + '</label>' +
-        '</div>';
+    _taskIdCounter = 0;
+
+    selectedCategories.forEach(function(cat) {
+      var tasks = _categoryTasks[cat];
+      if (tasks.length === 0) {
+        itemsHtml += '<div class="task-category-header"><span class="loading-spinner"></span> ' + escapeHtml(cat) + ' (loading...)</div>';
+        return;
+      }
+      itemsHtml += '<div class="task-category-header">' + escapeHtml(cat) + ' (' + tasks.length + ')</div>';
+      tasks.forEach(function(t) {
+        var taskStr = (typeof t === 'string') ? t : (t.prompt || t.task || t.description || JSON.stringify(t));
+        var cbId = 'task-cb-' + _taskIdCounter++;
+        itemsHtml +=
+          '<div class="task-check-item">' +
+            '<input type="checkbox" id="' + cbId + '" data-task=\'' + escapeAttr(JSON.stringify(t)) + '\' onchange="updateTaskCount()" />' +
+            '<label for="' + cbId + '">' + escapeHtml(taskStr) + '</label>' +
+          '</div>';
+      });
     });
+
     panel.innerHTML = headerHtml + itemsHtml;
   }
 
@@ -1750,6 +1842,78 @@
     lastProcessed = 0;
   }
 
+  /* ── Update Repo Docs ──────────────────────────────────────── */
+  var _docsPollTimer = null;
+  var _docsPollLastLogCount = 0;
+
+  window.updateRepoDocs = function() {
+    var btn = document.getElementById('update-docs-btn');
+    var updateReadme = confirm('Also update README.md category listing?');
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Updating...';
+
+    fetch('/api/update-repo-docs', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ update_readme: updateReadme }),
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          alert('Failed: ' + data.error);
+          btn.disabled = false;
+          btn.innerHTML = '&#128196; Update Repo Docs';
+          return;
+        }
+        addLogLine('📄 Repo docs update started...');
+        _docsPollLastLogCount = 0;
+        _startDocsPoll(data.job_id, btn);
+      })
+      .catch(function(err) {
+        alert('Request failed: ' + err);
+        btn.disabled = false;
+        btn.innerHTML = '&#128196; Update Repo Docs';
+      });
+  };
+
+  function _startDocsPoll(jobId, btn) {
+    if (_docsPollTimer) clearInterval(_docsPollTimer);
+    _docsPollTimer = setInterval(function() {
+      fetch('/api/status/' + jobId)
+        .then(function(r) { return r.json(); })
+        .then(function(state) {
+          var logs = state.logs || [];
+          for (var i = _docsPollLastLogCount; i < logs.length; i++) {
+            addLogLine(logs[i]);
+          }
+          _docsPollLastLogCount = logs.length;
+
+          if (state.pr_url) {
+            clearInterval(_docsPollTimer);
+            _docsPollTimer = null;
+            var banner = document.getElementById('pr-link-banner');
+            var link = document.getElementById('pr-link-url');
+            link.href = state.pr_url;
+            link.textContent = state.pr_url;
+            banner.classList.add('visible');
+            btn.disabled = false;
+            btn.innerHTML = '&#128196; Update Repo Docs';
+            addLogLine('✅ Docs PR created: ' + state.pr_url);
+          } else if (state.status === 'completed' || state.status === 'failed') {
+            clearInterval(_docsPollTimer);
+            _docsPollTimer = null;
+            btn.disabled = false;
+            btn.innerHTML = '&#128196; Update Repo Docs';
+            if (state.status === 'failed') {
+              addLogLine('❌ Repo docs update failed');
+            }
+          }
+        })
+        .catch(function() { /* ignore transient errors */ });
+    }, 2000);
+  }
+
   /* ── Download CSV ───────────────────────────────────────────── */
   window.downloadCSV = function() {
     function csvEscape(val) {
@@ -1763,12 +1927,13 @@
     }
 
     var rows = [];
-    rows.push('Task #,Task,Generated Code,Status');
+    rows.push('prompt,category,product,generated_code,status');
 
     _allPassed.forEach(function(item) {
       rows.push(
-        csvEscape(item.id) + ',' +
         csvEscape(item.task) + ',' +
+        csvEscape(item.category || '') + ',' +
+        csvEscape(item.product || '') + ',' +
         csvEscape(item.code || '') + ',' +
         'PASSED'
       );
@@ -1776,8 +1941,9 @@
 
     _allFailed.forEach(function(item) {
       rows.push(
-        csvEscape(item.id) + ',' +
         csvEscape(item.task) + ',' +
+        csvEscape(item.category || '') + ',' +
+        csvEscape(item.product || '') + ',' +
         csvEscape(item.code || '') + ',' +
         'FAILED'
       );
