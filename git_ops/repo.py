@@ -73,6 +73,28 @@ class RepoManager:
                     self._notify("git_error", f"Git: Clone failed - {str(e)[:100]}")
                     return False
             else:
+                # Fetch all remote refs first so checkout/pull have latest data
+                try:
+                    subprocess.run(
+                        ["git", "fetch", "origin"],
+                        cwd=self.repo_path, check=True, capture_output=True, text=True,
+                        timeout=30,
+                    )
+                except Exception:
+                    pass  # non-fatal, pull below may still work
+
+                # Checkout target branch BEFORE pulling
+                if self.repo_branch:
+                    try:
+                        subprocess.run(
+                            ["git", "checkout", self.repo_branch],
+                            cwd=self.repo_path, check=True, capture_output=True, text=True,
+                        )
+                    except Exception as e:
+                        self._notify("git_error", f"Git: Failed to checkout {self.repo_branch}")
+                        return False
+
+                # Now pull on the correct branch
                 self._notify("git_pull_start", "Git: Pulling latest changes...")
                 try:
                     subprocess.run(
@@ -96,16 +118,6 @@ class RepoManager:
                 )
             except Exception:
                 pass
-
-            if self.repo_branch:
-                try:
-                    subprocess.run(
-                        ["git", "checkout", self.repo_branch],
-                        cwd=self.repo_path, check=True, capture_output=True, text=True,
-                    )
-                except Exception as e:
-                    self._notify("git_error", f"Git: Failed to checkout {self.repo_branch}")
-                    return False
 
         self._ready = True
         return True

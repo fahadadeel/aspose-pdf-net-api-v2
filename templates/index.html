@@ -847,19 +847,28 @@
 <body>
 
 <!-- ═══════════════════════════════════════════════════════════════════
+     GLOBAL HEADER (always visible)
+     ═══════════════════════════════════════════════════════════════════ -->
+<header class="app-header">
+  <div class="header-brand">
+    <h1>
+      <span class="logo-dot"></span>
+      Aspose.Pdf for .NET Examples Generator
+    </h1>
+    <span class="subtitle">Automated Code Generation &amp; Testing Pipeline</span>
+  </div>
+  <div class="header-actions">
+    <button class="btn-docs" id="update-docs-btn" onclick="updateRepoDocs()">&#128196; Update Repo Docs</button>
+    <span class="repo-badge">{{ repo_display }} : {{ repo_branch }}</span>
+    <button class="btn hidden" id="run-again-btn" onclick="runAgain()">&#9654; Run Again</button>
+    <button class="btn btn-danger hidden" id="stop-btn" onclick="stopJob()">&#9209; Stop</button>
+  </div>
+</header>
+
+<!-- ═══════════════════════════════════════════════════════════════════
      SETUP PANEL
      ═══════════════════════════════════════════════════════════════════ -->
 <div id="setup-panel">
-  <header class="app-header">
-    <div class="header-brand">
-      <h1>
-        <span class="logo-dot"></span>
-        Aspose.Pdf for .NET Examples Generator
-      </h1>
-      <span class="subtitle">Automated Code Generation &amp; Testing Pipeline</span>
-    </div>
-    <span class="repo-badge">{{ repo_display }} : {{ repo_branch }}</span>
-  </header>
 
   <div class="container">
     <!-- Mode Tabs -->
@@ -975,23 +984,12 @@
      MONITOR PANEL
      ═══════════════════════════════════════════════════════════════════ -->
 <div id="monitor-panel" class="hidden">
-  <header class="app-header">
-    <div class="header-brand">
-      <h1>
-        <span class="logo-dot"></span>
-        Aspose.Pdf for .NET Examples Generator
-      </h1>
-      <span class="subtitle">Automated Code Generation &amp; Testing Pipeline</span>
-    </div>
-    <div class="header-actions">
-      <button class="btn-docs" id="update-docs-btn" onclick="updateRepoDocs()">&#128196; Update Repo Docs</button>
-      <span class="repo-badge">{{ repo_display }} : {{ repo_branch }}</span>
-      <button class="btn" id="run-again-btn" onclick="runAgain()">&#9654; Run Again</button>
-      <button class="btn btn-danger" id="stop-btn" onclick="stopJob()">&#9209; Stop</button>
-    </div>
-  </header>
-
   <div class="container">
+    <!-- PR Link Banner -->
+    <div class="pr-link-banner" id="pr-link-banner">
+      &#128279; Pull Request created: <a id="pr-link-url" href="#" target="_blank" rel="noopener"></a>
+    </div>
+
     <!-- Stats Bar -->
     <div class="stats-bar">
       <div class="stat-box">
@@ -1022,10 +1020,6 @@
       <button class="btn-download hidden" id="download-csv-btn" onclick="downloadCSV()">&#11015; Download CSV</button>
     </div>
 
-    <!-- PR Link Banner -->
-    <div class="pr-link-banner" id="pr-link-banner">
-      &#128279; Pull Request created: <a id="pr-link-url" href="#" target="_blank" rel="noopener"></a>
-    </div>
 
     <!-- Status Line -->
     <div class="status-line" id="status-line">
@@ -1596,7 +1590,9 @@
     var btn = document.getElementById('start-btn');
     btn.disabled = false;
     btn.innerHTML = '&#9654; Start';
-    // Show setup
+    // Hide job controls, show setup
+    document.getElementById('stop-btn').classList.add('hidden');
+    document.getElementById('run-again-btn').classList.add('hidden');
     document.getElementById('monitor-panel').classList.add('hidden');
     document.getElementById('setup-panel').classList.remove('hidden');
   };
@@ -1866,6 +1862,13 @@
           btn.innerHTML = '&#128196; Update Repo Docs';
           return;
         }
+        // Switch to monitor panel to show progress
+        document.getElementById('setup-panel').classList.add('hidden');
+        document.getElementById('monitor-panel').classList.remove('hidden');
+        document.getElementById('console-body').innerHTML = '';
+        document.getElementById('status-text').textContent = 'Updating repo docs...';
+        document.getElementById('stop-btn').classList.add('hidden');
+        document.getElementById('run-again-btn').classList.add('hidden');
         addLogLine('📄 Repo docs update started...');
         _docsPollLastLogCount = 0;
         _startDocsPoll(data.job_id, btn);
@@ -1899,14 +1902,20 @@
             banner.classList.add('visible');
             btn.disabled = false;
             btn.innerHTML = '&#128196; Update Repo Docs';
+            document.getElementById('run-again-btn').classList.remove('hidden');
+            document.getElementById('status-text').textContent = 'Docs updated successfully';
             addLogLine('✅ Docs PR created: ' + state.pr_url);
           } else if (state.status === 'completed' || state.status === 'failed') {
             clearInterval(_docsPollTimer);
             _docsPollTimer = null;
             btn.disabled = false;
             btn.innerHTML = '&#128196; Update Repo Docs';
+            document.getElementById('run-again-btn').classList.remove('hidden');
             if (state.status === 'failed') {
+              document.getElementById('status-text').textContent = 'Docs update failed';
               addLogLine('❌ Repo docs update failed');
+            } else {
+              document.getElementById('status-text').textContent = 'Docs updated (no PR created)';
             }
           }
         })
