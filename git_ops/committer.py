@@ -120,15 +120,10 @@ class CodeCommitter:
             self._notify("git_write_success", "Git: Code written to file")
 
             if self.batch_git:
-                with _git_lock:
-                    subprocess.run(
-                        ["git", "add", str(target_path)],
-                        cwd=self.repo_path, check=True, capture_output=True, text=True,
-                    )
                 self._pending_commits.append({
                     "path": target_path, "prompt": task, "category": category,
                 })
-                self._notify("git_staged", f"Git: Staged for batch commit ({len(self._pending_commits)} file(s))")
+                self._notify("git_staged", f"Git: File written ({len(self._pending_commits)} pending)")
             else:
                 self._commit_and_push(target_path, task, category)
         except Exception as e:
@@ -209,6 +204,12 @@ class CodeCommitter:
 
         try:
             with _git_lock:
+                # Stage all pending files
+                for c in self._pending_commits:
+                    subprocess.run(
+                        ["git", "add", str(c["path"])],
+                        cwd=self.repo_path, check=True, capture_output=True, text=True,
+                    )
                 self._notify("git_commit_start", f"Git: Committing {count} file(s)...")
                 subprocess.run(
                     ["git", "commit", "-m", message],
