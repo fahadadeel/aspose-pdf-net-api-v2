@@ -223,18 +223,37 @@ def load_category_tips(kb_path: str, category_name: str, max_count: int = 5) -> 
     """Build category-specific tips from kb.json for a particular category.
 
     Returns markdown with API surface info, rules, and warnings.
+
+    Matching strategy:
+    1. Exact match (case-insensitive, hyphen/space agnostic)
+    2. Keyword fallback — split the category name into keywords and match
+       KB categories that contain any keyword (min 4 chars).
+       e.g. "Facades - Secure Documents" matches "Facades" and "Security-Signatures".
     """
     data = _load_json(kb_path)
     if not isinstance(data, list):
         return ""
 
-    # Find entries matching this category (case-insensitive, hyphen/space agnostic)
-    norm = category_name.lower().replace("-", " ").replace("_", " ").strip()
+    def _norm(s: str) -> str:
+        return s.lower().replace("-", " ").replace("_", " ").strip()
+
+    norm = _norm(category_name)
     matches = []
+
+    # Pass 1: exact match
     for entry in data:
-        entry_cat = entry.get("category", "").lower().replace("-", " ").replace("_", " ").strip()
+        entry_cat = _norm(entry.get("category", ""))
         if entry_cat == norm:
             matches.append(entry)
+
+    # Pass 2: keyword fallback if no exact match
+    if not matches:
+        keywords = [w for w in re.split(r"[\s\-_]+", category_name.lower()) if len(w) >= 4]
+        if keywords:
+            for entry in data:
+                entry_cat = _norm(entry.get("category", ""))
+                if any(kw in entry_cat for kw in keywords):
+                    matches.append(entry)
 
     if not matches:
         return ""
