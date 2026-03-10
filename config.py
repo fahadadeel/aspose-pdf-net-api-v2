@@ -126,7 +126,7 @@ class AppConfig:
     git: GitConfig = field(default_factory=GitConfig)
 
     workspace_path: str = "."
-    rules_examples_path: str = "./resources/kb.json"
+    rules_examples_path: str = "./resources/kb_new.json"
     fix_history_path: str = "./fix_history.json"
     error_catalog_path: str = "./resources/error_catalog.json"
     error_fixes_path: str = "./resources/error_fixes.json"
