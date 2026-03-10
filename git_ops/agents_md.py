@@ -2,8 +2,16 @@
 git_ops/agents_md.py — Generate agents.md content for AI agent discoverability.
 """
 
+import re
 import uuid
 from datetime import datetime
+
+
+def _slug(name: str) -> str:
+    """Lowercase-hyphenated slug for folder/file names."""
+    s = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", name).strip(". ")
+    s = s.lower().replace(" ", "-")
+    return re.sub(r"-+", "-", s).strip("-")
 
 
 def _generate_run_id() -> str:
@@ -38,10 +46,11 @@ def generate_agents_md(
     category_details = ""
     for cat, stats in sorted(categories.items()):
         cat_pass_rate = (stats["passed"] / stats["total"] * 100) if stats["total"] > 0 else 0
+        cat_slug = _slug(cat)
         category_details += f"### {cat}\n"
         category_details += f"- Examples: {stats['total']}\n"
         category_details += f"- Pass Rate: {stats['passed']}/{stats['total']} ({cat_pass_rate:.0f}%)\n"
-        category_details += f"- Guide: [agents.md](./{cat}/agents.md)\n\n"
+        category_details += f"- Guide: [agents.md](./{cat_slug}/agents.md)\n\n"
 
     current_date = datetime.now().strftime("%Y-%m-%d")
 

@@ -1638,7 +1638,7 @@
         .then(function(r) { return r.json(); })
         .then(function(data) {
           handleSSEData(JSON.stringify(data));
-          if (data.status === 'done' || data.status === 'cancelled' || data.status === 'error') {
+          if (data.status === 'completed' || data.status === 'cancelled' || data.status === 'failed') {
             clearInterval(pollTimer);
             pollTimer = null;
             jobFinished();
@@ -1728,7 +1728,7 @@
     }
 
     // Check completion
-    if (data.status === 'done' || data.status === 'cancelled' || data.status === 'error') {
+    if (data.status === 'completed' || data.status === 'cancelled' || data.status === 'failed') {
       jobFinished();
     }
   }

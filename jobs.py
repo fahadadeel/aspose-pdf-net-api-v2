@@ -651,6 +651,7 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
     import uuid as _uuid
     from git_ops.repo import _git_lock
     from git_ops.repo_docs import (
+        normalize_repo_folders,
         scan_repo,
         generate_cumulative_agents_md,
         generate_cumulative_category_agents_md,
@@ -695,6 +696,16 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
             add_log(job_id, "Could not create docs branch")
             set_status(job_id, "failed")
             return
+
+        # Normalize folder names (e.g. "Working with Attachment" → "working-with-attachment")
+        set_current_task(job_id, "Normalizing folder names...")
+        renamed = normalize_repo_folders(config.git.repo_path)
+        if renamed:
+            add_log(job_id, f"Renamed {len(renamed)} folder(s): {', '.join(f'{k} → {v}' for k, v in renamed.items())}")
+            # Re-scan after renames
+            scan = scan_repo(config.git.repo_path)
+            total_files = sum(len(files) for files in scan.values())
+            add_log(job_id, f"Re-scanned: {total_files} .cs file(s) across {len(scan)} categories")
 
         run_id = _generate_run_id()
         repo_path = config.git.repo_path
