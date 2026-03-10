@@ -219,6 +219,12 @@ def load_domain_knowledge(kb_path: str, max_count: int = 7) -> str:
     return md
 
 
+_CATEGORY_STOP_WORDS = frozenset({
+    "working", "with", "and", "the", "for", "from", "using",
+    "pdf", "pdfs", "document", "documents", "aspose", "net",
+})
+
+
 def load_category_tips(kb_path: str, category_name: str, max_count: int = 5) -> str:
     """Build category-specific tips from kb.json for a particular category.
 
@@ -226,9 +232,10 @@ def load_category_tips(kb_path: str, category_name: str, max_count: int = 5) -> 
 
     Matching strategy:
     1. Exact match (case-insensitive, hyphen/space agnostic)
-    2. Keyword fallback — split the category name into keywords and match
-       KB categories that contain any keyword (min 4 chars).
-       e.g. "Facades - Secure Documents" matches "Facades" and "Security-Signatures".
+    2. Keyword fallback — split the category name into meaningful keywords
+       (filtering stop-words like "working", "with", "pdf") and match KB
+       categories that contain any keyword (min 3 chars).
+       e.g. "working-with-xml" → keyword "xml" → matches "Working-With-XML-XSLT".
 
     Facades handling (mirrors pipeline/mcp_client.py):
     - If "facades" is in the category name → prefer Facades-namespace entries
@@ -259,7 +266,10 @@ def load_category_tips(kb_path: str, category_name: str, max_count: int = 5) -> 
 
     # Pass 2: keyword fallback if no exact match
     if not matches:
-        keywords = [w for w in re.split(r"[\s\-_]+", category_name.lower()) if len(w) >= 4]
+        keywords = [
+            w for w in re.split(r"[\s\-_]+", category_name.lower())
+            if len(w) >= 3 and w not in _CATEGORY_STOP_WORDS
+        ]
         if keywords:
             for entry in data:
                 entry_cat = _norm(entry.get("category", ""))
