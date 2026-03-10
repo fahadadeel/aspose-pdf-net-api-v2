@@ -127,7 +127,8 @@ class PRManager:
 
             for category, cat_stats in sorted(categories_dict.items()):
                 cat_pass_rate = (cat_stats["passed"] / cat_stats["total"] * 100) if cat_stats["total"] > 0 else 0
-                cat_path = f"{category}/agents.md"
+                cat_slug = normalize_category(category)
+                cat_path = f"{cat_slug}/agents.md"
                 cat_content = generate_category_agents_md(
                     category, cat_stats["files"],
                     {"total": cat_stats["total"], "passed": cat_stats["passed"], "pass_rate": cat_pass_rate},
