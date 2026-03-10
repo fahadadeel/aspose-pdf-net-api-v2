@@ -89,12 +89,15 @@ class PRManager:
             from git_ops.agents_md import _generate_run_id
             run_id = _generate_run_id()
 
-            # Root agents.md
+            # Root agents.md (enhanced with resource content)
             agents_content = generate_agents_md(
                 results_summary,
                 tfm=self.config.build.tfm,
                 nuget_version=self.config.build.nuget_version,
                 run_id=run_id,
+                error_catalog_path=self.config.error_catalog_path,
+                error_fixes_path=self.config.error_fixes_path,
+                kb_path=self.config.rules_examples_path,
             )
 
             existing_base = self._gh.get_file(owner, repo_name, "agents.md", base_branch)
@@ -133,6 +136,7 @@ class PRManager:
                     category, cat_stats["files"],
                     {"total": cat_stats["total"], "passed": cat_stats["passed"], "pass_rate": cat_pass_rate},
                     run_id,
+                    kb_path=self.config.rules_examples_path,
                 )
 
                 existing_cat_base = self._gh.get_file(owner, repo_name, cat_path, base_branch)
