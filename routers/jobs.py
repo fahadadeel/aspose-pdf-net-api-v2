@@ -335,14 +335,13 @@ async def api_repo_categories():
 
 
 @router.post("/api/generate-category-docs")
-async def api_generate_category_docs(data: dict = Body(...)):
+async def api_generate_category_docs(
+    data: dict = Body(
+        ...,
+        examples=[{"category": "working-with-xml", "create_pr": True}],
+    ),
+):
     """Generate agents.md for a single category and push it via PR.
-
-    Request body:
-        {
-            "category": "working-with-xml",
-            "create_pr": true  (default: true)
-        }
 
     Returns the generated agents.md content and PR URL (if create_pr=true).
     """
@@ -380,6 +379,7 @@ async def api_generate_category_docs(data: dict = Body(...)):
     agents_md = generate_cumulative_category_agents_md(
         matched_cat, files, run_id=None,
         kb_path=config.rules_examples_path,
+        repo_path=config.git.repo_path,
     )
 
     result = {
