@@ -433,3 +433,281 @@ document.Save("output.pdf");
 ```
 
 """
+
+
+# ---------------------------------------------------------------------------
+# Code Intelligence — analyse actual .cs files for enriched agents.md
+# ---------------------------------------------------------------------------
+
+_RE_USING = re.compile(r"^\s*using\s+([\w.]+)\s*;", re.MULTILINE)
+
+_UNIVERSAL_NAMESPACES = frozenset({
+    "System", "System.IO", "System.Collections.Generic",
+    "System.Linq", "System.Text", "System.Threading",
+    "System.Threading.Tasks", "System.Collections",
+})
+
+_RE_LOAD_OPTIONS = re.compile(r"new\s+(\w+LoadOptions)\s*\(")
+_RE_DOC_CTOR = re.compile(r"new\s+Document\s*\(([^)]*)\)")
+_RE_SAVE = re.compile(r"\.\s*Save\s*\(\s*([^)]+)\)")
+_RE_FACADES_CLASS = re.compile(
+    r"new\s+(Form|PdfFileEditor|PdfContentEditor|PdfAnnotationEditor|"
+    r"PdfFileSecurity|PdfFileSigner|PdfBookmarkEditor|PdfExtractor|"
+    r"PdfFileMend|PdfFileStamp|PdfFileInfo|PdfConverter|PdfPageEditor)\s*\("
+)
+_RE_KEY_API = re.compile(
+    r"new\s+((?:Aspose\.Pdf\.)?(?:\w+(?:Absorber|Editor|Stamp|Annotation|"
+    r"LoadOptions|SaveOptions|Device|Converter|Fragment|Builder|"
+    r"Optimizer|Collection|Action|Destination|Selector|Extractor|"
+    r"Security|Signer|Info|Privilege)))\s*\("
+)
+_RE_ASPOSE_NEW = re.compile(r"new\s+((?:Aspose\.Pdf\.)[\w.]+)\s*\(")
+
+
+def read_category_files(
+    repo_path: str, category: str, filenames: List[str],
+) -> Dict[str, str]:
+    """Read .cs file contents from disk for a single category.
+
+    Returns ``{filename: file_content_string}``.
+    Returns empty dict if *repo_path* is unavailable or the folder is missing.
+    """
+    if not repo_path:
+        return {}
+    cat_dir = Path(repo_path) / category
+    if not cat_dir.is_dir():
+        return {}
+    contents: Dict[str, str] = {}
+    for fname in filenames:
+        fp = cat_dir / fname
+        try:
+            contents[fname] = fp.read_text(encoding="utf-8")
+        except Exception:
+            pass
+    return contents
+
+
+def extract_required_namespaces(file_contents: Dict[str, str]) -> str:
+    """Analyse ``using`` statements across all files and rank by frequency.
+
+    Returns a markdown section like::
+
+        ## Required Namespaces
+        - ``using Aspose.Pdf;`` (16/16 files)
+        - ``using Aspose.Pdf.Annotations;`` (14/16 files) ← category-specific
+    """
+    if not file_contents:
+        return ""
+
+    total = len(file_contents)
+    counts: Dict[str, int] = {}
+
+    for content in file_contents.values():
+        seen_in_file: set = set()
+        for m in _RE_USING.finditer(content):
+            ns = m.group(1)
+            if ns not in seen_in_file:
+                seen_in_file.add(ns)
+                counts[ns] = counts.get(ns, 0) + 1
+
+    if not counts:
+        return ""
+
+    # Sort: Aspose namespaces first (most interesting), then by frequency
+    def _sort_key(item):
+        ns, cnt = item
+        is_aspose = ns.startswith("Aspose")
+        return (0 if is_aspose else 1, -cnt, ns)
+
+    sorted_ns = sorted(counts.items(), key=_sort_key)
+
+    md = "## Required Namespaces\n\n"
+    for ns, cnt in sorted_ns:
+        tag = ""
+        if ns not in _UNIVERSAL_NAMESPACES and cnt >= total * 0.5:
+            tag = " ← category-specific"
+        md += f"- `using {ns};` ({cnt}/{total} files){tag}\n"
+    md += "\n"
+    return md
+
+
+def extract_common_code_pattern(file_contents: Dict[str, str]) -> str:
+    """Detect the dominant workflow pattern across files.
+
+    Looks for LoadOptions, Document constructor style, Facades classes,
+    and Save pattern. Returns a code skeleton or ``""`` if no clear pattern.
+    """
+    if not file_contents:
+        return ""
+
+    total = len(file_contents)
+
+    # Collect pattern signals
+    load_opts: Dict[str, int] = {}
+    facades_cls: Dict[str, int] = {}
+    has_doc_ctor = 0
+    has_empty_ctor = 0
+    has_save = 0
+    has_using_block = 0
+
+    for content in file_contents.values():
+        for m in _RE_LOAD_OPTIONS.finditer(content):
+            opt = m.group(1)
+            load_opts[opt] = load_opts.get(opt, 0) + 1
+        for m in _RE_FACADES_CLASS.finditer(content):
+            cls = m.group(1)
+            facades_cls[cls] = facades_cls.get(cls, 0) + 1
+        doc_matches = _RE_DOC_CTOR.findall(content)
+        if doc_matches:
+            has_doc_ctor += 1
+            if any(not args.strip() for args in doc_matches):
+                has_empty_ctor += 1
+        if _RE_SAVE.search(content):
+            has_save += 1
+        if "using (" in content or "using(" in content:
+            has_using_block += 1
+
+    # Determine dominant LoadOptions (if any used in >30% of files)
+    dominant_opt = ""
+    if load_opts:
+        top_opt, top_cnt = max(load_opts.items(), key=lambda x: x[1])
+        if top_cnt >= total * 0.3:
+            dominant_opt = top_opt
+
+    # Determine dominant Facades class
+    dominant_facade = ""
+    if facades_cls:
+        top_f, top_fc = max(facades_cls.items(), key=lambda x: x[1])
+        if top_fc >= total * 0.3:
+            dominant_facade = top_f
+
+    # Need at least some pattern to show
+    if has_doc_ctor < total * 0.3 and not dominant_facade:
+        return ""
+
+    md = "## Common Code Pattern\n\n"
+
+    if dominant_facade:
+        # Facades-style pattern
+        md += f"Most files in this category use `{dominant_facade}` from `Aspose.Pdf.Facades`:\n\n"
+        md += "```csharp\n"
+        md += f'{dominant_facade} tool = new {dominant_facade}();\n'
+        md += 'tool.BindPdf("input.pdf");\n'
+        md += f"// ... {dominant_facade} operations ...\n"
+        md += 'tool.Save("output.pdf");\n'
+        md += "```\n\n"
+    elif dominant_opt:
+        # LoadOptions pattern
+        md += f"Most files in this category load documents with `{dominant_opt}`:\n\n"
+        md += "```csharp\n"
+        md += f"{dominant_opt} options = new {dominant_opt}();\n"
+        md += 'using (Document doc = new Document("input.pdf", options))\n'
+        md += "{\n"
+        md += "    // ... operations ...\n"
+        md += '    doc.Save("output.pdf");\n'
+        md += "}\n"
+        md += "```\n\n"
+    else:
+        # Standard Document pattern
+        ctor_style = '("input.pdf")' if has_doc_ctor > has_empty_ctor else "()"
+        save_line = '    doc.Save("output.pdf");\n' if has_save >= total * 0.3 else ""
+        if has_using_block >= total * 0.4:
+            md += "Most files follow this pattern:\n\n"
+            md += "```csharp\n"
+            md += f"using (Document doc = new Document{ctor_style})\n"
+            md += "{\n"
+            md += "    // ... operations ...\n"
+            md += save_line
+            md += "}\n"
+            md += "```\n\n"
+        else:
+            md += "Most files follow this pattern:\n\n"
+            md += "```csharp\n"
+            md += f"Document doc = new Document{ctor_style};\n"
+            md += "// ... operations ...\n"
+            md += 'doc.Save("output.pdf");\n'
+            md += "```\n\n"
+
+    return md
+
+
+def extract_file_summaries(
+    file_contents: Dict[str, str], max_rows: int = 30,
+) -> str:
+    """Generate a compact per-file summary table.
+
+    Returns a markdown table with file link, key APIs, and description.
+    Replaces the plain file-list when code intelligence is available.
+    """
+    if not file_contents:
+        return ""
+
+    rows = []
+    for fname in sorted(file_contents.keys()):
+        content = file_contents[fname]
+        display = fname.replace(".cs", "")
+
+        # --- Extract key APIs ---
+        apis: List[str] = []
+        for m in _RE_KEY_API.finditer(content):
+            cls = m.group(1).split(".")[-1]
+            if cls not in apis:
+                apis.append(cls)
+        if not apis:
+            for m in _RE_ASPOSE_NEW.finditer(content):
+                cls = m.group(1).split(".")[-1]
+                if cls not in apis and cls not in ("Document", "Page"):
+                    apis.append(cls)
+        if not apis:
+            for m in _RE_FACADES_CLASS.finditer(content):
+                cls = m.group(1)
+                if cls not in apis:
+                    apis.append(cls)
+        api_str = ", ".join(f"`{a}`" for a in apis[:3]) if apis else ""
+
+        # --- Description from filename ---
+        desc = display.replace("-", " ")
+        # Capitalize first letter, truncate
+        if desc:
+            desc = desc[0].upper() + desc[1:]
+        if len(desc) > 80:
+            desc = desc[:77] + "..."
+
+        rows.append((display, fname, api_str, desc))
+
+    if not rows:
+        return ""
+
+    md = "## Files in this folder\n\n"
+    md += "| File | Key APIs | Description |\n"
+    md += "|------|----------|-------------|\n"
+
+    for display, fname, api_str, desc in rows[:max_rows]:
+        # Truncate display name for table readability
+        short_display = display[:60] + "..." if len(display) > 60 else display
+        md += f"| [{short_display}](./{fname}) | {api_str} | {desc} |\n"
+
+    if len(rows) > max_rows:
+        md += f"| ... | | *and {len(rows) - max_rows} more files* |\n"
+
+    md += "\n"
+    return md
+
+
+def build_code_intelligence_sections(
+    repo_path: str, category: str, filenames: List[str],
+) -> str:
+    """Orchestrator: read files and build all code intelligence sections.
+
+    Returns combined markdown (namespaces + pattern + file summaries),
+    or ``""`` if *repo_path* is unavailable.
+    """
+    contents = read_category_files(repo_path, category, filenames)
+    if not contents:
+        return ""
+
+    namespaces_section = extract_required_namespaces(contents)
+    pattern_section = extract_common_code_pattern(contents)
+    files_section = extract_file_summaries(contents)
+
+    return namespaces_section + pattern_section + files_section

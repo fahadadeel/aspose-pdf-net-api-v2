@@ -137,6 +137,7 @@ class PRManager:
                     {"total": cat_stats["total"], "passed": cat_stats["passed"], "pass_rate": cat_pass_rate},
                     run_id,
                     kb_path=self.config.rules_examples_path,
+                    repo_path=self.config.git.repo_path,
                 )
 
                 existing_cat_base = self._gh.get_file(owner, repo_name, cat_path, base_branch)

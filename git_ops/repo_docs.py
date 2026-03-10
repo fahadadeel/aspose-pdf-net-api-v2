@@ -13,6 +13,7 @@ from typing import Dict, List, Optional
 
 from git_ops.agents_md import _generate_run_id
 from git_ops.agents_content import (
+    build_code_intelligence_sections,
     build_command_reference,
     build_enhanced_conventions,
     load_anti_patterns,
@@ -174,21 +175,31 @@ def generate_cumulative_category_agents_md(
     files: List[str],
     run_id: str = None,
     kb_path: str = "",
+    repo_path: str = "",
 ) -> str:
     """Generate per-category agents.md from actual file list.
 
-    When kb_path is provided, injects category-specific tips
-    (API surface, rules, warnings) from the knowledge base.
+    When *repo_path* is provided, enriches output with code intelligence
+    (required namespaces, common code pattern, file summary table).
+    When *kb_path* is provided, injects category-specific tips.
     """
     if not run_id:
         run_id = _generate_run_id()
 
     current_date = datetime.now().strftime("%Y-%m-%d")
 
-    file_list = ""
-    for filename in sorted(files):
-        display = filename.replace(".cs", "")
-        file_list += f"- [{display}](./{filename})\n"
+    # Code intelligence from actual .cs files (namespaces + pattern + table)
+    code_intel = build_code_intelligence_sections(repo_path, category, files) if repo_path else ""
+
+    if code_intel:
+        file_section = code_intel
+    else:
+        # Fallback: simple file list
+        file_list = ""
+        for filename in sorted(files):
+            display = filename.replace(".cs", "")
+            file_list += f"- [{display}](./{filename})\n"
+        file_section = f"## Files in this folder\n{file_list}\n"
 
     # Category-specific tips from kb.json
     category_tips = load_category_tips(kb_path, category) if kb_path else ""
@@ -199,10 +210,7 @@ def generate_cumulative_category_agents_md(
 - This folder contains examples for **{category}**.
 - Files are standalone `.cs` examples stored directly in this folder.
 
-## Files in this folder
-{file_list}
-
-## Category Statistics
+{file_section}## Category Statistics
 - Total examples: {len(files)}
 
 {category_tips}## General Tips
