@@ -18,11 +18,17 @@ from git_ops.agents_md import _generate_run_id
 _SKIP_DIRS = {".git", ".github", ".vscode", "node_modules", "__pycache__", "bin", "obj"}
 
 
-def normalize_repo_folders(repo_path: str) -> Dict[str, str]:
-    """Rename category folders to lowercase-hyphenated form.
+def _normalize_name(name: str) -> str:
+    """Lowercase, replace spaces with hyphens, collapse duplicates."""
+    n = name.lower().replace(" ", "-")
+    return re.sub(r"-+", "-", n).strip("-")
 
-    Uses ``git mv`` so that git tracks the rename properly.
-    Returns ``{old_name: new_name}`` for every folder that was renamed.
+
+def normalize_repo_folders(repo_path: str) -> Dict[str, str]:
+    """Rename category folders and their .cs files to lowercase-hyphenated form.
+
+    Uses ``git mv`` so that git tracks renames properly.
+    Returns ``{old_path: new_path}`` for every item that was renamed.
     """
     root = Path(repo_path)
     renamed: Dict[str, str] = {}
@@ -31,19 +37,35 @@ def normalize_repo_folders(repo_path: str) -> Dict[str, str]:
         if not child.is_dir() or child.name.startswith(".") or child.name in _SKIP_DIRS:
             continue
 
-        normalized = child.name.lower().replace(" ", "-")
-        normalized = re.sub(r"-+", "-", normalized).strip("-")
-
-        if normalized != child.name:
-            target = root / normalized
-            # Avoid collision if target already exists
+        # --- Rename folder ---
+        norm_dir = _normalize_name(child.name)
+        folder = child
+        if norm_dir != child.name:
+            target = root / norm_dir
             if target.exists():
                 continue
             subprocess.run(
                 ["git", "mv", str(child), str(target)],
                 cwd=repo_path, check=True, capture_output=True, text=True,
             )
-            renamed[child.name] = normalized
+            renamed[child.name] = norm_dir
+            folder = target
+
+        # --- Rename .cs files inside the folder ---
+        for f in sorted(folder.iterdir()):
+            if not f.is_file() or f.suffix != ".cs":
+                continue
+            stem_norm = _normalize_name(f.stem)
+            new_name = f"{stem_norm}.cs"
+            if new_name != f.name:
+                target_file = folder / new_name
+                if target_file.exists():
+                    continue
+                subprocess.run(
+                    ["git", "mv", str(f), str(target_file)],
+                    cwd=repo_path, check=True, capture_output=True, text=True,
+                )
+                renamed[f"{folder.name}/{f.name}"] = f"{folder.name}/{new_name}"
 
     return renamed
 
