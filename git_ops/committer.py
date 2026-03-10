@@ -23,8 +23,8 @@ def slugify(text: str, max_len: int = 100) -> str:
     """Create a safe slug for filenames and folders."""
     if not text or not text.strip():
         return "untitled"
-    slug = re.sub(r"\s+", "-", text.strip())
-    slug = re.sub(r"[^A-Za-z0-9._-]", "-", slug)
+    slug = re.sub(r"\s+", "-", text.strip()).lower()
+    slug = re.sub(r"[^a-z0-9._-]", "-", slug)
     slug = re.sub(r"-+", "-", slug).strip("-._")
     if len(slug) > max_len:
         digest = hashlib.sha1(slug.encode("utf-8")).hexdigest()[:8]
@@ -33,10 +33,12 @@ def slugify(text: str, max_len: int = 100) -> str:
 
 
 def normalize_category(category: Optional[str], default: str = "uncategorized") -> str:
-    """Normalize category name for filesystem path."""
+    """Normalize category name for filesystem path (lowercase, hyphenated)."""
     category = (category or "").strip() or default
     safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", category)
     safe = safe.strip(". ")
+    safe = safe.lower().replace(" ", "-")
+    safe = re.sub(r"-+", "-", safe).strip("-")
     return safe[:60] if safe else slugify(category, max_len=60)
 
 
