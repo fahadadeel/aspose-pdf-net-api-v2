@@ -4,7 +4,8 @@ for enhanced agents.md generation.
 
 Reads error_catalog.json, error_fixes.json, and kb.json to produce
 actionable sections: anti-patterns, domain knowledge, code conventions,
-command reference, and category-specific tips.
+command reference, category-specific tips, and GitHub-recommended
+sections (frontmatter, persona, boundaries, testing guide).
 """
 
 import json
@@ -12,6 +13,190 @@ import re
 from pathlib import Path
 from typing import Dict, List, Optional
 
+
+# ---------------------------------------------------------------------------
+# GitHub Best-Practices: frontmatter, persona, boundaries, testing guide
+# ---------------------------------------------------------------------------
+
+def build_frontmatter(
+    tfm: str = "net10.0",
+    nuget_version: str = "26.2.0",
+    is_category: bool = False,
+    category_name: str = "",
+) -> str:
+    """Return YAML frontmatter block for agents.md."""
+    if is_category:
+        return f"""---
+name: {category_name}
+description: C# examples for {category_name} using Aspose.PDF for .NET
+language: csharp
+framework: {tfm}
+parent: ../agents.md
+---
+
+"""
+    return f"""---
+name: aspose-pdf-examples
+description: AI-friendly C# code examples for Aspose.PDF for .NET
+language: csharp
+framework: {tfm}
+package: Aspose.PDF {nuget_version}
+---
+
+"""
+
+
+def build_persona(
+    is_category: bool = False,
+    category_name: str = "",
+) -> str:
+    """Return persona section defining the agent's role."""
+    if is_category:
+        return f"""## Persona
+
+You are a C# developer specializing in PDF processing using Aspose.PDF for .NET,
+working within the **{category_name}** category.
+This folder contains standalone C# examples for {category_name} operations.
+See the root [agents.md](../agents.md) for repository-wide conventions and boundaries.
+
+"""
+    return """## Persona
+
+You are a C# developer specializing in PDF processing using Aspose.PDF for .NET.
+When working in this repository:
+- Each `.cs` file is a **standalone Console Application** — do not create multi-file projects
+- All examples must **compile and run** without errors using `dotnet build` and `dotnet run`
+- Follow the conventions, boundaries, and anti-patterns documented below exactly
+- Use the **Command Reference** section for build/run commands
+
+"""
+
+
+def build_boundaries() -> str:
+    """Return structured boundaries section (Always / Ask First / Never).
+
+    Replaces ``build_enhanced_conventions()`` in templates — merges the same
+    code examples into GitHub's recommended three-tier boundary framework.
+    """
+    return """## Boundaries
+
+### ✅ Always
+
+These rules are mandatory for every example.
+
+#### Use explicit types — never use `var`
+```csharp
+// CORRECT
+Document document = new Document("input.pdf");
+Page page = document.Pages[1];
+TextFragmentAbsorber absorber = new TextFragmentAbsorber("search");
+
+// WRONG
+// var document = new Document("input.pdf");
+// var page = document.Pages[1];
+```
+
+#### Use 1-based indexing for Pages, Annotations, EmbeddedFiles
+```csharp
+// CORRECT — first page is index 1
+Page firstPage = document.Pages[1];
+Annotation firstAnnotation = page.Annotations[1];
+FileSpecification firstFile = document.EmbeddedFiles[1];
+
+// WRONG — index 0 throws IndexOutOfRangeException
+// Page page = document.Pages[0];
+```
+
+#### Fully qualify ambiguous types (Rectangle, Color, Path, Image, Point, Matrix)
+```csharp
+// CORRECT
+Aspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(100, 200, 300, 400);
+Aspose.Pdf.Drawing.Rectangle drawRect = new Aspose.Pdf.Drawing.Rectangle(50, 50, 200, 100);
+Aspose.Pdf.Color pdfColor = Aspose.Pdf.Color.Blue;
+
+// WRONG — ambiguous CS0104
+// Rectangle rect = new Rectangle(100, 200, 300, 400);
+// Color color = Color.Blue;
+```
+
+#### Use `using` blocks for IDisposable objects
+```csharp
+// CORRECT
+using (Document document = new Document("input.pdf"))
+{
+    // work with document
+    document.Save("output.pdf");
+}
+```
+
+#### Save the document after all modifications
+```csharp
+Document document = new Document("input.pdf");
+// ... make modifications ...
+document.Save("output.pdf");
+```
+
+### ⚠️ Ask First
+
+Check with a human before doing any of these:
+- **Creating multi-file projects** — each example must be a single `.cs` file
+- **Using deprecated APIs** — check the Aspose.PDF changelog for the current API surface
+- **Adding NuGet packages** beyond `Aspose.PDF` — the `.csproj` template only includes Aspose.PDF
+- **Modifying shared infrastructure** — `.csproj` templates, `agents.md` files, CI configs
+
+### 🚫 Never
+
+See the full **Common Mistakes** section below for code-level prohibitions with examples.
+- Never use `var` for variable declarations
+- Never use 0-based indexing for `Pages`, `Annotations`, or `EmbeddedFiles`
+- Never use unqualified type names for `Rectangle`, `Color`, `Path`, `Image`, `Matrix`, `Point`
+- Never use `Aspose.Pdf.Saving` namespace (it does not exist)
+- Never mix `Aspose.Pdf.LogicalStructure` and `Aspose.Pdf.Structure` namespaces
+- Never modify `agents.md` files — they are auto-generated
+- Never modify the `.csproj` template — it is generated
+
+"""
+
+
+def build_testing_guide(tfm: str = "net10.0") -> str:
+    """Return testing instructions section."""
+    return """## Testing Guide
+
+Every example must pass these verification steps.
+
+### Build Verification
+```bash
+dotnet build --configuration Release --verbosity minimal
+```
+- **Success**: Exit code 0, no `CS` error codes in output
+- **Failure**: Any `error CS####` line indicates a build failure
+
+### Run Verification
+```bash
+dotnet run
+```
+- **Success**: Exit code 0, no unhandled exception stack traces
+- **Failure**: `Unhandled exception`, `System.Exception`, or non-zero exit code
+
+### Expected Output Patterns
+- Console output confirming the operation (e.g., "PDF saved successfully")
+- Output files created in the working directory (e.g., `output.pdf`)
+- No `NullReferenceException`, `IndexOutOfRangeException`, or `FileNotFoundException`
+
+### Common Error Codes
+| Code | Meaning | Fix |
+|------|---------|-----|
+| `CS0104` | Ambiguous type reference | Use fully qualified name (`Aspose.Pdf.Rectangle`) |
+| `CS1061` | Member does not exist on type | Check API docs for correct property/method |
+| `CS0246` | Type or namespace not found | Add missing `using` directive |
+| `CS0029` | Cannot convert type | Cast explicitly or use correct type |
+
+"""
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
 
 def _load_json(path: str) -> any:
     """Safely load a JSON file, returning [] or {} on failure."""
@@ -161,10 +346,56 @@ def load_anti_patterns(
     return md
 
 
-def load_domain_knowledge(kb_path: str, max_count: int = 7) -> str:
-    """Build a 'Domain Knowledge' section from kb.json cross-cutting rules.
+_GENERIC_RULE_PATTERNS = [
+    re.compile(r"save.*\{?(doc|document)\}?.*\{?(output|file)", re.IGNORECASE),
+    re.compile(r"persist.*calling.*save", re.IGNORECASE),
+    re.compile(r"persist.*pdf.*calling", re.IGNORECASE),
+    re.compile(r"^load a pdf", re.IGNORECASE),
+    re.compile(r"^load.*\{?doc\}?.*using.*new document", re.IGNORECASE),
+    re.compile(r"^save the modified", re.IGNORECASE),
+    re.compile(r"^create.*new.*document\(\)", re.IGNORECASE),
+]
 
-    Picks high-confidence rules that apply broadly.
+_GENERIC_WORDS = frozenset({
+    "document", "modified", "changes", "output", "input",
+    "file", "path", "save", "load", "persist", "call",
+    "invoke", "create", "open", "close", "the", "pdf",
+})
+
+
+def _is_generic_rule(text: str) -> bool:
+    """Return True if a rule is a trivial save/load/persist variation."""
+    lower = text.lower()
+    for pattern in _GENERIC_RULE_PATTERNS:
+        if pattern.search(lower):
+            return True
+    words = [w for w in re.findall(r"[a-z]+", lower) if len(w) > 3]
+    if not words:
+        return True
+    generic_count = sum(1 for w in words if w in _GENERIC_WORDS)
+    return generic_count / len(words) > 0.6
+
+
+def _is_semantic_duplicate(text: str, existing: List[str], threshold: float = 0.7) -> bool:
+    """Check if text is too similar to any existing rule."""
+    tokens_new = set(re.findall(r"[a-z]+", text.lower()))
+    for ex in existing:
+        tokens_ex = set(re.findall(r"[a-z]+", ex.lower()))
+        if not tokens_new or not tokens_ex:
+            continue
+        overlap = len(tokens_new & tokens_ex) / min(len(tokens_new), len(tokens_ex))
+        if overlap > threshold:
+            return True
+    return False
+
+
+def load_domain_knowledge(kb_path: str, max_count: int = 7) -> str:
+    """Build a 'Domain Knowledge' section from kb.json.
+
+    Picks high-confidence, non-generic rules. Filters out trivial
+    save/load variations and deduplicates semantically similar rules.
+    Falls back to high-confidence single-category rules with warnings
+    (indicating gotchas) if not enough cross-cutting rules survive.
     """
     data = _load_json(kb_path)
     if not isinstance(data, list):
@@ -194,19 +425,47 @@ def load_domain_knowledge(kb_path: str, max_count: int = 7) -> str:
             rule_map[rule_lower]["confidence"] = max(rule_map[rule_lower]["confidence"], confidence)
             rule_map[rule_lower]["warnings"].extend(warnings)
 
-    # Pick rules that appear in 2+ categories (cross-cutting)
-    cross_cutting = [
+    # Cross-cutting non-generic rules (2+ categories)
+    candidates = [
         v for v in rule_map.values()
-        if len(v["categories"]) >= 2 and v["confidence"] >= 0.9
+        if len(v["categories"]) >= 2
+        and v["confidence"] >= 0.9
+        and not _is_generic_rule(v["text"])
     ]
-    cross_cutting.sort(key=lambda x: (-len(x["categories"]), -x["confidence"]))
 
-    selected = cross_cutting[:max_count]
+    # Fallback: high-confidence single-category rules with warnings (gotchas)
+    if len(candidates) < max_count:
+        gotchas = [
+            v for v in rule_map.values()
+            if v["confidence"] >= 0.95
+            and v["warnings"]
+            and not _is_generic_rule(v["text"])
+        ]
+        gotchas.sort(key=lambda x: (-len(x["warnings"]), -x["confidence"]))
+        candidates.extend(gotchas)
+
+    # Sort: cross-cutting first, then by warnings count, then confidence
+    candidates.sort(key=lambda x: (
+        -len(x["categories"]),
+        -len(x.get("warnings", [])),
+        -x["confidence"],
+    ))
+
+    # Deduplicate semantically
+    selected = []
+    selected_texts: List[str] = []
+    for item in candidates:
+        if len(selected) >= max_count:
+            break
+        if not _is_semantic_duplicate(item["text"], selected_texts):
+            selected.append(item)
+            selected_texts.append(item["text"])
+
     if not selected:
         return ""
 
     md = "## Domain Knowledge\n\n"
-    md += "Cross-cutting rules that apply across multiple categories.\n\n"
+    md += "Cross-cutting rules and API-specific gotchas.\n\n"
 
     for item in selected:
         cats = ", ".join(sorted(item["categories"])[:3])

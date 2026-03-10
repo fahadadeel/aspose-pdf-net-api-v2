@@ -380,6 +380,8 @@ async def api_generate_category_docs(
         matched_cat, files, run_id=None,
         kb_path=config.rules_examples_path,
         repo_path=config.git.repo_path,
+        tfm=config.build.tfm,
+        nuget_version=config.build.nuget_version,
     )
 
     result = {
