@@ -70,7 +70,7 @@ class MCPConfig:
     platform: str = "net"
     retrieval_mode: str = "embedding"
     retrieval_limit: int = 15
-    timeout: int = 30
+    timeout: int = 60
     exclude_namespaces: list = field(default_factory=lambda: ["Aspose.Pdf.Plugins", "Aspose.Pdf.Facades"])
 
 
