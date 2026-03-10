@@ -710,19 +710,25 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
         run_id = _generate_run_id()
         repo_path = config.git.repo_path
 
-        # Generate and write root agents.md
+        # Generate and write root agents.md (enhanced with resource content)
         set_current_task(job_id, "Generating agents.md...")
         agents_content = generate_cumulative_agents_md(
             scan, tfm=config.build.tfm,
             nuget_version=config.build.nuget_version, run_id=run_id,
+            error_catalog_path=config.error_catalog_path,
+            error_fixes_path=config.error_fixes_path,
+            kb_path=config.rules_examples_path,
         )
         agents_path = Path(repo_path) / "agents.md"
         agents_path.write_text(agents_content, encoding="utf-8")
-        add_log(job_id, f"Root agents.md: {total_files} examples, {len(scan)} categories")
+        add_log(job_id, f"Root agents.md: {total_files} examples, {len(scan)} categories (enhanced)")
 
-        # Generate per-category agents.md
+        # Generate per-category agents.md (with category-specific tips)
         for cat_name, files in sorted(scan.items()):
-            cat_agents = generate_cumulative_category_agents_md(cat_name, files, run_id)
+            cat_agents = generate_cumulative_category_agents_md(
+                cat_name, files, run_id,
+                kb_path=config.rules_examples_path,
+            )
             cat_path = Path(repo_path) / cat_name / "agents.md"
             cat_path.parent.mkdir(parents=True, exist_ok=True)
             cat_path.write_text(cat_agents, encoding="utf-8")
