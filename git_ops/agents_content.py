@@ -229,6 +229,10 @@ def load_category_tips(kb_path: str, category_name: str, max_count: int = 5) -> 
     2. Keyword fallback — split the category name into keywords and match
        KB categories that contain any keyword (min 4 chars).
        e.g. "Facades - Secure Documents" matches "Facades" and "Security-Signatures".
+
+    Facades handling (mirrors pipeline/mcp_client.py):
+    - If "facades" is in the category name → prefer Facades-namespace entries
+    - If "facades" is NOT in the category name → exclude Facades-namespace entries
     """
     data = _load_json(kb_path)
     if not isinstance(data, list):
@@ -237,7 +241,14 @@ def load_category_tips(kb_path: str, category_name: str, max_count: int = 5) -> 
     def _norm(s: str) -> str:
         return s.lower().replace("-", " ").replace("_", " ").strip()
 
+    def _is_facades_entry(entry: dict) -> bool:
+        """Check if a KB entry belongs to the Facades namespace."""
+        ns = entry.get("namespace", "").lower()
+        cat = entry.get("category", "").lower()
+        return "facades" in ns or "facades" in cat
+
     norm = _norm(category_name)
+    is_facades_category = "facades" in category_name.lower()
     matches = []
 
     # Pass 1: exact match
@@ -257,6 +268,20 @@ def load_category_tips(kb_path: str, category_name: str, max_count: int = 5) -> 
 
     if not matches:
         return ""
+
+    # Facades-aware filtering (mirrors MCP generate/retrieve logic):
+    # - Facades categories: keep Facades entries, exclude non-Facades duplicates
+    # - Non-Facades categories: exclude Facades entries entirely
+    if is_facades_category:
+        # Prefer Facades entries; keep non-Facades only if they add unique info
+        facades_matches = [e for e in matches if _is_facades_entry(e)]
+        if facades_matches:
+            matches = facades_matches
+    else:
+        # Exclude Facades entries to avoid polluting non-Facades categories
+        filtered = [e for e in matches if not _is_facades_entry(e)]
+        if filtered:
+            matches = filtered
 
     # Sort by confidence
     matches.sort(key=lambda x: -x.get("confidence", 0))
