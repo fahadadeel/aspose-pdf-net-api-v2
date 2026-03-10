@@ -161,11 +161,13 @@ class LLMClient:
             "You are a GitHub PR expert. Generate PR title and body.\n"
             'Return ONLY JSON: {"title": "...", "body": "..."}\n'
             "Title: under 70 chars. Body: markdown with summary and categories.\n"
-            "Do NOT include any test statistics, pass/fail counts, or pass rates in the body."
+            "Do NOT include any test statistics, pass/fail counts, or pass rates in the body.\n"
+            "Each category is a SINGLE name — do NOT split category names on dashes or hyphens."
         )
+        cat_list = "\n".join(f'  - "{c}"' for c in categories) if categories else '  - "uncategorized"'
         user = (
             f"Added {len(passed)} code example(s)\n"
-            f"Categories: {', '.join(categories) if categories else 'uncategorized'}\n"
+            f"Categories (each line is ONE category):\n{cat_list}\n"
             f"Examples:\n{examples_text}"
         )
         content = self.chat(system, user, temperature=0.3, max_tokens=1000, timeout=20)
