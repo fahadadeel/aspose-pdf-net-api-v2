@@ -249,10 +249,24 @@ def load_category_tips(kb_path: str, category_name: str, max_count: int = 5) -> 
         return s.lower().replace("-", " ").replace("_", " ").strip()
 
     def _is_facades_entry(entry: dict) -> bool:
-        """Check if a KB entry belongs to the Facades namespace."""
+        """Check if a KB entry belongs to the Facades namespace.
+
+        Checks category, namespace, AND api_surface — entries whose APIs
+        are predominantly ``Aspose.Pdf.Facades.*`` are treated as Facades
+        entries even when their KB category is something else (e.g. an
+        entry filed under 'Text' that uses PdfContentEditor).
+        """
         ns = entry.get("namespace", "").lower()
         cat = entry.get("category", "").lower()
-        return "facades" in ns or "facades" in cat
+        if "facades" in ns or "facades" in cat:
+            return True
+        # Check if majority of api_surface is Facades
+        apis = entry.get("api_surface", [])
+        if apis:
+            facades_count = sum(1 for a in apis if "Facades" in a)
+            if facades_count > len(apis) * 0.5:
+                return True
+        return False
 
     norm = _norm(category_name)
     is_facades_category = "facades" in category_name.lower()
