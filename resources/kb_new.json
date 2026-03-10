@@ -22409,7 +22409,7 @@
   },
   {
     "id": "access-text-fragement-and-text-segment-elements-from-xml-file",
-    "category": "Text",
+    "category": "Working-With-XML-XSLT",
     "language": "dotnet",
     "relative_path": "Examples/CSharp/AsposePDF/Text/AccessTextFragementAndTextSegmentElementsFromXMLFile.cs",
     "semantic_summary": "Shows how to load a PDF document from an XML definition, retrieve specific page and text segment objects by their IDs, and save the resulting PDF.",
