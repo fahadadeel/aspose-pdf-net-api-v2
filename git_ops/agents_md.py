@@ -7,6 +7,7 @@ import uuid
 from datetime import datetime
 
 from git_ops.agents_content import (
+    build_code_intelligence_sections,
     build_command_reference,
     build_enhanced_conventions,
     load_anti_patterns,
@@ -126,27 +127,35 @@ def generate_category_agents_md(
     stats: dict,
     run_id: str = None,
     kb_path: str = "",
+    repo_path: str = "",
 ) -> str:
     """Generate per-category agents.md guide.
 
-    When kb_path is provided, injects category-specific tips
-    (API surface, rules, warnings) from the knowledge base.
+    When *repo_path* is provided, enriches output with code intelligence
+    (required namespaces, common code pattern, file summary table).
+    When *kb_path* is provided, injects category-specific tips.
     """
     if not run_id:
         run_id = _generate_run_id()
 
-    file_list = ""
-    if files:
-        for filename in sorted(files):
-            display_name = filename.replace(".cs", "")
-            file_list += f"- [{display_name}](./{filename})\n"
-    else:
-        file_list = "*No examples in this category yet.*"
-
-    pass_rate = stats.get("pass_rate", 0)
-    total = stats.get("total", 0)
-    passed = stats.get("passed", 0)
+    total = stats.get("total", 0) or len(files)
     current_date = datetime.now().strftime("%Y-%m-%d")
+
+    # Code intelligence from actual .cs files
+    code_intel = build_code_intelligence_sections(repo_path, category, files) if repo_path else ""
+
+    if code_intel:
+        file_section = code_intel
+    else:
+        # Fallback: simple file list
+        if files:
+            file_list = ""
+            for filename in sorted(files):
+                display_name = filename.replace(".cs", "")
+                file_list += f"- [{display_name}](./{filename})\n"
+        else:
+            file_list = "*No examples in this category yet.*\n"
+        file_section = f"## Files in this folder\n{file_list}\n"
 
     # Category-specific tips from kb.json
     category_tips = load_category_tips(kb_path, category) if kb_path else ""
@@ -157,14 +166,8 @@ def generate_category_agents_md(
 - This folder contains examples for **{category}**.
 - Files are standalone `.cs` examples stored directly in this folder.
 
-## Files in this folder
-{file_list}
-
-## Category Statistics
+{file_section}## Category Statistics
 - Total examples: {total}
-- Passed: {passed}
-- Failed: {total - passed}
-- Pass rate: {pass_rate:.1f}%
 
 {category_tips}## General Tips
 - See parent [agents.md](../agents.md) for repository-level patterns, conventions, and anti-patterns
