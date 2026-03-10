@@ -101,9 +101,10 @@ def generate_cumulative_agents_md(
 
     category_details = ""
     for cat, files in sorted(scan.items()):
+        cat_slug = _normalize_name(cat)
         category_details += f"### {cat}\n"
         category_details += f"- Examples: {len(files)}\n"
-        category_details += f"- Guide: [agents.md](./{cat}/agents.md)\n\n"
+        category_details += f"- Guide: [agents.md](./{cat_slug}/agents.md)\n\n"
 
     return f"""# Aspose.PDF for .NET Examples
 
