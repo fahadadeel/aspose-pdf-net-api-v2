@@ -23,8 +23,8 @@ def slugify(text: str, max_len: int = 100) -> str:
     """Create a safe slug for filenames and folders."""
     if not text or not text.strip():
         return "untitled"
-    slug = re.sub(r"\s+", "-", text.strip())
-    slug = re.sub(r"[^A-Za-z0-9._-]", "-", slug)
+    slug = re.sub(r"\s+", "-", text.strip()).lower()
+    slug = re.sub(r"[^a-z0-9._-]", "-", slug)
     slug = re.sub(r"-+", "-", slug).strip("-._")
     if len(slug) > max_len:
         digest = hashlib.sha1(slug.encode("utf-8")).hexdigest()[:8]
