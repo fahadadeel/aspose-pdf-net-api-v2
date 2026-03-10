@@ -6,6 +6,7 @@ cumulative documentation that reflects all files on the main branch.
 """
 
 import re
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -15,6 +16,36 @@ from git_ops.agents_md import _generate_run_id
 
 # Directories to skip when scanning for categories.
 _SKIP_DIRS = {".git", ".github", ".vscode", "node_modules", "__pycache__", "bin", "obj"}
+
+
+def normalize_repo_folders(repo_path: str) -> Dict[str, str]:
+    """Rename category folders to lowercase-hyphenated form.
+
+    Uses ``git mv`` so that git tracks the rename properly.
+    Returns ``{old_name: new_name}`` for every folder that was renamed.
+    """
+    root = Path(repo_path)
+    renamed: Dict[str, str] = {}
+
+    for child in sorted(root.iterdir()):
+        if not child.is_dir() or child.name.startswith(".") or child.name in _SKIP_DIRS:
+            continue
+
+        normalized = child.name.lower().replace(" ", "-")
+        normalized = re.sub(r"-+", "-", normalized).strip("-")
+
+        if normalized != child.name:
+            target = root / normalized
+            # Avoid collision if target already exists
+            if target.exists():
+                continue
+            subprocess.run(
+                ["git", "mv", str(child), str(target)],
+                cwd=repo_path, check=True, capture_output=True, text=True,
+            )
+            renamed[child.name] = normalized
+
+    return renamed
 
 
 def scan_repo(repo_path: str) -> Dict[str, List[str]]:
