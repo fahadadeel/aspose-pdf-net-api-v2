@@ -92,6 +92,39 @@ class GitHubAPI:
             print(f"[GitHub] PR creation error: {e}")
             return None
 
+    def get_branch_sha(self, owner: str, repo: str, branch: str) -> Optional[str]:
+        """Get the latest commit SHA for a branch."""
+        try:
+            r = self._session.get(
+                f"https://api.github.com/repos/{owner}/{repo}/git/ref/heads/{branch}",
+                headers=self._headers,
+                timeout=10,
+            )
+            if r.status_code == 200:
+                return r.json()["object"]["sha"]
+            return None
+        except Exception as e:
+            print(f"[GitHub] Error getting branch SHA: {e}")
+            return None
+
+    def create_branch(self, owner: str, repo: str, branch: str, from_sha: str) -> bool:
+        """Create a new branch from a commit SHA."""
+        try:
+            r = self._session.post(
+                f"https://api.github.com/repos/{owner}/{repo}/git/refs",
+                headers=self._headers,
+                json={"ref": f"refs/heads/{branch}", "sha": from_sha},
+                timeout=10,
+            )
+            if r.status_code in (200, 201):
+                return True
+            error_msg = r.json().get("message", r.text[:200])
+            print(f"[GitHub] Branch creation failed: {error_msg}")
+            return False
+        except Exception as e:
+            print(f"[GitHub] Error creating branch: {e}")
+            return False
+
     def find_existing_pr(self, owner: str, repo: str, head: str, base: str) -> Optional[str]:
         """Find an open PR for head->base. Returns html_url or None."""
         try:
