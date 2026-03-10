@@ -728,6 +728,9 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
             cat_agents = generate_cumulative_category_agents_md(
                 cat_name, files, run_id,
                 kb_path=config.rules_examples_path,
+                repo_path=config.git.repo_path,
+                tfm=config.build.tfm,
+                nuget_version=config.build.nuget_version,
             )
             cat_path = Path(repo_path) / cat_name / "agents.md"
             cat_path.parent.mkdir(parents=True, exist_ok=True)
