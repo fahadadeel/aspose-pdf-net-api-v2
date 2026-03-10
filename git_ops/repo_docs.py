@@ -6,6 +6,7 @@ cumulative documentation that reflects all files on the main branch.
 """
 
 import re
+import subprocess
 from datetime import datetime
 from pathlib import Path
 from typing import Dict, List, Optional
@@ -15,6 +16,58 @@ from git_ops.agents_md import _generate_run_id
 
 # Directories to skip when scanning for categories.
 _SKIP_DIRS = {".git", ".github", ".vscode", "node_modules", "__pycache__", "bin", "obj"}
+
+
+def _normalize_name(name: str) -> str:
+    """Lowercase, replace spaces with hyphens, collapse duplicates."""
+    n = name.lower().replace(" ", "-")
+    return re.sub(r"-+", "-", n).strip("-")
+
+
+def normalize_repo_folders(repo_path: str) -> Dict[str, str]:
+    """Rename category folders and their .cs files to lowercase-hyphenated form.
+
+    Uses ``git mv`` so that git tracks renames properly.
+    Returns ``{old_path: new_path}`` for every item that was renamed.
+    """
+    root = Path(repo_path)
+    renamed: Dict[str, str] = {}
+
+    for child in sorted(root.iterdir()):
+        if not child.is_dir() or child.name.startswith(".") or child.name in _SKIP_DIRS:
+            continue
+
+        # --- Rename folder ---
+        norm_dir = _normalize_name(child.name)
+        folder = child
+        if norm_dir != child.name:
+            target = root / norm_dir
+            if target.exists():
+                continue
+            subprocess.run(
+                ["git", "mv", str(child), str(target)],
+                cwd=repo_path, check=True, capture_output=True, text=True,
+            )
+            renamed[child.name] = norm_dir
+            folder = target
+
+        # --- Rename .cs files inside the folder ---
+        for f in sorted(folder.iterdir()):
+            if not f.is_file() or f.suffix != ".cs":
+                continue
+            stem_norm = _normalize_name(f.stem)
+            new_name = f"{stem_norm}.cs"
+            if new_name != f.name:
+                target_file = folder / new_name
+                if target_file.exists():
+                    continue
+                subprocess.run(
+                    ["git", "mv", str(f), str(target_file)],
+                    cwd=repo_path, check=True, capture_output=True, text=True,
+                )
+                renamed[f"{folder.name}/{f.name}"] = f"{folder.name}/{new_name}"
+
+    return renamed
 
 
 def scan_repo(repo_path: str) -> Dict[str, List[str]]:
@@ -48,9 +101,10 @@ def generate_cumulative_agents_md(
 
     category_details = ""
     for cat, files in sorted(scan.items()):
+        cat_slug = _normalize_name(cat)
         category_details += f"### {cat}\n"
         category_details += f"- Examples: {len(files)}\n"
-        category_details += f"- Guide: [agents.md](./{cat}/agents.md)\n\n"
+        category_details += f"- Guide: [agents.md](./{cat_slug}/agents.md)\n\n"
 
     return f"""# Aspose.PDF for .NET Examples
 
