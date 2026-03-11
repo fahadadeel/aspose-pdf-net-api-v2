@@ -994,3 +994,58 @@ def build_code_intelligence_sections(
     files_section = extract_file_summaries(contents)
 
     return namespaces_section + pattern_section + files_section
+
+
+def extract_category_metadata(
+    repo_path: str, category: str, filenames: List[str],
+) -> dict:
+    """Extract structured metadata for a category (for index.json).
+
+    Returns a dict with ``required_namespaces`` and ``key_apis`` lists,
+    or empty lists if *repo_path* is unavailable.
+    """
+    contents = read_category_files(repo_path, category, filenames)
+    if not contents:
+        return {"required_namespaces": [], "key_apis": []}
+
+    # --- Namespaces (Aspose-specific only, sorted by frequency) ---
+    ns_counts: Dict[str, int] = {}
+    for content in contents.values():
+        seen: set = set()
+        for m in _RE_USING.finditer(content):
+            ns = m.group(1)
+            if ns not in seen:
+                seen.add(ns)
+                ns_counts[ns] = ns_counts.get(ns, 0) + 1
+
+    aspose_ns = sorted(
+        [(ns, cnt) for ns, cnt in ns_counts.items() if ns.startswith("Aspose")],
+        key=lambda x: (-x[1], x[0]),
+    )
+    required_namespaces = [ns for ns, _ in aspose_ns]
+
+    # --- Key APIs (deduplicated, sorted by frequency) ---
+    api_counts: Dict[str, int] = {}
+    for content in contents.values():
+        seen_apis: set = set()
+        for m in _RE_KEY_API.finditer(content):
+            cls = m.group(1).split(".")[-1]
+            if cls not in seen_apis:
+                seen_apis.add(cls)
+                api_counts[cls] = api_counts.get(cls, 0) + 1
+        if not seen_apis:
+            for m in _RE_FACADES_CLASS.finditer(content):
+                cls = m.group(1)
+                if cls not in seen_apis:
+                    seen_apis.add(cls)
+                    api_counts[cls] = api_counts.get(cls, 0) + 1
+
+    key_apis = sorted(
+        api_counts.keys(),
+        key=lambda k: (-api_counts[k], k),
+    )
+
+    return {
+        "required_namespaces": required_namespaces,
+        "key_apis": key_apis,
+    }
