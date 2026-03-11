@@ -655,6 +655,7 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
         scan_repo,
         generate_cumulative_agents_md,
         generate_cumulative_category_agents_md,
+        generate_index_json,
         update_readme_categories,
     )
     from git_ops.agents_md import _generate_run_id
@@ -737,6 +738,18 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
             cat_path.write_text(cat_agents, encoding="utf-8")
 
         add_log(job_id, f"Generated {len(scan)} category agents.md files")
+
+        # Generate index.json (machine-readable manifest)
+        set_current_task(job_id, "Generating index.json...")
+        index_content = generate_index_json(
+            scan,
+            tfm=config.build.tfm,
+            nuget_version=config.build.nuget_version,
+            repo_path=config.git.repo_path,
+        )
+        index_path = Path(repo_path) / "index.json"
+        index_path.write_text(index_content, encoding="utf-8")
+        add_log(job_id, f"index.json: {len(scan)} categories, {total_files} examples")
 
         # Optionally update README.md
         if update_readme:
