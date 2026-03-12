@@ -15399,5 +15399,89 @@
       "input.pdf",
       "ZoomToPageContents_out.pdf"
     ]
+  },
+  {
+    "id": "facades-stamps-api-guide",
+    "category": "Facades-Stamps",
+    "language": "dotnet",
+    "relative_path": "",
+    "semantic_summary": "Comprehensive guide for using the Aspose.Pdf.Facades stamping API: PdfFileStamp, Stamp, and FormattedText. Covers correct constructors, text binding, opacity, page origin, and common pitfalls that cause CS1061, CS0104, CS0618, and CS1503 errors.",
+    "api_surface": [
+      "Aspose.Pdf.Facades.PdfFileStamp",
+      "Aspose.Pdf.Facades.Stamp",
+      "Aspose.Pdf.Facades.FormattedText",
+      "Aspose.Pdf.Facades.EncodingType",
+      "Aspose.Pdf.Document"
+    ],
+    "rules": [
+      "When both 'using Aspose.Pdf;' and 'using Aspose.Pdf.Facades;' are imported, ALWAYS fully qualify Stamp as Aspose.Pdf.Facades.Stamp to avoid CS0104 ambiguity with Aspose.Pdf.Stamp.",
+      "Aspose.Pdf.Facades.Stamp does NOT have SetText(), SetFont(), SetFontSize(), SetTextColor(), SetColor(), or SetOpacity() methods. To add text, create a FormattedText object and bind it using stamp.BindLogo(formattedText). For opacity, use the Opacity property directly: stamp.Opacity = 0.5f.",
+      "FormattedText does NOT have settable properties (Text, Font, FontSize, TextState, TextColor, FontColor). ALL text content and styling must be set via the constructor: new FormattedText(text, System.Drawing.Color, fontName, EncodingType.Winansi, embedded, fontSize). The color parameter is System.Drawing.Color, NOT Aspose.Pdf.Color.",
+      "To append additional lines to FormattedText after construction, use AddNewLineText(). There is no AddText() method.",
+      "To bind formatted text to a Stamp, use stamp.BindLogo(formattedText). Stamp.SetText(FormattedText) does not exist.",
+      "To use a PDF page as a stamp with PdfFileStamp, create an Aspose.Pdf.Facades.Stamp and call stamp.BindPdf(pdfPath, pageNumber). Do NOT use PdfPageStamp with PdfFileStamp.AddStamp() — PdfPageStamp is for the core API (Page.AddStamp()) only.",
+      "PdfFileStamp.InputFile and PdfFileStamp.OutputFile are obsolete. Use BindPdf(inputFile) to load and Save(outputFile) to write. The PdfFileStamp(string, string) constructor is also obsolete — use the parameterless constructor instead.",
+      "PdfPageStamp uses the property name 'Background' (not 'IsBackground') to control whether the stamp appears behind page content.",
+      "FontRepository is in the Aspose.Pdf.Text namespace — add 'using Aspose.Pdf.Text;' or fully qualify as Aspose.Pdf.Text.FontRepository.",
+      "Loading an EPUB file requires EpubLoadOptions: new Document(epubPath, new EpubLoadOptions()). Loading a Markdown file requires MdLoadOptions (not MarkdownLoadOptions): new Document(mdPath, new MdLoadOptions())."
+    ],
+    "confidence": 0.98,
+    "warnings": [
+      "Do not confuse Aspose.Pdf.Facades.Stamp with Aspose.Pdf.Stamp — they are different classes in different namespaces.",
+      "Do not confuse PdfPageStamp (core API) with Aspose.Pdf.Facades.Stamp (Facades API) — they are not interchangeable.",
+      "FormattedText uses System.Drawing.Color for colors, not Aspose.Pdf.Color."
+    ],
+    "file_context": [
+      "input.pdf",
+      "output.pdf"
+    ]
+  },
+  {
+    "id": "format-load-options-guide",
+    "category": "DocumentConversion",
+    "language": "dotnet",
+    "relative_path": "",
+    "semantic_summary": "Comprehensive guide for loading non-PDF source files into Aspose.Pdf.Document. Each format requires its own LoadOptions subclass. Covers HTML, SVG, XPS, EPUB, Markdown, MHT, PCL, CGM, XSL-FO, TeX, PostScript, OFD, and XML with correct class names and constructors.",
+    "api_surface": [
+      "Aspose.Pdf.Document",
+      "Aspose.Pdf.HtmlLoadOptions",
+      "Aspose.Pdf.SvgLoadOptions",
+      "Aspose.Pdf.XpsLoadOptions",
+      "Aspose.Pdf.EpubLoadOptions",
+      "Aspose.Pdf.MdLoadOptions",
+      "Aspose.Pdf.MhtLoadOptions",
+      "Aspose.Pdf.PclLoadOptions",
+      "Aspose.Pdf.CgmLoadOptions",
+      "Aspose.Pdf.XslFoLoadOptions",
+      "Aspose.Pdf.TeXLoadOptions",
+      "Aspose.Pdf.PsLoadOptions",
+      "Aspose.Pdf.OfdLoadOptions"
+    ],
+    "rules": [
+      "Every non-PDF source format MUST use its own LoadOptions subclass as the second argument to the Document constructor: new Document(inputPath, new XxxLoadOptions()). Never pass a non-PDF file without LoadOptions.",
+      "HTML files: use new HtmlLoadOptions(). For HTML strings in memory, write to a MemoryStream first, then pass with HtmlLoadOptions.",
+      "SVG files: use new SvgLoadOptions(). Set AdjustPageSize = true to auto-size PDF pages to SVG dimensions.",
+      "XPS files: use new XpsLoadOptions().",
+      "EPUB files: use new EpubLoadOptions(). Has PageSize and Margin properties for customization.",
+      "Markdown files: use new MdLoadOptions(). The class name is MdLoadOptions, NOT MarkdownLoadOptions.",
+      "MHT/MHTML files: use new MhtLoadOptions(). Works for both .mht and .mhtml extensions.",
+      "PCL files: use new PclLoadOptions(). Can load from file path or stream.",
+      "CGM files: use new CgmLoadOptions(). Optionally accepts a System.Drawing.SizeF for custom page size: new CgmLoadOptions(new SizeF(595, 842)).",
+      "XSL-FO files: use new XslFoLoadOptions(). The class name is XslFoLoadOptions, NOT XsltLoadOptions or FoLoadOptions.",
+      "TeX/LaTeX files: use new TeXLoadOptions(). The class name is TeXLoadOptions (capital X), NOT TexLoadOptions.",
+      "PostScript (.ps) files: use new PsLoadOptions().",
+      "OFD files: use new OfdLoadOptions().",
+      "XML files: use Document.BindXml(xmlPath) instead of the Document constructor. For XML with XSLT: Document.BindXml(xmlPath, xsltPath).",
+      "LoadOptions is an abstract base class — NEVER instantiate it directly. Always use the concrete format-specific subclass.",
+      "All LoadOptions classes reside in the Aspose.Pdf namespace. Do NOT add 'using Aspose.Pdf.LoadOptions;' — LoadOptions is a type, not a namespace (causes CS0138)."
+    ],
+    "confidence": 0.98,
+    "warnings": [
+      "Do not confuse MdLoadOptions (correct) with MarkdownLoadOptions (does not exist).",
+      "Do not confuse TeXLoadOptions (correct, capital X) with TexLoadOptions (wrong casing).",
+      "Do not confuse XslFoLoadOptions (correct) with XsltLoadOptions or FoLoadOptions (do not exist).",
+      "Do not use 'using Aspose.Pdf.LoadOptions;' — LoadOptions is a class, not a namespace."
+    ],
+    "file_context": []
   }
 ]
