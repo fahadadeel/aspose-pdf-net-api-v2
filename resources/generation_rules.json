@@ -1,0 +1,1501 @@
+{
+  "product": "Aspose.Pdf",
+  "language": "csharp",
+  "version": "26.2.0",
+  "rules": {
+    "__comment_section_1__": "=== GLOBAL RULES — apply across ALL tasks ===",
+    "default-appearance-font-is-readonly-and-no-fontcolor": {
+      "note": "DefaultAppearance.Font is a read-only property — it cannot be assigned via object initializer. Use the constructor overload that accepts font name and size: new DefaultAppearance(string fontName, double fontSize, Color textColor). Also, there is no 'FontColor' property; the correct property name is 'TextColor' or pass the color via the constructor.",
+      "code": "// CORRECT — use the constructor:\nDefaultAppearance appearance = new DefaultAppearance(\"Helvetica\", 12, Aspose.Pdf.Color.Black);\n\n// CORRECT — use parameterless then set via TextColor:\nDefaultAppearance appearance = new DefaultAppearance();\nappearance.TextColor = Aspose.Pdf.Color.Black;\nappearance.FontSize = 12;\n\n// WRONG — Font is read-only:\n// DefaultAppearance appearance = new DefaultAppearance\n// {\n//     Font = FontRepository.FindFont(\"Helvetica\"),  // CS0200: read only\n//     FontSize = 12,\n//     FontColor = Aspose.Pdf.Color.Black             // CS0117: no 'FontColor'\n// };",
+      "errors": [
+        "CS0200: Property or indexer 'DefaultAppearance.Font' cannot be assigned to -- it is read only",
+        "CS0117: 'DefaultAppearance' does not contain a definition for 'FontColor'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-destination-class-use-explicit-destination": {
+      "note": "There is no class called 'Destination' in Aspose.Pdf. To set a link annotation destination, use one of the explicit destination subclasses: XYZExplicitDestination, FitExplicitDestination, GoToAction, etc. ExplicitDestination does not have a static CreateFit method either.",
+      "code": "// CORRECT — navigate to page 2 fit to window:\nlink.Action = new GoToAction(doc.Pages[2]);\n\n// CORRECT — XYZ destination (page, left, top, zoom):\nlink.Destination = new XYZExplicitDestination(doc.Pages[2], 0, 0, 1);\n\n// CORRECT — Fit the whole page:\nlink.Destination = new FitExplicitDestination(doc.Pages[2]);\n\n// WRONG — Destination class does not exist:\n// link.Destination = new Destination(2);           // CS0246\n// link.Destination = new Destination(doc.Pages[2]); // CS0246\n\n// WRONG — CreateFit does not exist on ExplicitDestination:\n// link.Destination = ExplicitDestination.CreateFit(doc.Pages[2]); // CS0117",
+      "errors": [
+        "CS0246: The type or namespace name 'Destination' could not be found (are you missing a using directive or an assembly reference?)",
+        "CS0117: 'ExplicitDestination' does not contain a definition for 'CreateFit'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-form-presentation-mode": {
+      "note": "FormPresentationMode enum and PdfViewer.FormPresentationMode property do not exist in Aspose.Pdf. PdfViewer from Aspose.Pdf.Facades does not have a FormPresentationMode property. When printing PDFs with form fields using PdfViewer, simply bind the PDF and call PrintDocument() without trying to set any mode.",
+      "code": "// CORRECT — print with PdfViewer:\nPdfViewer viewer = new PdfViewer();\ntry\n{\n    viewer.BindPdf(\"form.pdf\");\n    viewer.PrintDocument();\n}\nfinally\n{\n    viewer.Close();\n}\n\n// WRONG — FormPresentationMode does not exist:\n// viewer.FormPresentationMode = Aspose.Pdf.FormPresentationMode.Editor; // CS0234",
+      "errors": [
+        "CS0234: The type or namespace name 'FormPresentationMode' does not exist in the namespace 'Aspose.Pdf' (are you missing an assembly reference?)"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "hyperlink-property-is-not-a-string": {
+      "note": "LinkAnnotation.Hyperlink is of type Aspose.Pdf.Hyperlink, not a string. You cannot assign a URL string directly. To create a link to an external URL, use GoToURIAction as the Action, not the Hyperlink property.",
+      "code": "// CORRECT — use GoToURIAction:\nLinkAnnotation link = new LinkAnnotation(page, rect);\nlink.Action = new GoToURIAction(\"https://www.example.com\");\nlink.Color = Aspose.Pdf.Color.Blue;\n\n// WRONG — cannot assign string to Hyperlink:\n// link.Hyperlink = \"https://www.example.com\"; // CS0029: Cannot convert string to Hyperlink",
+      "errors": [
+        "CS0029: Cannot implicitly convert type 'string' to 'Aspose.Pdf.Hyperlink'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-pcl-save-options": {
+      "note": "PclSaveOptions does not exist in Aspose.Pdf. PCL is only supported as an input format (via PclLoadOptions), NOT as an output format. You cannot save/export a PDF to PCL. If PCL output is requested, inform the user that this format is not supported for export.",
+      "code": "// CORRECT — load PCL:\nusing (Document doc = new Document(\"input.pcl\", new PclLoadOptions()))\n{\n    doc.Save(\"output.pdf\"); // save as PDF\n}\n\n// WRONG — PclSaveOptions does not exist:\n// doc.Save(\"output.pcl\", new PclSaveOptions()); // CS0246",
+      "errors": [
+        "CS0246: The type or namespace name 'PclSaveOptions' could not be found (are you missing a using directive or an assembly reference?)"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-ps-save-options": {
+      "note": "PsSaveOptions does not exist in Aspose.Pdf. PostScript (PS) is only supported as an input format (via PsLoadOptions), NOT as an output format. You cannot save/export a PDF to PS.",
+      "code": "// CORRECT — load PS:\nusing (Document doc = new Document(\"input.ps\", new PsLoadOptions()))\n{\n    doc.Save(\"output.pdf\"); // save as PDF\n}\n\n// WRONG — PsSaveOptions does not exist:\n// doc.Save(\"output.ps\", new PsSaveOptions()); // CS0246",
+      "errors": [
+        "CS0246: The type or namespace name 'PsSaveOptions' could not be found (are you missing a using directive or an assembly reference?)"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-graphic-element-collection": {
+      "note": "GraphicElementCollection does not exist in Aspose.Pdf. To add shapes to a page, use Aspose.Pdf.Drawing.Graph container with Shape subclasses (Rectangle, Circle, Line, etc.), then add the Graph to page.Paragraphs.",
+      "code": "// CORRECT — use Graph container with shapes:\nAspose.Pdf.Drawing.Graph graph = new Aspose.Pdf.Drawing.Graph(400, 200);\nAspose.Pdf.Drawing.Rectangle rect = new Aspose.Pdf.Drawing.Rectangle(0, 0, 100, 50);\nrect.GraphInfo = new Aspose.Pdf.GraphInfo\n{\n    FillColor = Aspose.Pdf.Color.LightGray,\n    Color = Aspose.Pdf.Color.Black,\n    LineWidth = 1\n};\ngraph.Shapes.Add(rect);\npage.Paragraphs.Add(graph);\n\n// WRONG — GraphicElementCollection does not exist:\n// GraphicElementCollection graphics = new GraphicElementCollection(); // CS0246\n// page.AddGraphics(graphics); // AddGraphics does not exist",
+      "errors": [
+        "CS0246: The type or namespace name 'GraphicElementCollection' could not be found (are you missing a using directive or an assembly reference?)"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-subpath-collection-or-add-vector-graphics": {
+      "note": "SubPathCollection does not exist in Aspose.Pdf. Page.AddVectorGraphics() does not exist. SubPath has no parameterless constructor and does not have MoveTo/LineTo/Add/CloseFigure/ClosePath/IsClosed methods. For drawing vector shapes, use Aspose.Pdf.Drawing.Graph with Shape subclasses.",
+      "code": "// CORRECT — draw a line using Graph:\nAspose.Pdf.Drawing.Graph graph = new Aspose.Pdf.Drawing.Graph(400, 200);\nfloat[] linePoints = { 0, 0, 300, 100 };\nAspose.Pdf.Drawing.Line line = new Aspose.Pdf.Drawing.Line(linePoints);\nline.GraphInfo = new Aspose.Pdf.GraphInfo { Color = Aspose.Pdf.Color.Red, LineWidth = 2 };\ngraph.Shapes.Add(line);\npage.Paragraphs.Add(graph);\n\n// WRONG — these classes/methods do not exist:\n// SubPathCollection paths = new SubPathCollection(); // CS0246\n// SubPath path = new SubPath();                      // CS1729: no 0-arg ctor\n// path.MoveTo(100, 500);                             // CS1061\n// path.LineTo(200, 500);                             // CS1061\n// page.AddVectorGraphics(paths);                     // CS1061",
+      "errors": [
+        "CS0246: The type or namespace name 'SubPathCollection' could not be found (are you missing a using directive or an assembly reference?)",
+        "CS0246: The type or namespace name 'SubPath' could not be found (are you missing a using directive or an assembly reference?)",
+        "CS1729: 'SubPath' does not contain a constructor that takes 0 arguments",
+        "CS1061: 'SubPath' does not contain a definition for 'MoveTo'",
+        "CS1061: 'SubPath' does not contain a definition for 'LineTo'",
+        "CS1061: 'SubPath' does not contain a definition for 'Add'",
+        "CS1061: 'SubPath' does not contain a definition for 'CloseFigure'",
+        "CS1061: 'SubPath' does not contain a definition for 'ClosePath'",
+        "CS1061: 'SubPath' does not contain a definition for 'IsClosed'",
+        "CS1061: 'Page' does not contain a definition for 'AddVectorGraphics'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "drawing-rectangle-properties": {
+      "note": "Aspose.Pdf.Drawing.Rectangle does not have FillColor, StrokeColor, LineWidth, BorderColor, or BorderWidth as direct properties. Set visual properties through the GraphInfo property instead. The Drawing.Rectangle constructor takes (left, bottom, width, height), NOT (llx, lly, urx, ury). Also, Drawing.Rectangle cannot be added to GraphicElementCollection or used as GraphicElement — use Graph.Shapes.Add().",
+      "code": "// CORRECT — set properties via GraphInfo:\nAspose.Pdf.Drawing.Rectangle rect = new Aspose.Pdf.Drawing.Rectangle(100, 500, 200, 100);\nrect.GraphInfo = new Aspose.Pdf.GraphInfo\n{\n    FillColor = Aspose.Pdf.Color.LightGray,\n    Color = Aspose.Pdf.Color.Black,\n    LineWidth = 2\n};\ngraph.Shapes.Add(rect);\n\n// WRONG — these properties do not exist on Drawing.Rectangle:\n// rect.FillColor = Aspose.Pdf.Color.LightGray;   // CS1061\n// rect.StrokeColor = Aspose.Pdf.Color.DarkBlue;   // CS1061\n// rect.LineWidth = 2;                              // CS1061\n// rect.BorderColor = Aspose.Pdf.Color.Black;       // CS1061",
+      "errors": [
+        "CS1061: 'Rectangle' does not contain a definition for 'FillColor'",
+        "CS1061: 'Rectangle' does not contain a definition for 'StrokeColor'",
+        "CS1061: 'Rectangle' does not contain a definition for 'LineWidth'",
+        "CS1061: 'Rectangle' does not contain a definition for 'BorderColor'",
+        "CS1061: 'Rectangle' does not contain a definition for 'BorderWidth'",
+        "CS0117: 'Rectangle' does not contain a definition for 'FillColor'",
+        "CS0117: 'Rectangle' does not contain a definition for 'Border'",
+        "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Drawing.Rectangle' to 'Aspose.Pdf.Vector.GraphicElement'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "drawing-ellipse-properties": {
+      "note": "Aspose.Pdf.Drawing.Ellipse does not have FillColor, StrokeColor, LineWidth, BorderColor, or BorderWidth as direct properties. Set visual properties through the GraphInfo property instead. The Ellipse constructor takes (left, bottom, width, height).",
+      "code": "// CORRECT:\nAspose.Pdf.Drawing.Ellipse ellipse = new Aspose.Pdf.Drawing.Ellipse(100, 100, 200, 150);\nellipse.GraphInfo = new Aspose.Pdf.GraphInfo\n{\n    FillColor = Aspose.Pdf.Color.Yellow,\n    Color = Aspose.Pdf.Color.Red,\n    LineWidth = 1.5\n};\ngraph.Shapes.Add(ellipse);\n\n// WRONG — these properties do not exist on Ellipse:\n// ellipse.FillColor = Aspose.Pdf.Color.Yellow;  // CS1061\n// ellipse.StrokeColor = Aspose.Pdf.Color.Red;   // CS1061\n// ellipse.LineWidth = 1.5f;                      // CS1061",
+      "errors": [
+        "CS1061: 'Ellipse' does not contain a definition for 'FillColor'",
+        "CS1061: 'Ellipse' does not contain a definition for 'StrokeColor'",
+        "CS1061: 'Ellipse' does not contain a definition for 'LineWidth'",
+        "CS0117: 'Ellipse' does not contain a definition for 'BorderWidth'",
+        "CS0117: 'Ellipse' does not contain a definition for 'BorderColor'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "drawing-line-constructor": {
+      "note": "Aspose.Pdf.Drawing.Line constructor takes a float array of coordinates, NOT two Point objects. The array format is { x1, y1, x2, y2 }. Line also does not have Color or Width as direct properties — use GraphInfo.",
+      "code": "// CORRECT:\nfloat[] posArray = { 100, 400, 300, 400 };\nAspose.Pdf.Drawing.Line line = new Aspose.Pdf.Drawing.Line(posArray);\nline.GraphInfo = new Aspose.Pdf.GraphInfo\n{\n    Color = Aspose.Pdf.Color.Red,\n    LineWidth = 2\n};\ngraph.Shapes.Add(line);\n\n// WRONG — Line does not take two Point arguments:\n// Line line = new Line(new Point(100, 400), new Point(300, 400)); // CS1729\n// line.Color = Aspose.Pdf.Color.Red;  // CS0117\n// line.Width = 1;                      // CS0117",
+      "errors": [
+        "CS1729: 'Line' does not contain a constructor that takes 2 arguments",
+        "CS0117: 'Line' does not contain a definition for 'Color'",
+        "CS0117: 'Line' does not contain a definition for 'Width'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-common-figure-annotation": {
+      "note": "CommonFigureAnnotation is an abstract class and cannot be instantiated directly. Use a concrete subclass like SquareAnnotation, CircleAnnotation, PolygonAnnotation, or PolylineAnnotation. FigureAnnotation also does not exist as a class.",
+      "code": "// CORRECT — use SquareAnnotation:\nSquareAnnotation square = new SquareAnnotation(page, rect)\n{\n    Color = Aspose.Pdf.Color.Yellow,\n    Contents = \"Sample figure annotation\"\n};\npage.Annotations.Add(square);\n\n// CORRECT — use CircleAnnotation:\nCircleAnnotation circle = new CircleAnnotation(page, rect)\n{\n    Color = Aspose.Pdf.Color.Red\n};\npage.Annotations.Add(circle);\n\n// WRONG — abstract class:\n// CommonFigureAnnotation figure = new CommonFigureAnnotation(doc); // CS0144\n\n// WRONG — class does not exist:\n// FigureAnnotation figure = new FigureAnnotation(page, rect); // CS0246",
+      "errors": [
+        "CS0144: Cannot create an instance of the abstract type or interface 'CommonFigureAnnotation'",
+        "CS0246: The type or namespace name 'FigureAnnotation' could not be found (are you missing a using directive or an assembly reference?)"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "using-namespace-not-type": {
+      "note": "Do not write 'using Aspose.Pdf.LoadOptions' — LoadOptions is a class, not a namespace. All load options (OfdLoadOptions, PclLoadOptions, etc.) are in the Aspose.Pdf namespace directly. Use 'using Aspose.Pdf;' instead.",
+      "code": "// CORRECT:\nusing Aspose.Pdf;\n// Then use: new OfdLoadOptions(), new PclLoadOptions(), etc.\n\n// WRONG — LoadOptions is a type, not a namespace:\n// using Aspose.Pdf.LoadOptions; // CS0138",
+      "errors": [
+        "CS0138: A 'using namespace' directive can only be applied to namespaces; 'LoadOptions' is a type not a namespace. Consider a 'using static' directive instead"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "structure-element-page-is-readonly": {
+      "note": "StructureElement.Page is a read-only property. You cannot assign a Page to a FigureElement or other structure element. The page association is managed internally by the tagged content API.",
+      "code": "// CORRECT — just append to root, page is handled internally:\nITaggedContent tagged = doc.TaggedContent;\nStructureElement root = tagged.RootElement;\nFigureElement figure = tagged.CreateFigureElement();\nfigure.AlternativeText = \"Description\";\nroot.AppendChild(figure);\n\n// WRONG — Page is read-only:\n// figure.Page = page; // CS0200: Property cannot be assigned to -- it is read only",
+      "errors": [
+        "CS0200: Property or indexer 'StructureElement.Page' cannot be assigned to -- it is read only"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "artifact-rectangle-is-readonly": {
+      "note": "Artifact.Rectangle is a read-only property. You cannot set it via object initializer. Set the artifact's position using the SetPageNumberPosition or other methods, or use the Artifact constructor that accepts positioning parameters.",
+      "code": "// CORRECT — use WatermarkArtifact for watermarks:\nWatermarkArtifact artifact = new WatermarkArtifact();\nartifact.SetText(new FormattedText(\"WATERMARK\"));\nartifact.ArtifactHorizontalAlignment = HorizontalAlignment.Center;\npage.Artifacts.Add(artifact);\n\n// WRONG — Rectangle is read-only:\n// Artifact art = new Artifact(Artifact.ArtifactType.Background, Artifact.ArtifactSubtype.Background)\n// {\n//     Rectangle = shapeRect  // CS0200: read only\n// };",
+      "errors": [
+        "CS0200: Property or indexer 'Artifact.Rectangle' cannot be assigned to -- it is read only"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "artifact-type-no-path-subtype": {
+      "note": "Artifact.ArtifactType does not have a 'Path' value. Artifact.ArtifactSubtype does not have a 'Path' value. Valid ArtifactType values include Background, Layout, Pagination, and others. For drawing shapes, use the Drawing.Graph approach, not artifacts.",
+      "code": "// WRONG:\n// new Artifact(Artifact.ArtifactType.Path, Artifact.ArtifactSubtype.Path) // CS0117",
+      "errors": [
+        "CS0117: 'Artifact.ArtifactType' does not contain a definition for 'Path'",
+        "CS0117: 'Artifact.ArtifactSubtype' does not contain a definition for 'Path'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-graphic-state-parameterless-ctor": {
+      "note": "Aspose.Pdf.Vector.GraphicState has no parameterless constructor and does not have StrokeColor or LineWidth as direct static members. For styling vector elements, use GraphInfo on Drawing shapes instead.",
+      "code": "// WRONG:\n// GraphicState gs = new GraphicState { StrokeColor = Color.Green, LineWidth = 3 }; // CS1729, CS0117",
+      "errors": [
+        "CS1729: 'GraphicState' does not contain a constructor that takes 0 arguments",
+        "CS0117: 'GraphicState' does not contain a definition for 'StrokeColor'",
+        "CS0117: 'GraphicState' does not contain a definition for 'LineWidth'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "image-constructor-and-watermark-annotation": {
+      "note": "Aspose.Pdf.Image does not have a constructor that takes a string path. To create an Image, use the parameterless constructor and set the File property. WatermarkAnnotation does not have an 'Image' property for setting appearance. For watermarks with images, use WatermarkArtifact or stamp-based approaches.",
+      "code": "// CORRECT — create Image for adding to page:\nAspose.Pdf.Image img = new Aspose.Pdf.Image();\nimg.File = \"image.png\";\npage.Paragraphs.Add(img);\n\n// WRONG — no string constructor:\n// Image img = new Image(\"watermark.svg\"); // CS1729\n\n// WRONG — WatermarkAnnotation has no Image property:\n// WatermarkAnnotation wm = new WatermarkAnnotation(page, rect);\n// wm.Image = img; // CS0117",
+      "errors": [
+        "CS1729: 'Image' does not contain a constructor that takes 1 arguments",
+        "CS0117: 'WatermarkAnnotation' does not contain a definition for 'Image'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "ximage-no-imagestream-property": {
+      "note": "XImage does not have an 'ImageStream' property. To reuse a single image resource multiple times on a page, add it once via page.Resources.Images.Add(stream) and then reference it by name using page.AddImage() with the same stream.",
+      "code": "// CORRECT — add image once, place multiple times:\nstring imgName;\nusing (FileStream fs = File.OpenRead(\"logo.png\"))\n{\n    imgName = doc.Pages[1].Resources.Images.Add(fs);\n}\n// Place the same image at different locations:\nusing (FileStream fs = File.OpenRead(\"logo.png\"))\n{\n    doc.Pages[1].AddImage(fs, new Aspose.Pdf.Rectangle(50, 700, 150, 800));\n}\nusing (FileStream fs = File.OpenRead(\"logo.png\"))\n{\n    doc.Pages[1].AddImage(fs, new Aspose.Pdf.Rectangle(200, 700, 300, 800));\n}\n\n// WRONG — ImageStream does not exist:\n// XImage img = page.Resources.Images[imgName];\n// page.AddImage(img.ImageStream, rect); // CS1061",
+      "errors": [
+        "CS1061: 'XImage' does not contain a definition for 'ImageStream'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-image-fragment-class": {
+      "note": "ImageFragment does not exist in Aspose.Pdf. To add an image to a page, use Aspose.Pdf.Image with File or FileStream and add it to page.Paragraphs, or use page.AddImage() with a stream and rectangle.",
+      "code": "// CORRECT:\nAspose.Pdf.Image img = new Aspose.Pdf.Image();\nimg.File = \"image.png\";\npage.Paragraphs.Add(img);\n\n// CORRECT — with positioning:\nusing (FileStream fs = File.OpenRead(\"image.png\"))\n{\n    page.AddImage(fs, new Aspose.Pdf.Rectangle(100, 500, 300, 700));\n}\n\n// WRONG — ImageFragment does not exist:\n// page.Paragraphs.Add(new ImageFragment(img, rect)); // CS0246",
+      "errors": [
+        "CS0246: The type or namespace name 'ImageFragment' could not be found (are you missing a using directive or an assembly reference?)"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-set-text-style-on-free-text-annotation": {
+      "note": "FreeTextAnnotation does not have a SetTextStyle method. To format text in a FreeTextAnnotation, set the DefaultAppearance via the constructor or DefaultAppearance property. Use DefaultAppearance(fontName, fontSize, color) to control font styling.",
+      "code": "// CORRECT — set formatting via DefaultAppearance:\nDefaultAppearance da = new DefaultAppearance(\"Helvetica\", 12, Aspose.Pdf.Color.Blue);\nFreeTextAnnotation ft = new FreeTextAnnotation(page, rect, da)\n{\n    Contents = \"Formatted text\",\n    Color = Aspose.Pdf.Color.Yellow\n};\n\n// WRONG — SetTextStyle does not exist:\n// ft.SetTextStyle(RichTextFontStyles.Bold | RichTextFontStyles.Italic, \"Helvetica\", 12, Aspose.Pdf.Color.Blue);",
+      "errors": [
+        "CS1503: Argument 4: cannot convert from 'Aspose.Pdf.Color' to 'System.Drawing.Color'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "document-is-tagged-does-not-exist": {
+      "note": "Document does not have an 'IsTagged' property. To check if a document has tagged content, access doc.TaggedContent directly and handle accordingly. The using directives for tagged content are: Aspose.Pdf.Tagged and Aspose.Pdf.LogicalStructure.",
+      "code": "// CORRECT — access tagged content directly:\nITaggedContent tagged = doc.TaggedContent;\nStructureElement root = tagged.RootElement;\nFigureElement figure = tagged.CreateFigureElement();\nfigure.AlternativeText = \"Description\";\nroot.AppendChild(figure);\n\n// WRONG — IsTagged does not exist:\n// if (doc.IsTagged) { ... } // CS1061",
+      "errors": [
+        "CS1061: 'Document' does not contain a definition for 'IsTagged'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-graphic-properties-class": {
+      "note": "GraphicProperties class does not exist in Aspose.Pdf. Drawing shapes use the GraphInfo property for visual styling (FillColor, Color, LineWidth).",
+      "code": "// CORRECT — use GraphInfo:\nrect.GraphInfo = new Aspose.Pdf.GraphInfo\n{\n    FillColor = Aspose.Pdf.Color.LightGray,\n    Color = Aspose.Pdf.Color.DarkGray,\n    LineWidth = 1\n};\n\n// WRONG — GraphicProperties does not exist:\n// rect.GraphicProperties = new GraphicProperties { ... }; // CS0246",
+      "errors": [
+        "CS0246: The type or namespace name 'GraphicProperties' could not be found (are you missing a using directive or an assembly reference?)"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-ofd-save-format": {
+      "note": "SaveFormat.OFD does not exist. OFD is only supported as an input format (via OfdLoadOptions). You cannot save a document as OFD. Save as PDF instead.",
+      "code": "// CORRECT — load OFD, save as PDF:\nusing (Document doc = new Document(\"input.ofd\", new OfdLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — cannot save as OFD:\n// doc.Save(\"output.ofd\", SaveFormat.OFD); // CS0117",
+      "errors": [
+        "CS0117: 'SaveFormat' does not contain a definition for 'OFD'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "document-disposal-with-using": {
+      "note": "Always wrap Document objects in 'using' statements for deterministic disposal and to avoid file handle leaks. When merging PDFs, both source and target Documents must be in using blocks. Target must stay alive until Save() completes.",
+      "code": "using (Document target = new Document(\"file1.pdf\"))\nusing (Document source = new Document(\"file2.pdf\"))\n{\n    target.Pages.Add(source.Pages);\n    target.Save(\"merged.pdf\");\n}",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "page-indexing-one-based": {
+      "note": "Aspose.Pdf uses 1-based page indexing. doc.Pages[1] is the first page. doc.Pages[0] throws IndexOutOfRangeException. Always iterate from 1 to doc.Pages.Count inclusive.",
+      "code": "// CORRECT:\nfor (int i = 1; i <= doc.Pages.Count; i++)\n{\n    Page page = doc.Pages[i];\n}\n\n// WRONG:\n// doc.Pages[0]; // throws IndexOutOfRangeException",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "save-to-non-pdf-always-use-save-options": {
+      "note": "Document.Save(string path) WITHOUT a SaveOptions argument ALWAYS writes PDF regardless of the file extension. To save to any non-PDF format you MUST pass an explicit SaveOptions subclass or SaveFormat enum. This applies to HTML, SVG, DOC, DOCX, XLS, XLSX, PPTX, EPUB, XML, and all other formats.",
+      "code": "// CORRECT:\ndoc.Save(\"output.html\",  new HtmlSaveOptions());\ndoc.Save(\"output.svg\",   new SvgSaveOptions());\ndoc.Save(\"output.docx\",  new DocSaveOptions { Format = DocSaveOptions.DocFormat.DocX });\ndoc.Save(\"output.xlsx\",  new ExcelSaveOptions { Format = ExcelSaveOptions.ExcelFormat.XLSX });\ndoc.Save(\"output.pptx\",  new PptxSaveOptions());\ndoc.Save(\"output.epub\",  new EpubSaveOptions());\n\n// WRONG — extension is ignored, output is always PDF:\n// doc.Save(\"output.html\");  // produces a PDF named output.html",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "all-save-options-in-aspose-pdf-namespace": {
+      "note": "ALL SaveOptions subclasses (HtmlSaveOptions, SvgSaveOptions, DocSaveOptions, XlsSaveOptions, ExcelSaveOptions, PptxSaveOptions, EpubSaveOptions, XmlSaveOptions, MobiXmlSaveOptions, etc.) are defined in the Aspose.Pdf namespace. There is NO 'Aspose.Pdf.Saving' sub-namespace — it does not exist. Never add 'using Aspose.Pdf.Saving;'.",
+      "code": "// CORRECT — one using covers everything:\nusing Aspose.Pdf;\n\n// All of these are in Aspose.Pdf:\nvar htmlOpts  = new HtmlSaveOptions();\nvar svgOpts   = new SvgSaveOptions();\nvar docOpts   = new DocSaveOptions();\nvar xlsOpts   = new ExcelSaveOptions();\nvar pptxOpts  = new PptxSaveOptions();\n\n// WRONG:\n// using Aspose.Pdf.Saving;  <-- CS0234, namespace does not exist",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "html-and-image-conversion-gdi-plus-windows-only": {
+      "note": "HTML-to-PDF, PDF-to-HTML, and some image-based conversions via Aspose.Pdf require GDI+ (Windows only). On macOS and Linux these throw TypeInitializationException or DllNotFoundException. Always wrap such conversions in try-catch when targeting cross-platform deployments.",
+      "code": "try\n{\n    HtmlSaveOptions opts = new HtmlSaveOptions\n    {\n        RasterImagesSavingMode = HtmlSaveOptions.RasterImagesSavingModes.AsPngImagesEmbeddedIntoSvg\n    };\n    doc.Save(outputHtmlPath, opts);\n}\ncatch (TypeInitializationException)\n{\n    Console.WriteLine(\"HTML conversion requires Windows (GDI+). Skipped on this platform.\");\n}\ncatch (DllNotFoundException)\n{\n    Console.WriteLine(\"GDI+ (gdiplus.dll) not found. This operation is Windows-only.\");\n}",
+      "platform_limitation": true,
+      "works_on": [
+        "Windows"
+      ],
+      "fails_on": [
+        "macOS",
+        "Linux"
+      ]
+    },
+    "do-not-use-system-drawing-color": {
+      "note": "Do NOT use System.Drawing.Color in Aspose.Pdf code. System.Drawing is a Windows-only GDI+ library. Use Aspose.Pdf.Color instead — it is cross-platform. If both namespaces are imported, fully qualify as Aspose.Pdf.Color to avoid CS0104 ambiguity.",
+      "code": "// CORRECT — cross-platform:\nheader.BackgroundColor = Aspose.Pdf.Color.LightGray;\ntextFragment.TextState.ForegroundColor = Aspose.Pdf.Color.FromRgb(0.1, 0.2, 0.8);\n\n// WRONG — Windows-only, causes CS0104 ambiguity:\n// header.BackgroundColor = System.Drawing.Color.LightGray;",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "rectangle-disambiguation": {
+      "note": "When both Aspose.Pdf and Aspose.Pdf.Drawing namespaces are imported, 'Rectangle' becomes ambiguous (CS0104). Always fully qualify as Aspose.Pdf.Rectangle for page/annotation coordinates. Aspose.Pdf.Drawing.Rectangle is for drawing shapes only.",
+      "code": "// CORRECT — fully qualified:\nAspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(llx, lly, urx, ury);\n\n// Or add an alias:\n// using PdfRect = Aspose.Pdf.Rectangle;\nPdfRect rect = new PdfRect(llx, lly, urx, ury);",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "fqtn-for-ambiguous-types": {
+      "note": "Use Fully Qualified Type Names (FQTN) for any Aspose.Pdf type that could clash with BCL or System.Drawing types. Most common ambiguous types: Color (use Aspose.Pdf.Color), Rectangle (use Aspose.Pdf.Rectangle), Font (use Aspose.Pdf.Text.Font). When in doubt, always prefix with the full namespace to avoid CS0104 'ambiguous reference' errors. Never import both Aspose.Pdf and System.Drawing namespaces unless necessary.",
+      "code": "// CORRECT — use FQTN when ambiguity is possible:\nAspose.Pdf.Color bg = Aspose.Pdf.Color.LightBlue;\nAspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(10, 10, 200, 100);\n\n// Or use namespace aliases:\nusing PdfColor = Aspose.Pdf.Color;\nusing PdfRect  = Aspose.Pdf.Rectangle;\n\nPdfColor foreground = PdfColor.FromRgb(0.2, 0.4, 0.8);\nPdfRect  bounds     = new PdfRect(50, 50, 300, 150);\n\n// WRONG — ambiguous when System.Drawing is also imported:\n// Color c = Color.Red;           // CS0104 — ambiguous between Aspose.Pdf.Color and System.Drawing.Color\n// Rectangle r = new Rectangle(); // CS0104 — ambiguous",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "__comment_section_2__": "=== ENCRYPTION / SECURITY RULES ===",
+    "encryption-always-use-CryptoAlgorithm": {
+      "note": "Always use CryptoAlgorithm enum (Aspose.Pdf namespace) for Document.Encrypt(). NEVER use CryptographicStandard.Pkcs7 — that is for digital signatures only. Decrypt() takes NO parameters. Valid CryptoAlgorithm values: RC4x40, RC4x128, AESx128, AESx256. Prefer AESx256.",
+      "code": "// CORRECT — encrypt:\nPermissions perms = Permissions.PrintDocument | Permissions.ExtractContent;\ndoc.Encrypt(userPassword, ownerPassword, perms, CryptoAlgorithm.AESx256);\ndoc.Save(encryptedPath);\n\n// CORRECT — decrypt (NO parameters):\nDocument enc = new Document(encryptedPath, userPassword);\nenc.Decrypt();\nenc.Save(decryptedPath);\n\n// WRONG:\n// doc.Encrypt(u, o, perms, CryptographicStandard.Pkcs7); // wrong enum\n// enc.Decrypt(userPassword);                             // no such overload",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-aspose-pdf-security-namespace": {
+      "note": "Do NOT add 'using Aspose.Pdf.Security;' — this namespace does not exist in Aspose.Pdf for .NET. CryptoAlgorithm and Permissions enums are in the root Aspose.Pdf namespace.",
+      "code": "// CORRECT:\nusing Aspose.Pdf; // CryptoAlgorithm and Permissions are here\n\n// WRONG:\n// using Aspose.Pdf.Security;  <-- CS0234, does not exist",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "CS0246 – The type or namespace name 'CryptographicStandard' could not be found": {
+      "fix": "Use CryptoAlgorithm enum (Aspose.Pdf) instead. Remove any 'using Aspose.Pdf.Security;'.",
+      "code": "// CORRECT:\ndoc.Encrypt(userPassword, ownerPassword, perms, CryptoAlgorithm.AESx256);\n\n// WRONG:\n// doc.Encrypt(u, o, perms, CryptographicStandard.Pkcs7);",
+      "note": "CryptographicStandard.Pkcs7 is a digital-signature concept, not a symmetric encryption algorithm.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "CS1503 – cannot convert from 'Aspose.Pdf.Security.CryptographicStandard'": {
+      "fix": "Replace CryptographicStandard.Pkcs7 with CryptoAlgorithm.AESx256.",
+      "code": "doc.Encrypt(user, owner, perms, CryptoAlgorithm.AESx256); // was CryptographicStandard.Pkcs7",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": [
+        "Use CryptoAlgorithm.RC4x128 for older reader compatibility"
+      ]
+    },
+    "CS1501 – No overload for method 'Decrypt' takes 1 argument": {
+      "fix": "Call Decrypt() with NO parameters. The password is supplied when opening the Document.",
+      "code": "Document enc = new Document(encryptedPath, userPassword);\nenc.Decrypt(); // no argument — was: enc.Decrypt(userPassword)",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "__comment_section_2b__": "=== FORMAT / API RULES — discovered during batch testing ===",
+    "cgm-is-input-only-no-cgmsaveoptions": {
+      "note": "CGM (Computer Graphics Metafile) is an INPUT-only format in Aspose.Pdf. There is no CgmSaveOptions class — you cannot save a PDF as CGM. To process CGM files use CgmLoadOptions to load them into a Document. When a task says 'using CGM format', interpret it as: load the CGM input and save the result as PDF.",
+      "code": "// CORRECT — load CGM, save as PDF:\nCgmLoadOptions loadOptions = new CgmLoadOptions();\nusing (Document doc = new Document(\"input.cgm\", loadOptions))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — CgmSaveOptions does not exist:\n// var cgmOpts = new CgmSaveOptions(); // CS0246 — type not found\n// doc.Save(\"output.cgm\", cgmOpts);",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "epub-save-options-content-recognition-mode": {
+      "note": "When saving a PDF as EPUB using EpubSaveOptions, the ContentRecognitionMode enum is a NESTED enum inside EpubSaveOptions. Always reference it as EpubSaveOptions.RecognitionMode.Flow (or PdfFlow). Never use the unqualified RecognitionMode enum — it will cause CS0246. Also, EpubSaveOptions does not have a 'Title' property — remove it.",
+      "code": "// CORRECT:\nEpubSaveOptions epubOptions = new EpubSaveOptions\n{\n    ContentRecognitionMode = EpubSaveOptions.RecognitionMode.Flow\n    // NOT: ContentRecognitionMode = RecognitionMode.PdfFlow  (CS0246)\n    // NOT: Title = \"...\"                                     (property does not exist)\n};\ndoc.Save(\"output.epub\", epubOptions);",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "pdf-format-conversion-options-pua-strategy-enum": {
+      "note": "When using PdfFormatConversionOptions, the PUA processing strategy property is 'PuaSymbolsProcessingStrategy', NOT 'PuaProcessingStrategy'. The correct enum type is PdfFormatConversionOptions.PuaSymbolsProcessingStrategies. Using 'PuaProcessingStrategy' causes CS1061.",
+      "code": "// CORRECT:\nPdfFormatConversionOptions opts = new PdfFormatConversionOptions(PdfFormat.PDF_A_1B)\n{\n    OptimizeFileSize = true\n    // Omit PuaSymbolsProcessingStrategy if not needed — it defaults safely\n};\ndoc.Convert(opts);\n\n// Or using the simpler overload:\ndoc.Convert(\"log.xml\", PdfFormat.PDF_A_1B, ConvertErrorAction.Delete);\n\n// WRONG:\n// PuaProcessingStrategy = PdfFormatConversionOptions.PuaProcessingStrategy.SurroundPuaTextWithEmptyActualText",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "text-extraction-use-textabsorber-not-page-extracttext": {
+      "note": "There is no Page.ExtractText(TextExtractionOptions) method. To extract text from a PDF page or document, use TextAbsorber with TextExtractionOptions. Apply the absorber via page.Accept(absorber) or pdfDoc.Pages.Accept(absorber), then read absorber.Text.",
+      "code": "// CORRECT — extract text from all pages:\nTextAbsorber absorber = new TextAbsorber();\nabsorber.ExtractionOptions = new TextExtractionOptions(TextExtractionOptions.TextFormattingMode.Pure);\npdfDoc.Pages.Accept(absorber);\nstring extractedText = absorber.Text;\n\n// CORRECT — extract from single page:\npdfDoc.Pages[1].Accept(absorber);\nstring pageText = absorber.Text;\n\n// WRONG:\n// string text = pdfDoc.Pages[1].ExtractText(opts); // method does not exist",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "form-presentation-mode-in-aspose-pdf-namespace": {
+      "note": "FormPresentationMode enum is in the Aspose.Pdf namespace, NOT in Aspose.Pdf.Devices. Do not add 'using Aspose.Pdf.Devices' just for FormPresentationMode. Values: FormPresentationMode.Production (default) and FormPresentationMode.Editor.",
+      "code": "// CORRECT:\nusing Aspose.Pdf; // FormPresentationMode is here\n...\ndoc.FormPresentationMode = FormPresentationMode.Editor;\n\n// WRONG:\n// using Aspose.Pdf.Devices; // misleading — FormPresentationMode is NOT in Devices",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "aspose-pdf-comparison-namespace-version-check": {
+      "note": "Aspose.Pdf.Comparison (SideBySidePdfComparer, SideBySideComparisonOptions) was introduced in a recent Aspose.Pdf version. Do not use it for 'basic operations' examples — it may not be available in all target environments. For basic PDF operations: open, read page count, extract text (via TextAbsorber), and save. Keep examples simple and cross-version compatible.",
+      "code": "// CORRECT — simple basic operations pattern:\nusing (Document doc = new Document(\"input.pdf\"))\n{\n    Console.WriteLine($\"Pages: {doc.Pages.Count}\");\n    Console.WriteLine($\"Author: {doc.Info.Author}\");\n\n    TextAbsorber absorber = new TextAbsorber();\n    doc.Pages.Accept(absorber);\n    Console.WriteLine($\"Text length: {absorber.Text.Length}\");\n\n    doc.Save(\"output.pdf\");\n}\n\n// AVOID for basic examples:\n// SideBySidePdfComparer.Compare(...) — advanced/versioned feature",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "cgm-invalid-format-exception-does-not-exist": {
+      "note": "There is no InvalidCgmFileFormatException class in Aspose.Pdf. When catching errors from CGM loading, use the generic Exception or Aspose.Pdf.PdfException. Do not catch a non-existent exception type.",
+      "code": "// CORRECT — catch generic exceptions for CGM loading:\ntry\n{\n    CgmLoadOptions opts = new CgmLoadOptions();\n    using (Document doc = new Document(\"input.cgm\", opts))\n    {\n        doc.Save(\"output.pdf\");\n    }\n}\ncatch (PdfException ex)  { Console.Error.WriteLine($\"PDF error: {ex.Message}\"); }\ncatch (Exception ex)     { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n\n// WRONG:\n// catch (InvalidCgmFileFormatException ex) { ... } // CS0246 — type does not exist",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "__comment_section_2c__": "=== TAGGED PDF / ACCESSIBILITY API RULES (Aspose.Pdf.LogicalStructure namespace) ===",
+    "tagged-content-access-via-doc-taggedcontent": {
+      "note": "Access tagged content via doc.TaggedContent — NOT by casting Document to ITaggedContent. Document does NOT implement ITaggedContent. ITaggedContent is in Aspose.Pdf.Tagged namespace.",
+      "code": "// CORRECT:\nusing Aspose.Pdf.Tagged;          // ITaggedContent\nusing Aspose.Pdf.LogicalStructure; // StructureElement, ParagraphElement, FigureElement, etc.\n...\nITaggedContent taggedContent = doc.TaggedContent;\ntaggedContent.SetTitle(\"Accessible Document\");\ntaggedContent.SetLanguage(\"en-US\");\n\n// WRONG:\n// ITaggedContent tagged = doc;  // CS0030 — Document does not implement ITaggedContent",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-pdf-namespaces-logicalstructure-is-correct": {
+      "note": "For tagged PDFs, use 'Aspose.Pdf.LogicalStructure' namespace for all structure element types: StructureElement (root type), ParagraphElement, FigureElement, HeaderElement, DivElement, TableElement, TableTHElement, TableTDElement, etc. 'Aspose.Pdf.Tagged' provides ITaggedContent. Do NOT use 'Aspose.Pdf.Structure' as the primary namespace for structure elements — types from that namespace (like RootElement) cause InvalidCastException when cast from taggedContent.RootElement.",
+      "code": "// CORRECT namespaces for tagged PDF:\nusing Aspose.Pdf;                  // Document, Page, XImage, AutoTaggingSettings, etc.\nusing Aspose.Pdf.Tagged;           // ITaggedContent\nusing Aspose.Pdf.LogicalStructure; // StructureElement, ParagraphElement, FigureElement,\n                                   // HeaderElement, DivElement, TableElement, etc.\nusing Aspose.Pdf.Text;             // TextAbsorber (for text extraction)\n\n// Types from Aspose.Pdf.LogicalStructure:\n// StructureElement root     = taggedContent.RootElement;  // correct type, NO cast\n// ParagraphElement para     = taggedContent.CreateParagraphElement();\n// FigureElement    fig      = taggedContent.CreateFigureElement();\n// HeaderElement    h1       = taggedContent.CreateHeaderElement(1);\n// TableElement     table    = taggedContent.CreateTableElement();\n\n// WRONG — Aspose.Pdf.Structure.RootElement causes InvalidCastException:\n// using Aspose.Pdf.Structure;   // wrong namespace for structure elements\n// RootElement root = (RootElement)taggedContent.RootElement;  // InvalidCastException at runtime",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-root-element-structureelement-no-cast": {
+      "note": "taggedContent.RootElement returns Aspose.Pdf.LogicalStructure.StructureElement directly. Assign it to 'StructureElement' WITHOUT any explicit cast. Never cast to 'RootElement' from Aspose.Pdf.Structure — that throws InvalidCastException at runtime. IMPORTANT: doc.StructTreeRootElement (on the Document class) does NOT exist. However, taggedContent.StructTreeRootElement DOES exist on ITaggedContent and returns Aspose.Pdf.LogicalStructure.StructTreeRootElement — use it only when you specifically need the StructTreeRootElement type. For most structure building, use taggedContent.RootElement (returns StructureElement).",
+      "code": "// CORRECT — direct assignment to StructureElement, no cast:\nusing Aspose.Pdf.LogicalStructure;\n...\nStructureElement root = taggedContent.RootElement;  // returns StructureElement — no cast needed\n\n// ALSO VALID — if you specifically need StructTreeRootElement:\n// Aspose.Pdf.LogicalStructure.StructTreeRootElement structRoot = taggedContent.StructTreeRootElement;\n\n// WRONG:\n// RootElement root = (RootElement)taggedContent.RootElement;  // InvalidCastException! (Aspose.Pdf.Structure.RootElement is a different type)\n// doc.StructTreeRootElement                                    // CS1061 — does NOT exist on Document class",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-structure-appendchild-is-correct": {
+      "note": "Add child structure elements using element.AppendChild(child). The actual API signature is AppendChild(Element element, bool checkIfCanBeAppended) — the bool parameter has a default value, so calling with ONE argument is the correct and preferred form. Do NOT use Children.Add() — it does not exist on StructureElement. Avoid calling AppendChild with bool=false as it may reject valid children.",
+      "code": "// CORRECT — use AppendChild() with one argument (bool param has default value):\nStructureElement root = taggedContent.RootElement;\n\nParagraphElement para = taggedContent.CreateParagraphElement();\npara.SetText(\"Accessible paragraph.\");\nroot.AppendChild(para);  // correct — one argument\n\nFigureElement fig = taggedContent.CreateFigureElement();\nfig.AlternativeText = \"Description of the image.\";\nroot.AppendChild(fig);   // correct — one argument\n\n// WRONG:\n// root.Children.Add(para);         // CS1061 — Children.Add does not exist on StructureElement\n// root.AppendChild(para, false);   // Avoid — may reject valid children; use 1-arg form",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-structure-settext-is-correct-method": {
+      "note": "Use element.SetText(string) to set the text content of structure elements (ParagraphElement, HeaderElement, TableTHElement, TableTDElement, etc.). This is the confirmed working method. 'ActualText' is a property that also exists on StructureElement but SetText() is the primary method for setting display text.",
+      "code": "// CORRECT — use SetText() for text content:\nParagraphElement para = taggedContent.CreateParagraphElement();\npara.SetText(\"This is accessible paragraph text.\");\nroot.AppendChild(para);\n\nHeaderElement h1 = taggedContent.CreateHeaderElement(1);\nh1.SetText(\"Chapter 1\");\nroot.AppendChild(h1);\n\nTableTHElement th = taggedContent.CreateTableTHElement();\nth.SetText(\"Column Header\");\n\nTableTDElement td = taggedContent.CreateTableTDElement();\ntd.SetText(\"Cell value\");\n\n// NOTE: ActualText property also exists on StructureElement for the /ActualText attribute,\n// but SetText() is the correct method for setting the text node content.",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-figure-alternativetext-property": {
+      "note": "The property for alternate text on FigureElement (and other structure elements) is 'AlternativeText' — NOT '.Alt' or '.AltText'. AlternativeText is defined on Aspose.Pdf.LogicalStructure.StructureElement and applies to all structure element subtypes.",
+      "code": "// CORRECT:\nFigureElement figure = taggedContent.CreateFigureElement();\nfigure.AlternativeText = \"Image of a bar chart showing quarterly revenue.\";\nroot.AppendChild(figure);\n\nTableElement table = taggedContent.CreateTableElement();\ntable.AlternativeText = \"Quarterly sales data table.\";\nroot.AppendChild(table);\n\n// WRONG:\n// figure.Alt = \"...\";     // CS1061 — property is AlternativeText, not Alt\n// figure.AltText = \"...\"; // CS1061 — same",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-doc-tagged-and-language-properties-dont-exist": {
+      "note": "Document has NO 'Tagged' setter (doc.Tagged = true is CS1061) and NO 'IsTagged' setter (doc.IsTagged = true is CS0200 — read-only). There is also NO 'Language' setter (doc.Language = \"en-US\" is CS1061). Use doc.TaggedContent.SetLanguage() and doc.TaggedContent.SetTitle(). doc.IsTagged is a READ-ONLY boolean property.",
+      "code": "// CORRECT:\nITaggedContent taggedContent = doc.TaggedContent;\ntaggedContent.SetLanguage(\"en-US\");\ntaggedContent.SetTitle(\"Accessible PDF\");\nbool isTagged = doc.IsTagged;  // read-only check\n\n// WRONG:\n// doc.Tagged = true;         // CS1061 — setter does not exist\n// doc.IsTagged = true;       // CS0200 — IsTagged is read-only\n// doc.Language = \"en-US\";   // CS1061 — setter does not exist",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-no-presave-needed": {
+      "note": "There is NO requirement to call taggedContent.PreSave() before doc.Save(). Simply call doc.Save(outputPath) to persist all tagged structure changes. PreSave() exists as a method but calling it is NOT required and adds unnecessary code. Just use doc.Save().",
+      "code": "// CORRECT — just call doc.Save():\nusing (Document doc = new Document(inputPath))\n{\n    ITaggedContent taggedContent = doc.TaggedContent;\n    taggedContent.SetLanguage(\"en-US\");\n    taggedContent.SetTitle(\"Tagged PDF\");\n\n    StructureElement root = taggedContent.RootElement;\n    ParagraphElement para = taggedContent.CreateParagraphElement();\n    para.SetText(\"Accessible content.\");\n    root.AppendChild(para);\n\n    doc.Save(outputPath);  // just doc.Save() — no PreSave() needed\n}\n\n// NOT REQUIRED (harmless but unnecessary):\n// taggedContent.PreSave();  // exists but not needed",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-autotaggingsettings-use-static-default": {
+      "note": "AutoTaggingSettings is accessed as a GLOBAL STATIC via AutoTaggingSettings.Default — NOT via doc.TaggedContent.AutoTaggingSettings or doc.AutoTaggingSettings (those instance properties do NOT exist). AutoTaggingSettings is in the Aspose.Pdf namespace (NOT Aspose.Pdf.Tagged) — the standard 'using Aspose.Pdf;' directive already covers it. No additional using is needed.",
+      "code": "// CORRECT — global static access:\nusing Aspose.Pdf;  // AutoTaggingSettings is in Aspose.Pdf namespace (NOT Aspose.Pdf.Tagged)\n...\nAutoTaggingSettings.Default.EnableAutoTagging = true;\n// Optionally configure heading detection:\n// AutoTaggingSettings.Default.HeadingRecognitionStrategy = HeadingRecognitionStrategy.Auto;\n// AutoTaggingSettings.Default.HeadingLevels = new int[] { 1, 2, 3 };\n\n// WRONG — instance properties that do NOT exist:\n// doc.TaggedContent.AutoTaggingSettings.EnableAutoTagging = true;  // CS1061\n// doc.AutoTaggingSettings.EnableAutoTagging = true;                // CS1061",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-ximage-trysetalternativetext-is-valid": {
+      "note": "XImage DOES have a TrySetAlternativeText(string altText, Page page) method. This is the PREFERRED way to set alt text on images in a PDF, especially for untagged PDFs — it directly links the alt text to the existing image resource on the page. Always iterate with 'foreach (XImage img in page.Resources.Images)' — NOT as a dictionary.",
+      "code": "// CORRECT — set alt text on all images:\nforeach (Page page in doc.Pages)\n{\n    foreach (XImage img in page.Resources.Images)  // direct foreach, NOT dictionary\n    {\n        bool ok = img.TrySetAlternativeText(\"Image description\", page);  // IS valid!\n    }\n}\ndoc.Save(outputPath);\n\n// WRONG:\n// img.TrySetAlternativeText(\"alt\");             // CS1501 — missing Page argument\n// img.AlternateText = \"...\";                    // CS1061 — property does not exist on XImage\n// foreach (var kvp in page.Resources.Images) { } // NOT a dictionary",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "ximage-collection-foreach-only-no-keys": {
+      "note": "XImageCollection (page.Resources.Images) is NOT a dictionary. Iterate it with 'foreach (XImage img in page.Resources.Images)'. There is NO .Keys property, no KeyValuePair enumeration, and no string-based indexer. The collection directly yields XImage objects.",
+      "code": "// CORRECT:\nforeach (XImage img in page.Resources.Images)\n{\n    Console.WriteLine($\"Image: {img.Width}x{img.Height}\");\n    img.TrySetAlternativeText(\"Accessible image description\", page);\n}\n\n// WRONG:\n// foreach (var kvp in page.Resources.Images) { var img = kvp.Value; }  // not a dictionary\n// foreach (string key in page.Resources.Images.Keys) { }               // Keys does not exist\n// XImage img2 = page.Resources.Images[\"name\"];                         // no string indexer",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "imagefragment-type-does-not-exist": {
+      "note": "ImageFragment is NOT a valid type in Aspose.Pdf. Do NOT use 'new ImageFragment(...)' — causes CS0246. To work with images: use XImage (from page.Resources.Images), use Image class to add images to pages, or use FigureElement (for tagged structure alt text).",
+      "code": "// CORRECT — add an image to a page:\nPage page = doc.Pages[1];\nusing (FileStream imgStream = File.OpenRead(\"photo.jpg\"))\n{\n    page.Resources.Images.Add(imgStream);\n}\n\n// CORRECT — iterate and set alt text on existing images:\nforeach (XImage img in page.Resources.Images)\n{\n    img.TrySetAlternativeText(\"Photo description\", page);\n}\n\n// WRONG:\n// ImageFragment fragment = new ImageFragment(\"photo.jpg\");  // CS0246 — type does not exist",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "page-structureelements-property-does-not-exist": {
+      "note": "Page does NOT have a StructureElements property. To access the tagged structure tree, use doc.TaggedContent.RootElement and traverse recursively via element.ChildElements. Check doc.IsTagged before accessing TaggedContent on potentially untagged documents.",
+      "code": "// CORRECT — access structure via TaggedContent:\nif (doc.IsTagged)\n{\n    StructureElement root = doc.TaggedContent.RootElement;\n    foreach (Element child in root.ChildElements)\n    {\n        if (child is StructureElement se)\n            Console.WriteLine($\"{se.GetType().Name}: {se.ActualText}\");\n    }\n}\n\n// WRONG:\n// foreach (var el in page.StructureElements) { }  // CS1061 — StructureElements does not exist on Page",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-table-elements-use-taggedcontent-factory": {
+      "note": "Table structure elements can be created via two approaches: (1) ITaggedContent factory methods (CreateTableElement, CreateTableTHeadElement, etc.) plus AppendChild() to attach, or (2) TableElement's own CreateTHead()/CreateTBody()/CreateTFoot() methods and TableTRElement's CreateTH()/CreateTD() methods (confirmed via API reflection). In approach 2, the child is automatically attached to the parent. Use SetText() for cell text. Use AlternativeText for table description.",
+      "code": "// APPROACH 1 (factory + AppendChild) — recommended:\nusing Aspose.Pdf.LogicalStructure;\n...\nITaggedContent taggedContent = doc.TaggedContent;\nStructureElement root = taggedContent.RootElement;\n\nTableElement table = taggedContent.CreateTableElement();\ntable.AlternativeText = \"Quarterly sales data\";\nroot.AppendChild(table);\n\n// Header section via ITaggedContent factory:\nTableTHeadElement thead = taggedContent.CreateTableTHeadElement();\ntable.AppendChild(thead);\nTableTRElement headerRow = taggedContent.CreateTableTRElement();\nthead.AppendChild(headerRow);\nTableTHElement th1 = taggedContent.CreateTableTHElement();\nth1.SetText(\"Product\");  // use SetText()\nheaderRow.AppendChild(th1);\nTableTHElement th2 = taggedContent.CreateTableTHElement();\nth2.SetText(\"Revenue\");\nheaderRow.AppendChild(th2);\n\n// Body section:\nTableTBodyElement tbody = taggedContent.CreateTableTBodyElement();\ntable.AppendChild(tbody);\nTableTRElement dataRow = taggedContent.CreateTableTRElement();\ntbody.AppendChild(dataRow);\nTableTDElement td1 = taggedContent.CreateTableTDElement();\ntd1.SetText(\"Widget A\");\ndataRow.AppendChild(td1);\nTableTDElement td2 = taggedContent.CreateTableTDElement();\ntd2.SetText(\"$50,000\");\ndataRow.AppendChild(td2);\n\ndoc.Save(outputPath);  // no PreSave needed\n\n// APPROACH 2 (element methods — auto-attached to parent):\n// TableTHeadElement thead2 = table.CreateTHead();   // API-confirmed: TableElement.CreateTHead()\n// TableTBodyElement tbody2 = table.CreateTBody();   // API-confirmed: TableElement.CreateTBody()\n// TableTHElement th3 = row.CreateTH();              // API-confirmed: TableTRElement.CreateTH()\n// TableTDElement td3 = row.CreateTD();              // API-confirmed: TableTRElement.CreateTD()\n\n// WRONG:\n// table.AppendChild(thead, false);   // Avoid false — may reject valid children\n// root.Children.Add(table);          // CS1061 — Children.Add does not exist",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-structure-element-childElements-not-elements": {
+      "note": "To iterate child structure elements, use element.ChildElements (returns IList<Element>). There is NO element.Elements property. Cast each child to StructureElement for typed access.",
+      "code": "// CORRECT — iterate children:\nforeach (Element child in element.ChildElements)\n{\n    if (child is StructureElement se)\n        ProcessElement(se);\n}\n\n// WRONG:\n// foreach (var child in element.Elements) { }  // CS1061 — Elements does not exist",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-structure-findElements-exists-on-element": {
+      "note": "Element (the base class of StructureElement) DOES have a FindElements<T>(bool recursiveSearch) method — confirmed by API reflection. Use it to collect all elements of a specific type from the structure tree. Pass 'true' for deep recursive search. This is available on all structure element types (ParagraphElement, FigureElement, HeaderElement, etc.) since they all inherit from Element.",
+      "code": "// CORRECT — use FindElements<T>(true) for type-specific recursive search:\nStructureElement root = doc.TaggedContent.RootElement;\n\n// Find all figure elements recursively:\nvar figures = root.FindElements<FigureElement>(true);\nforeach (var fig in figures)\n    Console.WriteLine($\"Figure alt: {fig.AlternativeText}\");\n\n// Find all paragraphs:\nvar paragraphs = root.FindElements<ParagraphElement>(true);\nforeach (var para in paragraphs)\n    Console.WriteLine($\"Para: {para.ActualText}\");\n\n// ALSO CORRECT — manual recursive walk (equivalent alternative):\nstatic void Walk(StructureElement el, Action<StructureElement> visitor)\n{\n    visitor(el);\n    foreach (Element child in el.ChildElements)\n        if (child is StructureElement se)\n            Walk(se, visitor);\n}\n\n// WRONG (old incorrect belief):\n// FindElements<T> was mistakenly said not to exist — it IS defined on the Element base class",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "tagged-read-language-via-taggedcontent": {
+      "note": "Read the document language from a tagged PDF via doc.TaggedContent.Language (returns the /Lang string). Do NOT use doc.Language (setter-only pattern) or read from PdfFileInfo.Header (completely wrong). Standard metadata like title/author is in doc.Info.",
+      "code": "// CORRECT — read language from tagged PDF:\nstring language = doc.TaggedContent.Language;  // e.g. \"en-US\"\nConsole.WriteLine($\"Language: {language}\");\n\n// CORRECT — read standard metadata:\nConsole.WriteLine($\"Title:   {doc.Info.Title}\");\nConsole.WriteLine($\"Author:  {doc.Info.Author}\");\nConsole.WriteLine($\"Subject: {doc.Info.Subject}\");\n\n// WRONG:\n// string lang = doc.Language;           // CS1061 — Language setter, not a getter\n// pdfInfo.Header.Split(';')...          // PdfFileInfo.Header is not for /Lang",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "__comment_section_3__": "=== TASK-SPECIFIC RULES — added as we test prompts ===",
+    "Enable accessibility in PDF by creating a tagged PDF using Aspose.PDF for .NET (input PDF).": {
+      "error": "Wrong cast: (RootElement)taggedContent.RootElement throws InvalidCastException. Wrong method: Children.Add() does not exist. Wrong namespace: Aspose.Pdf.Structure instead of Aspose.Pdf.LogicalStructure.",
+      "fix": "Use Aspose.Pdf.LogicalStructure namespace. Assign root as 'StructureElement root = taggedContent.RootElement' with NO explicit cast. Use AppendChild() to attach elements. Use SetText() for text. No PreSave() needed.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Tagged;\nusing Aspose.Pdf.LogicalStructure;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPath  = \"input.pdf\";\n        const string outputPath = \"tagged_output.pdf\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPath))\n            {\n                ITaggedContent taggedContent = doc.TaggedContent;\n                taggedContent.SetLanguage(\"en-US\");\n                taggedContent.SetTitle(Path.GetFileNameWithoutExtension(inputPath));\n\n                // StructureElement — NO explicit cast, direct assignment\n                StructureElement root = taggedContent.RootElement;\n\n                ParagraphElement para = taggedContent.CreateParagraphElement();\n                para.SetText(\"This PDF has been made accessible.\");  // use SetText()\n                root.AppendChild(para);  // AppendChild with one argument\n\n                doc.Save(outputPath);  // no PreSave() needed\n            }\n            Console.WriteLine($\"Tagged PDF saved to '{outputPath}'.\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "Aspose.Pdf.LogicalStructure is the correct namespace. StructureElement root = taggedContent.RootElement (no cast). AppendChild() not Children.Add(). SetText() for text. No PreSave().",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Enable accessibility in PDF by setting alternate text for images (input PDF).": {
+      "error": "XImage.TrySetAlternativeText() was incorrectly said to not exist — it DOES exist. XImageCollection is iterated as dictionary (kvp.Value) which is WRONG. FigureElement approach fails on untagged PDFs.",
+      "fix": "Use XImage.TrySetAlternativeText(altText, page) to set alt text directly on existing image resources. Iterate page.Resources.Images with 'foreach (XImage img in ...)' — NOT as dictionary.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Tagged;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPath  = \"input.pdf\";\n        const string outputPath = \"accessible_images.pdf\";\n        const string altText    = \"Accessible image description\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPath))\n            {\n                ITaggedContent taggedContent = doc.TaggedContent;\n                taggedContent.SetLanguage(\"en-US\");\n\n                // TrySetAlternativeText IS valid — directly sets alt text on existing images\n                foreach (Page page in doc.Pages)\n                {\n                    foreach (XImage img in page.Resources.Images)  // NOT as dictionary\n                    {\n                        img.TrySetAlternativeText(altText, page);\n                    }\n                }\n\n                doc.Save(outputPath);\n            }\n            Console.WriteLine($\"Saved → '{outputPath}'\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "TrySetAlternativeText(string altText, Page page) IS a valid XImage method. Iterate page.Resources.Images with direct foreach (XImage img in ...) — NOT as a KeyValuePair dictionary.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Access the StructureTreeRoot to iterate over structure elements in a PDF (input PDF).": {
+      "error": "Wrong explicit cast (RootElement from Aspose.Pdf.Structure) from taggedContent.RootElement causes InvalidCastException. element.Elements does not exist — correct property is element.ChildElements.",
+      "fix": "Use Aspose.Pdf.LogicalStructure namespace. Assign root as 'StructureElement root = doc.TaggedContent.RootElement' with NO cast. Iterate via element.ChildElements. NOTE: taggedContent.StructTreeRootElement DOES exist (returns Aspose.Pdf.LogicalStructure.StructTreeRootElement), and FindElements<T>(bool) DOES exist on Element — both confirmed by API reflection.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Tagged;\nusing Aspose.Pdf.LogicalStructure;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPath = \"input.pdf\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        using (Document doc = new Document(inputPath))\n        {\n            if (!doc.IsTagged) { Console.WriteLine(\"Not a tagged PDF.\"); return; }\n\n            // StructureElement — direct assignment, NO cast\n            StructureElement root = doc.TaggedContent.RootElement;\n            Console.WriteLine(\"Structure tree:\");\n            Walk(root, 0);\n\n            // ALSO VALID: use FindElements<T> for type-specific search:\n            var figures = root.FindElements<FigureElement>(true);\n            Console.WriteLine($\"Found {figures.Count} figure elements.\");\n        }\n    }\n\n    static void Walk(StructureElement el, int depth)\n    {\n        string indent = new string(' ', depth * 2);\n        Console.WriteLine($\"{indent}{el.GetType().Name}: {el.ActualText}\");\n        foreach (Element child in el.ChildElements)  // ChildElements — NOT Elements\n            if (child is StructureElement se) Walk(se, depth + 1);\n    }\n}",
+      "note": "doc.TaggedContent.RootElement returns StructureElement (no cast needed). taggedContent.StructTreeRootElement DOES exist. FindElements<T>(bool) DOES exist on Element base class. Use element.ChildElements, not element.Elements.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Enhance PDF accessibility by creating a Table element under StructureTreeRoot (input PDF).": {
+      "error": "AppendChild(element, false) may reject valid children. Wrong explicit cast (RootElement from Aspose.Pdf.Structure) causes InvalidCastException. Children.Add() doesn't exist. NOTE: taggedContent.StructTreeRootElement DOES exist (returns Aspose.Pdf.LogicalStructure.StructTreeRootElement) — the error was confusing doc.StructTreeRootElement (which doesn't exist) with taggedContent.StructTreeRootElement (which does).",
+      "fix": "Use Aspose.Pdf.LogicalStructure. Get root via 'StructureElement root = taggedContent.RootElement' (no cast). Use AppendChild(element) with one arg for all attachments. Create table sub-elements via taggedContent.CreateTableXxxElement() factory OR via table.CreateTHead()/table.CreateTBody() and row.CreateTH()/row.CreateTD() methods. Use SetText() for cell text. Use AlternativeText for table description.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Tagged;\nusing Aspose.Pdf.LogicalStructure;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPath  = \"input.pdf\";\n        const string outputPath = \"accessible_table.pdf\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPath))\n            {\n                ITaggedContent taggedContent = doc.TaggedContent;\n                taggedContent.SetLanguage(\"en-US\");\n                taggedContent.SetTitle(\"Accessible Table PDF\");\n\n                // StructureElement — no cast, direct assignment\n                StructureElement root = taggedContent.RootElement;\n\n                TableElement table = taggedContent.CreateTableElement();\n                table.AlternativeText = \"Sample data table\";  // AlternativeText, NOT .Alt\n                root.AppendChild(table);  // AppendChild, NOT Children.Add\n\n                TableTHeadElement thead = taggedContent.CreateTableTHeadElement();\n                table.AppendChild(thead);\n                TableTRElement headerRow = taggedContent.CreateTableTRElement();\n                thead.AppendChild(headerRow);  // NOT thead.CreateTR()\n                TableTHElement th1 = taggedContent.CreateTableTHElement();\n                th1.SetText(\"Name\");            // use SetText()\n                headerRow.AppendChild(th1);\n                TableTHElement th2 = taggedContent.CreateTableTHElement();\n                th2.SetText(\"Value\");\n                headerRow.AppendChild(th2);\n\n                TableTBodyElement tbody = taggedContent.CreateTableTBodyElement();\n                table.AppendChild(tbody);\n                TableTRElement dataRow = taggedContent.CreateTableTRElement();\n                tbody.AppendChild(dataRow);\n                TableTDElement td1 = taggedContent.CreateTableTDElement();\n                td1.SetText(\"Item A\");\n                dataRow.AppendChild(td1);\n                TableTDElement td2 = taggedContent.CreateTableTDElement();\n                td2.SetText(\"42\");\n                dataRow.AppendChild(td2);\n\n                doc.Save(outputPath);  // no PreSave needed\n            }\n            Console.WriteLine($\"Accessible table PDF saved to '{outputPath}'.\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "All table elements via taggedContent.CreateTableXxxElement() factory. AppendChild(element) for attachment. StructureElement root = taggedContent.RootElement (no cast). SetText() for cell text. AlternativeText for descriptions.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Extract tagged content from a PDF for accessibility purposes (input PDF).": {
+      "error": "element.Elements does not exist. Wrong namespace (Aspose.Pdf.Structure). Wrong cast. ITextFragmentProvider not valid on structure elements.",
+      "fix": "Use Aspose.Pdf.LogicalStructure namespace. Assign root as 'StructureElement root = taggedContent.RootElement' (no cast). Use element.ChildElements for iteration. Use element.ActualText for text content. Use element.AlternativeText for alt text.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Tagged;\nusing Aspose.Pdf.LogicalStructure;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPath = \"input.pdf\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        using (Document doc = new Document(inputPath))\n        {\n            if (!doc.IsTagged) { Console.WriteLine(\"Not a tagged PDF.\"); return; }\n\n            ITaggedContent taggedContent = doc.TaggedContent;\n            Console.WriteLine($\"Title:    {taggedContent.Title}\");\n            Console.WriteLine($\"Language: {taggedContent.Language}\");\n            Console.WriteLine();\n\n            TraverseStructure(taggedContent.RootElement, 0);\n        }\n    }\n\n    static void TraverseStructure(StructureElement element, int level)\n    {\n        string indent = new string(' ', level * 2);\n        string text   = element.ActualText ?? string.Empty;\n        string alt    = element.AlternativeText ?? string.Empty;  // AlternativeText, NOT .Alt\n        Console.WriteLine($\"{indent}[{element.GetType().Name}] text='{text}' alt='{alt}'\");\n\n        foreach (Element child in element.ChildElements)  // ChildElements — NOT element.Elements\n            if (child is StructureElement se)\n                TraverseStructure(se, level + 1);\n    }\n}",
+      "note": "element.ChildElements is the correct property. element.ActualText holds text content. element.AlternativeText holds alt text (NOT .Alt). No GetText() method. Use Aspose.Pdf.LogicalStructure, no cast for root.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Extract language settings from a PDF document (input PDF).": {
+      "error": "CS1061: doc.Language property (setter-style) doesn't work for reading. PdfFileInfo.Header is not for reading /Lang.",
+      "fix": "Read document language from a tagged PDF via doc.TaggedContent.Language. Read standard metadata (author, title) via doc.Info. Do not use PdfFileInfo.Header to parse /Lang.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Tagged;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPath = \"input.pdf\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        using (Document doc = new Document(inputPath))\n        {\n            Console.WriteLine($\"Title:    {doc.Info.Title}\");\n            Console.WriteLine($\"Author:   {doc.Info.Author}\");\n            Console.WriteLine($\"Subject:  {doc.Info.Subject}\");\n            Console.WriteLine($\"Keywords: {doc.Info.Keywords}\");\n\n            if (doc.IsTagged)\n            {\n                ITaggedContent tagged = doc.TaggedContent;\n                Console.WriteLine($\"Language: {tagged.Language}\");\n                Console.WriteLine($\"Tagged Title: {tagged.Title}\");\n            }\n            else\n            {\n                Console.WriteLine(\"Language: (not a tagged PDF)\");\n            }\n        }\n    }\n}",
+      "note": "doc.TaggedContent.Language reads the /Lang entry. Standard document info is in doc.Info. PdfFileInfo.Header is NOT for reading /Lang.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Basic operation: Encrypt and Decrypt PDF File using PDF format": {
+      "error": "CS1503/CS0246: CryptographicStandard.Pkcs7 not found. OR CS0234: Aspose.Pdf.Security namespace does not exist.",
+      "fix": "Remove 'using Aspose.Pdf.Security;'. Use CryptoAlgorithm.AESx256. Use Permissions enum from Aspose.Pdf. Call Decrypt() with no parameters. Wrap Documents in using blocks.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPath     = \"input.pdf\";\n        const string encryptedPath = \"encrypted.pdf\";\n        const string decryptedPath = \"decrypted.pdf\";\n        const string userPassword  = \"user123\";\n        const string ownerPassword = \"owner123\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPath))\n            {\n                Permissions perms = Permissions.PrintDocument | Permissions.ExtractContent;\n                doc.Encrypt(userPassword, ownerPassword, perms, CryptoAlgorithm.AESx256);\n                doc.Save(encryptedPath);\n            }\n\n            using (Document encDoc = new Document(encryptedPath, userPassword))\n            {\n                encDoc.Decrypt();\n                encDoc.Save(decryptedPath);\n            }\n\n            Console.WriteLine(\"Encrypt/decrypt completed.\");\n        }\n        catch (InvalidPasswordException ex) { Console.Error.WriteLine($\"Wrong password: {ex.Message}\"); }\n        catch (Exception ex)               { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "CryptoAlgorithm is in Aspose.Pdf. Decrypt() takes no arguments.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": [
+        "For older readers use CryptoAlgorithm.RC4x128"
+      ]
+    },
+    "Basic operation: Encrypt and Decrypt PDF File using HTML format": {
+      "error": "CS1503: CryptographicStandard.Pkcs7. OR CS0234: Aspose.Pdf.Security / Aspose.Pdf.Saving namespace. OR TypeInitializationException on macOS during HTML save.",
+      "fix": "Remove 'using Aspose.Pdf.Security;'. Use CryptoAlgorithm.AESx256. Decrypt() takes no params. Pass HtmlSaveOptions explicitly. Wrap HTML save in try-catch.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPath      = \"input.pdf\";\n        const string encryptedPath  = \"encrypted.pdf\";\n        const string decryptedPath  = \"decrypted.pdf\";\n        const string htmlOutputPath = \"output.html\";\n        const string userPassword   = \"user123\";\n        const string ownerPassword  = \"owner123\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPath))\n            {\n                Permissions perms = Permissions.PrintDocument | Permissions.ExtractContent;\n                doc.Encrypt(userPassword, ownerPassword, perms, CryptoAlgorithm.AESx256);\n                doc.Save(encryptedPath);\n            }\n\n            using (Document encDoc = new Document(encryptedPath, userPassword))\n            {\n                encDoc.Decrypt();\n                encDoc.Save(decryptedPath);\n            }\n\n            using (Document decDoc = new Document(decryptedPath))\n            {\n                HtmlSaveOptions htmlOptions = new HtmlSaveOptions\n                {\n                    PartsEmbeddingMode     = HtmlSaveOptions.PartsEmbeddingModes.EmbedAllIntoHtml,\n                    RasterImagesSavingMode = HtmlSaveOptions.RasterImagesSavingModes.AsPngImagesEmbeddedIntoSvg\n                };\n                try   { decDoc.Save(htmlOutputPath, htmlOptions); Console.WriteLine($\"HTML → {htmlOutputPath}\"); }\n                catch (TypeInitializationException) { Console.WriteLine(\"HTML requires Windows (GDI+). Skipped.\"); }\n            }\n        }\n        catch (InvalidPasswordException ex) { Console.Error.WriteLine($\"Wrong password: {ex.Message}\"); }\n        catch (Exception ex)               { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "HtmlSaveOptions must be passed explicitly — file extension alone does not trigger HTML output.",
+      "platform_limitation": true,
+      "works_on": [
+        "Windows"
+      ],
+      "fails_on": [
+        "macOS",
+        "Linux"
+      ],
+      "workarounds": [
+        "Wrap HTML save in try-catch for TypeInitializationException on non-Windows"
+      ]
+    },
+    "Basic operation: Merge PDF using PDF format": {
+      "error": "Resource leak: source Document not in a using block.",
+      "fix": "Use nested using blocks for both Documents. Call Save() inside the using scope.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string firstPdf  = \"first.pdf\";\n        const string secondPdf = \"second.pdf\";\n        const string outputPdf = \"merged.pdf\";\n\n        if (!File.Exists(firstPdf))  { Console.Error.WriteLine($\"Not found: {firstPdf}\");  return; }\n        if (!File.Exists(secondPdf)) { Console.Error.WriteLine($\"Not found: {secondPdf}\"); return; }\n\n        try\n        {\n            using (Document target = new Document(firstPdf))\n            using (Document source = new Document(secondPdf))\n            {\n                target.Pages.Add(source.Pages);\n                target.Save(outputPdf);\n            }\n            Console.WriteLine($\"Merged → '{outputPdf}'\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "Save() is called inside the using scope so neither document is prematurely disposed.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Basic operation: Merge PDF using HTML format": {
+      "error": "Logic error: Document.Save(path) without SaveOptions always writes PDF even when path ends in .html.",
+      "fix": "Pass HtmlSaveOptions explicitly to Document.Save(). Dispose all source Documents with using blocks. Wrap HTML save in try-catch.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        string[] pdfFiles = { \"input1.pdf\", \"input2.pdf\", \"input3.pdf\" };\n        string outputHtml = \"merged.html\";\n\n        if (!File.Exists(pdfFiles[0])) { Console.Error.WriteLine($\"Not found: {pdfFiles[0]}\"); return; }\n\n        try\n        {\n            using (Document mergedDoc = new Document(pdfFiles[0]))\n            {\n                for (int i = 1; i < pdfFiles.Length; i++)\n                {\n                    if (!File.Exists(pdfFiles[i])) { Console.Error.WriteLine($\"Skipping: {pdfFiles[i]}\"); continue; }\n                    using (Document src = new Document(pdfFiles[i]))\n                    {\n                        mergedDoc.Pages.Add(src.Pages);\n                    }\n                }\n\n                HtmlSaveOptions htmlOptions = new HtmlSaveOptions\n                {\n                    RasterImagesSavingMode = HtmlSaveOptions.RasterImagesSavingModes.AsPngImagesEmbeddedIntoSvg\n                };\n                try   { mergedDoc.Save(outputHtml, htmlOptions); Console.WriteLine($\"HTML → '{outputHtml}'\"); }\n                catch (TypeInitializationException) { Console.WriteLine(\"HTML requires Windows (GDI+). Skipped.\"); }\n            }\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "HtmlSaveOptions is mandatory — omitting it produces a PDF regardless of the .html extension.",
+      "platform_limitation": true,
+      "works_on": [
+        "Windows"
+      ],
+      "fails_on": [
+        "macOS",
+        "Linux"
+      ],
+      "workarounds": [
+        "Always pass HtmlSaveOptions explicitly"
+      ]
+    },
+    "Basic operation: Split PDF using PDF format": {
+      "error": "No compilation error expected. Pitfalls: 0-based page index, Documents not disposed.",
+      "fix": "Pages are 1-based. Use nested using blocks for source and per-page Documents.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPdf  = \"input.pdf\";\n        const string outputDir = \"SplitPages\";\n\n        if (!File.Exists(inputPdf)) { Console.Error.WriteLine($\"Not found: {inputPdf}\"); return; }\n\n        Directory.CreateDirectory(outputDir);\n\n        try\n        {\n            using (Document src = new Document(inputPdf))\n            {\n                for (int i = 1; i <= src.Pages.Count; i++)\n                {\n                    using (Document single = new Document())\n                    {\n                        single.Pages.Add(src.Pages[i]);\n                        string outPath = Path.Combine(outputDir, $\"Page_{i}.pdf\");\n                        single.Save(outPath);\n                        Console.WriteLine($\"Saved page {i} → {outPath}\");\n                    }\n                }\n            }\n            Console.WriteLine(\"Splitting complete.\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "Pages[1] is the first page. Pages[0] throws IndexOutOfRangeException.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Basic operation: Split PDF using HTML format": {
+      "error": "Resource leak: Document not in using block. OR TypeInitializationException on macOS/Linux.",
+      "fix": "Wrap Document in using. Pass HtmlSaveOptions with SplitIntoPages=true explicitly. Wrap HTML save in try-catch.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string pdfPath    = \"input.pdf\";\n        const string htmlOutput = \"output.html\";\n\n        if (!File.Exists(pdfPath)) { Console.Error.WriteLine($\"Not found: {pdfPath}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(pdfPath))\n            {\n                HtmlSaveOptions opts = new HtmlSaveOptions\n                {\n                    SplitIntoPages        = true,\n                    RasterImagesSavingMode = HtmlSaveOptions.RasterImagesSavingModes.AsPngImagesEmbeddedIntoSvg\n                };\n                try   { doc.Save(htmlOutput, opts); Console.WriteLine(\"Split to HTML pages.\"); }\n                catch (TypeInitializationException) { Console.WriteLine(\"HTML requires Windows (GDI+). Skipped.\"); }\n            }\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "SplitIntoPages=true writes one HTML file per page. HtmlSaveOptions must be passed explicitly.",
+      "platform_limitation": true,
+      "works_on": [
+        "Windows"
+      ],
+      "fails_on": [
+        "macOS",
+        "Linux"
+      ],
+      "workarounds": [
+        "Wrap HTML save in try-catch for TypeInitializationException"
+      ]
+    },
+    "Basic operation: Convert PDF document from PDF to PDF format": {
+      "error": "No error expected. Intent may be: (a) simple copy, (b) PDF/A conversion, (c) optimize, (d) version change.",
+      "fix": "For a basic copy use Document.Save(). For PDF/A use Document.Convert(). Always wrap Document in using.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        string inputPath  = \"input.pdf\";\n        string outputPath = \"output.pdf\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPath))\n            {\n                doc.Save(outputPath);\n                Console.WriteLine($\"Saved → '{outputPath}'\");\n            }\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "Plain Save() copies the PDF. For PDF/A use doc.Convert(logFile, PdfFormat.PDF_A_1B, ConvertErrorAction.Delete). For optimization use doc.OptimizeResources(new OptimizationOptions()).",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Basic operation: Basic operations with PDF documents using PDF format": {
+      "error": "CS0246: SideBySidePdfComparer, SideBySideComparisonOptions not found. OR CS1061: Page does not contain a definition for 'ExtractText'.",
+      "fix": "Do not use Aspose.Pdf.Comparison for basic operations examples. Use TextAbsorber for text extraction.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Text;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPdf  = \"input.pdf\";\n        const string outputPdf = \"output.pdf\";\n\n        if (!File.Exists(inputPdf)) { Console.Error.WriteLine($\"Not found: {inputPdf}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPdf))\n            {\n                Console.WriteLine($\"Pages: {doc.Pages.Count}\");\n                Console.WriteLine($\"Author: {doc.Info.Author}\");\n                Console.WriteLine($\"Title:  {doc.Info.Title}\");\n\n                TextAbsorber absorber = new TextAbsorber();\n                doc.Pages.Accept(absorber);\n                Console.WriteLine($\"Text characters: {absorber.Text.Length}\");\n\n                doc.Save(outputPdf);\n            }\n            Console.WriteLine(\"Basic operations completed.\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "Page.ExtractText() does not exist — always use TextAbsorber. Aspose.Pdf.Comparison is an advanced versioned feature — avoid in basic examples.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Basic operation: Basic operations with PDF documents using HTML format": {
+      "error": "TypeInitializationException on macOS/Linux during HTML save.",
+      "fix": "Load PDF, perform basic operations, save as HTML using explicit HtmlSaveOptions. Wrap HTML save in try-catch for GDI+ unavailability.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Text;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPdf   = \"input.pdf\";\n        const string outputHtml = \"output.html\";\n\n        if (!File.Exists(inputPdf)) { Console.Error.WriteLine($\"Not found: {inputPdf}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPdf))\n            {\n                Console.WriteLine($\"Pages: {doc.Pages.Count}\");\n\n                TextAbsorber absorber = new TextAbsorber();\n                doc.Pages.Accept(absorber);\n                Console.WriteLine($\"Text characters: {absorber.Text.Length}\");\n\n                HtmlSaveOptions htmlOpts = new HtmlSaveOptions\n                {\n                    PartsEmbeddingMode     = HtmlSaveOptions.PartsEmbeddingModes.EmbedAllIntoHtml,\n                    RasterImagesSavingMode = HtmlSaveOptions.RasterImagesSavingModes.AsPngImagesEmbeddedIntoSvg\n                };\n                try   { doc.Save(outputHtml, htmlOpts); Console.WriteLine($\"HTML → {outputHtml}\"); }\n                catch (TypeInitializationException) { Console.WriteLine(\"HTML requires Windows (GDI+). Skipped.\"); }\n            }\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "Use TextAbsorber for text extraction. HtmlSaveOptions must be passed explicitly. HTML save is Windows-only.",
+      "platform_limitation": true,
+      "works_on": [
+        "Windows"
+      ],
+      "fails_on": [
+        "macOS",
+        "Linux"
+      ],
+      "workarounds": []
+    },
+    "Basic operation: Split PDF using CGM format": {
+      "error": "CS0246: CgmSaveOptions does not exist. CGM is an input-only format in Aspose.Pdf.",
+      "fix": "CGM cannot be used as an output format. Split the PDF into individual PDF pages instead.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPdf  = \"input.pdf\";\n        const string outputDir = \"SplitPages\";\n\n        if (!File.Exists(inputPdf)) { Console.Error.WriteLine($\"Not found: {inputPdf}\"); return; }\n\n        Directory.CreateDirectory(outputDir);\n\n        try\n        {\n            using (Document src = new Document(inputPdf))\n            {\n                for (int i = 1; i <= src.Pages.Count; i++)\n                {\n                    using (Document single = new Document())\n                    {\n                        single.Pages.Add(src.Pages[i]);\n                        string outPath = Path.Combine(outputDir, $\"Page_{i}.pdf\");\n                        single.Save(outPath);\n                        Console.WriteLine($\"Saved page {i} → {outPath}\");\n                    }\n                }\n            }\n            Console.WriteLine(\"Splitting complete.\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "CgmSaveOptions does not exist — CGM is input-only in Aspose.Pdf.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": [
+        "Output as PDF (default), SVG, HTML, or XML instead of CGM"
+      ]
+    },
+    "Basic operation: Open PDF document programmatically using CGM format": {
+      "error": "CS0246: InvalidCgmFileFormatException does not exist.",
+      "fix": "Remove the catch for InvalidCgmFileFormatException. Use PdfException or generic Exception instead.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string cgmPath = \"input.cgm\";\n        const string pdfPath = \"output.pdf\";\n\n        if (!File.Exists(cgmPath)) { Console.Error.WriteLine($\"Not found: {cgmPath}\"); return; }\n\n        try\n        {\n            CgmLoadOptions loadOptions = new CgmLoadOptions();\n            using (Document doc = new Document(cgmPath, loadOptions))\n            {\n                doc.Save(pdfPath);\n            }\n            Console.WriteLine($\"CGM → PDF: '{pdfPath}'\");\n        }\n        catch (PdfException ex) { Console.Error.WriteLine($\"PDF error: {ex.Message}\"); }\n        catch (Exception ex)    { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "InvalidCgmFileFormatException does not exist in Aspose.Pdf. Use PdfException or Exception.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Basic operation: Open PDF document programmatically using EPUB format": {
+      "error": "CS0246: RecognitionMode not found (must be EpubSaveOptions.RecognitionMode). CS1061: EpubSaveOptions does not contain 'Title'.",
+      "fix": "ContentRecognitionMode must use the nested enum EpubSaveOptions.RecognitionMode.Flow. Remove the Title property.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPdf   = \"input.pdf\";\n        const string outputEpub = \"output.epub\";\n\n        if (!File.Exists(inputPdf)) { Console.Error.WriteLine($\"Not found: {inputPdf}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPdf))\n            {\n                EpubSaveOptions epubOptions = new EpubSaveOptions\n                {\n                    ContentRecognitionMode = EpubSaveOptions.RecognitionMode.Flow\n                };\n                doc.Save(outputEpub, epubOptions);\n            }\n            Console.WriteLine($\"PDF → EPUB: '{outputEpub}'\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "EpubSaveOptions.RecognitionMode is a nested enum. Values: Flow, PdfFlow, Fixed.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Basic operation: Save PDF/A or PDF/X format from PDF to PDF format": {
+      "error": "CS1061: PdfFormatConversionOptions does not contain 'PuaProcessingStrategy' (wrong property name).",
+      "fix": "Use the simpler doc.Convert(logFile, PdfFormat, ConvertErrorAction) overload.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPath  = \"input.pdf\";\n        const string outputPath = \"output_pdfa.pdf\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPath))\n            {\n                doc.Convert(\"conversion_log.xml\", PdfFormat.PDF_A_1B, ConvertErrorAction.Delete);\n                doc.Save(outputPath);\n            }\n            Console.WriteLine($\"PDF/A saved → '{outputPath}'\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "Prefer doc.Convert(logFile, PdfFormat.PDF_A_1B, ConvertErrorAction.Delete). PdfFormat values: PDF_A_1A, PDF_A_1B, PDF_A_2A, PDF_A_2B, PDF_A_3A, PDF_A_3B, PDF_X_1A, PDF_X_3.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Basic operation: Live Example using PDF format": {
+      "error": "CS0246: FormPresentationMode not found — wrong namespace.",
+      "fix": "FormPresentationMode is in Aspose.Pdf namespace, NOT Aspose.Pdf.Devices.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPath  = \"input.pdf\";\n        const string outputPath = \"output.pdf\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPath))\n            {\n                doc.FormPresentationMode = FormPresentationMode.Editor;\n                doc.Save(outputPath);\n            }\n            Console.WriteLine($\"Saved → '{outputPath}'\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "FormPresentationMode is in Aspose.Pdf, not Aspose.Pdf.Devices. Values: Production (default), Editor.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Basic operation: Open existing PDF document from stream using CGM format": {
+      "error": "CS0246: InvalidCgmFileFormatException does not exist in Aspose.Pdf.",
+      "fix": "Remove catch block for InvalidCgmFileFormatException. Open the CGM file via a FileStream + CgmLoadOptions.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string cgmPath    = \"input.cgm\";\n        const string outputPath = \"output.pdf\";\n\n        if (!File.Exists(cgmPath)) { Console.Error.WriteLine($\"Not found: {cgmPath}\"); return; }\n\n        try\n        {\n            CgmLoadOptions loadOptions = new CgmLoadOptions();\n            using (FileStream cgmStream = File.OpenRead(cgmPath))\n            using (Document doc = new Document(cgmStream, loadOptions))\n            {\n                doc.Save(outputPath);\n            }\n            Console.WriteLine($\"CGM → PDF: '{outputPath}'\");\n        }\n        catch (PdfException ex) { Console.Error.WriteLine($\"PDF error: {ex.Message}\"); }\n        catch (Exception ex)    { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "InvalidCgmFileFormatException does not exist in Aspose.Pdf. Use PdfException or Exception.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Basic operation: Convert a document to a PDF/X-3 format document from PDF to XML format": {
+      "error": "Logic error: generated code only exports to XML, skipping the PDF/X-3 conversion step entirely.",
+      "fix": "(1) load PDF, (2) convert to PDF/X-3, (3) save as XML. Both steps are required.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string inputPath  = \"input.pdf\";\n        const string xmlPath    = \"output.xml\";\n        const string logPath    = \"conversion_log.xml\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"Not found: {inputPath}\"); return; }\n\n        try\n        {\n            using (Document doc = new Document(inputPath))\n            {\n                doc.Convert(logPath, PdfFormat.PDF_X_3, ConvertErrorAction.Delete);\n                XmlSaveOptions xmlOptions = new XmlSaveOptions();\n                doc.Save(xmlPath, xmlOptions);\n            }\n            Console.WriteLine($\"PDF → PDF/X-3 → XML: '{xmlPath}'\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "Both steps are required: Convert() for PDF/X-3, then Save(..., XmlSaveOptions) for XML.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "Basic operation: Convert a document to a PDF/X-3 format document from HTML to SVG format": {
+      "error": "Potential runtime error: SVG file loaded without SvgLoadOptions.",
+      "fix": "When loading SVG use new Document(svgPath, new SvgLoadOptions()).",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string htmlPath   = \"input.html\";\n        const string svgPath    = \"intermediate.svg\";\n        const string pdfX3Path  = \"output_pdfx3.pdf\";\n        const string logPath    = \"conversion_log.xml\";\n\n        if (!File.Exists(htmlPath)) { Console.Error.WriteLine($\"Not found: {htmlPath}\"); return; }\n\n        try\n        {\n            using (Document htmlDoc = new Document(htmlPath, new HtmlLoadOptions()))\n            {\n                htmlDoc.Save(svgPath, new SvgSaveOptions());\n            }\n        }\n        catch (TypeInitializationException) { Console.WriteLine(\"HTML→SVG requires Windows (GDI+). Skipped.\"); return; }\n        catch (Exception ex) { Console.Error.WriteLine($\"HTML→SVG error: {ex.Message}\"); return; }\n\n        try\n        {\n            using (Document svgDoc = new Document(svgPath, new SvgLoadOptions()))\n            {\n                svgDoc.Convert(logPath, PdfFormat.PDF_X_3, ConvertErrorAction.Delete);\n                svgDoc.Save(pdfX3Path);\n            }\n            Console.WriteLine($\"PDF/X-3 saved → '{pdfX3Path}'\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"SVG→PDF/X-3 error: {ex.Message}\"); }\n    }\n}",
+      "note": "Always use SvgLoadOptions when loading .svg files into Document.",
+      "platform_limitation": true,
+      "works_on": [
+        "Windows"
+      ],
+      "fails_on": [
+        "macOS",
+        "Linux"
+      ],
+      "workarounds": [
+        "HTML→SVG step requires GDI+ (Windows)."
+      ]
+    },
+    "Basic operation: Convert PDF document from HTML to SVG format": {
+      "error": "CS0234: 'Saving' namespace not found. OR CS0138: 'using Aspose.Pdf.HtmlLoadOptions' treats a type as a namespace.",
+      "fix": "Remove 'using Aspose.Pdf.Saving;' and 'using Aspose.Pdf.HtmlLoadOptions;'. Both SvgSaveOptions and HtmlLoadOptions are in Aspose.Pdf.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        const string htmlPath = \"input.html\";\n        const string svgPath  = \"output.svg\";\n\n        if (!File.Exists(htmlPath)) { Console.Error.WriteLine($\"Not found: {htmlPath}\"); return; }\n\n        try\n        {\n            HtmlLoadOptions loadOptions = new HtmlLoadOptions();\n            using (Document doc = new Document(htmlPath, loadOptions))\n            {\n                SvgSaveOptions svgOptions = new SvgSaveOptions();\n                doc.Save(svgPath, svgOptions);\n            }\n            Console.WriteLine($\"HTML → SVG: '{svgPath}'\");\n        }\n        catch (Exception ex) { Console.Error.WriteLine($\"Error: {ex.Message}\"); }\n    }\n}",
+      "note": "SvgSaveOptions is in Aspose.Pdf — not Aspose.Pdf.Saving. HtmlLoadOptions is a class — never use it as a namespace.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": [
+        "If HTML uses relative paths: loadOptions.BasePath = Path.GetDirectoryName(Path.GetFullPath(htmlPath));"
+      ]
+    },
+    "add-text-annotation-use-textannotation-not-pdfcontenteditor": {
+      "error": "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Rectangle' to 'System.Drawing.Rectangle' | CS0104: 'Rectangle' is an ambiguous reference between 'Aspose.Pdf.Rectangle' and 'System.Drawing.Rectangle'",
+      "fix": "Do NOT use PdfContentEditor.CreateText() to add a text annotation. PdfContentEditor is a Facades API that requires System.Drawing.Rectangle (Windows-only GDI+). Use Aspose.Pdf.Annotations.TextAnnotation directly — it accepts Aspose.Pdf.Rectangle and works cross-platform. Add the annotation to page.Annotations collection.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Annotations;\n\nclass Program\n{\n    static void Main()\n    {\n        string inputPath  = \"input.pdf\";\n        string outputPath = \"output.pdf\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"File not found: {inputPath}\"); return; }\n\n        using (Document doc = new Document(inputPath))\n        {\n            Page page = doc.Pages[1];\n\n            // Fully qualify to avoid CS0104 Rectangle ambiguity\n            Aspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(100, 500, 300, 550);\n\n            TextAnnotation annotation = new TextAnnotation(page, rect);\n            annotation.Title    = \"Note Title\";\n            annotation.Contents = \"This is the annotation text.\";\n            annotation.Open     = true;\n            annotation.Icon     = TextIcon.Note;\n\n            page.Annotations.Add(annotation);\n            doc.Save(outputPath);\n        }\n\n        Console.WriteLine($\"Text annotation added and saved to '{outputPath}'.\");\n    }\n}",
+      "note": "PdfContentEditor.CreateText() expects System.Drawing.Rectangle which clashes with Aspose.Pdf.Rectangle causing CS1503/CS0104. The preferred approach is to use TextAnnotation from Aspose.Pdf.Annotations — it is cross-platform and uses Aspose.Pdf.Rectangle natively. Always import Aspose.Pdf.Annotations and use TextIcon for the Icon property.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "add-stamp-to-all-pages-call-per-page-not-on-collection": {
+      "error": "CS1061: 'PageCollection' does not contain a definition for 'AddStamp' and no accessible extension method 'AddStamp' accepting a first argument of type 'PageCollection' could be found",
+      "fix": "AddStamp() is a method on each individual Page object, NOT on PageCollection. Remove the call to pdfDocument.Pages.AddStamp() and instead iterate over all pages with foreach, calling page.AddStamp(stamp) on each Page.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\n\nclass Program\n{\n    static void Main()\n    {\n        string inputPath  = \"input.pdf\";\n        string stampPath  = \"stamp.png\";\n        string outputPath = \"output.pdf\";\n\n        if (!File.Exists(inputPath)) { Console.Error.WriteLine($\"File not found: {inputPath}\"); return; }\n        if (!File.Exists(stampPath)) { Console.Error.WriteLine($\"Stamp image not found: {stampPath}\"); return; }\n\n        using (Document pdfDocument = new Document(inputPath))\n        {\n            ImageStamp imgStamp = new ImageStamp(stampPath);\n            imgStamp.Background          = false;\n            imgStamp.Opacity             = 0.5;\n            imgStamp.HorizontalAlignment = HorizontalAlignment.Center;\n            imgStamp.VerticalAlignment   = VerticalAlignment.Center;\n\n            // CORRECT: call AddStamp on each individual Page\n            foreach (Page page in pdfDocument.Pages)\n            {\n                page.AddStamp(imgStamp);\n            }\n\n            pdfDocument.Save(outputPath);\n        }\n\n        Console.WriteLine($\"Image stamp applied to all pages, saved to '{outputPath}'.\");\n    }\n}",
+      "note": "PageCollection (pdfDocument.Pages) does not expose AddStamp(). Only the Page class has this method. The same applies to TextStamp and other stamp types — always iterate pages and stamp each one individually.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "document-istagged-and-itaggedcontent-language-title-read": {
+      "error": "CS1061: 'Document' does not contain a definition for 'IsTagged' | CS1061: 'ITaggedContent' does not contain a definition for 'Language' | CS1061: 'ITaggedContent' does not contain a definition for 'Title'",
+      "fix": "Document has no IsTagged property. ITaggedContent has no Language or Title getter properties — they are write-only via SetLanguage()/SetTitle(). To check for tagged content use doc.TaggedContent != null. To read language use doc.Info[\"Lang\"]. To read title use doc.Info.Title.",
+      "code": "using System;\nusing System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Tagged;\n\nclass Program\n{\n    static void Main()\n    {\n        if (!File.Exists(\"input.pdf\")) { Console.Error.WriteLine(\"input.pdf not found\"); return; }\n\n        using (Document doc = new Document(\"input.pdf\"))\n        {\n            // CORRECT: check for tagged content\n            ITaggedContent tagged = doc.TaggedContent;\n            bool hasTaggedContent = tagged != null && tagged.RootElement != null;\n\n            // CORRECT: read language and title from DocumentInfo\n            string language = doc.Info[\"Lang\"] ?? string.Empty;\n            string title    = doc.Info.Title ?? string.Empty;\n            Console.WriteLine($\"Language: {language}\");\n            Console.WriteLine($\"Title: {title}\");\n\n            // CORRECT: write language/title via ITaggedContent setters\n            tagged.SetLanguage(\"en-US\");\n            tagged.SetTitle(\"My Document\");\n\n            doc.Save(\"output.pdf\");\n        }\n    }\n}",
+      "note": "ITaggedContent exposes only write setters: SetLanguage() and SetTitle(). There are no corresponding getter properties. Document.IsTagged does not exist — use doc.TaggedContent != null to detect whether the document has a tagged structure.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "structureelement-lang-use-language-property": {
+      "error": "CS1061: 'ParagraphElement' does not contain a definition for 'Lang' | CS1061: 'StructureElement' does not contain a definition for 'Lang'",
+      "fix": "The language property on all structure elements (ParagraphElement, FigureElement, SpanElement, etc.) is named Language, not Lang.",
+      "code": "ParagraphElement para = tagged.CreateParagraphElement();\npara.Language = \"en-US\";   // CORRECT\n// para.Lang = \"en-US\";    // WRONG — CS1061",
+      "note": "All Aspose.Pdf.LogicalStructure element types expose a 'Language' string property, not 'Lang'. This matches the PDF specification attribute name 'Lang' in PDF but the C# property is called Language.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "textfragment-position-use-aspose-pdf-text-position-not-point": {
+      "error": "CS0029: Cannot implicitly convert type 'Aspose.Pdf.Point' to 'Aspose.Pdf.Text.Position'",
+      "fix": "TextFragment.Position expects Aspose.Pdf.Text.Position, not Aspose.Pdf.Point. Use new Position(x, y) from the Aspose.Pdf.Text namespace.",
+      "code": "using Aspose.Pdf.Text;\n\nTextFragment text = new TextFragment(\"Hello\");\ntext.Position = new Position(100, 700);   // CORRECT\n// text.Position = new Aspose.Pdf.Point(100, 700);  // WRONG — CS0029",
+      "note": "Aspose.Pdf.Point and Aspose.Pdf.Text.Position are different types. The TextFragment.Position property requires Aspose.Pdf.Text.Position. Always add 'using Aspose.Pdf.Text;' when working with TextFragment, TextState, TextAbsorber, or Font.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "aspose-pdf-text-namespace-required-for-textabsorber-textfragment": {
+      "error": "CS0246: The type or namespace name 'TextAbsorber' could not be found | CS0246: The type or namespace name 'TextFragment' could not be found | CS0246: The type or namespace name 'Position' could not be found",
+      "fix": "TextAbsorber, TextFragment, TextState, Position, Font, and FontRepository all live in the Aspose.Pdf.Text namespace. Add 'using Aspose.Pdf.Text;' to the file.",
+      "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Text;  // required for TextAbsorber, TextFragment, Position, Font\n\n// Extract all text from a PDF:\nTextAbsorber absorber = new TextAbsorber();\ndoc.Pages.Accept(absorber);\nstring text = absorber.Text;\n\n// Add text to a page:\nTextFragment tf = new TextFragment(text);\npage.Paragraphs.Add(tf);",
+      "note": "A common mistake is importing only 'using Aspose.Pdf;' and then getting CS0246 for text-related types. TextAbsorber, TextFragment, TextState, Position, Font, and FontRepository are all in Aspose.Pdf.Text, not Aspose.Pdf.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "encrypt-use-cryptoalgorithm-not-standard-named-param": {
+      "error": "CS1739: The best overload for 'Encrypt' does not have a parameter named 'standard'",
+      "fix": "Document.Encrypt() takes positional arguments. The 4th parameter is CryptoAlgorithm (e.g. CryptoAlgorithm.AESx256), not a named 'standard' parameter. Do not use CryptographicStandard — it does not exist. Do not add 'using Aspose.Pdf.Security;' — that namespace does not exist.",
+      "code": "using Aspose.Pdf;\n\n// CORRECT — positional args, CryptoAlgorithm as 4th param:\ndoc.Encrypt(\"user123\", \"owner123\", Permissions.PrintDocument, CryptoAlgorithm.AESx256);\ndoc.Save(\"encrypted.pdf\");\n\n// Decrypt: open with password, call Decrypt() with NO arguments:\nusing (Document enc = new Document(\"encrypted.pdf\", \"user123\"))\n{\n    enc.Decrypt();\n    enc.Save(\"decrypted.pdf\");\n}\n\n// WRONG:\n// doc.Encrypt(userPassword: \"u\", ownerPassword: \"o\", permissions: perms, standard: CryptographicStandard.Pkcs7);",
+      "note": "The Document.Encrypt overload is: Encrypt(string userPassword, string ownerPassword, Permissions permissions, CryptoAlgorithm cryptoAlgorithm). There is no 'standard' named parameter. CryptographicStandard and Aspose.Pdf.Security do not exist.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "structureattributecollection-no-add-use-tableth-element-type": {
+      "error": "CS1061: 'StructureAttributeCollection' does not contain a definition for 'Add'",
+      "fix": "StructureAttributeCollection has no Add() method. For marking a TH cell as a table header, just using TableTHElement is sufficient — the element type (TH) already declares it as a header per the PDF/UA standard. If owner-specific attributes are needed, use CreateAttributes(AttributeOwnerStandard.Table) to obtain a StructureAttributes object.",
+      "code": "// CORRECT: TableTHElement IS the header marker — no extra Attributes.Add() needed\nTableTHElement th1 = tagged.CreateTableTHElement();\nth1.SetText(\"Column A\");\nheaderRow.AppendChild(th1);\n\n// If you must access owner attributes:\n// var attrs = th1.Attributes.CreateAttributes(AttributeOwnerStandard.Table);\n// attrs.Owner is AttributeOwnerStandard.Table\n\n// WRONG:\n// th1.Attributes.Add(\"TableHeader\", \"true\");  // CS1061 — method does not exist",
+      "note": "StructureAttributeCollection exposes only GetAttributes(AttributeOwnerStandard) and CreateAttributes(AttributeOwnerStandard). There is no Add() method. TableTHElement inherently marks the cell as a table header; no additional attribute is required for PDF/UA compliance.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "textelement-type-not-found-use-structureelement": {
+      "error": "CS0246: The type or namespace name 'TextElement' could not be found",
+      "fix": "TextElement does not exist in Aspose.Pdf.LogicalStructure. To iterate over all text-bearing structure elements, use FindElements<StructureElement>(true) with the base StructureElement type. For specific text roles use ParagraphElement, SpanElement, or HeaderElement.",
+      "code": "using Aspose.Pdf.LogicalStructure;\n\n// CORRECT: iterate with StructureElement base type\nvar allElements = root.FindElements<StructureElement>(true);\nforeach (StructureElement el in allElements)\n{\n    if (!string.IsNullOrWhiteSpace(el.ActualText))\n        el.Language = \"en-US\";\n}\n\n// For specific text roles:\nvar paragraphs = root.FindElements<ParagraphElement>(true);\nvar spans      = root.FindElements<SpanElement>(true);\nvar headers    = root.FindElements<HeaderElement>(true);\n\n// WRONG:\n// var textEls = root.FindElements<TextElement>(true);  // CS0246 — type does not exist",
+      "note": "There is no 'TextElement' class in Aspose.Pdf.LogicalStructure. The available text structure element types are ParagraphElement, SpanElement, HeaderElement (H1-H6), LinkElement, NoteElement, and their base class StructureElement.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "pdffileeditor-not-idisposable-and-has-no-bindpdf-save": {
+      "error": "CS1674: 'PdfFileEditor': type used in a using statement must implement 'System.IDisposable' | CS1061: 'PdfFileEditor' does not contain a definition for 'BindPdf' | CS1061: 'PdfFileEditor' does not contain a definition for 'Save'",
+      "fix": "PdfFileEditor does NOT implement IDisposable — never wrap it in a using statement. It also has no BindPdf() or Save() methods. Those belong to Document (core API) or to PdfFileMend/PdfContentEditor (Facades). PdfFileEditor is only for file operations: Concatenate, Split, Extract, Insert. For load/save use Document.",
+      "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\n// CORRECT: load and save with Document\nusing (Document doc = new Document(\"input.pdf\"))\n{\n    // ... modifications ...\n    doc.Save(\"output.pdf\");\n}\n\n// CORRECT: concatenate with PdfFileEditor (no 'using')\nPdfFileEditor editor = new PdfFileEditor();\neditor.Concatenate(\"file1.pdf\", \"file2.pdf\", \"merged.pdf\");\n\n// WRONG:\n// using (PdfFileEditor e = new PdfFileEditor()) { ... }  // CS1674\n// editor.BindPdf(\"input.pdf\");  // CS1061 — method does not exist\n// editor.Save(\"output.pdf\");    // CS1061 — method does not exist",
+      "note": "PdfFileEditor is a Facades helper for bulk file operations (Concatenate, Split, Extract). It is not an IDisposable and has no document-level BindPdf/Save API. If you need to load/modify/save a PDF use Document instead.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "autotaggingsettings-headinglevels-not-int-array": {
+      "error": "CS0029: Cannot implicitly convert type 'int[]' to 'Aspose.Pdf.HeadingLevels'",
+      "fix": "AutoTaggingSettings.Default.HeadingLevels is of type HeadingLevels, not int[]. HeadingLevels constructor takes an optional double threshold (font-size ratio) for auto-detection, not an array of level numbers. Use new HeadingLevels() for defaults.",
+      "code": "using Aspose.Pdf;\n\n// CORRECT:\nAutoTaggingSettings.Default.EnableAutoTagging = true;\nAutoTaggingSettings.Default.HeadingLevels = new HeadingLevels();          // default threshold\n// OR:\nAutoTaggingSettings.Default.HeadingLevels = new HeadingLevels(1.5);       // custom threshold\n\n// WRONG:\n// AutoTaggingSettings.Default.HeadingLevels = new int[] { 1, 2, 3 };  // CS0029",
+      "note": "HeadingLevels is a class (not an enum or int array) whose constructor accepts an optional double threshold used to detect heading levels based on font-size ratios. It does not represent an array of level numbers.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "default-appearance-constructor-requires-system-drawing-color": {
+      "note": "DefaultAppearance(string fontName, double fontSize, Color textColor) constructor requires System.Drawing.Color as the third parameter, NOT Aspose.Pdf.Color. This is a common mistake because most other Aspose.Pdf APIs use Aspose.Pdf.Color.",
+      "code": "// CORRECT:\nDefaultAppearance appearance = new DefaultAppearance(\"Helvetica\", 12, System.Drawing.Color.Black);\n\n// WRONG — Aspose.Pdf.Color is not accepted:\n// DefaultAppearance appearance = new DefaultAppearance(\"Helvetica\", 12, Aspose.Pdf.Color.Black);\n// CS1503: cannot convert from 'Aspose.Pdf.Color' to 'System.Drawing.Color'",
+      "errors": [
+        "CS1503: Argument 3: cannot convert from 'Aspose.Pdf.Color' to 'System.Drawing.Color'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "callout-requires-exactly-three-points": {
+      "note": "FreeTextAnnotation.Callout requires exactly 3 points in the Point array: start (inside the annotation), knee (bend), and end (pointing to target). Passing 2 or any other number throws System.ArgumentException at runtime.",
+      "code": "// CORRECT — exactly 3 points:\nfreeText.Callout = new Aspose.Pdf.Point[]\n{\n    new Aspose.Pdf.Point(150, 550), // start point (inside the annotation)\n    new Aspose.Pdf.Point(200, 620), // knee point (bend in the callout line)\n    new Aspose.Pdf.Point(250, 650)  // end point (pointing to the target)\n};\n\n// WRONG — only 2 points:\n// freeText.Callout = new Aspose.Pdf.Point[]\n// {\n//     new Aspose.Pdf.Point(150, 550),\n//     new Aspose.Pdf.Point(200, 580)\n// };\n// Runtime: System.ArgumentException: Points array must contain 3 items.",
+      "errors": [
+        "System.ArgumentException: Points array must contain 3 items."
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "elementlist-no-indexof-use-cast-tolist": {
+      "error": "CS1929: 'ElementList' does not contain a definition for 'IndexOf'",
+      "fix": "ElementList has no IndexOf() method. Convert it to a List<Element> first using LINQ Cast<Element>().ToList(), then call IndexOf() on the resulting list.",
+      "code": "using System.Linq;\nusing Aspose.Pdf.LogicalStructure;\n\n// CORRECT: convert to List<Element> first\nElementList children = root.ChildElements;\nvar childList = children.Cast<Element>().ToList();\nint idx = childList.IndexOf(para);  // -1 if not found\n\n// WRONG:\n// int idx = root.ChildElements.IndexOf(para);  // CS1929",
+      "note": "ElementList is a read-only enumerable collection that supports Count, indexed access via ElementOf, and GetEnumerator. It has no IndexOf(). Use Cast<Element>().ToList() to get a regular List<Element> that supports IndexOf, Contains, and other LINQ operations.",
+      "platform_limitation": false,
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": [],
+      "workarounds": []
+    },
+    "annotation-collection-one-based-indexing": {
+      "note": "Aspose.Pdf annotation collections use 1-based indexing, same as Pages. page.Annotations[1] is the first annotation. page.Annotations[0] throws an exception. page.Annotations.Delete(index) also expects a 1-based index. Always iterate from 1 to page.Annotations.Count inclusive.",
+      "code": "// CORRECT:\nfor (int i = 1; i <= page.Annotations.Count; i++)\n{\n    Annotation ann = page.Annotations[i];\n}\n\n// CORRECT — delete the last annotation:\npage.Annotations.Delete(page.Annotations.Count);\n\n// WRONG:\n// page.Annotations[0]; // throws exception\n// page.Annotations.Delete(page.Annotations.Count - 1); // deletes second-to-last",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "annotation-title-requires-markup-annotation": {
+      "note": "The 'Title' property belongs to MarkupAnnotation, NOT the base Annotation class. When iterating page.Annotations or using FindByName(), the returned type is Annotation which does not have Title. You must cast to MarkupAnnotation before accessing Title. The 'Contents' property IS on the base Annotation class and can be accessed directly.",
+      "code": "// CORRECT:\nAnnotation ann = page.Annotations[1];\nstring title = ann is MarkupAnnotation markup ? markup.Title : \"N/A\";\nConsole.WriteLine($\"Title={title}, Contents={ann.Contents}\");\n\n// CORRECT — when retrieved via FindByName:\nAnnotation retrieved = page.Annotations.FindByName(\"MyNote\");\nif (retrieved is MarkupAnnotation ma)\n{\n    Console.WriteLine(ma.Title);\n}\n\n// WRONG — does not compile:\n// Annotation ann = page.Annotations[1];\n// Console.WriteLine(ann.Title); // CS1061: 'Annotation' does not contain 'Title'",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "border-requires-parent-annotation": {
+      "note": "The Border class has no parameterless constructor — it requires an Annotation parent argument: new Border(annotation). Border also has NO Color property; border color is controlled by the annotation's own Color property. Because of the parent parameter requirement, Border cannot be used inside the object initializer of the annotation it belongs to (the variable is not yet assigned). Set Border separately after construction.",
+      "code": "// CORRECT:\nTextAnnotation ann = new TextAnnotation(page, rect)\n{\n    Title = \"Note\",\n    Contents = \"Hello\",\n    Color = Aspose.Pdf.Color.Yellow\n};\nann.Border = new Border(ann) { Width = 1 };\n\n// WRONG — Border has no parameterless constructor and no Color property:\n// var ann = new TextAnnotation(page, rect)\n// {\n//     Border = new Border { Width = 1, Color = Aspose.Pdf.Color.Black }\n// };\n\n// WRONG — circular reference, ann is not assigned yet:\n// var ann = new TextAnnotation(page, rect)\n// {\n//     Border = new Border(ann) { Width = 1 }\n// };",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "qualify-rectangle-and-color": {
+      "note": "Always use fully qualified Aspose.Pdf.Rectangle and Aspose.Pdf.Color to avoid ambiguity with System.Drawing types. Even if System.Drawing is not explicitly referenced, implicit usings or transitive dependencies can pull it in and cause CS0104 ambiguity errors.",
+      "code": "// CORRECT:\nAspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(100, 500, 300, 550);\ntxtAnn.Color = Aspose.Pdf.Color.Yellow;\n\n// WRONG — may cause CS0104 ambiguity:\n// Rectangle rect = new Rectangle(100, 500, 300, 550);\n// txtAnn.Color = Color.Yellow;",
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "stamp-ambiguity-qualify-facades-stamp": {
+      "note": "When both 'using Aspose.Pdf;' and 'using Aspose.Pdf.Facades;' are imported, unqualified 'Stamp' causes CS0104 ambiguity between Aspose.Pdf.Stamp and Aspose.Pdf.Facades.Stamp. For facade-based watermarking, ALWAYS use the fully qualified name Aspose.Pdf.Facades.Stamp.",
+      "code": "// CORRECT — fully qualify:\nAspose.Pdf.Facades.Stamp stamp = new Aspose.Pdf.Facades.Stamp();\n\n// WRONG — ambiguous when both namespaces are imported:\n// Stamp stamp = new Stamp(); // CS0104",
+      "errors": [
+        "CS0104: 'Stamp' is an ambiguous reference between 'Aspose.Pdf.Facades.Stamp' and 'Aspose.Pdf.Stamp'"
+      ]
+    },
+    "stamp-no-settext-setfont-setfontsize-settextcolor": {
+      "note": "Aspose.Pdf.Facades.Stamp does NOT have SetText(), SetFont(), SetFontSize(), SetTextColor(), or SetColor() methods. To add text to a Stamp, create a FormattedText object with the desired text, font, size, and color via its constructor, then bind it using stamp.BindLogo(formattedText). FormattedText also does NOT have settable properties like .Text, .Font, .FontSize, or .TextState — all styling must be passed via the constructor.",
+      "code": "// CORRECT — use FormattedText constructor + BindLogo:\nFormattedText ft = new FormattedText(\n    \"CONFIDENTIAL\\nDo Not Distribute\",\n    System.Drawing.Color.Red,\n    \"Helvetica\",\n    EncodingType.Winansi,\n    false,\n    36);\nAspose.Pdf.Facades.Stamp stamp = new Aspose.Pdf.Facades.Stamp();\nstamp.BindLogo(ft);\nstamp.SetOrigin(100, 400);\nstamp.IsBackground = true;\nstamp.Opacity = 0.5f;\n\n// WRONG — these methods do not exist on Stamp:\n// stamp.SetText(\"text\");                    // CS1061\n// stamp.SetFont(FontRepository.FindFont(\"Helvetica\")); // CS1061\n// stamp.SetFontSize(36);                     // CS1061\n// stamp.SetTextColor(Aspose.Pdf.Color.Red);  // CS1061\n// stamp.SetColor(Aspose.Pdf.Color.Gray);     // CS1061\n\n// WRONG — FormattedText has no settable properties:\n// FormattedText ft = new FormattedText();\n// ft.Text = \"test\";       // CS1061\n// ft.Font = ...;           // CS1061\n// ft.FontSize = 48;        // CS1061\n// ft.TextState = ...;      // CS1061",
+      "errors": [
+        "CS1061: 'Stamp' does not contain a definition for 'SetText'",
+        "CS1061: 'Stamp' does not contain a definition for 'SetFont'",
+        "CS1061: 'Stamp' does not contain a definition for 'SetFontSize'",
+        "CS1061: 'Stamp' does not contain a definition for 'SetTextColor'",
+        "CS1061: 'Stamp' does not contain a definition for 'SetColor'",
+        "CS1061: 'FormattedText' does not contain a definition for 'Text'",
+        "CS1061: 'FormattedText' does not contain a definition for 'Font'",
+        "CS1061: 'FormattedText' does not contain a definition for 'FontSize'",
+        "CS1061: 'FormattedText' does not contain a definition for 'TextState'"
+      ]
+    },
+    "pdffilestamp-inputfile-outputfile-obsolete": {
+      "note": "PdfFileStamp.InputFile and PdfFileStamp.OutputFile are obsolete. Use BindPdf(inputFile) to load the source PDF and Save(outputFile) to write the result. Alternatively, pass a Document object to the PdfFileStamp constructor: new PdfFileStamp(document).",
+      "code": "// CORRECT — use BindPdf + Save:\nusing (PdfFileStamp fileStamp = new PdfFileStamp())\n{\n    fileStamp.BindPdf(\"input.pdf\");\n    // ... add stamps ...\n    fileStamp.Save(\"output.pdf\");\n    fileStamp.Close();\n}\n\n// CORRECT — pass Document to constructor:\nusing (Document doc = new Document(\"input.pdf\"))\nusing (PdfFileStamp fileStamp = new PdfFileStamp(doc))\n{\n    // ... add stamps ...\n    fileStamp.Save(\"output.pdf\");\n}\n\n// WRONG — obsolete properties:\n// fileStamp.InputFile = \"input.pdf\";   // CS0618 obsolete\n// fileStamp.OutputFile = \"output.pdf\"; // CS0618 obsolete",
+      "errors": [
+        "CS0618: 'PdfFileStamp.InputFile' is obsolete: 'Use BindPdf(inputFile) method for facade initialization.'",
+        "CS0618: 'PdfFileStamp.OutputFile' is obsolete: 'Use Save(outputFile) method for getting facade results.'"
+      ]
+    },
+    "formattedtext-constructor-for-styling": {
+      "note": "FormattedText (Aspose.Pdf.Facades) does NOT have settable properties for Text, Font, FontSize, or TextState. All text content and styling must be set via the constructor. Use AddNewLineText() to append additional lines after construction. The color parameter is System.Drawing.Color, NOT Aspose.Pdf.Color.",
+      "code": "// CORRECT — constructor with text, color, font, encoding, embedded, size:\nFormattedText ft = new FormattedText(\n    \"Line 1\\nLine 2\\nLine 3\",\n    System.Drawing.Color.Gray,\n    \"Arial\",\n    EncodingType.Winansi,\n    false,\n    48);\n\n// CORRECT — constructor with foreground + background color:\nFormattedText ft2 = new FormattedText(\n    \"Watermark\",\n    System.Drawing.Color.Red,\n    System.Drawing.Color.White,\n    \"Helvetica\",\n    EncodingType.Winansi,\n    false,\n    36);\n\n// CORRECT — add lines after construction:\nFormattedText ft3 = new FormattedText(\"Line 1\");\nft3.AddNewLineText(\"Line 2\");\nft3.AddNewLineText(\"Line 3\");\n\n// WRONG — no settable properties:\n// FormattedText ft = new FormattedText();\n// ft.Text = \"test\";                                    // CS1061\n// ft.Font = FontRepository.FindFont(\"Arial\");           // CS1061\n// ft.FontSize = 48;                                     // CS1061\n// ft.TextState.ForegroundColor = Aspose.Pdf.Color.Gray; // CS1061",
+      "errors": [
+        "CS1061: 'FormattedText' does not contain a definition for 'Text'",
+        "CS1061: 'FormattedText' does not contain a definition for 'Font'",
+        "CS1061: 'FormattedText' does not contain a definition for 'FontSize'",
+        "CS1061: 'FormattedText' does not contain a definition for 'TextState'"
+      ]
+    },
+    "stamp-settext-formattedtext-use-bindlogo": {
+      "note": "Stamp.SetText(FormattedText) does not exist. To bind formatted text (with font, color, and size) to a Stamp, use stamp.BindLogo(formattedText). The FormattedText must be fully configured via its constructor before calling BindLogo.",
+      "code": "// CORRECT:\nFormattedText ft = new FormattedText(\"Watermark\", System.Drawing.Color.Gray, \"Arial\", EncodingType.Winansi, false, 48);\nAspose.Pdf.Facades.Stamp stamp = new Aspose.Pdf.Facades.Stamp();\nstamp.BindLogo(ft);\n\n// WRONG — SetText does not accept FormattedText:\n// stamp.SetText(ft); // CS1061",
+      "errors": [
+        "CS1061: 'Stamp' does not contain a definition for 'SetText'"
+      ]
+    },
+    "formattedtext-no-addtext-use-addnewlinetext": {
+      "note": "FormattedText does NOT have an AddText() method. To append additional lines after construction, use AddNewLineText(). Do NOT prefix the text with '\\n' when using AddNewLineText — it automatically starts a new line.",
+      "code": "// CORRECT — use AddNewLineText:\nFormattedText ft = new FormattedText(\"Line 1\");\nft.AddNewLineText(\"Line 2\");\nft.AddNewLineText(\"Line 3\");\n\n// WRONG — AddText does not exist:\n// FormattedText ft = new FormattedText();\n// ft.AddText(\"Line 1\");          // CS1061\n// ft.AddText(\"\\nLine 2\");        // CS1061",
+      "errors": [
+        "CS1061: 'FormattedText' does not contain a definition for 'AddText'"
+      ]
+    },
+    "formattedtext-no-textcolor-or-fontcolor": {
+      "note": "FormattedText does NOT have a TextColor or FontColor property. Text color must be set via the FormattedText constructor using System.Drawing.Color as the second parameter. There are no settable color properties on FormattedText after construction.",
+      "code": "// CORRECT — set color via constructor:\nFormattedText ft = new FormattedText(\n    \"Watermark\",\n    System.Drawing.Color.Red,  // text color\n    \"Helvetica\",\n    EncodingType.Winansi,\n    false,\n    36);\n\n// WRONG — no TextColor or FontColor property:\n// ft.TextColor = Aspose.Pdf.Color.Red;  // CS1061\n// ft.FontColor = Aspose.Pdf.Color.Red;  // CS0117",
+      "errors": [
+        "CS1061: 'FormattedText' does not contain a definition for 'TextColor'",
+        "CS0117: 'FormattedText' does not contain a definition for 'FontColor'"
+      ]
+    },
+    "no-markdownloadoptions-use-mdloadoptions": {
+      "note": "There is no class called 'MarkdownLoadOptions' in Aspose.Pdf. To load Markdown files, use MdLoadOptions instead.",
+      "code": "// CORRECT:\nusing (Document doc = new Document(\"input.md\", new MdLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — MarkdownLoadOptions does not exist:\n// Document doc = new Document(\"input.md\", new MarkdownLoadOptions()); // CS0246",
+      "errors": [
+        "CS0246: The type or namespace name 'MarkdownLoadOptions' could not be found (are you missing a using directive or an assembly reference?)"
+      ]
+    },
+    "pdfpagestamp-not-compatible-with-pdffilestamp-addstamp": {
+      "note": "PdfFileStamp.AddStamp() only accepts Aspose.Pdf.Facades.Stamp, NOT PdfPageStamp. PdfPageStamp is a core API class meant for use with Page.AddStamp(). To use a PDF page as a stamp with the Facades API (PdfFileStamp), create an Aspose.Pdf.Facades.Stamp and use stamp.BindPdf(pdfPath, pageNumber) or stamp.BindPdf(stream, pageNumber) to bind a specific page as the stamp content.",
+      "code": "// CORRECT — use Facades Stamp with BindPdf:\nAspose.Pdf.Facades.Stamp stamp = new Aspose.Pdf.Facades.Stamp();\nstamp.BindPdf(\"source.pdf\", 1);  // bind page 1 as stamp content\nstamp.IsBackground = true;\nstamp.Opacity = 0.5f;\n\nusing (PdfFileStamp fileStamp = new PdfFileStamp())\n{\n    fileStamp.BindPdf(\"input.pdf\");\n    fileStamp.AddStamp(stamp);\n    fileStamp.Save(\"output.pdf\");\n    fileStamp.Close();\n}\n\n// CORRECT — bind from stream:\nAspose.Pdf.Facades.Stamp stamp2 = new Aspose.Pdf.Facades.Stamp();\nstamp2.BindPdf(memoryStream, 1);\n\n// WRONG — PdfPageStamp cannot be used with PdfFileStamp:\n// PdfPageStamp pageStamp = new PdfPageStamp(\"source.pdf\", 1);\n// fileStamp.AddStamp(pageStamp); // CS1503: cannot convert PdfPageStamp to Stamp",
+      "errors": [
+        "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.PdfPageStamp' to 'Aspose.Pdf.Facades.Stamp'"
+      ]
+    },
+    "pdfpagestamp-background-not-isbackground": {
+      "note": "PdfPageStamp uses the property name 'Background' (not 'IsBackground') to control whether the stamp appears behind page content. IsBackground does not exist on PdfPageStamp.",
+      "code": "// CORRECT:\nPdfPageStamp pageStamp = new PdfPageStamp(page);\npageStamp.Background = true;\n\n// WRONG:\n// pageStamp.IsBackground = true; // CS0117",
+      "errors": [
+        "CS0117: 'PdfPageStamp' does not contain a definition for 'IsBackground'"
+      ]
+    },
+    "pdffilestamp-constructor-string-string-obsolete": {
+      "note": "The PdfFileStamp(string inputFile, string outputFile) constructor is obsolete. Use the parameterless constructor followed by BindPdf() and Save() instead.",
+      "code": "// CORRECT:\nusing (PdfFileStamp fileStamp = new PdfFileStamp())\n{\n    fileStamp.BindPdf(\"input.pdf\");\n    // ... add stamps ...\n    fileStamp.Save(\"output.pdf\");\n    fileStamp.Close();\n}\n\n// WRONG — obsolete constructor:\n// PdfFileStamp fileStamp = new PdfFileStamp(\"input.pdf\", \"output.pdf\"); // CS0618",
+      "errors": [
+        "CS0618: 'PdfFileStamp.PdfFileStamp(string, string)' is obsolete: 'Use constructor without destination.'"
+      ]
+    },
+    "stamp-no-setopacity-use-opacity-property": {
+      "note": "Aspose.Pdf.Facades.Stamp does NOT have a SetOpacity() method. Use the Opacity property directly instead.",
+      "code": "// CORRECT:\nAspose.Pdf.Facades.Stamp stamp = new Aspose.Pdf.Facades.Stamp();\nstamp.Opacity = 0.5f;\n\n// WRONG:\n// stamp.SetOpacity(0.5f); // CS1061",
+      "errors": [
+        "CS1061: 'Stamp' does not contain a definition for 'SetOpacity'"
+      ]
+    },
+    "epub-requires-epubloadoptions": {
+      "note": "Loading an EPUB file with new Document(epubPath) without specifying EpubLoadOptions will fail or produce incorrect results. Always pass new EpubLoadOptions() as the second argument when loading EPUB files.",
+      "code": "// CORRECT:\nusing (Document doc = new Document(\"input.epub\", new EpubLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.epub\"); // may fail or misinterpret format",
+      "errors": []
+    },
+    "fontrepository-requires-using-aspose-pdf-text": {
+      "note": "FontRepository is in the Aspose.Pdf.Text namespace. If you use FontRepository.FindFont() without importing Aspose.Pdf.Text, you will get CS0103. Add 'using Aspose.Pdf.Text;' or fully qualify as Aspose.Pdf.Text.FontRepository.",
+      "code": "// CORRECT — add the using:\nusing Aspose.Pdf.Text;\n// ...\nvar font = FontRepository.FindFont(\"Helvetica\");\n\n// CORRECT — fully qualify:\nvar font = Aspose.Pdf.Text.FontRepository.FindFont(\"Helvetica\");\n\n// WRONG — missing namespace:\n// FontRepository.FindFont(\"Helvetica\"); // CS0103 if Aspose.Pdf.Text not imported",
+      "errors": [
+        "CS0103: The name 'FontRepository' does not exist in the current context"
+      ]
+    },
+    "html-requires-htmlloadoptions": {
+      "note": "Loading an HTML file with new Document(htmlPath) without HtmlLoadOptions will fail or produce incorrect results. Always pass new HtmlLoadOptions() as the second argument. For HTML strings in memory, write the HTML to a MemoryStream first, then pass the stream with HtmlLoadOptions to the Document constructor.",
+      "code": "// CORRECT — load from file:\nusing (Document doc = new Document(\"input.html\", new HtmlLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// CORRECT — load from stream:\nbyte[] htmlBytes = System.Text.Encoding.UTF8.GetBytes(htmlContent);\nusing (MemoryStream ms = new MemoryStream(htmlBytes))\nusing (Document doc = new Document(ms, new HtmlLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.html\"); // may fail or misinterpret format",
+      "errors": []
+    },
+    "svg-requires-svgloadoptions": {
+      "note": "Loading an SVG file with new Document(svgPath) without SvgLoadOptions will fail or produce incorrect results. Always pass new SvgLoadOptions() as the second argument. SvgLoadOptions has an AdjustPageSize property that can be set to true to auto-size the PDF page to match the SVG dimensions.",
+      "code": "// CORRECT — with auto page sizing:\nSvgLoadOptions svgOpts = new SvgLoadOptions();\nsvgOpts.AdjustPageSize = true;\nusing (Document doc = new Document(\"input.svg\", svgOpts))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// CORRECT — simple:\nusing (Document doc = new Document(\"input.svg\", new SvgLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.svg\");",
+      "errors": []
+    },
+    "xps-requires-xpsloadoptions": {
+      "note": "Loading an XPS file with new Document(xpsPath) without XpsLoadOptions will fail. Always pass new XpsLoadOptions() as the second argument.",
+      "code": "// CORRECT:\nusing (Document doc = new Document(\"input.xps\", new XpsLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.xps\");",
+      "errors": []
+    },
+    "xslfo-requires-xslfoloadoptions": {
+      "note": "Loading an XSL-FO file requires XslFoLoadOptions (not XslFoLoadOption, not XsltLoadOptions, not FoLoadOptions). The class is in the Aspose.Pdf namespace. Always pass new XslFoLoadOptions() as the second argument to the Document constructor.",
+      "code": "// CORRECT:\nusing (Document doc = new Document(\"input.fo\", new XslFoLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — wrong class names:\n// new XsltLoadOptions()     // CS0246 — does not exist\n// new FoLoadOptions()       // CS0246 — does not exist\n// new XslFoLoadOption()     // CS0246 — missing 's'",
+      "errors": [
+        "CS0246: The type or namespace name 'XsltLoadOptions' could not be found",
+        "CS0246: The type or namespace name 'FoLoadOptions' could not be found",
+        "CS0246: The type or namespace name 'XslFoLoadOption' could not be found"
+      ]
+    },
+    "cgm-requires-cgmloadoptions-with-pagesize": {
+      "note": "Loading a CGM file requires CgmLoadOptions. Optionally pass a System.Drawing.SizeF for the page size. The class is in the Aspose.Pdf namespace.",
+      "code": "// CORRECT — with default page size:\nusing (Document doc = new Document(\"input.cgm\", new CgmLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// CORRECT — with custom page size:\nCgmLoadOptions cgmOpts = new CgmLoadOptions(new System.Drawing.SizeF(595, 842));\nusing (Document doc = new Document(\"input.cgm\", cgmOpts))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.cgm\");",
+      "errors": []
+    },
+    "mht-requires-mhtloadoptions": {
+      "note": "Loading an MHT/MHTML file requires MhtLoadOptions. The class is in the Aspose.Pdf namespace. Always pass new MhtLoadOptions() as the second argument.",
+      "code": "// CORRECT:\nusing (Document doc = new Document(\"input.mht\", new MhtLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// ALSO CORRECT for .mhtml:\nusing (Document doc = new Document(\"input.mhtml\", new MhtLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.mht\");",
+      "errors": []
+    },
+    "pcl-requires-pclloadoptions": {
+      "note": "Loading a PCL file requires PclLoadOptions. The class is in the Aspose.Pdf namespace. PCL files can also be loaded from a stream with PclLoadOptions.",
+      "code": "// CORRECT — from file:\nusing (Document doc = new Document(\"input.pcl\", new PclLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// CORRECT — from stream:\nusing (FileStream fs = new FileStream(\"input.pcl\", FileMode.Open))\nusing (Document doc = new Document(fs, new PclLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.pcl\");",
+      "errors": []
+    },
+    "xml-load-use-bindxml-not-document-constructor": {
+      "note": "To load XML content into a PDF, use Document.BindXml(xmlPath) or Document.BindXml(xmlStream) instead of passing XML to the Document constructor. The Document constructor does not accept raw XML files without XmlLoadOptions. For XSL-FO XML, use XslFoLoadOptions instead.",
+      "code": "// CORRECT — use BindXml:\nDocument doc = new Document();\ndoc.BindXml(\"input.xml\");\ndoc.Save(\"output.pdf\");\n\n// CORRECT — BindXml with XSLT:\nDocument doc = new Document();\ndoc.BindXml(\"input.xml\", \"transform.xslt\");\ndoc.Save(\"output.pdf\");\n\n// CORRECT — XSL-FO XML:\nusing (Document doc = new Document(\"input.fo\", new XslFoLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — raw XML to Document constructor:\n// Document doc = new Document(\"input.xml\"); // fails without proper load options",
+      "errors": []
+    },
+    "ofd-requires-ofdloadoptions": {
+      "note": "Loading an OFD file requires OfdLoadOptions. The class is in the Aspose.Pdf namespace. Always pass new OfdLoadOptions() as the second argument.",
+      "code": "// CORRECT:\nusing (Document doc = new Document(\"input.ofd\", new OfdLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.ofd\");",
+      "errors": []
+    },
+    "tex-requires-texloadoptions": {
+      "note": "Loading a TeX/LaTeX file requires TeXLoadOptions (not TexLoadOptions, not LatexLoadOptions). The class is in the Aspose.Pdf namespace.",
+      "code": "// CORRECT:\nTeXLoadOptions texOpts = new TeXLoadOptions();\nusing (Document doc = new Document(\"input.tex\", texOpts))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — wrong class names:\n// new TexLoadOptions()     // CS0246 — wrong casing, use TeXLoadOptions\n// new LatexLoadOptions()   // CS0246 — does not exist",
+      "errors": [
+        "CS0246: The type or namespace name 'TexLoadOptions' could not be found",
+        "CS0246: The type or namespace name 'LatexLoadOptions' could not be found"
+      ]
+    },
+    "ps-requires-psloadoptions": {
+      "note": "Loading a PostScript (.ps) file requires PsLoadOptions. The class is in the Aspose.Pdf namespace.",
+      "code": "// CORRECT:\nusing (Document doc = new Document(\"input.ps\", new PsLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.ps\");",
+      "errors": []
+    },
+    "loadoptions-is-abstract-use-concrete-class": {
+      "note": "LoadOptions is an abstract base class and cannot be instantiated directly. Always use the concrete derived class that matches the source format: HtmlLoadOptions, SvgLoadOptions, XpsLoadOptions, EpubLoadOptions, MdLoadOptions, MhtLoadOptions, PclLoadOptions, CgmLoadOptions, XslFoLoadOptions, TeXLoadOptions, PsLoadOptions, OfdLoadOptions, etc.",
+      "code": "// CORRECT — use the format-specific class:\nnew HtmlLoadOptions()    // for .html\nnew SvgLoadOptions()     // for .svg\nnew XpsLoadOptions()     // for .xps\nnew EpubLoadOptions()    // for .epub\nnew MdLoadOptions()      // for .md (Markdown)\nnew MhtLoadOptions()     // for .mht/.mhtml\nnew PclLoadOptions()     // for .pcl\nnew CgmLoadOptions()     // for .cgm\nnew XslFoLoadOptions()   // for .fo (XSL-FO)\nnew TeXLoadOptions()     // for .tex\nnew PsLoadOptions()      // for .ps (PostScript)\nnew OfdLoadOptions()     // for .ofd\n\n// WRONG — abstract class:\n// new LoadOptions()  // CS0144: cannot create instance of abstract class",
+      "errors": [
+        "CS0144: Cannot create an instance of the abstract type or interface 'LoadOptions'"
+      ]
+    }
+  }
+}

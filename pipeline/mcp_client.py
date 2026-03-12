@@ -18,8 +18,9 @@ _RETRY_BACKOFF = 2  # seconds between retries
 class MCPClient:
     """HTTP client for MCP /generate and /retrieve endpoints."""
 
-    def __init__(self, config: AppConfig):
+    def __init__(self, config: AppConfig, usage_tracker=None):
         self.config = config
+        self._usage_tracker = usage_tracker
         self._session = requests.Session()
         retry = Retry(total=2, backoff_factor=0.5, status_forcelist=[502, 503, 504])
         adapter = HTTPAdapter(max_retries=retry, pool_connections=4, pool_maxsize=4)
@@ -79,6 +80,8 @@ class MCPClient:
         }
 
         resp = self._post_with_retry(cfg.generate_url, payload, cfg.timeout)
+        if self._usage_tracker:
+            self._usage_tracker.add_mcp_generate()
         if not resp:
             return None
 
@@ -114,6 +117,8 @@ class MCPClient:
         }
 
         resp = self._post_with_retry(cfg.retrieve_url, payload, cfg.timeout)
+        if self._usage_tracker:
+            self._usage_tracker.add_mcp_retrieve()
         if not resp:
             return []
 

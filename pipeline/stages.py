@@ -32,10 +32,33 @@ from knowledge.reranker import llm_rerank_rules
 Notify = Callable[[str, str], None]
 
 
-def run_baseline(task_input: TaskInput, mcp: MCPClient, builder: DotnetBuilder, notify: Notify) -> StageOutcome:
-    """Stage 1: Generate code via MCP and build/run."""
-    notify("baseline", "Generating code via MCP...")
-    code = mcp.generate(task_input.task, category=task_input.category, product=task_input.product)
+def run_baseline(
+    task_input: TaskInput, mcp: MCPClient, builder: DotnetBuilder, notify: Notify,
+    llm: LLMClient = None, config: AppConfig = None, generation_rules: str = "",
+) -> StageOutcome:
+    """Stage 1: Generate code and build/run.
+
+    When use_own_llm is enabled, retrieves chunks via MCP and generates code
+    with the user's own LLM key instead of letting MCP server generate.
+    """
+    use_own_llm = config and config.pipeline.use_own_llm and llm and llm.available
+
+    if use_own_llm:
+        # Retrieve chunks + generate code with own LLM
+        notify("baseline", "Retrieving API docs...")
+        chunks = mcp.retrieve(task_input.task, category=task_input.category)
+        chunks_text = MCPClient.format_chunks(chunks, config.pipeline.retrieve_max_chars)
+        notify("baseline", "Generating code with own LLM...")
+        code = llm.generate_code(
+            task_input.task, chunks_text,
+            rules_text=generation_rules,
+            category=task_input.category,
+        )
+    else:
+        # Original path: MCP server does retrieve + generate
+        notify("baseline", "Generating code via MCP...")
+        code = mcp.generate(task_input.task, category=task_input.category, product=task_input.product)
+
     if not code:
         return StageOutcome(success=False, stage="baseline", build_log="API call failed")
 
@@ -162,6 +185,7 @@ def run_regen_loop(
     rule_engine: Optional[RuleSearchEngine] = None,
     error_catalog: list = None,
     error_fixes_data: dict = None,
+    generation_rules: str = "",
 ) -> StageOutcome:
     """Stage 4: Regeneration with enriched context and KB rules."""
     max_attempts = config.pipeline.regen_attempts
@@ -221,7 +245,17 @@ def run_regen_loop(
             )
 
         notify("regen", f"MCP regen attempt {attempt}/{max_attempts}...")
-        code = mcp.generate(prompt, category=task_input.category, product=task_input.product, limit=config.pipeline.retrieve_limit)
+        use_own_llm = config.pipeline.use_own_llm and llm and llm.available
+        if use_own_llm:
+            chunks = mcp.retrieve(task_input.task, category=task_input.category)
+            chunks_text = MCPClient.format_chunks(chunks, config.pipeline.retrieve_max_chars)
+            code = llm.generate_code(
+                prompt, chunks_text,
+                rules_text=generation_rules,
+                category=task_input.category,
+            )
+        else:
+            code = mcp.generate(prompt, category=task_input.category, product=task_input.product, limit=config.pipeline.retrieve_limit)
         if not code:
             continue
 
