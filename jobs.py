@@ -13,12 +13,14 @@ from pathlib import Path
 from config import load_config
 from pipeline.models import TaskInput
 from pipeline.runner import PipelineRunner
+from pipeline.usage_tracker import UsageTracker
+from reporting import report_job_usage
 from git_ops.repo import RepoManager
 from git_ops.committer import CodeCommitter
 from git_ops.pr import PRManager
 from pipeline.llm_client import LLMClient
 from state import (
-    add_failed, add_log, add_passed, is_cancelled,
+    add_failed, add_log, add_passed, get_build_state, is_cancelled,
     init_build, set_current_task, set_pr_url, set_pr_branch,
     set_results_summary, set_status, set_total,
     JOB_CANCEL_FLAGS, JOB_LOCK,
@@ -257,6 +259,7 @@ def run_job(
     """Run a test job. Called from a daemon thread."""
     notify = _make_progress_callback(job_id)
     config = load_config()
+    usage_tracker = UsageTracker()
 
     # Override API URL if provided
     if api_url:
@@ -268,7 +271,7 @@ def run_job(
             add_log(job_id, f"Testing: {prompt[:100]}...")
             set_current_task(job_id, prompt[:100])
 
-            runner = PipelineRunner(config, progress_callback=notify)
+            runner = PipelineRunner(config, progress_callback=notify, usage_tracker=usage_tracker)
 
             # Setup PR branch before running
             repo, committer, pr_manager = None, None, None
@@ -315,6 +318,21 @@ def run_job(
                     set_pr_url(job_id, pr_url)
                     add_log(job_id, f"Pull request created: {pr_url}")
 
+            # Report usage
+            try:
+                bs = get_build_state(job_id)
+                report_job_usage(
+                    config, job_id,
+                    total=1,
+                    passed=1 if result.status == "SUCCESS" else 0,
+                    failed=0 if result.status == "SUCCESS" else 1,
+                    elapsed_seconds=bs["elapsed"] if bs else 0,
+                    usage_snapshot=usage_tracker.snapshot(),
+                    status="success" if result.status == "SUCCESS" else "partial_success",
+                )
+            except Exception as e:
+                print(f"[reporting] Error: {e}")
+
             set_status(job_id, "completed")
             add_log(job_id, "Pipeline complete.")
             return
@@ -330,7 +348,7 @@ def run_job(
             init_build(job_id, total=total)
             add_log(job_id, f"Starting batch: {total} task(s)")
 
-            runner = PipelineRunner(config, progress_callback=notify)
+            runner = PipelineRunner(config, progress_callback=notify, usage_tracker=usage_tracker)
 
             # Setup PR branch before running
             repo, committer, pr_manager = None, None, None
@@ -494,6 +512,25 @@ def run_job(
             with JOB_LOCK:
                 was_cancelled = JOB_CANCEL_FLAGS.pop(job_id, False)
 
+            # Report usage
+            try:
+                bs = get_build_state(job_id)
+                if bs:
+                    r_status = "cancelled" if was_cancelled else (
+                        "success" if bs["failed_count"] == 0 else "partial_success"
+                    )
+                    report_job_usage(
+                        config, job_id,
+                        total=bs["total"],
+                        passed=bs["passed_count"],
+                        failed=bs["failed_count"],
+                        elapsed_seconds=bs["elapsed"],
+                        usage_snapshot=usage_tracker.snapshot(),
+                        status=r_status,
+                    )
+            except Exception as e:
+                print(f"[reporting] Error: {e}")
+
             if was_cancelled:
                 set_status(job_id, "cancelled")
                 add_log(job_id, f"Job cancelled after {idx}/{total} task(s)")
@@ -510,6 +547,20 @@ def run_job(
         with JOB_LOCK:
             JOB_CANCEL_FLAGS.pop(job_id, None)
         add_log(job_id, f"Job failed: {exc}")
+        # Report failure
+        try:
+            bs = get_build_state(job_id)
+            report_job_usage(
+                config, job_id,
+                total=bs["total"] if bs else 0,
+                passed=bs["passed_count"] if bs else 0,
+                failed=bs["failed_count"] if bs else 0,
+                elapsed_seconds=bs["elapsed"] if bs else 0,
+                usage_snapshot=usage_tracker.snapshot(),
+                status="failed",
+            )
+        except Exception:
+            pass
         set_status(job_id, "failed")
 
 

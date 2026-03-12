@@ -16,8 +16,9 @@ from config import AppConfig
 class LLMClient:
     """OpenAI-compatible LLM client using LITELLM_* configuration."""
 
-    def __init__(self, config: AppConfig):
+    def __init__(self, config: AppConfig, usage_tracker=None):
         self.config = config
+        self._usage_tracker = usage_tracker
         self._session = requests.Session()
         retry = Retry(total=2, backoff_factor=0.5, status_forcelist=[502, 503, 504])
         adapter = HTTPAdapter(max_retries=retry, pool_connections=4, pool_maxsize=4)
@@ -53,8 +54,17 @@ class LLMClient:
                 timeout=timeout,
             )
             if resp.status_code == 200:
-                msg = resp.json()["choices"][0]["message"]
+                data = resp.json()
+                msg = data["choices"][0]["message"]
                 text = msg.get("content") or msg.get("reasoning_content") or ""
+                # Track token usage if tracker is attached
+                if self._usage_tracker:
+                    usage = data.get("usage", {})
+                    total_tokens = usage.get("total_tokens", 0)
+                    if total_tokens:
+                        self._usage_tracker.add_llm_usage(total_tokens)
+                    else:
+                        self._usage_tracker.add_llm_call()
                 return text.strip() if text else None
             return None
         except Exception as e:
@@ -149,6 +159,74 @@ class LLMClient:
         except json.JSONDecodeError:
             pass
         return None
+
+    def generate_code(self, task: str, chunks_text: str = "",
+                      rules_text: str = "", category: str = "") -> Optional[str]:
+        """Generate C# code using the same prompt structure as MCP /generate.
+
+        Replicates the MCP server's prompt.py build_prompt() — single user message
+        with rules, task, documentation context, and output requirements.
+        """
+        prompt = f"""You are an Aspose.Pdf expert for NET.
+
+==============================
+RULE EXECUTION CONTRACT
+==============================
+
+You are provided with executable code rules.
+
+CRITICAL INSTRUCTIONS:
+
+1) LIFECYCLE RULES (MANDATORY)
+- You MUST use the provided create, load and save rules.
+- You are NOT allowed to write your own Document creation or saving code.
+
+2) FEATURE RULES (CONDITIONAL STRICT)
+- If a rule exists that matches the requested operation, you MUST use the rule instead of inventing your own implementation.
+- You are allowed to generate free-form code ONLY when NO matching rule exists.
+- Don't apply rules blindly, instead only apply for the portion of the element where applicable.
+
+3) TEMPLATE USAGE POLICY
+- You MUST preserve rule structure.
+- You MAY only replace placeholders inside rules.
+- You MUST NOT restructure rule logic.
+
+4) VIOLATION POLICY
+- Do NOT invent alternative APIs if a rule is available.
+- Do NOT duplicate lifecycle logic.
+- Do NOT bypass available rules.
+
+AVAILABLE RULES:
+----------------
+{rules_text}
+----------------
+
+TASK:
+{task}
+
+GROUND TRUTH DOCUMENTATION:
+{chunks_text}
+
+OUTPUT REQUIREMENTS:
+- Output ONLY valid NET code
+- Explain with comments
+- No markdown
+- No comments about rules
+- Code must compile
+
+GENERATE CODE BELOW:
+"""
+        # MCP server uses temperature=0.1, single user message (no system prompt)
+        content = self.chat("", prompt, temperature=0.1, max_tokens=4000)
+        if not content:
+            return None
+
+        # Strip markdown fences if present
+        if content.startswith("```"):
+            content = re.sub(r"^```(?:csharp|cs)?\s*", "", content)
+            content = re.sub(r"\s*```$", "", content)
+
+        return content.strip() if content.strip() else None
 
     def generate_pr_details(self, results_summary: list) -> Optional[dict]:
         """Generate PR title and body. Returns {title, body} or None."""
