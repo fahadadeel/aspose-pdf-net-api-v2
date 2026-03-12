@@ -80,6 +80,7 @@ class LLMConfig:
     api_base: str = "https://llm.professionalize.com/v1"
     api_key: str = "sk-V9KD0Qxe5R1psEVZNeKxCA"
     model: str = "gpt-oss"
+    timeout: int = 60
 
 
 @dataclass
@@ -190,6 +191,7 @@ def load_config() -> AppConfig:
     cfg.llm.api_key = _env("LITELLM_API_KEY", "")
     raw_model = _env("LITELLM_MODEL", cfg.llm.model)
     cfg.llm.model = raw_model.split("/")[-1] if "/" in raw_model else raw_model
+    cfg.llm.timeout = _env_int("LLM_TIMEOUT", cfg.llm.timeout)
 
     # Reranker
     cfg.reranker.candidate_count = _env_int("RERANK_CANDIDATE_COUNT", cfg.reranker.candidate_count)

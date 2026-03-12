@@ -1071,6 +1071,9 @@
   let lastProcessed  = 0;
   let _allPassed     = [];
   let _allFailed     = [];
+  let _renderedPassedCount = 0;
+  let _renderedFailedCount = 0;
+  let _renderedLogCount    = 0;
 
   /* ── Init ───────────────────────────────────────────────────── */
   if (isAdmin) {
@@ -1570,6 +1573,9 @@
     lastProcessed = 0;
     _allPassed = [];
     _allFailed = [];
+    _renderedPassedCount = 0;
+    _renderedFailedCount = 0;
+    _renderedLogCount    = 0;
 
     // Start elapsed timer
     startTime = Date.now();
@@ -1684,24 +1690,34 @@
       document.getElementById('status-text').textContent = data.current_task;
     }
 
-    // Append passed items
-    if (data.new_passed && Array.isArray(data.new_passed)) {
+    // Append passed items (SSE: new_passed, Polling: passed)
+    var passedItems = data.new_passed || null;
+    if (!passedItems && data.passed && Array.isArray(data.passed)) {
+      passedItems = data.passed.slice(_renderedPassedCount);
+    }
+    if (passedItems && Array.isArray(passedItems) && passedItems.length > 0) {
       var passedList = document.getElementById('passed-list');
-      data.new_passed.forEach(function(item) {
+      passedItems.forEach(function(item) {
         _allPassed.push(item);
         appendResult(passedList, item, 'pass');
       });
+      _renderedPassedCount = _allPassed.length;
       var pc = parseInt(document.getElementById('stat-passed').textContent) || 0;
       document.getElementById('passed-header').innerHTML = '&#10004; Passed (' + pc + ')';
     }
 
-    // Append failed items
-    if (data.new_failed && Array.isArray(data.new_failed)) {
+    // Append failed items (SSE: new_failed, Polling: failed)
+    var failedItems = data.new_failed || null;
+    if (!failedItems && data.failed && Array.isArray(data.failed)) {
+      failedItems = data.failed.slice(_renderedFailedCount);
+    }
+    if (failedItems && Array.isArray(failedItems) && failedItems.length > 0) {
       var failedList = document.getElementById('failed-list');
-      data.new_failed.forEach(function(item) {
+      failedItems.forEach(function(item) {
         _allFailed.push(item);
         appendResult(failedList, item, 'fail');
       });
+      _renderedFailedCount = _allFailed.length;
       var fc = parseInt(document.getElementById('stat-failed').textContent) || 0;
       document.getElementById('failed-header').innerHTML = '&#10008; Failed (' + fc + ')';
     }
@@ -1720,11 +1736,16 @@
       banner.classList.add('visible');
     }
 
-    // Append log lines
-    if (data.new_logs && Array.isArray(data.new_logs)) {
-      data.new_logs.forEach(function(line) {
+    // Append log lines (SSE: new_logs, Polling: logs)
+    var logItems = data.new_logs || null;
+    if (!logItems && data.logs && Array.isArray(data.logs)) {
+      logItems = data.logs.slice(_renderedLogCount);
+    }
+    if (logItems && Array.isArray(logItems) && logItems.length > 0) {
+      logItems.forEach(function(line) {
         addLogLine(line);
       });
+      _renderedLogCount += logItems.length;
     }
 
     // Check completion
