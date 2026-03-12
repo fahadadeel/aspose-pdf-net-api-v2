@@ -397,6 +397,13 @@ def load_domain_knowledge(kb_path: str, max_count: int = 7) -> str:
     Falls back to high-confidence single-category rules with warnings
     (indicating gotchas) if not enough cross-cutting rules survive.
     """
+    # Legacy KB categories that don't map to any real repo category.
+    # Rules filed under these should not appear in agents.md output.
+    _EXCLUDED_CATEGORIES = frozenset({
+        "TechnicalArticles", "App_Start", "Examples.Web",
+        "QuickStart", "Miscellaneous",
+    })
+
     data = _load_json(kb_path)
     if not isinstance(data, list):
         return ""
@@ -409,6 +416,10 @@ def load_domain_knowledge(kb_path: str, max_count: int = 7) -> str:
         category = entry.get("category", "")
         confidence = entry.get("confidence", 0)
         warnings = entry.get("warnings", [])
+
+        # Skip legacy categories that don't exist in the repo
+        if category in _EXCLUDED_CATEGORIES:
+            continue
 
         for rule in rules:
             rule_lower = rule.lower().strip()
