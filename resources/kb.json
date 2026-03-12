@@ -15435,5 +15435,53 @@
       "input.pdf",
       "output.pdf"
     ]
+  },
+  {
+    "id": "format-load-options-guide",
+    "category": "DocumentConversion",
+    "language": "dotnet",
+    "relative_path": "",
+    "semantic_summary": "Comprehensive guide for loading non-PDF source files into Aspose.Pdf.Document. Each format requires its own LoadOptions subclass. Covers HTML, SVG, XPS, EPUB, Markdown, MHT, PCL, CGM, XSL-FO, TeX, PostScript, OFD, and XML with correct class names and constructors.",
+    "api_surface": [
+      "Aspose.Pdf.Document",
+      "Aspose.Pdf.HtmlLoadOptions",
+      "Aspose.Pdf.SvgLoadOptions",
+      "Aspose.Pdf.XpsLoadOptions",
+      "Aspose.Pdf.EpubLoadOptions",
+      "Aspose.Pdf.MdLoadOptions",
+      "Aspose.Pdf.MhtLoadOptions",
+      "Aspose.Pdf.PclLoadOptions",
+      "Aspose.Pdf.CgmLoadOptions",
+      "Aspose.Pdf.XslFoLoadOptions",
+      "Aspose.Pdf.TeXLoadOptions",
+      "Aspose.Pdf.PsLoadOptions",
+      "Aspose.Pdf.OfdLoadOptions"
+    ],
+    "rules": [
+      "Every non-PDF source format MUST use its own LoadOptions subclass as the second argument to the Document constructor: new Document(inputPath, new XxxLoadOptions()). Never pass a non-PDF file without LoadOptions.",
+      "HTML files: use new HtmlLoadOptions(). For HTML strings in memory, write to a MemoryStream first, then pass with HtmlLoadOptions.",
+      "SVG files: use new SvgLoadOptions(). Set AdjustPageSize = true to auto-size PDF pages to SVG dimensions.",
+      "XPS files: use new XpsLoadOptions().",
+      "EPUB files: use new EpubLoadOptions(). Has PageSize and Margin properties for customization.",
+      "Markdown files: use new MdLoadOptions(). The class name is MdLoadOptions, NOT MarkdownLoadOptions.",
+      "MHT/MHTML files: use new MhtLoadOptions(). Works for both .mht and .mhtml extensions.",
+      "PCL files: use new PclLoadOptions(). Can load from file path or stream.",
+      "CGM files: use new CgmLoadOptions(). Optionally accepts a System.Drawing.SizeF for custom page size: new CgmLoadOptions(new SizeF(595, 842)).",
+      "XSL-FO files: use new XslFoLoadOptions(). The class name is XslFoLoadOptions, NOT XsltLoadOptions or FoLoadOptions.",
+      "TeX/LaTeX files: use new TeXLoadOptions(). The class name is TeXLoadOptions (capital X), NOT TexLoadOptions.",
+      "PostScript (.ps) files: use new PsLoadOptions().",
+      "OFD files: use new OfdLoadOptions().",
+      "XML files: use Document.BindXml(xmlPath) instead of the Document constructor. For XML with XSLT: Document.BindXml(xmlPath, xsltPath).",
+      "LoadOptions is an abstract base class — NEVER instantiate it directly. Always use the concrete format-specific subclass.",
+      "All LoadOptions classes reside in the Aspose.Pdf namespace. Do NOT add 'using Aspose.Pdf.LoadOptions;' — LoadOptions is a type, not a namespace (causes CS0138)."
+    ],
+    "confidence": 0.98,
+    "warnings": [
+      "Do not confuse MdLoadOptions (correct) with MarkdownLoadOptions (does not exist).",
+      "Do not confuse TeXLoadOptions (correct, capital X) with TexLoadOptions (wrong casing).",
+      "Do not confuse XslFoLoadOptions (correct) with XsltLoadOptions or FoLoadOptions (do not exist).",
+      "Do not use 'using Aspose.Pdf.LoadOptions;' — LoadOptions is a class, not a namespace."
+    ],
+    "file_context": []
   }
 ]

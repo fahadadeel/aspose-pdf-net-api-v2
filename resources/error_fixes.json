@@ -5586,5 +5586,74 @@
     "errors": [
       "CS0103: The name 'FontRepository' does not exist in the current context"
     ]
+  },
+  "html-requires-htmlloadoptions": {
+    "note": "Loading an HTML file with new Document(htmlPath) without HtmlLoadOptions will fail or produce incorrect results. Always pass new HtmlLoadOptions() as the second argument. For HTML strings in memory, write the HTML to a MemoryStream first, then pass the stream with HtmlLoadOptions to the Document constructor.",
+    "code": "// CORRECT — load from file:\nusing (Document doc = new Document(\"input.html\", new HtmlLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// CORRECT — load from stream:\nbyte[] htmlBytes = System.Text.Encoding.UTF8.GetBytes(htmlContent);\nusing (MemoryStream ms = new MemoryStream(htmlBytes))\nusing (Document doc = new Document(ms, new HtmlLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.html\"); // may fail or misinterpret format",
+    "errors": []
+  },
+  "svg-requires-svgloadoptions": {
+    "note": "Loading an SVG file with new Document(svgPath) without SvgLoadOptions will fail or produce incorrect results. Always pass new SvgLoadOptions() as the second argument. SvgLoadOptions has an AdjustPageSize property that can be set to true to auto-size the PDF page to match the SVG dimensions.",
+    "code": "// CORRECT — with auto page sizing:\nSvgLoadOptions svgOpts = new SvgLoadOptions();\nsvgOpts.AdjustPageSize = true;\nusing (Document doc = new Document(\"input.svg\", svgOpts))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// CORRECT — simple:\nusing (Document doc = new Document(\"input.svg\", new SvgLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.svg\");",
+    "errors": []
+  },
+  "xps-requires-xpsloadoptions": {
+    "note": "Loading an XPS file with new Document(xpsPath) without XpsLoadOptions will fail. Always pass new XpsLoadOptions() as the second argument.",
+    "code": "// CORRECT:\nusing (Document doc = new Document(\"input.xps\", new XpsLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.xps\");",
+    "errors": []
+  },
+  "xslfo-requires-xslfoloadoptions": {
+    "note": "Loading an XSL-FO file requires XslFoLoadOptions (not XslFoLoadOption, not XsltLoadOptions, not FoLoadOptions). The class is in the Aspose.Pdf namespace. Always pass new XslFoLoadOptions() as the second argument to the Document constructor.",
+    "code": "// CORRECT:\nusing (Document doc = new Document(\"input.fo\", new XslFoLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — wrong class names:\n// new XsltLoadOptions()     // CS0246 — does not exist\n// new FoLoadOptions()       // CS0246 — does not exist\n// new XslFoLoadOption()     // CS0246 — missing 's'",
+    "errors": [
+      "CS0246: The type or namespace name 'XsltLoadOptions' could not be found",
+      "CS0246: The type or namespace name 'FoLoadOptions' could not be found",
+      "CS0246: The type or namespace name 'XslFoLoadOption' could not be found"
+    ]
+  },
+  "cgm-requires-cgmloadoptions-with-pagesize": {
+    "note": "Loading a CGM file requires CgmLoadOptions. Optionally pass a System.Drawing.SizeF for the page size. The class is in the Aspose.Pdf namespace.",
+    "code": "// CORRECT — with default page size:\nusing (Document doc = new Document(\"input.cgm\", new CgmLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// CORRECT — with custom page size:\nCgmLoadOptions cgmOpts = new CgmLoadOptions(new System.Drawing.SizeF(595, 842));\nusing (Document doc = new Document(\"input.cgm\", cgmOpts))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.cgm\");",
+    "errors": []
+  },
+  "mht-requires-mhtloadoptions": {
+    "note": "Loading an MHT/MHTML file requires MhtLoadOptions. The class is in the Aspose.Pdf namespace. Always pass new MhtLoadOptions() as the second argument.",
+    "code": "// CORRECT:\nusing (Document doc = new Document(\"input.mht\", new MhtLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// ALSO CORRECT for .mhtml:\nusing (Document doc = new Document(\"input.mhtml\", new MhtLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.mht\");",
+    "errors": []
+  },
+  "pcl-requires-pclloadoptions": {
+    "note": "Loading a PCL file requires PclLoadOptions. The class is in the Aspose.Pdf namespace. PCL files can also be loaded from a stream with PclLoadOptions.",
+    "code": "// CORRECT — from file:\nusing (Document doc = new Document(\"input.pcl\", new PclLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// CORRECT — from stream:\nusing (FileStream fs = new FileStream(\"input.pcl\", FileMode.Open))\nusing (Document doc = new Document(fs, new PclLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.pcl\");",
+    "errors": []
+  },
+  "xml-load-use-bindxml-not-document-constructor": {
+    "note": "To load XML content into a PDF, use Document.BindXml(xmlPath) or Document.BindXml(xmlStream) instead of passing XML to the Document constructor. The Document constructor does not accept raw XML files without XmlLoadOptions. For XSL-FO XML, use XslFoLoadOptions instead.",
+    "code": "// CORRECT — use BindXml:\nDocument doc = new Document();\ndoc.BindXml(\"input.xml\");\ndoc.Save(\"output.pdf\");\n\n// CORRECT — BindXml with XSLT:\nDocument doc = new Document();\ndoc.BindXml(\"input.xml\", \"transform.xslt\");\ndoc.Save(\"output.pdf\");\n\n// CORRECT — XSL-FO XML:\nusing (Document doc = new Document(\"input.fo\", new XslFoLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — raw XML to Document constructor:\n// Document doc = new Document(\"input.xml\"); // fails without proper load options",
+    "errors": []
+  },
+  "ofd-requires-ofdloadoptions": {
+    "note": "Loading an OFD file requires OfdLoadOptions. The class is in the Aspose.Pdf namespace. Always pass new OfdLoadOptions() as the second argument.",
+    "code": "// CORRECT:\nusing (Document doc = new Document(\"input.ofd\", new OfdLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.ofd\");",
+    "errors": []
+  },
+  "tex-requires-texloadoptions": {
+    "note": "Loading a TeX/LaTeX file requires TeXLoadOptions (not TexLoadOptions, not LatexLoadOptions). The class is in the Aspose.Pdf namespace.",
+    "code": "// CORRECT:\nTeXLoadOptions texOpts = new TeXLoadOptions();\nusing (Document doc = new Document(\"input.tex\", texOpts))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — wrong class names:\n// new TexLoadOptions()     // CS0246 — wrong casing, use TeXLoadOptions\n// new LatexLoadOptions()   // CS0246 — does not exist",
+    "errors": [
+      "CS0246: The type or namespace name 'TexLoadOptions' could not be found",
+      "CS0246: The type or namespace name 'LatexLoadOptions' could not be found"
+    ]
+  },
+  "ps-requires-psloadoptions": {
+    "note": "Loading a PostScript (.ps) file requires PsLoadOptions. The class is in the Aspose.Pdf namespace.",
+    "code": "// CORRECT:\nusing (Document doc = new Document(\"input.ps\", new PsLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.ps\");",
+    "errors": []
+  },
+  "loadoptions-is-abstract-use-concrete-class": {
+    "note": "LoadOptions is an abstract base class and cannot be instantiated directly. Always use the concrete derived class that matches the source format: HtmlLoadOptions, SvgLoadOptions, XpsLoadOptions, EpubLoadOptions, MdLoadOptions, MhtLoadOptions, PclLoadOptions, CgmLoadOptions, XslFoLoadOptions, TeXLoadOptions, PsLoadOptions, OfdLoadOptions, etc.",
+    "code": "// CORRECT — use the format-specific class:\nnew HtmlLoadOptions()    // for .html\nnew SvgLoadOptions()     // for .svg\nnew XpsLoadOptions()     // for .xps\nnew EpubLoadOptions()    // for .epub\nnew MdLoadOptions()      // for .md (Markdown)\nnew MhtLoadOptions()     // for .mht/.mhtml\nnew PclLoadOptions()     // for .pcl\nnew CgmLoadOptions()     // for .cgm\nnew XslFoLoadOptions()   // for .fo (XSL-FO)\nnew TeXLoadOptions()     // for .tex\nnew PsLoadOptions()      // for .ps (PostScript)\nnew OfdLoadOptions()     // for .ofd\n\n// WRONG — abstract class:\n// new LoadOptions()  // CS0144: cannot create instance of abstract class",
+    "errors": [
+      "CS0144: Cannot create an instance of the abstract type or interface 'LoadOptions'"
+    ]
   }
 }
