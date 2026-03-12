@@ -15399,5 +15399,41 @@
       "input.pdf",
       "ZoomToPageContents_out.pdf"
     ]
+  },
+  {
+    "id": "facades-stamps-api-guide",
+    "category": "Facades-Stamps",
+    "language": "dotnet",
+    "relative_path": "",
+    "semantic_summary": "Comprehensive guide for using the Aspose.Pdf.Facades stamping API: PdfFileStamp, Stamp, and FormattedText. Covers correct constructors, text binding, opacity, page origin, and common pitfalls that cause CS1061, CS0104, CS0618, and CS1503 errors.",
+    "api_surface": [
+      "Aspose.Pdf.Facades.PdfFileStamp",
+      "Aspose.Pdf.Facades.Stamp",
+      "Aspose.Pdf.Facades.FormattedText",
+      "Aspose.Pdf.Facades.EncodingType",
+      "Aspose.Pdf.Document"
+    ],
+    "rules": [
+      "When both 'using Aspose.Pdf;' and 'using Aspose.Pdf.Facades;' are imported, ALWAYS fully qualify Stamp as Aspose.Pdf.Facades.Stamp to avoid CS0104 ambiguity with Aspose.Pdf.Stamp.",
+      "Aspose.Pdf.Facades.Stamp does NOT have SetText(), SetFont(), SetFontSize(), SetTextColor(), SetColor(), or SetOpacity() methods. To add text, create a FormattedText object and bind it using stamp.BindLogo(formattedText). For opacity, use the Opacity property directly: stamp.Opacity = 0.5f.",
+      "FormattedText does NOT have settable properties (Text, Font, FontSize, TextState, TextColor, FontColor). ALL text content and styling must be set via the constructor: new FormattedText(text, System.Drawing.Color, fontName, EncodingType.Winansi, embedded, fontSize). The color parameter is System.Drawing.Color, NOT Aspose.Pdf.Color.",
+      "To append additional lines to FormattedText after construction, use AddNewLineText(). There is no AddText() method.",
+      "To bind formatted text to a Stamp, use stamp.BindLogo(formattedText). Stamp.SetText(FormattedText) does not exist.",
+      "To use a PDF page as a stamp with PdfFileStamp, create an Aspose.Pdf.Facades.Stamp and call stamp.BindPdf(pdfPath, pageNumber). Do NOT use PdfPageStamp with PdfFileStamp.AddStamp() — PdfPageStamp is for the core API (Page.AddStamp()) only.",
+      "PdfFileStamp.InputFile and PdfFileStamp.OutputFile are obsolete. Use BindPdf(inputFile) to load and Save(outputFile) to write. The PdfFileStamp(string, string) constructor is also obsolete — use the parameterless constructor instead.",
+      "PdfPageStamp uses the property name 'Background' (not 'IsBackground') to control whether the stamp appears behind page content.",
+      "FontRepository is in the Aspose.Pdf.Text namespace — add 'using Aspose.Pdf.Text;' or fully qualify as Aspose.Pdf.Text.FontRepository.",
+      "Loading an EPUB file requires EpubLoadOptions: new Document(epubPath, new EpubLoadOptions()). Loading a Markdown file requires MdLoadOptions (not MarkdownLoadOptions): new Document(mdPath, new MdLoadOptions())."
+    ],
+    "confidence": 0.98,
+    "warnings": [
+      "Do not confuse Aspose.Pdf.Facades.Stamp with Aspose.Pdf.Stamp — they are different classes in different namespaces.",
+      "Do not confuse PdfPageStamp (core API) with Aspose.Pdf.Facades.Stamp (Facades API) — they are not interchangeable.",
+      "FormattedText uses System.Drawing.Color for colors, not Aspose.Pdf.Color."
+    ],
+    "file_context": [
+      "input.pdf",
+      "output.pdf"
+    ]
   }
 ]

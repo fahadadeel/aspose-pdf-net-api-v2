@@ -5477,5 +5477,114 @@
       "CS1061 – 'ParagraphElement' and 'StructureElement' do not contain members named 'Alt' or 'Lang'."
     ],
     "code": "paragraph.Language = \"en-US\"; // instead of paragraph.Lang\n// Remove paragraph.Alt assignment – not supported for ParagraphElement\nelement.Language = \"en-US\"; // instead of element.Lang\n// For figures use figure.AlternativeText = \"...\";"
+  },
+  "stamp-ambiguity-qualify-facades-stamp": {
+    "note": "When both 'using Aspose.Pdf;' and 'using Aspose.Pdf.Facades;' are imported, unqualified 'Stamp' causes CS0104 ambiguity between Aspose.Pdf.Stamp and Aspose.Pdf.Facades.Stamp. For facade-based watermarking, ALWAYS use the fully qualified name Aspose.Pdf.Facades.Stamp.",
+    "code": "// CORRECT — fully qualify:\nAspose.Pdf.Facades.Stamp stamp = new Aspose.Pdf.Facades.Stamp();\n\n// WRONG — ambiguous when both namespaces are imported:\n// Stamp stamp = new Stamp(); // CS0104",
+    "errors": [
+      "CS0104: 'Stamp' is an ambiguous reference between 'Aspose.Pdf.Facades.Stamp' and 'Aspose.Pdf.Stamp'"
+    ]
+  },
+  "stamp-no-settext-setfont-setfontsize-settextcolor": {
+    "note": "Aspose.Pdf.Facades.Stamp does NOT have SetText(), SetFont(), SetFontSize(), SetTextColor(), or SetColor() methods. To add text to a Stamp, create a FormattedText object with the desired text, font, size, and color via its constructor, then bind it using stamp.BindLogo(formattedText). FormattedText also does NOT have settable properties like .Text, .Font, .FontSize, or .TextState — all styling must be passed via the constructor.",
+    "code": "// CORRECT — use FormattedText constructor + BindLogo:\nFormattedText ft = new FormattedText(\n    \"CONFIDENTIAL\\nDo Not Distribute\",\n    System.Drawing.Color.Red,\n    \"Helvetica\",\n    EncodingType.Winansi,\n    false,\n    36);\nAspose.Pdf.Facades.Stamp stamp = new Aspose.Pdf.Facades.Stamp();\nstamp.BindLogo(ft);\nstamp.SetOrigin(100, 400);\nstamp.IsBackground = true;\nstamp.Opacity = 0.5f;\n\n// WRONG — these methods do not exist on Stamp:\n// stamp.SetText(\"text\");                    // CS1061\n// stamp.SetFont(FontRepository.FindFont(\"Helvetica\")); // CS1061\n// stamp.SetFontSize(36);                     // CS1061\n// stamp.SetTextColor(Aspose.Pdf.Color.Red);  // CS1061\n// stamp.SetColor(Aspose.Pdf.Color.Gray);     // CS1061\n\n// WRONG — FormattedText has no settable properties:\n// FormattedText ft = new FormattedText();\n// ft.Text = \"test\";       // CS1061\n// ft.Font = ...;           // CS1061\n// ft.FontSize = 48;        // CS1061\n// ft.TextState = ...;      // CS1061",
+    "errors": [
+      "CS1061: 'Stamp' does not contain a definition for 'SetText'",
+      "CS1061: 'Stamp' does not contain a definition for 'SetFont'",
+      "CS1061: 'Stamp' does not contain a definition for 'SetFontSize'",
+      "CS1061: 'Stamp' does not contain a definition for 'SetTextColor'",
+      "CS1061: 'Stamp' does not contain a definition for 'SetColor'",
+      "CS1061: 'FormattedText' does not contain a definition for 'Text'",
+      "CS1061: 'FormattedText' does not contain a definition for 'Font'",
+      "CS1061: 'FormattedText' does not contain a definition for 'FontSize'",
+      "CS1061: 'FormattedText' does not contain a definition for 'TextState'"
+    ]
+  },
+  "pdffilestamp-inputfile-outputfile-obsolete": {
+    "note": "PdfFileStamp.InputFile and PdfFileStamp.OutputFile are obsolete. Use BindPdf(inputFile) to load the source PDF and Save(outputFile) to write the result. Alternatively, pass a Document object to the PdfFileStamp constructor: new PdfFileStamp(document).",
+    "code": "// CORRECT — use BindPdf + Save:\nusing (PdfFileStamp fileStamp = new PdfFileStamp())\n{\n    fileStamp.BindPdf(\"input.pdf\");\n    // ... add stamps ...\n    fileStamp.Save(\"output.pdf\");\n    fileStamp.Close();\n}\n\n// CORRECT — pass Document to constructor:\nusing (Document doc = new Document(\"input.pdf\"))\nusing (PdfFileStamp fileStamp = new PdfFileStamp(doc))\n{\n    // ... add stamps ...\n    fileStamp.Save(\"output.pdf\");\n}\n\n// WRONG — obsolete properties:\n// fileStamp.InputFile = \"input.pdf\";   // CS0618 obsolete\n// fileStamp.OutputFile = \"output.pdf\"; // CS0618 obsolete",
+    "errors": [
+      "CS0618: 'PdfFileStamp.InputFile' is obsolete: 'Use BindPdf(inputFile) method for facade initialization.'",
+      "CS0618: 'PdfFileStamp.OutputFile' is obsolete: 'Use Save(outputFile) method for getting facade results.'"
+    ]
+  },
+  "formattedtext-constructor-for-styling": {
+    "note": "FormattedText (Aspose.Pdf.Facades) does NOT have settable properties for Text, Font, FontSize, or TextState. All text content and styling must be set via the constructor. Use AddNewLineText() to append additional lines after construction. The color parameter is System.Drawing.Color, NOT Aspose.Pdf.Color.",
+    "code": "// CORRECT — constructor with text, color, font, encoding, embedded, size:\nFormattedText ft = new FormattedText(\n    \"Line 1\\nLine 2\\nLine 3\",\n    System.Drawing.Color.Gray,\n    \"Arial\",\n    EncodingType.Winansi,\n    false,\n    48);\n\n// CORRECT — constructor with foreground + background color:\nFormattedText ft2 = new FormattedText(\n    \"Watermark\",\n    System.Drawing.Color.Red,\n    System.Drawing.Color.White,\n    \"Helvetica\",\n    EncodingType.Winansi,\n    false,\n    36);\n\n// CORRECT — add lines after construction:\nFormattedText ft3 = new FormattedText(\"Line 1\");\nft3.AddNewLineText(\"Line 2\");\nft3.AddNewLineText(\"Line 3\");\n\n// WRONG — no settable properties:\n// FormattedText ft = new FormattedText();\n// ft.Text = \"test\";                                    // CS1061\n// ft.Font = FontRepository.FindFont(\"Arial\");           // CS1061\n// ft.FontSize = 48;                                     // CS1061\n// ft.TextState.ForegroundColor = Aspose.Pdf.Color.Gray; // CS1061",
+    "errors": [
+      "CS1061: 'FormattedText' does not contain a definition for 'Text'",
+      "CS1061: 'FormattedText' does not contain a definition for 'Font'",
+      "CS1061: 'FormattedText' does not contain a definition for 'FontSize'",
+      "CS1061: 'FormattedText' does not contain a definition for 'TextState'"
+    ]
+  },
+  "stamp-settext-formattedtext-use-bindlogo": {
+    "note": "Stamp.SetText(FormattedText) does not exist. To bind formatted text (with font, color, and size) to a Stamp, use stamp.BindLogo(formattedText). The FormattedText must be fully configured via its constructor before calling BindLogo.",
+    "code": "// CORRECT:\nFormattedText ft = new FormattedText(\"Watermark\", System.Drawing.Color.Gray, \"Arial\", EncodingType.Winansi, false, 48);\nAspose.Pdf.Facades.Stamp stamp = new Aspose.Pdf.Facades.Stamp();\nstamp.BindLogo(ft);\n\n// WRONG — SetText does not accept FormattedText:\n// stamp.SetText(ft); // CS1061",
+    "errors": [
+      "CS1061: 'Stamp' does not contain a definition for 'SetText'"
+    ]
+  },
+  "formattedtext-no-addtext-use-addnewlinetext": {
+    "note": "FormattedText does NOT have an AddText() method. To append additional lines after construction, use AddNewLineText(). Do NOT prefix the text with '\\n' when using AddNewLineText — it automatically starts a new line.",
+    "code": "// CORRECT — use AddNewLineText:\nFormattedText ft = new FormattedText(\"Line 1\");\nft.AddNewLineText(\"Line 2\");\nft.AddNewLineText(\"Line 3\");\n\n// WRONG — AddText does not exist:\n// FormattedText ft = new FormattedText();\n// ft.AddText(\"Line 1\");          // CS1061\n// ft.AddText(\"\\nLine 2\");        // CS1061",
+    "errors": [
+      "CS1061: 'FormattedText' does not contain a definition for 'AddText'"
+    ]
+  },
+  "formattedtext-no-textcolor-or-fontcolor": {
+    "note": "FormattedText does NOT have a TextColor or FontColor property. Text color must be set via the FormattedText constructor using System.Drawing.Color as the second parameter. There are no settable color properties on FormattedText after construction.",
+    "code": "// CORRECT — set color via constructor:\nFormattedText ft = new FormattedText(\n    \"Watermark\",\n    System.Drawing.Color.Red,  // text color\n    \"Helvetica\",\n    EncodingType.Winansi,\n    false,\n    36);\n\n// WRONG — no TextColor or FontColor property:\n// ft.TextColor = Aspose.Pdf.Color.Red;  // CS1061\n// ft.FontColor = Aspose.Pdf.Color.Red;  // CS0117",
+    "errors": [
+      "CS1061: 'FormattedText' does not contain a definition for 'TextColor'",
+      "CS0117: 'FormattedText' does not contain a definition for 'FontColor'"
+    ]
+  },
+  "no-markdownloadoptions-use-mdloadoptions": {
+    "note": "There is no class called 'MarkdownLoadOptions' in Aspose.Pdf. To load Markdown files, use MdLoadOptions instead.",
+    "code": "// CORRECT:\nusing (Document doc = new Document(\"input.md\", new MdLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — MarkdownLoadOptions does not exist:\n// Document doc = new Document(\"input.md\", new MarkdownLoadOptions()); // CS0246",
+    "errors": [
+      "CS0246: The type or namespace name 'MarkdownLoadOptions' could not be found (are you missing a using directive or an assembly reference?)"
+    ]
+  },
+  "pdfpagestamp-not-compatible-with-pdffilestamp-addstamp": {
+    "note": "PdfFileStamp.AddStamp() only accepts Aspose.Pdf.Facades.Stamp, NOT PdfPageStamp. PdfPageStamp is a core API class meant for use with Page.AddStamp(). To use a PDF page as a stamp with the Facades API (PdfFileStamp), create an Aspose.Pdf.Facades.Stamp and use stamp.BindPdf(pdfPath, pageNumber) or stamp.BindPdf(stream, pageNumber) to bind a specific page as the stamp content.",
+    "code": "// CORRECT — use Facades Stamp with BindPdf:\nAspose.Pdf.Facades.Stamp stamp = new Aspose.Pdf.Facades.Stamp();\nstamp.BindPdf(\"source.pdf\", 1);  // bind page 1 as stamp content\nstamp.IsBackground = true;\nstamp.Opacity = 0.5f;\n\nusing (PdfFileStamp fileStamp = new PdfFileStamp())\n{\n    fileStamp.BindPdf(\"input.pdf\");\n    fileStamp.AddStamp(stamp);\n    fileStamp.Save(\"output.pdf\");\n    fileStamp.Close();\n}\n\n// CORRECT — bind from stream:\nAspose.Pdf.Facades.Stamp stamp2 = new Aspose.Pdf.Facades.Stamp();\nstamp2.BindPdf(memoryStream, 1);\n\n// WRONG — PdfPageStamp cannot be used with PdfFileStamp:\n// PdfPageStamp pageStamp = new PdfPageStamp(\"source.pdf\", 1);\n// fileStamp.AddStamp(pageStamp); // CS1503: cannot convert PdfPageStamp to Stamp",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.PdfPageStamp' to 'Aspose.Pdf.Facades.Stamp'"
+    ]
+  },
+  "pdfpagestamp-background-not-isbackground": {
+    "note": "PdfPageStamp uses the property name 'Background' (not 'IsBackground') to control whether the stamp appears behind page content. IsBackground does not exist on PdfPageStamp.",
+    "code": "// CORRECT:\nPdfPageStamp pageStamp = new PdfPageStamp(page);\npageStamp.Background = true;\n\n// WRONG:\n// pageStamp.IsBackground = true; // CS0117",
+    "errors": [
+      "CS0117: 'PdfPageStamp' does not contain a definition for 'IsBackground'"
+    ]
+  },
+  "pdffilestamp-constructor-string-string-obsolete": {
+    "note": "The PdfFileStamp(string inputFile, string outputFile) constructor is obsolete. Use the parameterless constructor followed by BindPdf() and Save() instead.",
+    "code": "// CORRECT:\nusing (PdfFileStamp fileStamp = new PdfFileStamp())\n{\n    fileStamp.BindPdf(\"input.pdf\");\n    // ... add stamps ...\n    fileStamp.Save(\"output.pdf\");\n    fileStamp.Close();\n}\n\n// WRONG — obsolete constructor:\n// PdfFileStamp fileStamp = new PdfFileStamp(\"input.pdf\", \"output.pdf\"); // CS0618",
+    "errors": [
+      "CS0618: 'PdfFileStamp.PdfFileStamp(string, string)' is obsolete: 'Use constructor without destination.'"
+    ]
+  },
+  "stamp-no-setopacity-use-opacity-property": {
+    "note": "Aspose.Pdf.Facades.Stamp does NOT have a SetOpacity() method. Use the Opacity property directly instead.",
+    "code": "// CORRECT:\nAspose.Pdf.Facades.Stamp stamp = new Aspose.Pdf.Facades.Stamp();\nstamp.Opacity = 0.5f;\n\n// WRONG:\n// stamp.SetOpacity(0.5f); // CS1061",
+    "errors": [
+      "CS1061: 'Stamp' does not contain a definition for 'SetOpacity'"
+    ]
+  },
+  "epub-requires-epubloadoptions": {
+    "note": "Loading an EPUB file with new Document(epubPath) without specifying EpubLoadOptions will fail or produce incorrect results. Always pass new EpubLoadOptions() as the second argument when loading EPUB files.",
+    "code": "// CORRECT:\nusing (Document doc = new Document(\"input.epub\", new EpubLoadOptions()))\n{\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — missing load options:\n// Document doc = new Document(\"input.epub\"); // may fail or misinterpret format",
+    "errors": []
+  },
+  "fontrepository-requires-using-aspose-pdf-text": {
+    "note": "FontRepository is in the Aspose.Pdf.Text namespace. If you use FontRepository.FindFont() without importing Aspose.Pdf.Text, you will get CS0103. Add 'using Aspose.Pdf.Text;' or fully qualify as Aspose.Pdf.Text.FontRepository.",
+    "code": "// CORRECT — add the using:\nusing Aspose.Pdf.Text;\n// ...\nvar font = FontRepository.FindFont(\"Helvetica\");\n\n// CORRECT — fully qualify:\nvar font = Aspose.Pdf.Text.FontRepository.FindFont(\"Helvetica\");\n\n// WRONG — missing namespace:\n// FontRepository.FindFont(\"Helvetica\"); // CS0103 if Aspose.Pdf.Text not imported",
+    "errors": [
+      "CS0103: The name 'FontRepository' does not exist in the current context"
+    ]
   }
 }
