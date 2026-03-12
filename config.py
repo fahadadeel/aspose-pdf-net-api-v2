@@ -59,6 +59,7 @@ class PipelineConfig:
     final_llm_after_regen_fail: bool = True
     retry_mode: str = "full"
     learn_rules_from_failures: bool = False
+    use_own_llm: bool = False  # True = use own LLM key for code generation instead of MCP's
 
 
 @dataclass
@@ -100,6 +101,16 @@ class AnthropicConfig:
 
 
 @dataclass
+class ReportingConfig:
+    """Usage reporting to external endpoint (Google Apps Script)."""
+    endpoint_url: str = ""
+    endpoint_token: str = ""
+    agent_name: str = "Aspose PDF Example Generator"
+    agent_owner: str = "Fahad Adeel"
+    timeout: int = 10
+
+
+@dataclass
 class GitConfig:
     """Git repo and PR config. Secrets from .env."""
     repo_url: str = "https://github.com/aspose-pdf/agentic-net-examples.git"
@@ -124,6 +135,7 @@ class AppConfig:
     llm: LLMConfig = field(default_factory=LLMConfig)
     reranker: RerankerConfig = field(default_factory=RerankerConfig)
     anthropic: AnthropicConfig = field(default_factory=AnthropicConfig)
+    reporting: ReportingConfig = field(default_factory=ReportingConfig)
     git: GitConfig = field(default_factory=GitConfig)
 
     workspace_path: str = "."
@@ -176,6 +188,7 @@ def load_config() -> AppConfig:
     cfg.pipeline.final_llm_after_regen_fail = _env_bool("FINAL_LLM_AFTER_REGEN_FAIL", cfg.pipeline.final_llm_after_regen_fail)
     cfg.pipeline.retry_mode = _env("RETRY_MODE", cfg.pipeline.retry_mode)
     cfg.pipeline.learn_rules_from_failures = _env_bool("LEARN_RULES_FROM_FAILURES", cfg.pipeline.learn_rules_from_failures)
+    cfg.pipeline.use_own_llm = _env_bool("USE_OWN_LLM", cfg.pipeline.use_own_llm)
 
     # MCP
     cfg.mcp.generate_url = _env("API_URL", cfg.mcp.generate_url)
@@ -202,6 +215,13 @@ def load_config() -> AppConfig:
     # Anthropic
     cfg.anthropic.api_key = _env("ANTHROPIC_API_KEY", cfg.anthropic.api_key)
     cfg.anthropic.model = _env("ANTHROPIC_MODEL", cfg.anthropic.model)
+
+    # Reporting
+    cfg.reporting.endpoint_url = _env("REPORTING_ENDPOINT_URL", cfg.reporting.endpoint_url)
+    cfg.reporting.endpoint_token = _env("REPORTING_ENDPOINT_TOKEN", cfg.reporting.endpoint_token)
+    cfg.reporting.agent_name = _env("REPORTING_AGENT_NAME", cfg.reporting.agent_name)
+    cfg.reporting.agent_owner = _env("REPORTING_AGENT_OWNER", cfg.reporting.agent_owner)
+    cfg.reporting.timeout = _env_int("REPORTING_TIMEOUT", cfg.reporting.timeout)
 
     # Git (secrets from .env)
     cfg.git.repo_url = _env("REPO_URL", cfg.git.repo_url)

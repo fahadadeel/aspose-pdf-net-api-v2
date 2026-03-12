@@ -5,7 +5,9 @@ Framework-agnostic: no FastAPI, no threading, no state.py dependencies.
 Usable from CLI, API, or UI modes.
 """
 
+import json
 import re
+from pathlib import Path
 from typing import Callable, Optional
 
 from config import AppConfig
@@ -20,6 +22,19 @@ from knowledge.error_catalog import load_error_catalog
 from knowledge.error_fixes import load_error_fixes, match_error_fixes, format_error_fixes_for_prompt
 
 
+def _format_rules_block(rules: dict) -> str:
+    """Format product rules into text block (replicates MCP server's format_rules_block)."""
+    lines = []
+    for key, value in rules.items():
+        if isinstance(value, list):
+            lines.append(f"{key}:")
+            for line in value:
+                lines.append("  " + line)
+        else:
+            lines.append(f"{key}: {value}")
+    return "\n".join(lines)
+
+
 class PipelineRunner:
     """Orchestrates the 5-stage code generation and testing pipeline."""
 
@@ -28,11 +43,12 @@ class PipelineRunner:
         config: AppConfig,
         progress_callback: Callable = None,
         shared_sentence_model=None,
+        usage_tracker=None,
     ):
         self.config = config
         self._notify_fn = progress_callback
-        self.mcp = MCPClient(config)
-        self.llm = LLMClient(config)
+        self.mcp = MCPClient(config, usage_tracker=usage_tracker)
+        self.llm = LLMClient(config, usage_tracker=usage_tracker)
         self.builder = DotnetBuilder(config)
 
         # Knowledge base (lazy-loaded on first regen)
@@ -41,6 +57,10 @@ class PipelineRunner:
         self._kb_loaded = False
         self._error_catalog = None
         self._error_fixes = None
+
+        # Generation rules (lazy-loaded when use_own_llm is enabled)
+        self._generation_rules = ""
+        self._generation_rules_loaded = False
 
     def _notify(self, stage: str, message: str):
         if self._notify_fn:
@@ -67,6 +87,19 @@ class PipelineRunner:
         self._ensure_error_fixes()
         self._kb_loaded = True
 
+    def _ensure_generation_rules(self):
+        """Lazy-load generation rules from resources/generation_rules.json."""
+        if self._generation_rules_loaded:
+            return
+        self._generation_rules_loaded = True
+        rules_path = Path(self.config.workspace_path) / "resources" / "generation_rules.json"
+        if rules_path.exists():
+            try:
+                data = json.loads(rules_path.read_text(encoding="utf-8"))
+                self._generation_rules = _format_rules_block(data.get("rules", {}))
+            except Exception as e:
+                print(f"Warning: could not load generation rules: {e}")
+
     def _get_fixes_for_error(self, error_log: str) -> str:
         """Match error fixes against a build error and return formatted text."""
         self._ensure_error_fixes()
@@ -83,8 +116,14 @@ class PipelineRunner:
         )
 
         # ── Stage 1: Baseline Generation ──
+        if self.config.pipeline.use_own_llm:
+            self._ensure_generation_rules()
         self._notify("baseline", f"Stage 1: Generating code for: {task_input.task[:80]}...")
-        outcome = stages.run_baseline(task_input, self.mcp, self.builder, self._notify)
+        outcome = stages.run_baseline(
+            task_input, self.mcp, self.builder, self._notify,
+            llm=self.llm, config=self.config,
+            generation_rules=self._generation_rules,
+        )
 
         if outcome.success:
             result.generated_code = outcome.code
@@ -157,6 +196,7 @@ class PipelineRunner:
             rule_engine=self._rule_engine,
             error_catalog=self._error_catalog,
             error_fixes_data=self._error_fixes,
+            generation_rules=self._generation_rules,
         )
         if outcome.success:
             result.fixed_code = outcome.code
