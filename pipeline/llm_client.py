@@ -28,10 +28,12 @@ class LLMClient:
     def available(self) -> bool:
         return bool(self.config.llm.api_key and self.config.llm.api_base)
 
-    def chat(self, system: str, user: str, temperature: float = 0.0, max_tokens: int = 4000, timeout: int = 30) -> Optional[str]:
+    def chat(self, system: str, user: str, temperature: float = 0.0, max_tokens: int = 4000, timeout: int = None) -> Optional[str]:
         """Generic chat completion. Returns content string or None."""
         if not self.available:
             return None
+        if timeout is None:
+            timeout = self.config.llm.timeout
         try:
             resp = self._session.post(
                 f"{self.config.llm.api_base}/chat/completions",
@@ -70,7 +72,7 @@ class LLMClient:
         if user_rules:
             user += f"\n\nEXTRA CONTEXT:\n{user_rules}"
 
-        content = self.chat(system, user, temperature=0.0, max_tokens=4000, timeout=30)
+        content = self.chat(system, user, temperature=0.0, max_tokens=4000, timeout=self.config.llm.timeout)
         if not content:
             return None
 
@@ -100,7 +102,7 @@ class LLMClient:
         if context:
             user += f"\n\nEXTRA CONTEXT:\n{context}"
 
-        content = self.chat(system, user, temperature=0.0, max_tokens=1000, timeout=20)
+        content = self.chat(system, user, temperature=0.0, max_tokens=1000, timeout=self.config.llm.timeout)
         if not content:
             return None
 

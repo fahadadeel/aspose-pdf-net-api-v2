@@ -137,6 +137,94 @@ _KNOWN_FIXES = [
         "regex": True,
         "rule": {"description": "Disambiguate Color to Aspose.Pdf.Color", "pattern": "Aspose.Pdf.Color"},
     },
+
+    # ── Facades Stamps patterns ──
+    {
+        "pattern": r"(?s)error CS0104.*'Stamp' is an ambiguous reference",
+        "old": r"(?<!Aspose\.Pdf\.Facades\.)(?<!Aspose\.Pdf\.)\bStamp\b",
+        "new": "Aspose.Pdf.Facades.Stamp",
+        "regex": True,
+        "rule": {"description": "Disambiguate Stamp to Aspose.Pdf.Facades.Stamp", "pattern": "Aspose.Pdf.Facades.Stamp"},
+    },
+    {
+        "pattern": r"(?s)error CS1061.*'Stamp'.*'SetText'",
+        "old": r"\.SetText\(",
+        "new": ".BindLogo(",
+        "regex": True,
+        "rule": {"description": "Stamp has no SetText method; use BindLogo(formattedText)", "pattern": "stamp.BindLogo(ft)"},
+    },
+    {
+        "pattern": r"(?s)error CS1061.*'Stamp'.*'SetOpacity'",
+        "old": r"\.SetOpacity\(([^)]+)\)",
+        "new": r".Opacity = \1",
+        "regex": True,
+        "rule": {"description": "Stamp has no SetOpacity method; use Opacity property", "pattern": "stamp.Opacity = value"},
+    },
+    {
+        "pattern": r"(?s)error CS1061.*'Stamp'.*'(?:SetFont|SetFontSize|SetTextColor)'",
+        "old": r"[ \t]*\w+\.(?:SetFont|SetFontSize|SetTextColor)\(.*?\);\s*\n?",
+        "new": "",
+        "regex": True,
+        "rule": {"description": "Stamp has no SetFont/SetFontSize/SetTextColor; configure FormattedText via constructor", "pattern": "Remove SetFont/SetFontSize/SetTextColor calls"},
+    },
+    {
+        "pattern": r"(?s)error CS0618.*'PdfFileStamp\.InputFile'.*obsolete",
+        "old": r"(\w+)\.InputFile\s*=\s*([^;]+);",
+        "new": r"\1.BindPdf(\2);",
+        "regex": True,
+        "rule": {"description": "PdfFileStamp.InputFile is obsolete; use BindPdf()", "pattern": "fileStamp.BindPdf(inputFile)"},
+    },
+    {
+        "pattern": r"(?s)error CS0618.*'PdfFileStamp\.OutputFile'.*obsolete",
+        "old": r"(\w+)\.OutputFile\s*=\s*([^;]+);",
+        "new": r"\1.Save(\2);",
+        "regex": True,
+        "rule": {"description": "PdfFileStamp.OutputFile is obsolete; use Save()", "pattern": "fileStamp.Save(outputFile)"},
+    },
+    {
+        "pattern": r"(?s)error CS0618.*'PdfFileStamp\.PdfFileStamp\(string,\s*string\)'.*obsolete",
+        "old": r"new\s+PdfFileStamp\(\s*([^,]+),\s*([^)]+)\)",
+        "new": r"new PdfFileStamp()",
+        "regex": True,
+        "rule": {"description": "PdfFileStamp(string,string) is obsolete; use parameterless constructor + BindPdf + Save", "pattern": "new PdfFileStamp()"},
+    },
+
+    # ── LoadOptions class name fixes ──
+    {
+        "pattern": r"(?s)error CS0246.*'MarkdownLoadOptions'",
+        "old": "MarkdownLoadOptions",
+        "new": "MdLoadOptions",
+        "regex": False,
+        "rule": {"description": "MarkdownLoadOptions does not exist; use MdLoadOptions", "pattern": "new MdLoadOptions()"},
+    },
+    {
+        "pattern": r"(?s)error CS0246.*'TexLoadOptions'",
+        "old": "TexLoadOptions",
+        "new": "TeXLoadOptions",
+        "regex": False,
+        "rule": {"description": "TexLoadOptions has wrong casing; use TeXLoadOptions", "pattern": "new TeXLoadOptions()"},
+    },
+    {
+        "pattern": r"(?s)error CS0246.*'XsltLoadOptions'",
+        "old": "XsltLoadOptions",
+        "new": "XslFoLoadOptions",
+        "regex": False,
+        "rule": {"description": "XsltLoadOptions does not exist; use XslFoLoadOptions", "pattern": "new XslFoLoadOptions()"},
+    },
+    {
+        "pattern": r"(?s)error CS0246.*'LatexLoadOptions'",
+        "old": "LatexLoadOptions",
+        "new": "TeXLoadOptions",
+        "regex": False,
+        "rule": {"description": "LatexLoadOptions does not exist; use TeXLoadOptions", "pattern": "new TeXLoadOptions()"},
+    },
+    {
+        "pattern": r"(?s)error CS0246.*'FoLoadOptions'",
+        "old": "FoLoadOptions",
+        "new": "XslFoLoadOptions",
+        "regex": False,
+        "rule": {"description": "FoLoadOptions does not exist; use XslFoLoadOptions", "pattern": "new XslFoLoadOptions()"},
+    },
 ]
 
 
