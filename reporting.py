@@ -2,15 +2,26 @@
 reporting.py — Fire-and-forget usage reporting to external endpoint.
 
 Reports job completion metrics to a Google Apps Script endpoint.
+Also logs each report locally to usage_reports.jsonl for review.
 Failures are logged but NEVER affect the pipeline.
+
+Config switches:
+  REPORTING_ENABLED      — master switch (default: true)
+  REPORTING_LOG_TO_FILE  — write each report to usage_reports.jsonl (default: true)
+  REPORTING_ENDPOINT_URL — if empty, remote POST is skipped (local log still works)
 """
 
+import json
 import threading
 from datetime import datetime, timezone
+from pathlib import Path
 
 import requests
 
 from config import AppConfig
+
+# Local log file — one JSON object per line, appended after each run
+_LOG_FILE = Path("usage_reports.jsonl")
 
 
 def report_job_usage(
@@ -23,13 +34,12 @@ def report_job_usage(
     usage_snapshot: dict,
     status: str = "success",
 ):
-    """Fire-and-forget: POST usage report in a background thread.
+    """Fire-and-forget: log locally + POST usage report in a background thread.
 
-    Does nothing if reporting is not configured.
+    Does nothing if reporting is disabled via config.
     Never raises exceptions to the caller.
     """
-    endpoint = config.reporting.endpoint_url
-    if not endpoint:
+    if not config.reporting.enabled:
         return
 
     try:
@@ -37,14 +47,22 @@ def report_job_usage(
             config, job_id, total, passed, failed,
             elapsed_seconds, usage_snapshot, status,
         )
-        thread = threading.Thread(
-            target=_send_report,
-            args=(endpoint, config.reporting.endpoint_token, payload, config.reporting.timeout),
-            daemon=True,
-        )
-        thread.start()
+
+        # Always log locally first (synchronous, fast)
+        if config.reporting.log_to_file:
+            _log_to_file(payload)
+
+        # POST to remote endpoint in background (only if configured)
+        endpoint = config.reporting.endpoint_url
+        if endpoint:
+            thread = threading.Thread(
+                target=_send_report,
+                args=(endpoint, config.reporting.endpoint_token, payload, config.reporting.timeout),
+                daemon=True,
+            )
+            thread.start()
     except Exception as e:
-        print(f"[reporting] Failed to start report thread: {e}")
+        print(f"[reporting] Failed to start report: {e}")
 
 
 def _build_payload(
@@ -58,16 +76,6 @@ def _build_payload(
     status: str,
 ) -> dict:
     """Build the JSON payload for the reporting endpoint."""
-    # Extract owner/repo from git URL
-    website_section = ""
-    try:
-        from git_ops.github_api import GitHubAPI
-        owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
-        if owner and repo_name:
-            website_section = f"{owner}/{repo_name}"
-    except Exception:
-        pass
-
     return {
         "timestamp": datetime.now(timezone.utc).isoformat(timespec="milliseconds").replace("+00:00", "Z"),
         "agent_name": config.reporting.agent_name,
@@ -77,8 +85,8 @@ def _build_payload(
         "status": status,
         "product": "Aspose.PDF",
         "platform": ".NET",
-        "website": "github.com",
-        "website_section": website_section,
+        "website": config.reporting.website,
+        "website_section": config.reporting.website_section,
         "item_name": "Examples",
         "items_discovered": total,
         "items_failed": failed,
@@ -87,6 +95,16 @@ def _build_payload(
         "token_usage": usage_snapshot.get("llm_tokens", 0),
         "api_calls_count": usage_snapshot.get("total_api_calls", 0),
     }
+
+
+def _log_to_file(payload: dict):
+    """Append one JSON line to the local log file."""
+    try:
+        with open(_LOG_FILE, "a", encoding="utf-8") as f:
+            f.write(json.dumps(payload) + "\n")
+        print(f"[reporting] Logged to {_LOG_FILE}")
+    except Exception as e:
+        print(f"[reporting] File log failed: {e}")
 
 
 def _send_report(endpoint: str, token: str, payload: dict, timeout: int):
