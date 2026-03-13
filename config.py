@@ -59,7 +59,7 @@ class PipelineConfig:
     final_llm_after_regen_fail: bool = True
     retry_mode: str = "full"
     learn_rules_from_failures: bool = False
-    use_own_llm: bool = False  # True = use own LLM key for code generation instead of MCP's
+    use_own_llm: bool = True  # True = use own LLM key for code generation instead of MCP's
 
 
 @dataclass
@@ -103,10 +103,14 @@ class AnthropicConfig:
 @dataclass
 class ReportingConfig:
     """Usage reporting to external endpoint (Google Apps Script)."""
+    enabled: bool = True  # Master switch — False disables all reporting
     endpoint_url: str = ""
     endpoint_token: str = ""
-    agent_name: str = "Aspose PDF Example Generator"
+    log_to_file: bool = True  # Write each report as JSON to usage_reports.jsonl
+    agent_name: str = "Aspose.PDF Example Generator"
     agent_owner: str = "Fahad Adeel"
+    website: str = "aspose.com"
+    website_section: str = "examples"
     timeout: int = 10
 
 
@@ -217,10 +221,14 @@ def load_config() -> AppConfig:
     cfg.anthropic.model = _env("ANTHROPIC_MODEL", cfg.anthropic.model)
 
     # Reporting
+    cfg.reporting.enabled = _env_bool("REPORTING_ENABLED", cfg.reporting.enabled)
     cfg.reporting.endpoint_url = _env("REPORTING_ENDPOINT_URL", cfg.reporting.endpoint_url)
     cfg.reporting.endpoint_token = _env("REPORTING_ENDPOINT_TOKEN", cfg.reporting.endpoint_token)
+    cfg.reporting.log_to_file = _env_bool("REPORTING_LOG_TO_FILE", cfg.reporting.log_to_file)
     cfg.reporting.agent_name = _env("REPORTING_AGENT_NAME", cfg.reporting.agent_name)
     cfg.reporting.agent_owner = _env("REPORTING_AGENT_OWNER", cfg.reporting.agent_owner)
+    cfg.reporting.website = _env("REPORTING_WEBSITE", cfg.reporting.website)
+    cfg.reporting.website_section = _env("REPORTING_WEBSITE_SECTION", cfg.reporting.website_section)
     cfg.reporting.timeout = _env_int("REPORTING_TIMEOUT", cfg.reporting.timeout)
 
     # Git (secrets from .env)
