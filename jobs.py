@@ -1,5 +1,5 @@
 """
-jobs.py — Background worker (run_job, retry_pr).
+jobs.py — Background worker (run_job, retry_pr, run_sweep, run_version_bump).
 
 Runs in a daemon thread — NOT in the async event loop.
 This keeps heavy CPU/IO work (dotnet build, ML models) off Uvicorn's event loop.
@@ -1110,4 +1110,164 @@ def run_sweep(
         with JOB_LOCK:
             JOB_CANCEL_FLAGS.pop(job_id, None)
         add_log(job_id, f"Sweep failed: {exc}")
+        set_status(job_id, "failed")
+
+
+def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
+    """Bump NuGet version: tag old → clean examples → sweep with new version.
+
+    1. Tag current main with v{old_version} + create GitHub Release
+    2. Delete all .cs example files from the repo
+    3. Update runtime config to new_version
+    4. Run full category sweep to regenerate everything
+    """
+    from git_ops.github_api import GitHubAPI
+    from git_ops.repo_docs import scan_repo
+
+    notify = _make_progress_callback(job_id)
+    config = load_config()
+    old_version = config.build.nuget_version
+
+    try:
+        init_build(job_id, total=0)
+        add_log(job_id, f"Version bump: {old_version} → {new_version}")
+
+        # ── Phase 1: Tag + Release old version ──
+        set_current_task(job_id, f"Tagging v{old_version}...")
+        add_log(job_id, f"Phase 1: Tagging v{old_version} and creating GitHub Release")
+
+        if not config.git.repo_token:
+            add_log(job_id, "ERROR: REPO_TOKEN not configured — cannot tag")
+            set_status(job_id, "failed")
+            return
+
+        gh = GitHubAPI(config.git.repo_token)
+        owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
+
+        if not owner or not repo_name:
+            add_log(job_id, "ERROR: Could not parse repo URL")
+            set_status(job_id, "failed")
+            return
+
+        base_branch = config.git.repo_branch or "main"
+        main_sha = gh.get_branch_sha(owner, repo_name, base_branch)
+        if not main_sha:
+            add_log(job_id, f"ERROR: Could not get SHA for {base_branch}")
+            set_status(job_id, "failed")
+            return
+
+        tag_name = f"v{old_version}"
+        if gh.create_tag(owner, repo_name, tag_name, main_sha):
+            add_log(job_id, f"Created tag: {tag_name}")
+        else:
+            add_log(job_id, f"Tag {tag_name} may already exist — continuing")
+
+        release_name = f"Aspose.PDF {old_version} Examples"
+        release_body = (
+            f"Examples generated for **Aspose.PDF for .NET {old_version}**.\n\n"
+            f"- Target framework: `{config.build.tfm}`\n"
+            f"- NuGet package: `Aspose.PDF {old_version}`\n"
+        )
+        release_url = gh.create_release(owner, repo_name, tag_name, release_name, release_body)
+        if release_url:
+            add_log(job_id, f"Created GitHub Release: {release_url}")
+        else:
+            add_log(job_id, "Release creation failed — continuing anyway")
+
+        # ── Phase 2: Clean existing examples ──
+        set_current_task(job_id, "Cleaning old examples...")
+        add_log(job_id, f"Phase 2: Removing {old_version} examples from repo")
+
+        repo_path = Path(config.git.repo_path)
+        if not repo_path.exists():
+            add_log(job_id, f"ERROR: Repo path not found: {repo_path}")
+            set_status(job_id, "failed")
+            return
+
+        # Pull latest
+        subprocess.run(
+            ["git", "fetch", "origin"], cwd=str(repo_path),
+            capture_output=True, text=True, timeout=30,
+        )
+        subprocess.run(
+            ["git", "checkout", base_branch], cwd=str(repo_path),
+            capture_output=True, text=True, timeout=10,
+        )
+        subprocess.run(
+            ["git", "pull", "origin", base_branch], cwd=str(repo_path),
+            capture_output=True, text=True, timeout=30,
+        )
+
+        # Scan and delete all .cs files in category folders
+        scan = scan_repo(str(repo_path))
+        total_files = 0
+        for cat_name, cs_files in scan.items():
+            cat_dir = repo_path / cat_name
+            for cs_file in cs_files:
+                file_path = cat_dir / cs_file
+                if file_path.exists():
+                    file_path.unlink()
+                    total_files += 1
+
+        if total_files > 0:
+            add_log(job_id, f"Deleted {total_files} .cs file(s) across {len(scan)} categories")
+            # Commit and push the cleanup
+            subprocess.run(
+                ["git", "add", "-A"], cwd=str(repo_path),
+                capture_output=True, text=True, timeout=10,
+            )
+            subprocess.run(
+                ["git", "commit", "-m", f"Remove {old_version} examples for version bump to {new_version}"],
+                cwd=str(repo_path), capture_output=True, text=True, timeout=10,
+            )
+            subprocess.run(
+                ["git", "push", "origin", base_branch], cwd=str(repo_path),
+                capture_output=True, text=True, timeout=60,
+            )
+            add_log(job_id, "Cleanup committed and pushed to main")
+        else:
+            add_log(job_id, "No .cs files found to clean — continuing")
+
+        # ── Phase 3: Update runtime config ──
+        set_current_task(job_id, "Updating version...")
+        config.build.nuget_version = new_version
+        add_log(job_id, f"Phase 3: Runtime config updated to {new_version}")
+        add_log(job_id, f"NOTE: Update NUGET_VERSION in .env to {new_version} to persist")
+
+        # ── Phase 4: Full sweep ──
+        add_log(job_id, f"Phase 4: Running full sweep with {new_version}")
+
+        # Fetch all categories
+        categories = []
+        if config.categories_api_url:
+            try:
+                resp = requests.get(
+                    config.categories_api_url,
+                    params={"product": "aspose.pdf"},
+                    timeout=15,
+                )
+                data = resp.json()
+                items = data.get("items", data if isinstance(data, list) else [])
+                categories = [c["name"] if isinstance(c, dict) else c for c in items]
+            except Exception as e:
+                add_log(job_id, f"ERROR: Failed to fetch categories: {e}")
+
+        if not categories:
+            add_log(job_id, "No categories found — sweep skipped")
+            set_status(job_id, "completed")
+            return
+
+        add_log(job_id, f"Found {len(categories)} categories — starting sweep")
+
+        # Delegate to run_sweep (reuse the same job_id so monitor stays connected)
+        run_sweep(job_id, categories, repo_push=repo_push)
+
+        # run_sweep sets final status, so we just add a summary
+        state = get_build_state(job_id)
+        if state:
+            add_log(job_id, f"Version bump complete: {old_version} → {new_version}")
+            add_log(job_id, f"Results: {state['passed_count']} passed, {state['failed_count']} failed")
+
+    except Exception as exc:
+        add_log(job_id, f"Version bump failed: {exc}")
         set_status(job_id, "failed")
