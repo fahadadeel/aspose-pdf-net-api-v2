@@ -7,8 +7,12 @@ This keeps heavy CPU/IO work (dotnet build, ML models) off Uvicorn's event loop.
 Fully in-memory — no database. Results tracked via state.BUILD_STATE.
 """
 
+import subprocess
+import time
 import uuid
 from pathlib import Path
+
+import requests
 
 from config import load_config
 from pipeline.models import TaskInput
@@ -871,3 +875,239 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
         add_log(job_id, f"Repo docs update failed: {exc}")
         set_status(job_id, "failed")
         set_current_task(job_id, "Repo docs update failed.")
+
+
+def _fetch_tasks_for_category(config, category: str) -> list:
+    """Fetch all tasks for a category from the external tasks API (paginated)."""
+    if not config.tasks_api_url:
+        return []
+    tasks = []
+    page = 1
+    while True:
+        try:
+            resp = requests.get(
+                config.tasks_api_url,
+                params={"product": "aspose.pdf", "category": category, "page": page, "page_size": 50},
+                timeout=15,
+            )
+            if resp.status_code != 200:
+                break
+            data = resp.json()
+            items = data.get("items", [])
+            if not items:
+                break
+            tasks.extend(items)
+            if page >= data.get("total_pages", 1):
+                break
+            page += 1
+        except Exception:
+            break
+    return tasks
+
+
+def run_sweep(
+    job_id: str,
+    categories: list,
+    repo_push: bool = False,
+    api_url: str = None,
+):
+    """Run all tasks across selected categories, one category at a time.
+
+    Per-category: usage report + optional PR.
+    Single job with unified monitor.
+    """
+    from git_ops.repo import _git_lock
+
+    notify = _make_progress_callback(job_id)
+    config = load_config()
+
+    if api_url:
+        config.mcp.generate_url = api_url
+
+    try:
+        # ── Phase 1: Fetch all tasks upfront ──
+        add_log(job_id, f"Sweep: fetching tasks for {len(categories)} category/ies...")
+        init_build(job_id, total=0)
+        set_current_task(job_id, "Fetching tasks...")
+
+        all_category_tasks = {}
+        for cat in categories:
+            tasks = _fetch_tasks_for_category(config, cat)
+            if tasks:
+                all_category_tasks[cat] = tasks
+                add_log(job_id, f"  {cat}: {len(tasks)} task(s)")
+            else:
+                add_log(job_id, f"  {cat}: no tasks found — skipping")
+
+        grand_total = sum(len(t) for t in all_category_tasks.values())
+        if grand_total == 0:
+            add_log(job_id, "No tasks found across selected categories.")
+            set_status(job_id, "completed")
+            return
+
+        set_total(job_id, grand_total)
+        add_log(job_id, f"Sweep: {grand_total} total task(s) across {len(all_category_tasks)} category/ies")
+
+        # ── Phase 2: Process each category ──
+        global_idx = 0
+        all_pr_urls = []
+
+        for cat_name, tasks in all_category_tasks.items():
+            if is_cancelled(job_id):
+                break
+
+            cat_tracker = UsageTracker()
+            runner = PipelineRunner(config, progress_callback=notify, usage_tracker=cat_tracker)
+            cat_start = time.monotonic()
+            cat_passed = 0
+            cat_failed = 0
+            cat_results = []
+            retry_queue = []
+            max_retries = 3
+
+            separator = "=" * 60
+            add_log(job_id, separator)
+            add_log(job_id, f"Category: {cat_name} ({len(tasks)} tasks)")
+            add_log(job_id, separator)
+
+            # Setup per-category committer if repo_push
+            repo, committer, pr_manager = None, None, None
+            if repo_push:
+                repo, committer, pr_manager = _setup_pr_workflow(config, job_id, notify)
+
+            for task_obj in tasks:
+                if is_cancelled(job_id):
+                    break
+
+                global_idx += 1
+                task_text = task_obj.get("task", "")
+                task_id = str(task_obj.get("id", global_idx))
+                task_display = task_text[:100] if task_text else f"Task {global_idx}"
+
+                set_current_task(job_id, f"[{cat_name}] Task {global_idx}/{grand_total}")
+
+                task_input = TaskInput(
+                    task=task_text,
+                    category=cat_name,
+                    product=task_obj.get("product", config.git.default_product),
+                )
+                result = runner.execute(task_input)
+                badge = _compute_badge(result)
+                final_code = result.fixed_code or result.generated_code or ""
+
+                if result.status == "API_FAILED":
+                    retry_count = task_obj.get("_retry_count", 0)
+                    if retry_count < max_retries:
+                        task_obj["_retry_count"] = retry_count + 1
+                        retry_queue.append(task_obj)
+                        add_log(job_id, f"Task {task_id} API error — queued for retry ({retry_count + 1}/{max_retries})")
+                        continue
+                    else:
+                        add_log(job_id, f"Task {task_id} failed after {max_retries} retries (API unreachable)")
+
+                cat_results.append({"task": task_display, "category": cat_name, "status": "PASSED" if result.status == "SUCCESS" else "FAILED"})
+
+                if result.status == "SUCCESS":
+                    cat_passed += 1
+                    add_passed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
+                    add_log(job_id, f"Task {task_id} passed ({badge})")
+                    if committer:
+                        committer.commit_code(task_text, cat_name, final_code)
+                else:
+                    cat_failed += 1
+                    add_failed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
+                    add_log(job_id, f"Task {task_id} failed ({badge})")
+
+            # ── Retry queue for this category ──
+            for task_obj in retry_queue:
+                if is_cancelled(job_id):
+                    break
+                global_idx += 1
+                task_text = task_obj.get("task", "")
+                task_id = str(task_obj.get("id", global_idx))
+                task_display = task_text[:100] if task_text else "Task"
+
+                set_current_task(job_id, f"[{cat_name}] Retrying task #{task_id}")
+                task_input = TaskInput(task=task_text, category=cat_name, product=task_obj.get("product", config.git.default_product))
+                result = runner.execute(task_input)
+                badge = _compute_badge(result)
+                final_code = result.fixed_code or result.generated_code or ""
+
+                cat_results.append({"task": task_display, "category": cat_name, "status": "PASSED" if result.status == "SUCCESS" else "FAILED"})
+                if result.status == "SUCCESS":
+                    cat_passed += 1
+                    add_passed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
+                    add_log(job_id, f"Task {task_id} passed on retry ({badge})")
+                    if committer:
+                        committer.commit_code(task_text, cat_name, final_code)
+                else:
+                    cat_failed += 1
+                    add_failed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
+                    add_log(job_id, f"Task {task_id} failed after retries ({badge})")
+
+            # ── Per-category PR ──
+            if committer and committer._pending_commits:
+                cat_slug = cat_name.lower().replace(" ", "-")[:30]
+                cat_branch = f"examples/{job_id[:8]}-{cat_slug}"
+                add_log(job_id, f"[{cat_name}] Creating PR ({len(committer._pending_commits)} file(s))...")
+                set_current_task(job_id, f"PR: {cat_name}...")
+
+                try:
+                    with _git_lock:
+                        base_branch = config.git.repo_branch or "main"
+                        subprocess.run(["git", "checkout", f"origin/{base_branch}"], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+                        subprocess.run(["git", "checkout", "-b", cat_branch], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+                        for c in committer._pending_commits:
+                            subprocess.run(["git", "add", str(c["path"])], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+                        subprocess.run(["git", "commit", "-m", f"Add {len(committer._pending_commits)} example(s) for {cat_name}"], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+                        subprocess.run(["git", "push", "-u", "origin", cat_branch], cwd=config.git.repo_path, check=True, capture_output=True, text=True, timeout=60)
+
+                    repo.pr_branch = cat_branch
+                    pr_url = pr_manager.create_category_pr(cat_name, len(committer._pending_commits))
+                    if pr_url:
+                        all_pr_urls.append(pr_url)
+                        add_log(job_id, f"[{cat_name}] PR created: {pr_url}")
+                    else:
+                        add_log(job_id, f"[{cat_name}] PR creation failed")
+                except subprocess.TimeoutExpired:
+                    add_log(job_id, f"[{cat_name}] Push timed out")
+                except Exception as e:
+                    add_log(job_id, f"[{cat_name}] PR error: {str(e)[:100]}")
+
+                committer._pending_commits.clear()
+
+            # ── Per-category usage report ──
+            cat_elapsed = time.monotonic() - cat_start
+            cat_slug = cat_name.lower().replace(" ", "-")[:30]
+            try:
+                report_job_usage(
+                    config, f"{job_id}-{cat_slug}",
+                    total=len(tasks), passed=cat_passed, failed=cat_failed,
+                    elapsed_seconds=cat_elapsed,
+                    usage_snapshot=cat_tracker.snapshot(),
+                    status="success" if cat_failed == 0 else "partial",
+                )
+            except Exception as e:
+                print(f"[reporting] Category report error: {e}")
+
+            add_log(job_id, f"[{cat_name}] Done: {cat_passed} passed, {cat_failed} failed")
+
+        # ── Finalize ──
+        if all_pr_urls:
+            set_pr_url(job_id, all_pr_urls[0])
+
+        with JOB_LOCK:
+            was_cancelled = JOB_CANCEL_FLAGS.pop(job_id, False)
+
+        if was_cancelled:
+            set_status(job_id, "cancelled")
+            add_log(job_id, "Sweep cancelled.")
+        else:
+            set_status(job_id, "completed")
+            add_log(job_id, "Sweep complete.")
+
+    except Exception as exc:
+        with JOB_LOCK:
+            JOB_CANCEL_FLAGS.pop(job_id, None)
+        add_log(job_id, f"Sweep failed: {exc}")
+        set_status(job_id, "failed")

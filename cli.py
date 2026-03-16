@@ -5,6 +5,9 @@ Usage:
     python cli.py --task "Convert PDF to HTML"
     python cli.py --csv tasks.csv --repo-push
     python cli.py --task "Merge PDFs" --tfm net10.0
+    python cli.py --sweep                                            # all categories
+    python cli.py --sweep --categories "Basic Operations,Conversion" # specific
+    python cli.py --sweep --repo-push                                # with PRs
 """
 
 import argparse
@@ -162,6 +165,51 @@ def _commit_and_pr(config, task, category, code, results_summary):
         print(f"\nPR created: {pr_url}")
 
 
+def run_sweep_cli(config, categories: list, repo_push: bool):
+    """Run category sweep from CLI — processes all tasks for selected categories."""
+    import uuid
+    import requests
+
+    # If no categories specified, fetch all from the API
+    if not categories:
+        if not config.categories_api_url:
+            print("Error: No categories specified and CATEGORIES_API_URL not configured")
+            return 1
+        try:
+            resp = requests.get(
+                config.categories_api_url,
+                params={"product": "aspose.pdf"},
+                timeout=15,
+            )
+            data = resp.json()
+            categories = [c["name"] if isinstance(c, dict) else c for c in data.get("items", data if isinstance(data, list) else [])]
+        except Exception as e:
+            print(f"Error fetching categories: {e}")
+            return 1
+
+    if not categories:
+        print("No categories found")
+        return 1
+
+    print(f"\nSweep: {len(categories)} categories")
+    print(f"Categories: {', '.join(categories)}")
+    print(f"Repo push: {repo_push}")
+    print("=" * 60)
+
+    from jobs import run_sweep
+    job_id = str(uuid.uuid4())
+
+    # Run synchronously (blocking) since this is CLI
+    run_sweep(job_id, categories, repo_push=repo_push)
+
+    from state import get_build_state
+    state = get_build_state(job_id)
+    if state:
+        print(f"\nResults: {state['passed_count']} passed, {state['failed_count']} failed out of {state['total']}")
+        return 0 if state['failed_count'] == 0 else 1
+    return 1
+
+
 def _batch_commit_and_pr(config, commit_items, results_summary):
     """Batch commit multiple results and create a PR."""
     notify = lambda s, m: print(f"  [{s}] {m}")
@@ -213,18 +261,23 @@ def main():
     parser.add_argument("--product", type=str, default="aspose.pdf", help="Product name")
     parser.add_argument("--repo-push", action="store_true", help="Commit results and create PR")
     parser.add_argument("--tfm", type=str, help="Override .NET target framework (e.g., net10.0)")
+    parser.add_argument("--sweep", action="store_true", help="Sweep all tasks across categories")
+    parser.add_argument("--categories", type=str, default="", help="Comma-separated category names (sweep mode)")
 
     args = parser.parse_args()
 
-    if not args.task and not args.csv:
-        parser.error("Either --task or --csv is required")
+    if not args.task and not args.csv and not args.sweep:
+        parser.error("Either --task, --csv, or --sweep is required")
 
     config = load_config()
 
     if args.tfm:
         config.build.tfm = args.tfm
 
-    if args.task:
+    if args.sweep:
+        cats = [c.strip() for c in args.categories.split(",") if c.strip()] if args.categories else []
+        sys.exit(run_sweep_cli(config, cats, args.repo_push))
+    elif args.task:
         sys.exit(run_single(config, args.task, args.category, args.product, args.repo_push))
     elif args.csv:
         sys.exit(run_csv(config, args.csv, args.repo_push))

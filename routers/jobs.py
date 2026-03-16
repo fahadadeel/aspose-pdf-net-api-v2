@@ -3,6 +3,7 @@ routers/jobs.py — Job management endpoints + SSE streaming.
 
 POST /api/start
 POST /api/start-tasks
+POST /api/start-sweep
 GET  /api/status/{job_id}
 GET  /api/stream/{job_id}   (SSE)
 POST /api/cancel/{job_id}
@@ -23,7 +24,7 @@ import uuid
 from fastapi import APIRouter, Body, File, Form, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from jobs import run_job, retry_pr, create_pr, update_repo_docs
+from jobs import run_job, run_sweep, retry_pr, create_pr, update_repo_docs
 from state import (
     JOB_CANCEL_FLAGS, JOB_LOCK,
     get_build_state, add_log,
@@ -149,6 +150,27 @@ async def api_start_tasks(data: dict = Body(...)):
             "force": bool(force),
             "api_url": api_url,
         },
+        daemon=True,
+    )
+    thread.start()
+    return {"job_id": job_id}
+
+
+@router.post("/api/start-sweep")
+async def api_start_sweep(data: dict = Body(...)):
+    """Start a category sweep job — processes all tasks for selected categories."""
+    categories = data.get("categories", [])
+    repo_push = bool(data.get("repo_push", False))
+    api_url = data.get("api_url") or None
+
+    if not categories:
+        return JSONResponse({"error": "No categories selected"}, status_code=400)
+
+    job_id = str(uuid.uuid4())
+    thread = threading.Thread(
+        target=run_sweep,
+        args=(job_id, categories),
+        kwargs={"repo_push": repo_push, "api_url": api_url},
         daemon=True,
     )
     thread.start()

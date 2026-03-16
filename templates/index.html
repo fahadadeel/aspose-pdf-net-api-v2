@@ -976,6 +976,12 @@
       <button class="btn btn-primary" id="start-btn" onclick="startJob()">
         &#9654; Start
       </button>
+      <button class="btn btn-primary" id="sweep-btn" onclick="startSweep()" style="display:none;margin-left:8px;background:#2d8cf0;" title="Processes ALL tasks in each selected category. Creates a usage report and PR (if enabled) after each category.">
+        &#x1F500; Sweep Selected
+      </button>
+    </div>
+    <div id="sweep-hint" style="display:none;text-align:center;margin-top:6px;font-size:0.78em;color:#888;">
+      Sweep processes all tasks per category. Usage report &amp; PR (if enabled) are created after <b>each</b> category.
     </div>
   </div>
 </div>
@@ -1093,6 +1099,11 @@
     if (tab === 'taskgen' && !categoriesLoaded) {
       loadCategories();
     }
+    // Show/hide sweep button + hint — only on Task Generator tab
+    var sweepBtn = document.getElementById('sweep-btn');
+    var sweepHint = document.getElementById('sweep-hint');
+    if (sweepBtn) sweepBtn.style.display = (tab === 'taskgen') ? '' : 'none';
+    if (sweepHint) sweepHint.style.display = (tab === 'taskgen') ? '' : 'none';
   };
 
   /* ── Options Toggle ─────────────────────────────────────────── */
@@ -1543,6 +1554,59 @@
         btn.disabled = false;
         btn.innerHTML = '&#9654; Start';
       });
+  };
+
+  /* ── Sweep Mode ───────────────────────────────────────────────── */
+  window.startSweep = function() {
+    // Collect selected categories from the Task Generator category list
+    var selected = [];
+    document.querySelectorAll('#category-list .category-item.active').forEach(function(el) {
+      var cat = el.getAttribute('data-category');
+      if (cat) selected.push(cat);
+    });
+    if (selected.length === 0) {
+      alert('Please select at least one category to sweep.');
+      return;
+    }
+    if (!confirm('Sweep ' + selected.length + ' category(ies)? This will process ALL tasks in each selected category.\n\nCategories: ' + selected.join(', '))) {
+      return;
+    }
+
+    var btn = document.getElementById('sweep-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Starting sweep...';
+    var startBtn = document.getElementById('start-btn');
+    startBtn.disabled = true;
+
+    var opts = getOptions();
+    fetch('/api/start-sweep', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        categories: selected,
+        repo_push:  opts.repo_push,
+        api_url:    opts.api_url || undefined
+      })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) {
+        alert('Error: ' + data.error);
+        btn.disabled = false;
+        btn.innerHTML = '&#x1F500; Sweep Selected';
+        startBtn.disabled = false;
+        return;
+      }
+      currentJobId = data.job_id || data.id;
+      showMonitor();
+      connectSSE(currentJobId);
+    })
+    .catch(function(err) {
+      alert('Failed to start sweep: ' + err);
+      btn.disabled = false;
+      btn.innerHTML = '&#x1F500; Sweep Selected';
+      startBtn.disabled = false;
+    });
   };
 
   /* ── Show / Hide Panels ─────────────────────────────────────── */
