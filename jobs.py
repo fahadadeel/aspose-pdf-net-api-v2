@@ -328,7 +328,7 @@ def run_job(
                     failed=0 if result.status == "SUCCESS" else 1,
                     elapsed_seconds=bs["elapsed"] if bs else 0,
                     usage_snapshot=usage_tracker.snapshot(),
-                    status="success" if result.status == "SUCCESS" else "partial_success",
+                    status="success" if result.status == "SUCCESS" else "partial",
                 )
             except Exception as e:
                 print(f"[reporting] Error: {e}")
@@ -517,7 +517,7 @@ def run_job(
                 bs = get_build_state(job_id)
                 if bs:
                     r_status = "cancelled" if was_cancelled else (
-                        "success" if bs["failed_count"] == 0 else "partial_success"
+                        "success" if bs["failed_count"] == 0 else "partial"
                     )
                     report_job_usage(
                         config, job_id,
