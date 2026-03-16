@@ -12,6 +12,9 @@ Automated C# code generation and testing pipeline for **Aspose.PDF for .NET**. G
   - [Web UI](#web-ui)
   - [CLI](#cli)
   - [REST API](#rest-api)
+- [Category Sweep Mode](#category-sweep-mode)
+- [Version Bump](#version-bump)
+- [Usage Reporting](#usage-reporting)
 - [Configuration](#configuration)
   - [Environment Variables](#environment-variables)
   - [Build Settings](#build-settings)
@@ -138,6 +141,10 @@ The UI has three modes:
 | **CSV** | Upload a CSV file with columns: `prompt`, `category`, `product` |
 | **Task Generator** | Browse categories and select tasks from the external task API |
 
+**Header Buttons:**
+- **Update Repo Docs** — Scan repo and generate cumulative `agents.md` files (creates a separate docs PR)
+- **Version Bump** — Tag current version, clean all examples, and regenerate with a new NuGet version
+
 **Options:**
 - **Create Pull Request** — Commit passed results to GitHub and create a PR
 - **API URL Override** — Use a custom MCP API URL (admin mode, append `?admin` to URL)
@@ -148,13 +155,13 @@ The UI has three modes:
 - View generated code inline with copy-to-clipboard
 - **Create PR** button — Create/retry PR after job completes
 - **Download CSV** button — Export results as CSV
-- **Update Repo Docs** button — Scan repo and generate cumulative `agents.md` files (creates a separate docs PR)
 
 **Task Generator Tips:**
 - Click a category to load its tasks (single selection)
 - **Shift+click** to select multiple categories at once
 - Use the search boxes to filter categories and tasks
 - Select All / Deselect All for bulk selection
+- **Sweep Selected** button — Process ALL tasks across selected categories (per-category usage reports and PRs)
 
 ### CLI
 
@@ -173,6 +180,18 @@ python cli.py --csv tasks.csv --repo-push
 
 # Override target framework
 python cli.py --task "Merge two PDFs" --tfm "net9.0"
+
+# Category sweep — all categories
+python cli.py --sweep
+
+# Category sweep — specific categories
+python cli.py --sweep --categories "Basic Operations,Conversion"
+
+# Category sweep with PR creation
+python cli.py --sweep --repo-push
+
+# Version bump — tag old, clean, regenerate with new version
+python cli.py --version-bump 26.3.0 --repo-push
 ```
 
 **CLI Arguments:**
@@ -181,12 +200,15 @@ python cli.py --task "Merge two PDFs" --tfm "net9.0"
 |----------|----------|---------|-------------|
 | `--task` | Yes* | — | Single task prompt text |
 | `--csv` | Yes* | — | Path to CSV file (columns: `task`/`prompt`, `category`, `product`) |
+| `--sweep` | Yes* | — | Sweep all tasks across categories |
+| `--version-bump` | Yes* | — | Bump NuGet version (e.g., `26.3.0`) |
 | `--category` | No | `""` | Category for single task |
+| `--categories` | No | `""` | Comma-separated category filter (sweep mode) |
 | `--product` | No | `aspose.pdf` | Product name |
 | `--repo-push` | No | `false` | Commit results and create PR |
 | `--tfm` | No | `net10.0` | .NET target framework override |
 
-*One of `--task` or `--csv` is required.
+*One of `--task`, `--csv`, `--sweep`, or `--version-bump` is required.
 
 ### REST API
 
@@ -198,6 +220,8 @@ All endpoints are served under the root path.
 |----------|--------|-------------|
 | `POST /api/start` | Multipart form | Start single or CSV job |
 | `POST /api/start-tasks` | JSON body | Start job from task list |
+| `POST /api/start-sweep` | JSON body | Start category sweep job |
+| `POST /api/version-bump` | JSON body | Bump NuGet version (tag + clean + sweep) |
 | `GET /api/status/{job_id}` | — | Poll job status |
 | `GET /api/stream/{job_id}` | SSE | Real-time event stream |
 | `POST /api/cancel/{job_id}` | — | Cancel a running job |
@@ -239,6 +263,29 @@ All endpoints are served under the root path.
   "api_url": null
 }
 ```
+
+#### POST /api/start-sweep — JSON Body
+
+```json
+{
+  "categories": ["Basic Operations", "Conversion"],
+  "repo_push": true,
+  "api_url": null
+}
+```
+
+Processes ALL tasks for each selected category sequentially. Creates a usage report and PR (if `repo_push` is true) after each category.
+
+#### POST /api/version-bump — JSON Body
+
+```json
+{
+  "new_version": "26.3.0",
+  "repo_push": true
+}
+```
+
+Tags the current version, creates a GitHub Release, deletes all existing examples, and runs a full sweep with the new NuGet version.
 
 #### POST /api/update-repo-docs — JSON Body
 
@@ -292,6 +339,71 @@ The `GET /api/stream/{job_id}` endpoint pushes JSON messages with delta updates:
 ```
 
 A `done` event is sent when the job finishes.
+
+---
+
+## Category Sweep Mode
+
+Sweep mode processes ALL tasks across selected (or all) categories in a single job. Unlike the normal Task Generator where you pick individual tasks, sweep auto-fetches everything.
+
+**How it works:**
+1. Fetches all tasks per category from the external tasks API (paginated)
+2. Processes tasks sequentially, one category at a time
+3. After each category: sends a **usage report** and creates a **PR** (if enabled)
+4. Monitor view shows unified progress across all categories
+
+**Access:**
+- **UI:** Task Generator → select categories → click **Sweep Selected**
+- **CLI:** `python cli.py --sweep --categories "Basic Operations,Conversion" --repo-push`
+- **API:** `POST /api/start-sweep`
+
+**Per-category outputs:**
+- Usage report with `run_id` suffix (e.g., `{job_id}-basic-operations`)
+- Separate git branch and PR per category (e.g., `examples/{job_id}-basic-operations`)
+
+---
+
+## Version Bump
+
+Automates the process of upgrading to a new Aspose.PDF NuGet version while preserving old examples via Git tags and GitHub Releases.
+
+**Flow:**
+1. **Tag** current main branch as `v{old_version}` (e.g., `v26.2.0`)
+2. **Create GitHub Release** from the tag (with version metadata)
+3. **Clean** all existing `.cs` example files from the repo
+4. **Commit** the cleanup to main
+5. **Sweep** all categories with the new NuGet version (full regeneration)
+
+**Access:**
+- **UI:** Click **Version Bump** in the header → enter new version → confirm
+- **CLI:** `python cli.py --version-bump 26.3.0 --repo-push`
+- **API:** `POST /api/version-bump`
+
+**After bumping:** Update `NUGET_VERSION` in your `.env` file to persist the new version across restarts.
+
+---
+
+## Usage Reporting
+
+Every job run sends a usage report to a configurable endpoint (Google Apps Script) and/or logs it locally.
+
+**Report payload includes:**
+- Agent name, owner, job type
+- Items discovered, succeeded, failed
+- Run duration, token usage, API call count
+- Product, platform, website metadata
+
+**Local logging:** Each report is appended as a JSON line to `usage_reports.jsonl` for local review.
+
+**Config switches:**
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `REPORTING_ENABLED` | `true` | Master switch for all reporting |
+| `REPORTING_LOG_TO_FILE` | `true` | Write reports to `usage_reports.jsonl` |
+| `REPORTING_ENDPOINT_URL` | *(from .env)* | Remote endpoint URL (empty = skip remote POST) |
+| `REPORTING_ENDPOINT_TOKEN` | *(from .env)* | Auth token appended as `?token=` query param |
+| `REPORTING_WEBSITE` | `aspose.com` | Website field in reports |
+| `REPORTING_WEBSITE_SECTION` | `examples` | Website section field in reports |
 
 ---
 
@@ -351,6 +463,7 @@ Fine-tune the retry behavior of the 5-stage pipeline.
 | `DECOMPOSE_ON_LLM_FAIL` | `false` | Enable LLM task decomposition in Stage 3 |
 | `FINAL_LLM_AFTER_REGEN_FAIL` | `true` | Enable Stage 5 final LLM recovery |
 | `RETRY_MODE` | `full` | `full` = use KB rules + error catalog; `simple` = minimal regen |
+| `USE_OWN_LLM` | `true` | Use own LLM key for code generation instead of MCP's built-in LLM |
 | `LEARN_RULES_FROM_FAILURES` | `false` | Post-pipeline rule learning via Anthropic Claude |
 
 ### MCP Settings
@@ -557,10 +670,11 @@ Auto-populated from successful fixes. Caps at 500 entries. Boosts future searche
 ```
 aspose-pdf-api-v2/
 ├── main.py                    # FastAPI app entry point
-├── cli.py                     # CLI interface
+├── cli.py                     # CLI interface (single, csv, sweep, version-bump)
 ├── config.py                  # Typed configuration (dataclasses + env vars)
 ├── state.py                   # Thread-safe in-memory job state
-├── jobs.py                    # Background job runner + PR splitting + repo docs
+├── jobs.py                    # Background job runner (run_job, run_sweep, run_version_bump)
+├── reporting.py               # Fire-and-forget usage reporting (remote + local JSONL)
 │
 ├── pipeline/
 │   ├── runner.py              # 5-stage pipeline orchestrator
@@ -582,12 +696,14 @@ aspose-pdf-api-v2/
 │   ├── repo.py                # RepoManager (clone, pull, branch)
 │   ├── committer.py           # CodeCommitter (write files, stage, commit)
 │   ├── pr.py                  # PRManager (create PR, agents.md)
-│   ├── github_api.py          # GitHub REST API v3 wrapper
+│   ├── github_api.py          # GitHub REST API v3 wrapper (files, PRs, tags, releases)
 │   ├── agents_md.py           # Generate agents.md from batch results
+│   ├── agents_content.py      # Domain knowledge + agents.md content generation
 │   └── repo_docs.py           # Cumulative repo scanning + docs generation
 │
 ├── routers/
-│   ├── jobs.py                # Job endpoints (start, status, stream, cancel, PR)
+│   ├── ui.py                  # HTML UI endpoint (serves index.html)
+│   ├── jobs.py                # Job endpoints (start, sweep, version-bump, status, stream)
 │   ├── files.py               # File upload endpoint
 │   └── proxy.py               # Categories/tasks API proxy
 │
@@ -601,7 +717,8 @@ aspose-pdf-api-v2/
 │
 ├── requirements.txt           # Python dependencies
 ├── .env.example               # Environment variable template
-└── fix_history.json           # Auto-generated fix history (gitignored)
+├── fix_history.json           # Auto-generated fix history (capped at 500)
+└── usage_reports.jsonl        # Local usage report log (one JSON line per run)
 ```
 
 ---

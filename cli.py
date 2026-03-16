@@ -8,6 +8,8 @@ Usage:
     python cli.py --sweep                                            # all categories
     python cli.py --sweep --categories "Basic Operations,Conversion" # specific
     python cli.py --sweep --repo-push                                # with PRs
+    python cli.py --version-bump 26.3.0                              # bump version
+    python cli.py --version-bump 26.3.0 --repo-push                 # bump + PRs
 """
 
 import argparse
@@ -263,18 +265,33 @@ def main():
     parser.add_argument("--tfm", type=str, help="Override .NET target framework (e.g., net10.0)")
     parser.add_argument("--sweep", action="store_true", help="Sweep all tasks across categories")
     parser.add_argument("--categories", type=str, default="", help="Comma-separated category names (sweep mode)")
+    parser.add_argument("--version-bump", type=str, metavar="VERSION", help="Bump NuGet version (e.g., 26.3.0)")
 
     args = parser.parse_args()
 
-    if not args.task and not args.csv and not args.sweep:
-        parser.error("Either --task, --csv, or --sweep is required")
+    if not args.task and not args.csv and not args.sweep and not args.version_bump:
+        parser.error("Either --task, --csv, --sweep, or --version-bump is required")
 
     config = load_config()
 
     if args.tfm:
         config.build.tfm = args.tfm
 
-    if args.sweep:
+    if args.version_bump:
+        import uuid as _uuid
+        from jobs import run_version_bump
+        job_id = str(_uuid.uuid4())
+        print(f"\nVersion bump: {config.build.nuget_version} → {args.version_bump}")
+        print(f"Repo push: {args.repo_push}")
+        print("=" * 60)
+        run_version_bump(job_id, args.version_bump, repo_push=args.repo_push)
+        from state import get_build_state
+        state = get_build_state(job_id)
+        if state:
+            print(f"\nResults: {state['passed_count']} passed, {state['failed_count']} failed out of {state['total']}")
+            sys.exit(0 if state['failed_count'] == 0 else 1)
+        sys.exit(1)
+    elif args.sweep:
         cats = [c.strip() for c in args.categories.split(",") if c.strip()] if args.categories else []
         sys.exit(run_sweep_cli(config, cats, args.repo_push))
     elif args.task:
