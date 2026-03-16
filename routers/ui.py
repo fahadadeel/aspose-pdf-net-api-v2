@@ -36,5 +36,6 @@ async def index(request: Request):
             "default_api_url": default_api_url,
             "repo_display": repo_display,
             "repo_branch": repo_branch,
+            "nuget_version": cfg.build.nuget_version,
         },
     )

@@ -142,6 +142,51 @@ class GitHubAPI:
             print(f"[GitHub] Could not look up existing PR: {e}")
         return None
 
+    def create_tag(self, owner: str, repo: str, tag_name: str, sha: str, message: str = "") -> bool:
+        """Create a lightweight tag via GitHub API."""
+        try:
+            r = self._session.post(
+                f"https://api.github.com/repos/{owner}/{repo}/git/refs",
+                headers=self._headers,
+                json={"ref": f"refs/tags/{tag_name}", "sha": sha},
+                timeout=10,
+            )
+            if r.status_code in (200, 201):
+                return True
+            error_msg = r.json().get("message", r.text[:200])
+            print(f"[GitHub] Tag creation failed: {error_msg}")
+            return False
+        except Exception as e:
+            print(f"[GitHub] Error creating tag: {e}")
+            return False
+
+    def create_release(
+        self, owner: str, repo: str,
+        tag_name: str, name: str, body: str = "",
+    ) -> Optional[str]:
+        """Create a GitHub Release from a tag. Returns html_url or None."""
+        try:
+            r = self._session.post(
+                f"https://api.github.com/repos/{owner}/{repo}/releases",
+                headers=self._headers,
+                json={
+                    "tag_name": tag_name,
+                    "name": name,
+                    "body": body,
+                    "draft": False,
+                    "prerelease": False,
+                },
+                timeout=15,
+            )
+            if r.status_code in (200, 201):
+                return r.json().get("html_url", "")
+            error_msg = r.json().get("message", r.text[:200])
+            print(f"[GitHub] Release creation failed: {error_msg}")
+            return None
+        except Exception as e:
+            print(f"[GitHub] Error creating release: {e}")
+            return None
+
     @staticmethod
     def decode_base64(encoded: str) -> str:
         """Decode base64-encoded GitHub file content."""
