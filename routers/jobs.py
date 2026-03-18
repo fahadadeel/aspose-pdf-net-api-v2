@@ -26,6 +26,7 @@ from fastapi import APIRouter, Body, File, Form, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from jobs import run_job, run_sweep, run_version_bump, retry_pr, create_pr, update_repo_docs
+from knowledge.auto_fixes import load_auto_fixes, approve_auto_fix, delete_auto_fix
 from state import (
     JOB_CANCEL_FLAGS, JOB_LOCK,
     get_build_state, add_log,
@@ -577,3 +578,50 @@ async def api_generate_index_json(
         result["pr_url"] = pr_url or ""
 
     return result
+
+
+# ── Auto-learned rules review endpoints ──
+
+@router.get("/api/auto-fixes")
+async def api_auto_fixes():
+    """List all auto-learned error fix rules with confidence and hit counts."""
+    from config import load_config
+    config = load_config()
+    fixes = load_auto_fixes(config.auto_fixes_path)
+    rules = []
+    for rule_id, rule in fixes.items():
+        rules.append({
+            "id": rule_id,
+            "note": rule.get("note", ""),
+            "errors": rule.get("errors", []),
+            "code": rule.get("code", ""),
+            "confidence": rule.get("_confidence", 0.5),
+            "hit_count": rule.get("_hit_count", 0),
+            "created_at": rule.get("_created_at", 0),
+            "stage": rule.get("_stage", ""),
+            "category": rule.get("_category", ""),
+        })
+    rules.sort(key=lambda r: r["confidence"], reverse=True)
+    return {"rules": rules, "total": len(rules)}
+
+
+@router.post("/api/auto-fixes/{rule_id}/approve")
+async def api_approve_auto_fix(rule_id: str):
+    """Move an auto-learned rule to the curated error_fixes.json."""
+    from config import load_config
+    config = load_config()
+    ok = approve_auto_fix(config.auto_fixes_path, config.error_fixes_path, rule_id)
+    if ok:
+        return {"status": "approved", "rule_id": rule_id}
+    return JSONResponse({"error": f"Rule '{rule_id}' not found or approval failed"}, status_code=404)
+
+
+@router.delete("/api/auto-fixes/{rule_id}")
+async def api_delete_auto_fix(rule_id: str):
+    """Remove an auto-learned rule."""
+    from config import load_config
+    config = load_config()
+    ok = delete_auto_fix(config.auto_fixes_path, rule_id)
+    if ok:
+        return {"status": "deleted", "rule_id": rule_id}
+    return JSONResponse({"error": f"Rule '{rule_id}' not found"}, status_code=404)

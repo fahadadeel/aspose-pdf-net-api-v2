@@ -7,6 +7,7 @@ Usable from CLI, API, or UI modes.
 
 import json
 import re
+import threading
 from pathlib import Path
 from typing import Callable, Optional
 
@@ -20,6 +21,7 @@ from pipeline import stages
 from knowledge.rule_search import RuleSearchEngine
 from knowledge.error_catalog import load_error_catalog
 from knowledge.error_fixes import load_error_fixes, match_error_fixes, format_error_fixes_for_prompt
+from knowledge.auto_learner import AutoLearner, load_auto_error_catalog
 
 
 def _format_rules_block(rules: dict) -> str:
@@ -58,6 +60,9 @@ class PipelineRunner:
         self._error_catalog = None
         self._error_fixes = None
 
+        # Self-learning (fire-and-forget after successful fixes)
+        self._auto_learner = AutoLearner(config, self.llm) if config.pipeline.auto_learn_on_success else None
+
         # Generation rules (lazy-loaded when use_own_llm is enabled)
         self._generation_rules = ""
         self._generation_rules_loaded = False
@@ -84,6 +89,10 @@ class PipelineRunner:
             return
         self._rule_engine.load(self.config.rules_examples_path, self._shared_model)
         self._error_catalog = load_error_catalog(self.config.error_catalog_path)
+        # Merge auto-learned catalog entries
+        auto_catalog = load_auto_error_catalog(self.config.auto_catalog_path)
+        if auto_catalog:
+            self._error_catalog = self._error_catalog + auto_catalog
         self._ensure_error_fixes()
         self._kb_loaded = True
 
@@ -99,6 +108,17 @@ class PipelineRunner:
                 self._generation_rules = _format_rules_block(data.get("rules", {}))
             except Exception as e:
                 print(f"Warning: could not load generation rules: {e}")
+
+    def _fire_learning(self, task_input: TaskInput, original_code: str, fixed_code: str, error_log: str, stage: str):
+        """Fire-and-forget: extract a reusable rule from a successful fix."""
+        if not self._auto_learner or stage == "baseline":
+            return
+        error_codes = re.findall(r"CS\d{4}", error_log)
+        threading.Thread(
+            target=self._auto_learner.learn_from_success,
+            args=(task_input.task, task_input.category, original_code, fixed_code, error_log, error_codes, stage),
+            daemon=True,
+        ).start()
 
     def _get_fixes_for_error(self, error_log: str) -> str:
         """Match error fixes against a build error and return formatted text."""
@@ -145,7 +165,7 @@ class PipelineRunner:
         # Loop: a single call only applies the first matching fix, so
         # keep applying until no more known patterns match (max 5).
         for _pf_round in range(5):
-            fixed, rule = detect_and_fix_known_patterns(current_code, current_error)
+            fixed, rule = detect_and_fix_known_patterns(current_code, current_error, self.config.auto_patterns_path)
             if not fixed:
                 break
             self._notify("pattern_fix", f"Applying known pattern fix (round {_pf_round + 1})...")
@@ -156,6 +176,7 @@ class PipelineRunner:
                 result.rule = rule or ""
                 result.status = "SUCCESS"
                 result.stage = "pattern_fix"
+                self._fire_learning(task_input, outcome.code, fixed, current_error, "pattern_fix")
                 return result
             current_code = fixed
             current_error = output
@@ -174,6 +195,7 @@ class PipelineRunner:
                 result.fixed_code = outcome.code
                 result.status = "SUCCESS"
                 result.stage = "llm_fix"
+                self._fire_learning(task_input, result.generated_code, outcome.code, current_error, "llm_fix")
                 return result
 
             current_code = outcome.code
@@ -203,6 +225,7 @@ class PipelineRunner:
             result.rule = outcome.rule
             result.status = "SUCCESS"
             result.stage = "regen"
+            self._fire_learning(task_input, result.generated_code, outcome.code, current_error, "regen")
             return result
 
         # ── Stage 5: Final LLM Recovery ──
@@ -221,6 +244,7 @@ class PipelineRunner:
                 result.fixed_code = outcome.code
                 result.status = "SUCCESS"
                 result.stage = "final_llm"
+                self._fire_learning(task_input, result.generated_code, outcome.code, stage5_error, "final_llm")
                 return result
 
         # ── All stages failed ──

@@ -878,6 +878,7 @@
         <button class="tab active" data-tab="single" onclick="switchTab('single')">Single</button>
         <button class="tab" data-tab="csv" onclick="switchTab('csv')">CSV</button>
         <button class="tab" data-tab="taskgen" onclick="switchTab('taskgen')">Task Generator</button>
+        <button class="tab" data-tab="learned" onclick="switchTab('learned')">Learned Rules</button>
       </div>
 
       <!-- Single Mode -->
@@ -935,6 +936,19 @@
               <div class="task-placeholder">Select a category to load tasks</div>
             </div>
           </div>
+        </div>
+      </div>
+
+      <!-- Learned Rules Tab -->
+      <div id="tab-learned" class="tab-content">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+          <p style="font-size:13px;color:var(--text-dim);margin:0;">
+            Auto-learned rules from successful pipeline fixes. Approve to promote to curated rules, or delete bad ones.
+          </p>
+          <button class="btn btn-secondary" onclick="loadAutoFixes()" style="font-size:12px;padding:4px 10px;">Refresh</button>
+        </div>
+        <div id="auto-fixes-list" style="max-height:400px;overflow-y:auto;">
+          <div class="task-placeholder">Click Refresh to load learned rules</div>
         </div>
       </div>
     </div>
@@ -1099,6 +1113,9 @@
     });
     if (tab === 'taskgen' && !categoriesLoaded) {
       loadCategories();
+    }
+    if (tab === 'learned') {
+      loadAutoFixes();
     }
     // Show/hide sweep button + hint — only on Task Generator tab
     var sweepBtn = document.getElementById('sweep-btn');
@@ -2126,6 +2143,57 @@
         btn.disabled = false;
         btn.innerHTML = '&#9209; Stop';
       });
+  };
+
+  /* ── Auto-Learned Rules ────────────────────────────────────── */
+  window.loadAutoFixes = function() {
+    var container = document.getElementById('auto-fixes-list');
+    container.innerHTML = '<div class="task-placeholder">Loading...</div>';
+    fetch('/api/auto-fixes')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        var rules = data.rules || [];
+        if (!rules.length) {
+          container.innerHTML = '<div class="task-placeholder">No auto-learned rules yet. Run some tasks and rules will appear here.</div>';
+          return;
+        }
+        var html = '<table style="width:100%;font-size:12px;border-collapse:collapse;">' +
+          '<tr style="border-bottom:1px solid var(--border);"><th style="text-align:left;padding:6px;">Rule</th><th>Confidence</th><th>Hits</th><th>Stage</th><th>Actions</th></tr>';
+        rules.forEach(function(r) {
+          var conf = (r.confidence * 100).toFixed(0) + '%';
+          var confColor = r.confidence >= 0.8 ? '#4caf50' : r.confidence >= 0.5 ? '#ff9800' : '#f44336';
+          html += '<tr style="border-bottom:1px solid var(--border);">' +
+            '<td style="padding:6px;"><strong>' + r.id + '</strong><br><span style="color:var(--text-dim);">' + (r.note || '').substring(0, 80) + '</span></td>' +
+            '<td style="text-align:center;"><span style="color:' + confColor + ';font-weight:600;">' + conf + '</span></td>' +
+            '<td style="text-align:center;">' + (r.hit_count || 0) + '</td>' +
+            '<td style="text-align:center;">' + (r.stage || '-') + '</td>' +
+            '<td style="text-align:center;white-space:nowrap;">' +
+              '<button onclick="approveAutoFix(\'' + r.id + '\')" style="font-size:11px;padding:2px 8px;margin:1px;cursor:pointer;background:#4caf50;color:#fff;border:none;border-radius:3px;">Approve</button> ' +
+              '<button onclick="deleteAutoFix(\'' + r.id + '\')" style="font-size:11px;padding:2px 8px;margin:1px;cursor:pointer;background:#f44336;color:#fff;border:none;border-radius:3px;">Delete</button>' +
+            '</td></tr>';
+        });
+        html += '</table>';
+        container.innerHTML = html;
+      })
+      .catch(function(err) {
+        container.innerHTML = '<div class="task-placeholder">Error loading rules: ' + err + '</div>';
+      });
+  };
+
+  window.approveAutoFix = function(ruleId) {
+    if (!confirm('Promote "' + ruleId + '" to curated rules?')) return;
+    fetch('/api/auto-fixes/' + ruleId + '/approve', { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function() { loadAutoFixes(); })
+      .catch(function(err) { alert('Error: ' + err); });
+  };
+
+  window.deleteAutoFix = function(ruleId) {
+    if (!confirm('Delete "' + ruleId + '"?')) return;
+    fetch('/api/auto-fixes/' + ruleId, { method: 'DELETE' })
+      .then(function(r) { return r.json(); })
+      .then(function() { loadAutoFixes(); })
+      .catch(function(err) { alert('Error: ' + err); });
   };
 
 })();
