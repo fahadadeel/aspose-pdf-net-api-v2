@@ -49,6 +49,9 @@ def match_error_fixes(fixes: Dict[str, dict], error_output: str, error_codes: Li
                     score += 2.0
 
         if score > 0:
+            # Auto-generated rules have lower confidence (0.0-1.0); curated = full weight
+            confidence = fix.get("_confidence", 1.0)
+            score *= confidence
             scored.append((score, fix_id, fix))
 
     scored.sort(key=lambda x: x[0], reverse=True)
