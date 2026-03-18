@@ -24,6 +24,7 @@ Automated C# code generation and testing pipeline for **Aspose.PDF for .NET**. G
   - [Git & PR Settings](#git--pr-settings)
   - [Knowledge Base Settings](#knowledge-base-settings)
 - [Pipeline Stages](#pipeline-stages)
+- [Self-Learning](#self-learning)
 - [PR Workflow](#pr-workflow)
 - [Knowledge Base](#knowledge-base)
 - [Project Structure](#project-structure)
@@ -227,6 +228,9 @@ All endpoints are served under the root path.
 | `POST /api/cancel/{job_id}` | — | Cancel a running job |
 | `POST /api/retry-pr/{job_id}` | — | Create or retry PR for completed job |
 | `POST /api/update-repo-docs` | JSON body | Generate cumulative repo docs PR |
+| `GET /api/auto-fixes` | — | List auto-learned rules (confidence, hits) |
+| `POST /api/auto-fixes/{id}/approve` | — | Promote auto rule to curated |
+| `DELETE /api/auto-fixes/{id}` | — | Remove auto-learned rule |
 
 #### Data & Utilities
 
@@ -465,6 +469,9 @@ Fine-tune the retry behavior of the 5-stage pipeline.
 | `RETRY_MODE` | `full` | `full` = use KB rules + error catalog; `simple` = minimal regen |
 | `USE_OWN_LLM` | `true` | Use own LLM key for code generation instead of MCP's built-in LLM |
 | `LEARN_RULES_FROM_FAILURES` | `false` | Post-pipeline rule learning via Anthropic Claude |
+| `AUTO_LEARN_ON_SUCCESS` | `true` | Auto-learn rules from mid-pipeline successful fixes |
+| `AUTO_LEARN_CATALOG` | `true` | Also auto-expand the error catalog from successful fixes |
+| `AUTO_LEARN_MIN_DIFF_LINES` | `3` | Minimum diff lines to trigger auto-learning |
 
 ### MCP Settings
 
@@ -552,7 +559,9 @@ Control KB rule search and reranking behavior.
 | `ERROR_CATALOG_PATH` | `./resources/error_catalog.json` | Error pattern catalog |
 | `ERROR_FIXES_PATH` | `./resources/error_fixes.json` | Curated error fixes |
 | `FIX_HISTORY_PATH` | `./fix_history.json` | Auto-recorded successful fixes (capped at 500) |
-| `AUTO_FIXES_PATH` | `./resources/auto_fixes.json` | Auto-learned rules from Claude analysis |
+| `AUTO_FIXES_PATH` | `./resources/auto_fixes.json` | Auto-learned error fix rules |
+| `AUTO_CATALOG_PATH` | `./resources/auto_error_catalog.json` | Auto-learned error catalog entries |
+| `AUTO_PATTERNS_PATH` | `./resources/auto_patterns.json` | Auto-promoted pattern fixes |
 | `RERANK_CANDIDATE_COUNT` | `100` | Initial candidates for LLM reranking |
 | `RERANK_TOP_K` | `10` | Final top-K rules after reranking |
 | `RERANK_ATTEMPT1_TOP_K` | `20` | Top-K for first regen attempt |
@@ -617,6 +626,55 @@ Task
 **Result badges** indicate which stage produced the final code: `baseline`, `pattern_fix`, `llm_fix`, `regen`, `final_llm`.
 
 **Transient failures:** If the MCP API returns errors (timeouts, 5xx), the task is requeued up to 3 times with backoff instead of being marked as failed.
+
+---
+
+## Self-Learning
+
+The pipeline automatically learns from its own successes. When a task fails at Stage 1 but is fixed at a later stage, the system extracts reusable patterns that help future runs avoid the same errors.
+
+### How It Works
+
+1. **Detect Fix** — When a non-baseline stage succeeds, the pipeline computes a diff between the failing and fixed code
+2. **Generalize** — The LLM extracts the API-level fix pattern (not task-specific details) into a structured rule
+3. **Deduplicate** — New rules are checked against existing curated and auto-generated rules (50% error overlap threshold)
+4. **Save** — Rules are stored in `resources/auto_fixes.json` with confidence metadata
+5. **Apply** — Auto-learned rules are merged into the error fix pool on next pipeline run (curated rules always rank higher)
+
+All learning happens in fire-and-forget daemon threads, so it never blocks the pipeline.
+
+### Confidence Scoring
+
+Auto-learned rules start at **0.5 confidence** (curated rules = 1.0). When an auto rule contributes to a successful fix, its confidence increases by 0.1 per hit (capped at 1.0). Confidence acts as a score multiplier during error fix matching, so curated rules naturally rank higher.
+
+### Three Learning Targets
+
+| Target | File | Description |
+|--------|------|-------------|
+| **Error Fixes** | `resources/auto_fixes.json` | Code snippets + error patterns (same format as `error_fixes.json`) |
+| **Error Catalog** | `resources/auto_error_catalog.json` | Error pattern → fix guidance entries |
+| **Pattern Fixes** | `resources/auto_patterns.json` | Simple text substitutions promoted after 3+ occurrences |
+
+### Review & Management
+
+Auto-learned rules can be reviewed in the **Learned Rules** tab in the Web UI, or via the API:
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `GET /api/auto-fixes` | — | List all auto rules with confidence, hit count, source stage |
+| `POST /api/auto-fixes/{id}/approve` | — | Promote to curated `error_fixes.json` |
+| `DELETE /api/auto-fixes/{id}` | — | Remove a bad auto rule |
+
+### Configuration
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `AUTO_LEARN_ON_SUCCESS` | `true` | Enable learning from mid-pipeline fixes |
+| `AUTO_LEARN_CATALOG` | `true` | Also expand error catalog automatically |
+| `AUTO_LEARN_MIN_DIFF_LINES` | `3` | Minimum diff lines to trigger learning |
+| `AUTO_FIXES_PATH` | `./resources/auto_fixes.json` | Auto-learned error fixes file |
+| `AUTO_CATALOG_PATH` | `./resources/auto_error_catalog.json` | Auto-learned catalog entries |
+| `AUTO_PATTERNS_PATH` | `./resources/auto_patterns.json` | Auto-promoted pattern fixes |
 
 ---
 
@@ -689,8 +747,11 @@ aspose-pdf-api-v2/
 │   ├── rule_search.py         # Hybrid semantic + keyword KB search
 │   ├── reranker.py            # LLM-based rule reranking
 │   ├── error_catalog.py       # Error pattern → fix guidance matching
-│   ├── error_fixes.py         # Scored error fix matching
-│   └── fix_history.py         # Auto-recorded successful fix history
+│   ├── error_fixes.py         # Scored error fix matching (confidence-weighted)
+│   ├── fix_history.py         # Auto-recorded successful fix history
+│   ├── auto_fixes.py          # Auto-learned fix persistence + promotion
+│   ├── auto_learner.py        # Self-learning: extract rules from successful fixes
+│   └── pattern_tracker.py     # Track recurring code transformations
 │
 ├── git_ops/
 │   ├── repo.py                # RepoManager (clone, pull, branch)
@@ -713,7 +774,10 @@ aspose-pdf-api-v2/
 ├── resources/
 │   ├── kb.json                # Knowledge base rules
 │   ├── error_catalog.json     # Error pattern catalog
-│   └── error_fixes.json       # Curated error fixes
+│   ├── error_fixes.json       # Curated error fixes
+│   ├── auto_fixes.json        # Auto-learned error fixes (generated)
+│   ├── auto_error_catalog.json # Auto-learned catalog entries (generated)
+│   └── auto_patterns.json     # Auto-promoted pattern fixes (generated)
 │
 ├── requirements.txt           # Python dependencies
 ├── .env.example               # Environment variable template

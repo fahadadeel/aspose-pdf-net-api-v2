@@ -26,6 +26,7 @@ from pipeline.prompt_builder import (
 from knowledge.error_catalog import match_error_catalog
 from knowledge.error_fixes import match_error_fixes, format_error_fixes_for_prompt
 from knowledge.fix_history import get_boosted_rule_ids, record_successful_fix
+from knowledge.auto_fixes import promote_auto_fix
 from knowledge.rule_search import RuleSearchEngine
 from knowledge.reranker import llm_rerank_rules
 
@@ -273,6 +274,14 @@ def run_regen_loop(
                 )
             except Exception:
                 pass
+            # Promote auto-generated fixes that contributed to this success
+            if fixes:
+                for f in fixes:
+                    if f.get("_auto"):
+                        try:
+                            promote_auto_fix(config.auto_fixes_path, f.get("id", ""))
+                        except Exception:
+                            pass
             rule_desc = json.dumps({
                 "description": f"MCP regen attempt {attempt} ({len(top_rules)} rules)",
                 "pattern": "Regeneration with context enrichment",

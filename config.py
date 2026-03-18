@@ -60,6 +60,9 @@ class PipelineConfig:
     retry_mode: str = "full"
     learn_rules_from_failures: bool = False
     use_own_llm: bool = True  # True = use own LLM key for code generation instead of MCP's
+    auto_learn_on_success: bool = True  # Learn from mid-pipeline successful fixes
+    auto_learn_catalog: bool = True  # Also auto-expand error catalog
+    auto_learn_min_diff_lines: int = 3  # Min diff lines to trigger learning
 
 
 @dataclass
@@ -148,6 +151,8 @@ class AppConfig:
     error_catalog_path: str = "./resources/error_catalog.json"
     error_fixes_path: str = "./resources/error_fixes.json"
     auto_fixes_path: str = "./resources/auto_fixes.json"
+    auto_catalog_path: str = "./resources/auto_error_catalog.json"
+    auto_patterns_path: str = "./resources/auto_patterns.json"
 
     # External API proxies (for UI task generator)
     categories_api_url: str = "http://172.20.1.175:7001/api/categories"
@@ -193,6 +198,9 @@ def load_config() -> AppConfig:
     cfg.pipeline.retry_mode = _env("RETRY_MODE", cfg.pipeline.retry_mode)
     cfg.pipeline.learn_rules_from_failures = _env_bool("LEARN_RULES_FROM_FAILURES", cfg.pipeline.learn_rules_from_failures)
     cfg.pipeline.use_own_llm = _env_bool("USE_OWN_LLM", cfg.pipeline.use_own_llm)
+    cfg.pipeline.auto_learn_on_success = _env_bool("AUTO_LEARN_ON_SUCCESS", cfg.pipeline.auto_learn_on_success)
+    cfg.pipeline.auto_learn_catalog = _env_bool("AUTO_LEARN_CATALOG", cfg.pipeline.auto_learn_catalog)
+    cfg.pipeline.auto_learn_min_diff_lines = _env_int("AUTO_LEARN_MIN_DIFF_LINES", cfg.pipeline.auto_learn_min_diff_lines)
 
     # MCP
     cfg.mcp.generate_url = _env("API_URL", cfg.mcp.generate_url)
@@ -249,6 +257,8 @@ def load_config() -> AppConfig:
     cfg.error_catalog_path = _env("ERROR_CATALOG_PATH", cfg.error_catalog_path)
     cfg.error_fixes_path = _env("ERROR_FIXES_PATH", cfg.error_fixes_path)
     cfg.auto_fixes_path = _env("AUTO_FIXES_PATH", cfg.auto_fixes_path)
+    cfg.auto_catalog_path = _env("AUTO_CATALOG_PATH", cfg.auto_catalog_path)
+    cfg.auto_patterns_path = _env("AUTO_PATTERNS_PATH", cfg.auto_patterns_path)
     cfg.categories_api_url = _env("CATEGORIES_API_URL", cfg.categories_api_url)
     cfg.tasks_api_url = _env("TASKS_API_URL", cfg.tasks_api_url)
 

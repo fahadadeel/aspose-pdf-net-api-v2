@@ -228,8 +228,14 @@ _KNOWN_FIXES = [
 ]
 
 
-def detect_and_fix_known_patterns(code: str, error_output: str) -> Tuple[Optional[str], Optional[str]]:
-    """Apply hardcoded regex fixes for known errors. Returns (fixed_code, rule_json) or (None, None)."""
+def detect_and_fix_known_patterns(
+    code: str, error_output: str, auto_patterns_path: str = ""
+) -> Tuple[Optional[str], Optional[str]]:
+    """Apply hardcoded regex fixes for known errors. Returns (fixed_code, rule_json) or (None, None).
+
+    Also checks auto-learned patterns from auto_patterns.json (lower priority than curated).
+    """
+    # Try curated fixes first
     for fix in _KNOWN_FIXES:
         if re.search(fix["pattern"], error_output):
             if fix.get("regex"):
@@ -238,4 +244,22 @@ def detect_and_fix_known_patterns(code: str, error_output: str) -> Tuple[Optiona
                 fixed = code.replace(fix["old"], fix["new"])
             if fixed != code:
                 return fixed, json.dumps(fix["rule"], indent=2)
+
+    # Then try auto-learned patterns
+    if auto_patterns_path:
+        try:
+            from knowledge.pattern_tracker import load_auto_patterns
+            for fix in load_auto_patterns(auto_patterns_path):
+                pattern = fix.get("pattern", "")
+                if pattern and re.search(pattern, error_output):
+                    if fix.get("regex"):
+                        fixed = re.sub(fix["old"], fix["new"], code)
+                    else:
+                        fixed = code.replace(fix["old"], fix["new"])
+                    if fixed != code:
+                        rule = fix.get("rule", {"description": "Auto-learned pattern fix"})
+                        return fixed, json.dumps(rule, indent=2)
+        except Exception:
+            pass
+
     return None, None
