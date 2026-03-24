@@ -945,7 +945,10 @@
           <p style="font-size:13px;color:var(--text-dim);margin:0;">
             Auto-learned rules from successful pipeline fixes. Approve to promote to curated rules, or delete bad ones.
           </p>
-          <button class="btn btn-secondary" onclick="loadAutoFixes()" style="font-size:12px;padding:4px 10px;">Refresh</button>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-secondary" onclick="loadAutoFixes()" style="font-size:12px;padding:4px 10px;">Refresh</button>
+            <button class="btn" onclick="approveAllAutoFixes()" style="font-size:12px;padding:4px 10px;background:#4caf50;color:#fff;border:none;border-radius:4px;cursor:pointer;">Approve All</button>
+          </div>
         </div>
         <div id="auto-fixes-list" style="max-height:400px;overflow-y:auto;">
           <div class="task-placeholder">Click Refresh to load learned rules</div>
@@ -2178,6 +2181,17 @@
       .catch(function(err) {
         container.innerHTML = '<div class="task-placeholder">Error loading rules: ' + err + '</div>';
       });
+  };
+
+  window.approveAllAutoFixes = function() {
+    if (!confirm('Approve ALL learned rules and promote them to curated rules?')) return;
+    fetch('/api/auto-fixes/approve-all', { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        alert('Approved ' + (data.count || 0) + ' rules.');
+        loadAutoFixes();
+      })
+      .catch(function(err) { alert('Error: ' + err); });
   };
 
   window.approveAutoFix = function(ruleId) {

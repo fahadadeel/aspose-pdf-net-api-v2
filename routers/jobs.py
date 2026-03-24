@@ -26,7 +26,7 @@ from fastapi import APIRouter, Body, File, Form, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 
 from jobs import run_job, run_sweep, run_version_bump, retry_pr, create_pr, update_repo_docs
-from knowledge.auto_fixes import load_auto_fixes, approve_auto_fix, delete_auto_fix
+from knowledge.auto_fixes import load_auto_fixes, approve_auto_fix, approve_all_auto_fixes, delete_auto_fix
 from state import (
     JOB_CANCEL_FLAGS, JOB_LOCK,
     get_build_state, add_log,
@@ -614,6 +614,15 @@ async def api_approve_auto_fix(rule_id: str):
     if ok:
         return {"status": "approved", "rule_id": rule_id}
     return JSONResponse({"error": f"Rule '{rule_id}' not found or approval failed"}, status_code=404)
+
+
+@router.post("/api/auto-fixes/approve-all")
+async def api_approve_all_auto_fixes():
+    """Move all auto-learned rules to the curated error_fixes.json."""
+    from config import load_config
+    config = load_config()
+    count = approve_all_auto_fixes(config.auto_fixes_path, config.error_fixes_path)
+    return {"status": "approved", "count": count}
 
 
 @router.delete("/api/auto-fixes/{rule_id}")
