@@ -119,6 +119,37 @@ def approve_auto_fix(auto_path: str, curated_path: str, rule_id: str) -> bool:
             return False
 
 
+def approve_all_auto_fixes(auto_path: str, curated_path: str) -> int:
+    """Move all auto fixes to the curated error_fixes.json. Returns count approved."""
+    with _LOCK:
+        p_auto = Path(auto_path)
+        p_curated = Path(curated_path)
+        try:
+            if not p_auto.exists():
+                return 0
+            auto_data = json.loads(p_auto.read_text(encoding="utf-8"))
+            if not auto_data:
+                return 0
+
+            curated_data = {}
+            if p_curated.exists():
+                curated_data = json.loads(p_curated.read_text(encoding="utf-8"))
+
+            count = 0
+            for rule_id, rule in auto_data.items():
+                clean = {k: v for k, v in rule.items()
+                         if k not in ("_auto", "_confidence", "_created_at", "_hit_count", "_stage", "_category")}
+                curated_data[rule_id] = clean
+                count += 1
+
+            p_curated.write_text(json.dumps(curated_data, indent=2, ensure_ascii=False), encoding="utf-8")
+            p_auto.write_text(json.dumps({}, indent=2, ensure_ascii=False), encoding="utf-8")
+            return count
+        except Exception as e:
+            print(f"Failed to approve all auto fixes: {e}")
+            return 0
+
+
 def delete_auto_fix(path: str, rule_id: str) -> bool:
     """Remove an auto-generated fix."""
     with _LOCK:
