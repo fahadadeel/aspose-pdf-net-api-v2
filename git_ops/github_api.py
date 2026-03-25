@@ -36,6 +36,44 @@ class GitHubAPI:
             print(f"[GitHub] Error getting file {path}: {e}")
             return None
 
+    def list_directory(self, owner: str, repo: str, path: str, branch: str) -> list:
+        """List files in a directory on a branch. Returns list of entry dicts (name, type, path)."""
+        try:
+            r = self._session.get(
+                f"https://api.github.com/repos/{owner}/{repo}/contents/{path}",
+                headers=self._headers,
+                params={"ref": branch},
+                timeout=10,
+            )
+            if r.status_code == 200:
+                data = r.json()
+                if isinstance(data, list):
+                    return data
+            return []
+        except Exception as e:
+            print(f"[GitHub] Error listing directory {path}: {e}")
+            return []
+
+    def list_branch_cs_files(self, owner: str, repo: str, branch: str) -> dict:
+        """List all .cs files on a branch grouped by category folder.
+
+        Returns {category_slug: [filename, ...]} by listing the repo root
+        and recursing one level into each directory.
+        """
+        result = {}
+        root_entries = self.list_directory(owner, repo, "", branch)
+        for entry in root_entries:
+            if entry.get("type") != "dir":
+                continue
+            cat_slug = entry["name"]
+            if cat_slug.startswith(".") or cat_slug in ("docs", ".github"):
+                continue
+            files = self.list_directory(owner, repo, cat_slug, branch)
+            cs_files = [f["name"] for f in files if f.get("name", "").endswith(".cs")]
+            if cs_files:
+                result[cat_slug] = cs_files
+        return result
+
     def create_or_update_file(
         self, owner: str, repo: str, path: str,
         content: str, message: str, branch: str,
