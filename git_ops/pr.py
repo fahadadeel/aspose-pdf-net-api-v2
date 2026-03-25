@@ -43,7 +43,7 @@ class PRManager:
             self._notify("pr_error", "PR: Could not determine repository or no token")
             return None
 
-        base_branch = self.config.git.repo_branch or "main"
+        base_branch = self.config.git.effective_pr_target
 
         # Generate PR details via LLM (with fallback)
         self._notify("pr_create_start", "PR: Generating details and creating pull request...")
@@ -169,7 +169,7 @@ class PRManager:
         if not owner or not repo_name or not self._gh:
             return None
 
-        base_branch = self.config.git.repo_branch or "main"
+        base_branch = self.config.git.effective_pr_target
         title = f"Add {file_count} example(s) for {category}"
         body = (
             f"## {category}\n\n"
@@ -197,7 +197,7 @@ class PRManager:
         if not owner or not repo_name:
             return None
 
-        base = self.config.git.repo_branch or "main"
+        base = self.config.git.effective_pr_target
         new_branch = f"examples/retry-{uuid.uuid4().hex[:8]}"
         repo_path = self.config.git.repo_path
 

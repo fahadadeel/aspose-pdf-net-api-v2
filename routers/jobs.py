@@ -467,7 +467,7 @@ async def api_generate_category_docs(
     if create_pr and config.git.repo_token:
         gh = GitHubAPI(config.git.repo_token)
         owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
-        base = config.git.repo_branch or "main"
+        base = config.git.effective_pr_target
 
         if not owner or not repo_name:
             result["error"] = "Could not parse repo URL"
@@ -563,7 +563,7 @@ async def api_generate_index_json(
     if create_pr and config.git.repo_token:
         gh = GitHubAPI(config.git.repo_token)
         owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
-        base = config.git.repo_branch or "main"
+        base = config.git.effective_pr_target
 
         if not owner or not repo_name:
             result["error"] = "Could not parse repo URL"
