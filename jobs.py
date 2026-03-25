@@ -298,7 +298,7 @@ def run_job(
             status_str = "PASSED" if result.status == "SUCCESS" else "FAILED"
 
             if result.status == "SUCCESS":
-                add_passed(job_id, "1", prompt[:100], badge, code=final_code, category=category or "", product=product or "")
+                add_passed(job_id, "1", prompt[:100], badge, code=final_code, category=category or "", product=product or "", metadata=result.metadata)
                 add_log(job_id, f"Passed ({badge})")
                 # Commit code to repo
                 if committer:
@@ -414,7 +414,7 @@ def run_job(
                 })
 
                 if result.status == "SUCCESS":
-                    add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
+                    add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""), metadata=result.metadata)
                     add_log(job_id, f"Task {task_id} passed ({badge})")
                     if committer:
                         committer.commit_code(task_text, p.get("category", ""), final_code, metadata=result.metadata)
@@ -467,7 +467,7 @@ def run_job(
                     })
 
                     if result.status == "SUCCESS":
-                        add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
+                        add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""), metadata=result.metadata)
                         add_log(job_id, f"Task {task_id} passed on retry ({badge})")
                         if committer:
                             committer.commit_code(task_text, p.get("category", ""), final_code, metadata=result.metadata)
@@ -622,19 +622,17 @@ def create_pr(job_id: str, passed_results: list, results_summary: list):
         )
 
         # Commit each passed result's code
+        # NOTE: category is already stored in each passed result by add_passed() —
+        # no need to look it up from results_summary (which gets overwritten per category).
         committed = 0
         for item in passed_results:
             code = item.get("code", "")
             task = item.get("task", "")
             if not code or not task:
                 continue
-            # Find the category from results_summary
-            category = ""
-            for rs in results_summary:
-                if rs.get("task", "") == task:
-                    category = rs.get("category", "")
-                    break
-            committer.commit_code(task, category, code)
+            category = item.get("category", "")
+            metadata = item.get("metadata", {})
+            committer.commit_code(task, category, code, metadata=metadata)
             committed += 1
 
         if committer._pending_commits:
@@ -1018,7 +1016,7 @@ def run_sweep(
 
                 if result.status == "SUCCESS":
                     cat_passed += 1
-                    add_passed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
+                    add_passed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""), metadata=result.metadata)
                     add_log(job_id, f"Task {task_id} passed ({badge})")
                     if committer:
                         committer.commit_code(task_text, cat_name, final_code, metadata=result.metadata)
@@ -1045,7 +1043,7 @@ def run_sweep(
                 cat_results.append({"task": task_display, "category": cat_name, "status": "PASSED" if result.status == "SUCCESS" else "FAILED"})
                 if result.status == "SUCCESS":
                     cat_passed += 1
-                    add_passed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
+                    add_passed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""), metadata=result.metadata)
                     add_log(job_id, f"Task {task_id} passed on retry ({badge})")
                     if committer:
                         committer.commit_code(task_text, cat_name, final_code, metadata=result.metadata)

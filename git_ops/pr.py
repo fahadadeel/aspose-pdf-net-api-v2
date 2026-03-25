@@ -119,22 +119,19 @@ class PRManager:
             for result in results_summary:
                 cat = result.get("category", "uncategorized")
                 if cat not in categories_dict:
-                    categories_dict[cat] = {"total": 0, "passed": 0, "files": []}
+                    categories_dict[cat] = {"total": 0, "files": []}
                 categories_dict[cat]["total"] += 1
-                if result.get("status") == "PASSED":
-                    categories_dict[cat]["passed"] += 1
                 task = result.get("task", "")
                 if task:
                     filename = slugify(task, max_len=120) + ".cs"
                     categories_dict[cat]["files"].append(filename)
 
             for category, cat_stats in sorted(categories_dict.items()):
-                cat_pass_rate = (cat_stats["passed"] / cat_stats["total"] * 100) if cat_stats["total"] > 0 else 0
                 cat_slug = normalize_category(category)
                 cat_path = f"{cat_slug}/agents.md"
                 cat_content = generate_category_agents_md(
                     category, cat_stats["files"],
-                    {"total": cat_stats["total"], "passed": cat_stats["passed"], "pass_rate": cat_pass_rate},
+                    {"total": cat_stats["total"]},
                     run_id,
                     kb_path=self.config.rules_examples_path,
                     repo_path=self.config.git.repo_path,

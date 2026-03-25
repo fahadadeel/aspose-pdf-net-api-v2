@@ -53,25 +53,19 @@ def generate_agents_md(
         run_id = _generate_run_id()
 
     total = len(results_summary)
-    passed = sum(1 for r in results_summary if r.get("status") == "PASSED")
-    pass_rate = (passed / total * 100) if total > 0 else 0
 
     categories = {}
     for result in results_summary:
         cat = result.get("category", "uncategorized")
         if cat not in categories:
-            categories[cat] = {"total": 0, "passed": 0}
+            categories[cat] = {"total": 0}
         categories[cat]["total"] += 1
-        if result.get("status") == "PASSED":
-            categories[cat]["passed"] += 1
 
     category_details = ""
     for cat, stats in sorted(categories.items()):
-        cat_pass_rate = (stats["passed"] / stats["total"] * 100) if stats["total"] > 0 else 0
         cat_slug = _slug(cat)
         category_details += f"### {cat}\n"
         category_details += f"- Examples: {stats['total']}\n"
-        category_details += f"- Pass Rate: {stats['passed']}/{stats['total']} ({cat_pass_rate:.0f}%)\n"
         category_details += f"- Guide: [agents.md](./{cat_slug}/agents.md)\n\n"
 
     current_date = datetime.now().strftime("%Y-%m-%d")
@@ -91,12 +85,10 @@ AI-friendly repository containing validated C# examples for Aspose.PDF for .NET 
 
 {persona_section}## Repository Overview
 
-This repository contains **{total}** working code examples demonstrating Aspose.PDF for .NET capabilities.
+This repository contains **{total}** verified C# examples demonstrating Aspose.PDF for .NET capabilities.
 
-**Statistics** (as of {current_date}):
 - Total Examples: {total}
 - Categories: {len(categories)}
-- Pass Rate: {pass_rate:.1f}%
 
 ## Category Details
 
@@ -122,7 +114,7 @@ Updated: {current_date} | Run: `{run_id}`
 
 ---
 
-*This repository is maintained by automated code generation. Last updated: {current_date} | Total examples: {total} | Pass rate: {pass_rate:.1f}%*
+*This repository is maintained by automated code generation. Last updated: {current_date} | Total examples: {total}*
 """
     return content
 
@@ -175,13 +167,10 @@ def generate_category_agents_md(
     return f"""{frontmatter}# AGENTS - {category}
 
 {persona_section}## Scope
-- This folder contains examples for **{category}**.
+- This folder contains **{total}** verified examples for **{category}**.
 - Files are standalone `.cs` examples stored directly in this folder.
 
-{file_section}## Category Statistics
-- Total examples: {total}
-
-{category_tips}## General Tips
+{file_section}{category_tips}## General Tips
 - See parent [agents.md](../agents.md) for:
   - **Boundaries** — Always / Ask First / Never rules for all examples
   - **Common Mistakes** — verified anti-patterns that cause build failures
