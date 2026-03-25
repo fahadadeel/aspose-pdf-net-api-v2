@@ -161,11 +161,21 @@ class LLMClient:
         return None
 
     def generate_code(self, task: str, chunks_text: str = "",
-                      rules_text: str = "", category: str = "") -> Optional[str]:
+                      rules_text: str = "", category: str = "") -> Optional[dict]:
         """Generate C# code using the same prompt structure as MCP /generate.
 
         Replicates the MCP server's prompt.py build_prompt() — single user message
         with rules, task, documentation context, and output requirements.
+
+        Returns a dict with keys:
+            code        — the generated C# source code (required)
+            title       — human-readable example title
+            filename    — recommended kebab-case filename stem (no .cs)
+            description — 1-2 sentence summary of what the example demonstrates
+            tags        — list of short keyword strings
+            apis_used   — list of Aspose.Pdf API class/method names used
+            difficulty  — beginner / intermediate / advanced
+        Returns None if generation fails.
         """
         prompt = f"""You are an Aspose.Pdf expert for NET.
 
@@ -208,25 +218,47 @@ GROUND TRUTH DOCUMENTATION:
 {chunks_text}
 
 OUTPUT REQUIREMENTS:
-- Output ONLY valid NET code
-- Explain with comments
-- No markdown
-- No comments about rules
-- Code must compile
+Return a JSON object with exactly these keys:
+{{
+  "code": "<valid C# source code — no markdown fences, compilable>",
+  "title": "<concise human-readable title, e.g. 'Add Text Annotation to PDF Page'>",
+  "filename": "<kebab-case filename stem without extension, e.g. 'add-text-annotation'>",
+  "description": "<1-2 sentences describing what the example demonstrates>",
+  "tags": ["<keyword1>", "<keyword2>"],
+  "apis_used": ["<Aspose.Pdf.ClassName>", "<Aspose.Pdf.Namespace.MethodName>"],
+  "difficulty": "<beginner|intermediate|advanced>"
+}}
 
-GENERATE CODE BELOW:
+Rules for the JSON:
+- "code" must be pure C# — no markdown, no JSON wrapper inside it, must compile
+- "filename" must be lowercase kebab-case, max 60 chars, no .cs extension
+- "tags" max 5 short keywords
+- "apis_used" list the main Aspose.Pdf classes/methods actually used in the code
+- Output ONLY the JSON object, no other text
 """
         # MCP server uses temperature=0.1, single user message (no system prompt)
-        content = self.chat("", prompt, temperature=0.1, max_tokens=4000)
+        content = self.chat("", prompt, temperature=0.1, max_tokens=4500)
         if not content:
             return None
 
         # Strip markdown fences if present
+        content = content.strip()
         if content.startswith("```"):
-            content = re.sub(r"^```(?:csharp|cs)?\s*", "", content)
-            content = re.sub(r"\s*```$", "", content)
+            content = re.sub(r"^```(?:json)?\s*", "", content)
+            content = re.sub(r"\s*```$", "", content.strip()).strip()
 
-        return content.strip() if content.strip() else None
+        # Parse JSON response
+        try:
+            data = json.loads(content)
+            if isinstance(data, dict) and data.get("code"):
+                return data
+        except (json.JSONDecodeError, ValueError):
+            pass
+
+        # Fallback: treat entire response as raw code (backward compat)
+        if content.strip():
+            return {"code": content.strip()}
+        return None
 
     def generate_pr_details(self, results_summary: list) -> Optional[dict]:
         """Generate PR title and body. Returns {title, body} or None."""

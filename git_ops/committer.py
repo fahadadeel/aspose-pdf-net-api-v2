@@ -5,8 +5,10 @@ Handles writing code files to the repo, committing, and pushing.
 """
 
 import hashlib
+import json
 import re
 import subprocess
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Callable, List, Optional
 
@@ -79,10 +81,55 @@ class CodeCommitter:
             groups.setdefault(cat, []).append(c)
         return groups
 
-    def _build_file_path(self, category: str, task: str) -> Path:
+    def _build_file_path(self, category: str, task: str, metadata: dict = None) -> Path:
         cat_slug = normalize_category(category, self.default_category)
-        filename = f"{slugify(task, max_len=120)}.cs"
+        # Prefer LLM-provided filename, fall back to slugified task title
+        llm_filename = (metadata or {}).get("filename", "").strip()
+        if llm_filename:
+            llm_filename = re.sub(r"[^a-z0-9._-]", "-", llm_filename.lower())
+            llm_filename = re.sub(r"-+", "-", llm_filename).strip("-")[:100]
+            filename = f"{llm_filename}.cs" if llm_filename else f"{slugify(task, max_len=120)}.cs"
+        else:
+            filename = f"{slugify(task, max_len=120)}.cs"
         return Path(self.repo_path) / cat_slug / filename
+
+    def _write_category_index(self, category: str, filename_stem: str, metadata: dict, nuget_version: str = "") -> None:
+        """Write/update per-category index.json with metadata for this example."""
+        cat_slug = normalize_category(category, self.default_category)
+        index_path = Path(self.repo_path) / cat_slug / "index.json"
+
+        # Load existing index or create fresh
+        index_data: dict = {}
+        if index_path.exists():
+            try:
+                index_data = json.loads(index_path.read_text(encoding="utf-8"))
+            except Exception:
+                index_data = {}
+
+        # Ensure top-level fields
+        if "category" not in index_data:
+            index_data["category"] = category
+        if nuget_version:
+            index_data["nuget_version"] = nuget_version
+        index_data["last_updated"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+        if "examples" not in index_data:
+            index_data["examples"] = {}
+
+        # Build entry — merge LLM metadata with pipeline-added fields
+        entry = {
+            "title": metadata.get("title") or filename_stem.replace("-", " ").title(),
+            "filename": f"{filename_stem}.cs",
+            "description": metadata.get("description", ""),
+            "tags": metadata.get("tags", []),
+            "apis_used": metadata.get("apis_used", []),
+            "difficulty": metadata.get("difficulty", ""),
+            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+            "status": "verified",
+        }
+        index_data["examples"][filename_stem] = entry
+
+        index_path.write_text(json.dumps(index_data, indent=2, ensure_ascii=False), encoding="utf-8")
 
     def _get_versioned_path(self, base_path: Path) -> Path:
         if not base_path.exists():
@@ -97,11 +144,12 @@ class CodeCommitter:
                 return candidate
             idx += 1
 
-    def commit_code(self, task: str, category: str, code: str) -> None:
+    def commit_code(self, task: str, category: str, code: str, metadata: dict = None) -> None:
         """Write code to repo and commit (or stage for batch)."""
         self._notify("git_workflow_start", "Git: Starting commit workflow...")
 
-        target_path = self._build_file_path(category, task)
+        metadata = metadata or {}
+        target_path = self._build_file_path(category, task, metadata)
         target_path.parent.mkdir(parents=True, exist_ok=True)
 
         if target_path.exists():
@@ -121,23 +169,37 @@ class CodeCommitter:
             target_path.write_text(code, encoding="utf-8")
             self._notify("git_write_success", "Git: Code written to file")
 
+            # Write/update per-category index.json with example metadata
+            try:
+                self._write_category_index(category, target_path.stem, metadata)
+            except Exception as e:
+                self._notify("git_warn", f"Git: Could not update index.json - {str(e)[:80]}")
+
             if self.batch_git:
                 self._pending_commits.append({
                     "path": target_path, "prompt": task, "category": category,
                 })
                 self._notify("git_staged", f"Git: File written ({len(self._pending_commits)} pending)")
             else:
-                self._commit_and_push(target_path, task, category)
+                index_path = target_path.parent / "index.json"
+                paths_to_commit = [target_path]
+                if index_path.exists():
+                    paths_to_commit.append(index_path)
+                self._commit_and_push_paths(paths_to_commit, task, category)
         except Exception as e:
             self._notify("git_error", f"Git: Failed to write file - {str(e)[:100]}")
 
-    def _commit_and_push(self, file_path: Path, task: str, category: str) -> bool:
-        """Commit a single file and optionally push."""
-        # Generate commit message
+    def _commit_and_push_paths(self, file_paths: List[Path], task: str, category: str) -> bool:
+        """Commit one or more files (e.g. .cs + index.json) and optionally push."""
+        if not file_paths:
+            return False
+
+        # Generate commit message from the primary .cs file
+        primary = next((p for p in file_paths if p.suffix == ".cs"), file_paths[0])
         commit_msg = None
         if self._llm:
             try:
-                code = file_path.read_text(encoding="utf-8")
+                code = primary.read_text(encoding="utf-8")
                 commit_msg = self._llm.generate_commit_message(task, category, code)
             except Exception:
                 pass
@@ -145,15 +207,16 @@ class CodeCommitter:
         if commit_msg and "title" in commit_msg and "description" in commit_msg:
             message = f"{commit_msg['title']}\n\n{commit_msg['description']}"
         else:
-            message = f"Add {file_path.parent.name}/{file_path.name} for: {task[:60]}"
+            message = f"Add {primary.parent.name}/{primary.name} for: {task[:60]}"
 
         try:
             with _git_lock:
-                self._notify("git_add_start", "Git: Adding file...")
-                subprocess.run(
-                    ["git", "add", str(file_path)],
-                    cwd=self.repo_path, check=True, capture_output=True, text=True,
-                )
+                self._notify("git_add_start", "Git: Adding file(s)...")
+                for fp in file_paths:
+                    subprocess.run(
+                        ["git", "add", str(fp)],
+                        cwd=self.repo_path, check=True, capture_output=True, text=True,
+                    )
                 self._notify("git_commit_start", "Git: Committing...")
                 subprocess.run(
                     ["git", "commit", "-m", message],
@@ -176,6 +239,10 @@ class CodeCommitter:
         except Exception as e:
             self._notify("git_error", f"Git: Commit failed - {str(e)[:100]}")
             return False
+
+    def _commit_and_push(self, file_path: Path, task: str, category: str) -> bool:
+        """Commit a single file and optionally push. Kept for backward compat."""
+        return self._commit_and_push_paths([file_path], task, category)
 
     def batch_commit_and_push(self, custom_message: str = None) -> bool:
         """Commit all staged files in one batch and push once."""
@@ -206,12 +273,20 @@ class CodeCommitter:
 
         try:
             with _git_lock:
-                # Stage all pending files
+                # Stage all pending files + their index.json sidecars
+                staged_index = set()
                 for c in self._pending_commits:
                     subprocess.run(
                         ["git", "add", str(c["path"])],
                         cwd=self.repo_path, check=True, capture_output=True, text=True,
                     )
+                    index_path = c["path"].parent / "index.json"
+                    if index_path.exists() and str(index_path) not in staged_index:
+                        subprocess.run(
+                            ["git", "add", str(index_path)],
+                            cwd=self.repo_path, check=True, capture_output=True, text=True,
+                        )
+                        staged_index.add(str(index_path))
                 self._notify("git_commit_start", f"Git: Committing {count} file(s)...")
                 subprocess.run(
                     ["git", "commit", "-m", message],

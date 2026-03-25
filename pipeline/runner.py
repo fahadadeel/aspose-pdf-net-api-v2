@@ -147,6 +147,7 @@ class PipelineRunner:
 
         if outcome.success:
             result.generated_code = outcome.code
+            result.metadata = outcome.metadata
             result.status = "SUCCESS"
             result.stage = "baseline"
             return result
@@ -158,6 +159,7 @@ class PipelineRunner:
             return result
 
         result.generated_code = outcome.code
+        result.metadata = outcome.metadata  # keep baseline metadata even if code gets fixed later
         current_code = outcome.code
         current_error = outcome.build_log
 

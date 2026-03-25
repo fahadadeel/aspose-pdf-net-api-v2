@@ -927,62 +927,78 @@ def extract_common_code_pattern(file_contents: Dict[str, str]) -> str:
 
 def extract_file_summaries(
     file_contents: Dict[str, str], max_rows: int = 30,
+    index_metadata: dict = None,
 ) -> str:
     """Generate a compact per-file summary table.
 
     Returns a markdown table with file link, key APIs, and description.
     Replaces the plain file-list when code intelligence is available.
+
+    index_metadata: optional dict from per-category index.json
+        {filename_stem: {title, description, tags, apis_used, difficulty}}
     """
     if not file_contents:
         return ""
 
+    examples_meta = (index_metadata or {}).get("examples", {})
+
     rows = []
     for fname in sorted(file_contents.keys()):
         content = file_contents[fname]
-        display = fname.replace(".cs", "")
+        stem = fname.replace(".cs", "")
+        display = stem
+        meta_entry = examples_meta.get(stem, {})
 
-        # --- Extract key APIs ---
-        apis: List[str] = []
-        for m in _RE_KEY_API.finditer(content):
-            cls = m.group(1).split(".")[-1]
-            if cls not in apis:
-                apis.append(cls)
-        if not apis:
-            for m in _RE_ASPOSE_NEW.finditer(content):
+        # --- Title: prefer LLM-provided, fall back to humanised filename ---
+        title = meta_entry.get("title", "").strip()
+        if not title:
+            title = display.replace("-", " ")
+            if title:
+                title = title[0].upper() + title[1:]
+
+        # --- Key APIs: prefer LLM-provided apis_used, fall back to regex ---
+        llm_apis = meta_entry.get("apis_used", [])
+        if llm_apis:
+            apis = [a.split(".")[-1] for a in llm_apis[:3]]
+        else:
+            apis: List[str] = []
+            for m in _RE_KEY_API.finditer(content):
                 cls = m.group(1).split(".")[-1]
-                if cls not in apis and cls not in ("Document", "Page"):
-                    apis.append(cls)
-        if not apis:
-            for m in _RE_FACADES_CLASS.finditer(content):
-                cls = m.group(1)
                 if cls not in apis:
                     apis.append(cls)
+            if not apis:
+                for m in _RE_ASPOSE_NEW.finditer(content):
+                    cls = m.group(1).split(".")[-1]
+                    if cls not in apis and cls not in ("Document", "Page"):
+                        apis.append(cls)
+            if not apis:
+                for m in _RE_FACADES_CLASS.finditer(content):
+                    cls = m.group(1)
+                    if cls not in apis:
+                        apis.append(cls)
         api_str = ", ".join(f"`{a}`" for a in apis[:3]) if apis else ""
 
-        # --- Description from filename ---
-        desc = display.replace("-", " ")
-        # Capitalize first letter, truncate
-        if desc:
-            desc = desc[0].upper() + desc[1:]
-        if len(desc) > 80:
-            desc = desc[:77] + "..."
+        # --- Description: prefer LLM-provided, fall back to humanised title ---
+        desc = meta_entry.get("description", "").strip() or title
+        if len(desc) > 100:
+            desc = desc[:97] + "..."
 
-        rows.append((display, fname, api_str, desc))
+        rows.append((display, fname, api_str, desc, title))
 
     if not rows:
         return ""
 
     md = "## Files in this folder\n\n"
-    md += "| File | Key APIs | Description |\n"
-    md += "|------|----------|-------------|\n"
+    md += "| File | Title | Key APIs | Description |\n"
+    md += "|------|-------|----------|-------------|\n"
 
-    for display, fname, api_str, desc in rows[:max_rows]:
-        # Truncate display name for table readability
-        short_display = display[:60] + "..." if len(display) > 60 else display
-        md += f"| [{short_display}](./{fname}) | {api_str} | {desc} |\n"
+    for display, fname, api_str, desc, title in rows[:max_rows]:
+        short_display = display[:50] + "..." if len(display) > 50 else display
+        short_title = title[:60] + "..." if len(title) > 60 else title
+        md += f"| [{short_display}](./{fname}) | {short_title} | {api_str} | {desc} |\n"
 
     if len(rows) > max_rows:
-        md += f"| ... | | *and {len(rows) - max_rows} more files* |\n"
+        md += f"| ... | | | *and {len(rows) - max_rows} more files* |\n"
 
     md += "\n"
     return md
@@ -1000,11 +1016,32 @@ def build_code_intelligence_sections(
     if not contents:
         return ""
 
+    # Load per-category index.json for LLM-generated titles/descriptions
+    index_metadata = _load_category_index_for_agents(repo_path, category)
+
     namespaces_section = extract_required_namespaces(contents)
     pattern_section = extract_common_code_pattern(contents)
-    files_section = extract_file_summaries(contents)
+    files_section = extract_file_summaries(contents, index_metadata=index_metadata)
 
     return namespaces_section + pattern_section + files_section
+
+
+def _load_category_index_for_agents(repo_path: str, category: str) -> dict:
+    """Load per-category index.json from the target repo for agents.md enrichment."""
+    import json as _json
+    import re as _re
+    root = Path(repo_path)
+    norm = _re.sub(r"\s+", "-", category.strip()).lower()
+    norm = _re.sub(r"[^a-z0-9-]", "-", norm)
+    norm = _re.sub(r"-+", "-", norm).strip("-")
+    for folder in [norm, category]:
+        idx = root / folder / "index.json"
+        if idx.exists():
+            try:
+                return _json.loads(idx.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+    return {}
 
 
 def extract_category_metadata(
