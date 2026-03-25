@@ -607,6 +607,125 @@ async def api_generate_index_json(
     return result
 
 
+# ── PR branch patch endpoint ──
+
+@router.post("/api/patch-pr-branch")
+async def api_patch_pr_branch(data: dict = Body(...)):
+    """Add agents.md and index.json to an existing PR branch that was missing them.
+
+    Useful when a PR was created before these files were included in the sweep.
+    Reads the .cs files already on the branch from GitHub, generates agents.md
+    and index.json, then pushes them directly onto that same branch.
+
+    Body: { "branch": "examples/abc123-accessibility-and-tagged-pdfs" }
+    """
+    import json as _json
+    from datetime import datetime, timezone
+    from config import load_config
+    from git_ops.github_api import GitHubAPI
+    from git_ops.repo_docs import generate_cumulative_category_agents_md
+    from git_ops.agents_md import _generate_run_id
+    from git_ops.committer import normalize_category
+
+    branch = (data.get("branch") or "").strip()
+    if not branch:
+        return JSONResponse({"error": "branch is required"}, status_code=400)
+
+    config = load_config()
+    if not config.git.repo_token:
+        return JSONResponse({"error": "REPO_TOKEN not configured"}, status_code=400)
+
+    gh = GitHubAPI(config.git.repo_token)
+    owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
+    if not owner or not repo_name:
+        return JSONResponse({"error": "Could not parse repo URL"}, status_code=400)
+
+    # Discover .cs files on the branch grouped by category folder
+    cs_by_cat = gh.list_branch_cs_files(owner, repo_name, branch)
+    if not cs_by_cat:
+        return JSONResponse(
+            {"error": f"No .cs files found on branch '{branch}'"},
+            status_code=404,
+        )
+
+    run_id = _generate_run_id()
+    patched = []
+
+    for cat_slug, cs_files in sorted(cs_by_cat.items()):
+        # Use cat_slug as category name (already normalised)
+        category_name = cat_slug.replace("-", " ").title()
+
+        # ── agents.md ──
+        agents_content = generate_cumulative_category_agents_md(
+            category_name, sorted(cs_files), run_id,
+            kb_path=config.rules_examples_path,
+            repo_path=config.git.repo_path,   # reads local .cs files for code intelligence
+            tfm=config.build.tfm,
+            nuget_version=config.build.nuget_version,
+        )
+        agents_path = f"{cat_slug}/agents.md"
+        existing_agents = gh.get_file(owner, repo_name, agents_path, branch)
+        agents_sha = existing_agents.get("sha") if existing_agents else None
+        gh.create_or_update_file(
+            owner, repo_name, agents_path, agents_content,
+            f"Add {cat_slug}/agents.md ({len(cs_files)} examples)",
+            branch, sha=agents_sha,
+        )
+
+        # ── index.json ──
+        # Load existing index.json from branch if present; otherwise start fresh
+        index_path = f"{cat_slug}/index.json"
+        existing_index = gh.get_file(owner, repo_name, index_path, branch)
+        if existing_index:
+            try:
+                import base64 as _b64
+                raw = _b64.b64decode(existing_index.get("content", "")).decode("utf-8")
+                index_data = _json.loads(raw)
+            except Exception:
+                index_data = {}
+            index_sha = existing_index.get("sha")
+        else:
+            index_data = {}
+            index_sha = None
+
+        # Ensure required top-level fields
+        index_data.setdefault("category", category_name)
+        index_data["nuget_version"] = config.build.nuget_version
+        index_data["last_updated"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+        index_data.setdefault("examples", {})
+
+        # Add stub entries for any .cs files not already in examples
+        for fname in cs_files:
+            stem = fname.replace(".cs", "")
+            if stem not in index_data["examples"]:
+                index_data["examples"][stem] = {
+                    "title": stem.replace("-", " ").title(),
+                    "filename": fname,
+                    "description": "",
+                    "tags": [],
+                    "apis_used": [],
+                    "difficulty": "",
+                    "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                    "status": "verified",
+                }
+
+        index_content = _json.dumps(index_data, indent=2, ensure_ascii=False)
+        gh.create_or_update_file(
+            owner, repo_name, index_path, index_content,
+            f"Add {cat_slug}/index.json ({len(cs_files)} examples)",
+            branch, sha=index_sha,
+        )
+
+        patched.append({"category": cat_slug, "files": len(cs_files)})
+
+    return {
+        "branch": branch,
+        "patched_categories": patched,
+        "total_categories": len(patched),
+        "message": f"agents.md + index.json added to {len(patched)} category/categories on branch '{branch}'",
+    }
+
+
 # ── Auto-learned rules review endpoints ──
 
 @router.get("/api/auto-fixes")
