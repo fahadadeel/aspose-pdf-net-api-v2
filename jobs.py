@@ -179,14 +179,20 @@ def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_su
     """Commit and create one PR per category.
 
     Each category gets its own branch, commit, and PR.
-    agents.md is NOT included (use 'Update Repo Docs' after merging).
+    Includes agents.md and index.json alongside the .cs files.
     """
     import subprocess
+    import json as _json
+    from pathlib import Path as _Path
     from git_ops.repo import _git_lock
+    from git_ops.committer import normalize_category
+    from git_ops.repo_docs import generate_cumulative_category_agents_md
+    from git_ops.agents_md import _generate_run_id
 
     groups = committer.get_pending_by_category()
     base_branch = config.git.effective_pr_target
     pr_urls = []
+    run_id = _generate_run_id()
 
     for cat_name, commits in sorted(groups.items()):
         if is_cancelled(job_id):
@@ -198,6 +204,22 @@ def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_su
         set_current_task(job_id, f"PR: {cat_name}...")
 
         try:
+            cat_slug = normalize_category(cat_name, config.git.default_category)
+            cat_dir = _Path(config.git.repo_path) / cat_slug
+
+            # Generate agents.md for this category (uses actual .cs files on disk)
+            cs_files = sorted(c["path"].name for c in commits)
+            agents_content = generate_cumulative_category_agents_md(
+                cat_name, cs_files, run_id,
+                kb_path=config.rules_examples_path,
+                repo_path=config.git.repo_path,
+                tfm=config.build.tfm,
+                nuget_version=config.build.nuget_version,
+            )
+            agents_path = cat_dir / "agents.md"
+            agents_path.parent.mkdir(parents=True, exist_ok=True)
+            agents_path.write_text(agents_content, encoding="utf-8")
+
             with _git_lock:
                 # Create a fresh branch from base for this category
                 subprocess.run(
@@ -209,12 +231,26 @@ def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_su
                     cwd=config.git.repo_path, check=True, capture_output=True, text=True,
                 )
 
-                # Stage only this category's files
+                # Stage .cs files
                 for c in commits:
                     subprocess.run(
                         ["git", "add", str(c["path"])],
                         cwd=config.git.repo_path, check=True, capture_output=True, text=True,
                     )
+
+                # Stage index.json if it exists (written by commit_code → _write_category_index)
+                index_path = cat_dir / "index.json"
+                if index_path.exists():
+                    subprocess.run(
+                        ["git", "add", str(index_path)],
+                        cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                    )
+
+                # Stage agents.md
+                subprocess.run(
+                    ["git", "add", str(agents_path)],
+                    cwd=config.git.repo_path, check=True, capture_output=True, text=True,
+                )
 
                 subprocess.run(
                     ["git", "commit", "-m", f"Add {len(commits)} example(s) for {cat_name}"],
@@ -226,7 +262,7 @@ def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_su
                     timeout=60,
                 )
 
-            # Create PR for this category (no agents.md)
+            # Create PR for this category
             repo.pr_branch = cat_branch
             pr_url = pr_manager.create_category_pr(cat_name, len(commits))
             if pr_url:
