@@ -47,6 +47,7 @@ async def api_start(
     repo_push: str = Form(""),
     force: str = Form("false"),
     api_url: str = Form(None),
+    pr_target_branch: str = Form(""),
     csv: UploadFile = File(None),
 ):
     if mode not in {"single", "csv"}:
@@ -73,6 +74,7 @@ async def api_start(
                 "repo_push": repo_push_bool,
                 "force": force_bool,
                 "api_url": api_url or None,
+                "pr_target_branch": pr_target_branch.strip() or None,
             },
             daemon=True,
         )
@@ -107,6 +109,7 @@ async def api_start(
             "repo_push": repo_push_bool,
             "force": force_bool,
             "api_url": api_url or None,
+            "pr_target_branch": pr_target_branch.strip() or None,
         },
         daemon=True,
     )
@@ -121,6 +124,7 @@ async def api_start_tasks(data: dict = Body(...)):
     repo_push = data.get("repo_push", False)
     force = data.get("force", False)
     api_url = data.get("api_url") or None
+    pr_target_branch = (data.get("pr_target_branch") or "").strip() or None
 
     if not tasks:
         return JSONResponse({"error": "No tasks selected"}, status_code=400)
@@ -151,6 +155,7 @@ async def api_start_tasks(data: dict = Body(...)):
             "repo_push": bool(repo_push),
             "force": bool(force),
             "api_url": api_url,
+            "pr_target_branch": pr_target_branch,
         },
         daemon=True,
     )
@@ -164,6 +169,7 @@ async def api_start_sweep(data: dict = Body(...)):
     categories = data.get("categories", [])
     repo_push = bool(data.get("repo_push", False))
     api_url = data.get("api_url") or None
+    pr_target_branch = (data.get("pr_target_branch") or "").strip() or None
 
     if not categories:
         return JSONResponse({"error": "No categories selected"}, status_code=400)
@@ -172,7 +178,7 @@ async def api_start_sweep(data: dict = Body(...)):
     thread = threading.Thread(
         target=run_sweep,
         args=(job_id, categories),
-        kwargs={"repo_push": repo_push, "api_url": api_url},
+        kwargs={"repo_push": repo_push, "api_url": api_url, "pr_target_branch": pr_target_branch},
         daemon=True,
     )
     thread.start()

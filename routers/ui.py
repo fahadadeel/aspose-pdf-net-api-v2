@@ -21,6 +21,7 @@ async def index(request: Request):
 
     repo_url = cfg.git.repo_url
     repo_branch = cfg.git.repo_branch
+    pr_target_branch = cfg.git.pr_target_branch or ""
     repo_display = ""
     if repo_url:
         repo_display = (
@@ -36,6 +37,7 @@ async def index(request: Request):
             "default_api_url": default_api_url,
             "repo_display": repo_display,
             "repo_branch": repo_branch,
+            "pr_target_branch": pr_target_branch,
             "nuget_version": cfg.build.nuget_version,
         },
     )

@@ -36,7 +36,7 @@ class BuildConfig:
     """Target framework and NuGet package for .NET builds."""
     tfm: str = "net10.0"
     nuget_package: str = "Aspose.PDF"
-    nuget_version: str = "26.2.0"
+    nuget_version: str = "26.3.0"
 
 
 @dataclass
@@ -123,6 +123,7 @@ class GitConfig:
     repo_url: str = "https://github.com/aspose-pdf/agentic-net-examples.git"
     repo_path: str = "/Users/fahadadeelqazi/Projects/Aspose/agentic-net-examples-v2"
     repo_branch: str = "main"
+    pr_target_branch: str = ""  # PR base branch override; falls back to repo_branch if empty
     repo_push: bool = False
     repo_token: str = ""
     repo_user: str = ""
@@ -130,6 +131,11 @@ class GitConfig:
     default_product: str = "aspose.pdf"
     update_agents_md: bool = True
     pr_split_threshold: int = 0  # 0 = single PR; >0 = split by category when total files exceed this
+
+    @property
+    def effective_pr_target(self) -> str:
+        """The branch PRs merge INTO. Uses pr_target_branch if set, otherwise repo_branch."""
+        return (self.pr_target_branch or self.repo_branch or "main").strip()
 
 
 @dataclass
@@ -243,6 +249,7 @@ def load_config() -> AppConfig:
     cfg.git.repo_url = _env("REPO_URL", cfg.git.repo_url)
     cfg.git.repo_path = _env("REPO_PATH", cfg.git.repo_path)
     cfg.git.repo_branch = _env("REPO_BRANCH", cfg.git.repo_branch)
+    cfg.git.pr_target_branch = _env("PR_TARGET_BRANCH", cfg.git.pr_target_branch)
     cfg.git.repo_push = _env_bool("REPO_PUSH", cfg.git.repo_push)
     cfg.git.repo_token = _env("REPO_TOKEN", "")
     cfg.git.repo_user = _env("REPO_USER", "")

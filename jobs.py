@@ -185,7 +185,7 @@ def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_su
     from git_ops.repo import _git_lock
 
     groups = committer.get_pending_by_category()
-    base_branch = config.git.repo_branch or "main"
+    base_branch = config.git.effective_pr_target
     pr_urls = []
 
     for cat_name, commits in sorted(groups.items()):
@@ -259,6 +259,7 @@ def run_job(
     repo_push: bool = False,
     force: bool = False,
     api_url: str = None,
+    pr_target_branch: str = None,
 ):
     """Run a test job. Called from a daemon thread."""
     notify = _make_progress_callback(job_id)
@@ -268,6 +269,10 @@ def run_job(
     # Override API URL if provided
     if api_url:
         config.mcp.generate_url = api_url
+
+    # Override PR target branch if provided
+    if pr_target_branch:
+        config.git.pr_target_branch = pr_target_branch
 
     try:
         if mode == "single":
@@ -910,6 +915,7 @@ def run_sweep(
     categories: list,
     repo_push: bool = False,
     api_url: str = None,
+    pr_target_branch: str = None,
 ):
     """Run all tasks across selected categories, one category at a time.
 
@@ -923,6 +929,9 @@ def run_sweep(
 
     if api_url:
         config.mcp.generate_url = api_url
+
+    if pr_target_branch:
+        config.git.pr_target_branch = pr_target_branch
 
     try:
         # ── Phase 1: Fetch all tasks upfront ──
@@ -1054,7 +1063,7 @@ def run_sweep(
 
                 try:
                     with _git_lock:
-                        base_branch = config.git.repo_branch or "main"
+                        base_branch = config.git.effective_pr_target
                         subprocess.run(["git", "checkout", f"origin/{base_branch}"], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
                         subprocess.run(["git", "checkout", "-b", cat_branch], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
                         for c in committer._pending_commits:
@@ -1149,7 +1158,7 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
             set_status(job_id, "failed")
             return
 
-        base_branch = config.git.repo_branch or "main"
+        base_branch = config.git.effective_pr_target
         main_sha = gh.get_branch_sha(owner, repo_name, base_branch)
         if not main_sha:
             add_log(job_id, f"ERROR: Could not get SHA for {base_branch}")
