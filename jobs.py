@@ -1122,161 +1122,259 @@ def run_sweep(
         set_status(job_id, "failed")
 
 
-def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
-    """Bump NuGet version: tag old → clean examples → sweep with new version.
+def _update_env_file(key: str, value: str):
+    """Update or add a key=value line in .env file."""
+    env_path = Path(".env")
+    lines = env_path.read_text(encoding="utf-8").splitlines() if env_path.exists() else []
+    found = False
+    new_lines = []
+    for line in lines:
+        if line.startswith(f"{key}=") or line.startswith(f"{key} ="):
+            new_lines.append(f"{key}={value}")
+            found = True
+        else:
+            new_lines.append(line)
+    if not found:
+        new_lines.append(f"{key}={value}")
+    env_path.write_text("\n".join(new_lines) + "\n", encoding="utf-8")
 
-    1. Tag current main with v{old_version} + create GitHub Release
-    2. Delete all .cs example files from the repo
-    3. Update runtime config to new_version
-    4. Run full category sweep to regenerate everything
+
+def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
+    """Version bump setup:
+
+    1. Tag current main as v{old_version} + create GitHub Release
+    2. Create empty orphan release/{new_version} branch on remote
+    3. Update .env: NUGET_VERSION, PR_TARGET_BRANCH, REPO_BRANCH
+    4. Update runtime config
+
+    Does NOT run sweep — user triggers sweeps per category manually.
     """
     from git_ops.github_api import GitHubAPI
-    from git_ops.repo_docs import scan_repo
 
     notify = _make_progress_callback(job_id)
     config = load_config()
     old_version = config.build.nuget_version
+    staging_branch = f"release/{new_version}"
 
     try:
         init_build(job_id, total=0)
-        add_log(job_id, f"Version bump: {old_version} → {new_version}")
-
-        # ── Phase 1: Tag + Release old version ──
-        set_current_task(job_id, f"Tagging v{old_version}...")
-        add_log(job_id, f"Phase 1: Tagging v{old_version} and creating GitHub Release")
+        add_log(job_id, f"Version bump setup: {old_version} → {new_version}")
 
         if not config.git.repo_token:
-            add_log(job_id, "ERROR: REPO_TOKEN not configured — cannot tag")
+            add_log(job_id, "ERROR: REPO_TOKEN not configured")
             set_status(job_id, "failed")
             return
 
         gh = GitHubAPI(config.git.repo_token)
         owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
-
         if not owner or not repo_name:
             add_log(job_id, "ERROR: Could not parse repo URL")
             set_status(job_id, "failed")
             return
 
-        base_branch = config.git.effective_pr_target
-        main_sha = gh.get_branch_sha(owner, repo_name, base_branch)
+        # ── Phase 1: Tag + Release current main ──
+        set_current_task(job_id, f"Tagging v{old_version}...")
+        add_log(job_id, f"Phase 1: Tagging v{old_version} on main")
+
+        main_sha = gh.get_branch_sha(owner, repo_name, "main")
         if not main_sha:
-            add_log(job_id, f"ERROR: Could not get SHA for {base_branch}")
+            add_log(job_id, "ERROR: Could not get SHA for main")
             set_status(job_id, "failed")
             return
 
         tag_name = f"v{old_version}"
         if gh.create_tag(owner, repo_name, tag_name, main_sha):
-            add_log(job_id, f"Created tag: {tag_name}")
+            add_log(job_id, f"✓ Created tag: {tag_name}")
         else:
             add_log(job_id, f"Tag {tag_name} may already exist — continuing")
 
-        release_name = f"Aspose.PDF {old_version} Examples"
         release_body = (
             f"Examples generated for **Aspose.PDF for .NET {old_version}**.\n\n"
             f"- Target framework: `{config.build.tfm}`\n"
             f"- NuGet package: `Aspose.PDF {old_version}`\n"
         )
-        release_url = gh.create_release(owner, repo_name, tag_name, release_name, release_body)
+        release_url = gh.create_release(
+            owner, repo_name, tag_name,
+            f"Aspose.PDF {old_version} Examples", release_body,
+        )
         if release_url:
-            add_log(job_id, f"Created GitHub Release: {release_url}")
+            add_log(job_id, f"✓ GitHub Release created: {release_url}")
         else:
             add_log(job_id, "Release creation failed — continuing anyway")
 
-        # ── Phase 2: Clean existing examples ──
-        set_current_task(job_id, "Cleaning old examples...")
-        add_log(job_id, f"Phase 2: Removing {old_version} examples from repo")
+        # ── Phase 2: Create empty orphan staging branch ──
+        set_current_task(job_id, f"Creating {staging_branch}...")
+        add_log(job_id, f"Phase 2: Creating empty orphan branch: {staging_branch}")
 
-        repo_path = Path(config.git.repo_path)
-        if not repo_path.exists():
-            add_log(job_id, f"ERROR: Repo path not found: {repo_path}")
+        if gh.get_branch_sha(owner, repo_name, staging_branch):
+            add_log(job_id, f"Branch {staging_branch} already exists — skipping creation")
+        elif gh.create_empty_branch(owner, repo_name, staging_branch):
+            add_log(job_id, f"✓ Created empty branch: {staging_branch}")
+        else:
+            add_log(job_id, f"ERROR: Could not create branch {staging_branch}")
             set_status(job_id, "failed")
             return
 
-        # Pull latest
-        subprocess.run(
-            ["git", "fetch", "origin"], cwd=str(repo_path),
-            capture_output=True, text=True, timeout=30,
-        )
-        subprocess.run(
-            ["git", "checkout", base_branch], cwd=str(repo_path),
-            capture_output=True, text=True, timeout=10,
-        )
-        subprocess.run(
-            ["git", "pull", "origin", base_branch], cwd=str(repo_path),
-            capture_output=True, text=True, timeout=30,
-        )
+        # ── Phase 3: Update .env and runtime config ──
+        set_current_task(job_id, "Updating config...")
+        add_log(job_id, "Phase 3: Updating .env configuration")
 
-        # Scan and delete all .cs files in category folders
-        scan = scan_repo(str(repo_path))
-        total_files = 0
-        for cat_name, cs_files in scan.items():
-            cat_dir = repo_path / cat_name
-            for cs_file in cs_files:
-                file_path = cat_dir / cs_file
-                if file_path.exists():
-                    file_path.unlink()
-                    total_files += 1
+        _update_env_file("NUGET_VERSION", new_version)
+        _update_env_file("PR_TARGET_BRANCH", staging_branch)
+        _update_env_file("REPO_BRANCH", staging_branch)
 
-        if total_files > 0:
-            add_log(job_id, f"Deleted {total_files} .cs file(s) across {len(scan)} categories")
-            # Commit and push the cleanup
-            subprocess.run(
-                ["git", "add", "-A"], cwd=str(repo_path),
-                capture_output=True, text=True, timeout=10,
-            )
-            subprocess.run(
-                ["git", "commit", "-m", f"Remove {old_version} examples for version bump to {new_version}"],
-                cwd=str(repo_path), capture_output=True, text=True, timeout=10,
-            )
-            subprocess.run(
-                ["git", "push", "origin", base_branch], cwd=str(repo_path),
-                capture_output=True, text=True, timeout=60,
-            )
-            add_log(job_id, "Cleanup committed and pushed to main")
-        else:
-            add_log(job_id, "No .cs files found to clean — continuing")
-
-        # ── Phase 3: Update runtime config ──
-        set_current_task(job_id, "Updating version...")
         config.build.nuget_version = new_version
-        add_log(job_id, f"Phase 3: Runtime config updated to {new_version}")
-        add_log(job_id, f"NOTE: Update NUGET_VERSION in .env to {new_version} to persist")
+        config.git.pr_target_branch = staging_branch
+        config.git.repo_branch = staging_branch
 
-        # ── Phase 4: Full sweep ──
-        add_log(job_id, f"Phase 4: Running full sweep with {new_version}")
+        add_log(job_id, f"✓ .env updated: NUGET_VERSION={new_version}")
+        add_log(job_id, f"✓ .env updated: PR_TARGET_BRANCH={staging_branch}")
+        add_log(job_id, f"✓ .env updated: REPO_BRANCH={staging_branch}")
+        add_log(job_id, "")
+        add_log(job_id, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        add_log(job_id, f"✅ Version bump setup complete!")
+        add_log(job_id, f"   Old version tagged: {tag_name}")
+        add_log(job_id, f"   Staging branch:     {staging_branch}")
+        add_log(job_id, f"   New NuGet version:  {new_version}")
+        add_log(job_id, "")
+        add_log(job_id, "Next steps:")
+        add_log(job_id, "  1. Restart the app to load new .env settings")
+        add_log(job_id, "  2. Run Sweep per category — PRs will target " + staging_branch)
+        add_log(job_id, "  3. Review and merge each category PR on GitHub")
+        add_log(job_id, "  4. Click 'Promote to Main' when all categories are done")
+        add_log(job_id, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
 
-        # Fetch all categories
-        categories = []
-        if config.categories_api_url:
-            try:
-                resp = requests.get(
-                    config.categories_api_url,
-                    params={"product": "aspose.pdf"},
-                    timeout=15,
-                )
-                data = resp.json()
-                items = data.get("items", data if isinstance(data, list) else [])
-                categories = [c["name"] if isinstance(c, dict) else c for c in items]
-            except Exception as e:
-                add_log(job_id, f"ERROR: Failed to fetch categories: {e}")
-
-        if not categories:
-            add_log(job_id, "No categories found — sweep skipped")
-            set_status(job_id, "completed")
-            return
-
-        add_log(job_id, f"Found {len(categories)} categories — starting sweep")
-
-        # Delegate to run_sweep (reuse the same job_id so monitor stays connected)
-        run_sweep(job_id, categories, repo_push=repo_push)
-
-        # run_sweep sets final status, so we just add a summary
-        state = get_build_state(job_id)
-        if state:
-            add_log(job_id, f"Version bump complete: {old_version} → {new_version}")
-            add_log(job_id, f"Results: {state['passed_count']} passed, {state['failed_count']} failed")
+        set_status(job_id, "completed")
 
     except Exception as exc:
         add_log(job_id, f"Version bump failed: {exc}")
+        set_status(job_id, "failed")
+
+
+def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
+    """Promote staging branch to main:
+
+    1. Create PR staging_branch → main
+    2. Merge the PR
+    3. Tag main as v{new_version} + create GitHub Release
+    4. Update .env: reset PR_TARGET_BRANCH and REPO_BRANCH to main
+    5. Delete staging branch
+    """
+    from git_ops.github_api import GitHubAPI
+
+    notify = _make_progress_callback(job_id)
+    config = load_config()
+
+    try:
+        init_build(job_id, total=0)
+        add_log(job_id, f"Promoting {staging_branch} → main")
+
+        if not config.git.repo_token:
+            add_log(job_id, "ERROR: REPO_TOKEN not configured")
+            set_status(job_id, "failed")
+            return
+
+        gh = GitHubAPI(config.git.repo_token)
+        owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
+        if not owner or not repo_name:
+            add_log(job_id, "ERROR: Could not parse repo URL")
+            set_status(job_id, "failed")
+            return
+
+        # ── Phase 1: Create PR staging → main ──
+        set_current_task(job_id, f"Creating PR {staging_branch} → main...")
+        add_log(job_id, f"Phase 1: Creating PR {staging_branch} → main")
+
+        pr_title = f"Release Aspose.PDF {new_version} Examples"
+        pr_body = (
+            f"## Aspose.PDF {new_version} Examples\n\n"
+            f"This PR promotes all generated examples for **Aspose.PDF for .NET {new_version}** "
+            f"from `{staging_branch}` to `main`.\n\n"
+            f"- NuGet package: `Aspose.PDF {new_version}`\n"
+            f"- All categories have been generated and reviewed\n"
+        )
+
+        pr_url = gh.create_pull_request(owner, repo_name, pr_title, pr_body, staging_branch, "main")
+        if not pr_url:
+            add_log(job_id, "ERROR: Could not create PR")
+            set_status(job_id, "failed")
+            return
+        add_log(job_id, f"✓ PR created: {pr_url}")
+        set_pr_url(job_id, pr_url)
+
+        # ── Phase 2: Merge the PR ──
+        set_current_task(job_id, "Merging PR...")
+        add_log(job_id, "Phase 2: Merging PR into main")
+
+        pr_number = gh.get_pr_number(owner, repo_name, staging_branch, "main")
+        if not pr_number:
+            add_log(job_id, "Could not find PR number — please merge manually via GitHub")
+            add_log(job_id, f"PR URL: {pr_url}")
+            set_status(job_id, "completed")
+            return
+
+        if gh.merge_pull_request(owner, repo_name, pr_number,
+                                  f"Release Aspose.PDF {new_version} examples"):
+            add_log(job_id, f"✓ PR merged into main")
+        else:
+            add_log(job_id, "Auto-merge failed — please merge manually via GitHub")
+            add_log(job_id, f"PR URL: {pr_url}")
+            set_status(job_id, "completed")
+            return
+
+        # ── Phase 3: Tag main as new version ──
+        set_current_task(job_id, f"Tagging v{new_version}...")
+        add_log(job_id, f"Phase 3: Tagging main as v{new_version}")
+
+        import time as _time
+        _time.sleep(2)  # brief pause for GitHub to finalize merge
+        main_sha = gh.get_branch_sha(owner, repo_name, "main")
+        if main_sha:
+            tag_name = f"v{new_version}"
+            if gh.create_tag(owner, repo_name, tag_name, main_sha):
+                add_log(job_id, f"✓ Created tag: {tag_name}")
+
+            release_body = (
+                f"Examples generated for **Aspose.PDF for .NET {new_version}**.\n\n"
+                f"- Target framework: `{config.build.tfm}`\n"
+                f"- NuGet package: `Aspose.PDF {new_version}`\n"
+            )
+            release_url = gh.create_release(
+                owner, repo_name, tag_name,
+                f"Aspose.PDF {new_version} Examples", release_body,
+            )
+            if release_url:
+                add_log(job_id, f"✓ GitHub Release created: {release_url}")
+
+        # ── Phase 4: Update .env — reset back to main ──
+        set_current_task(job_id, "Updating config...")
+        add_log(job_id, "Phase 4: Resetting .env to main")
+
+        _update_env_file("NUGET_VERSION", new_version)
+        _update_env_file("PR_TARGET_BRANCH", "")
+        _update_env_file("REPO_BRANCH", "main")
+
+        add_log(job_id, "✓ .env updated: REPO_BRANCH=main")
+        add_log(job_id, "✓ .env updated: PR_TARGET_BRANCH= (cleared)")
+
+        # ── Phase 5: Delete staging branch ──
+        set_current_task(job_id, "Cleaning up...")
+        add_log(job_id, f"Phase 5: Deleting staging branch {staging_branch}")
+        if gh.delete_branch(owner, repo_name, staging_branch):
+            add_log(job_id, f"✓ Deleted {staging_branch}")
+        else:
+            add_log(job_id, f"Could not delete {staging_branch} — remove manually if needed")
+
+        add_log(job_id, "")
+        add_log(job_id, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        add_log(job_id, f"✅ Promotion complete!")
+        add_log(job_id, f"   main now has: Aspose.PDF {new_version} examples")
+        add_log(job_id, f"   Tagged:        v{new_version}")
+        add_log(job_id, "   Restart the app to load updated .env settings")
+        add_log(job_id, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+
+        set_status(job_id, "completed")
+
+    except Exception as exc:
+        add_log(job_id, f"Promote to main failed: {exc}")
         set_status(job_id, "failed")
