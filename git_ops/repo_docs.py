@@ -31,6 +31,28 @@ from git_ops.agents_content import (
 _SKIP_DIRS = {".git", ".github", ".vscode", "node_modules", "__pycache__", "bin", "obj"}
 
 
+def _load_category_index(repo_path: str, category: str) -> Optional[dict]:
+    """Load per-category index.json written by the committer (LLM metadata).
+
+    Tries normalized category folder name (lowercase-hyphenated) first,
+    then the raw category name as a fallback.
+    """
+    root = Path(repo_path)
+    # Normalized: "Working with Annotations" → "working-with-annotations"
+    norm = re.sub(r"\s+", "-", category.strip()).lower()
+    norm = re.sub(r"[^a-z0-9-]", "-", norm)
+    norm = re.sub(r"-+", "-", norm).strip("-")
+
+    for folder in [norm, category]:
+        idx = root / folder / "index.json"
+        if idx.exists():
+            try:
+                return json.loads(idx.read_text(encoding="utf-8"))
+            except Exception:
+                pass
+    return None
+
+
 def _normalize_name(name: str) -> str:
     """Lowercase, replace spaces with hyphens, collapse duplicates."""
     n = name.lower().replace(" ", "-")
@@ -268,6 +290,24 @@ def generate_index_json(
             meta = extract_category_metadata(repo_path, cat_name, files)
             cat_entry["required_namespaces"] = meta["required_namespaces"]
             cat_entry["key_apis"] = meta["key_apis"]
+
+            # Merge per-category index.json (LLM-generated metadata per example)
+            cat_index = _load_category_index(repo_path, cat_name)
+            if cat_index:
+                examples_meta = cat_index.get("examples", {})
+                enriched = []
+                for fname in sorted(files):
+                    stem = fname.replace(".cs", "")
+                    entry = examples_meta.get(stem, {})
+                    enriched.append({
+                        "filename": fname,
+                        "title": entry.get("title") or stem.replace("-", " ").title(),
+                        "description": entry.get("description", ""),
+                        "tags": entry.get("tags", []),
+                        "apis_used": entry.get("apis_used", []),
+                        "difficulty": entry.get("difficulty", ""),
+                    })
+                cat_entry["examples"] = enriched
 
         categories.append(cat_entry)
 

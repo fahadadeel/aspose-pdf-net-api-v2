@@ -29,6 +29,9 @@ class StageOutcome:
     stage: str = ""
     rule: str = ""
     build_log: str = ""
+    metadata: dict = field(default_factory=dict)
+    # metadata keys (populated by own-LLM path only):
+    #   title, filename, description, tags, apis_used, difficulty
 
 
 @dataclass
@@ -44,6 +47,14 @@ class PipelineResult:
     stage: str = ""   # baseline, pattern_fix, llm_fix, regen, final_llm
     attempts: int = 1
     build_log: str = ""  # Last build error log (for post-pipeline rule learning)
+    metadata: dict = field(default_factory=dict)
+    # metadata keys (from baseline LLM generation, kept as-is even if code is fixed later):
+    #   title       — human-readable example title
+    #   filename    — recommended kebab-case filename stem (no .cs)
+    #   description — 1-2 sentence summary of what the example demonstrates
+    #   tags        — list of short keyword strings
+    #   apis_used   — list of Aspose.Pdf API class/method names
+    #   difficulty  — beginner / intermediate / advanced
 
 
 @dataclass

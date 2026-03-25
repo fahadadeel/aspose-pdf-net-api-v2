@@ -44,17 +44,24 @@ def run_baseline(
     """
     use_own_llm = config and config.pipeline.use_own_llm and llm and llm.available
 
+    metadata: dict = {}
+
     if use_own_llm:
         # Retrieve chunks + generate code with own LLM
         notify("baseline", "Retrieving API docs...")
         chunks = mcp.retrieve(task_input.task, category=task_input.category)
         chunks_text = MCPClient.format_chunks(chunks, config.pipeline.retrieve_max_chars)
         notify("baseline", "Generating code with own LLM...")
-        code = llm.generate_code(
+        result = llm.generate_code(
             task_input.task, chunks_text,
             rules_text=generation_rules,
             category=task_input.category,
         )
+        if result:
+            code = result.get("code", "")
+            metadata = {k: v for k, v in result.items() if k != "code"}
+        else:
+            code = None
     else:
         # Original path: MCP server does retrieve + generate
         notify("baseline", "Generating code via MCP...")
@@ -69,8 +76,8 @@ def run_baseline(
     success, output = builder.build_and_run()
 
     if success:
-        return StageOutcome(success=True, code=code, stage="baseline")
-    return StageOutcome(success=False, code=code, stage="baseline", build_log=output)
+        return StageOutcome(success=True, code=code, stage="baseline", metadata=metadata)
+    return StageOutcome(success=False, code=code, stage="baseline", build_log=output, metadata=metadata)
 
 
 def run_llm_fix_loop(
@@ -250,11 +257,12 @@ def run_regen_loop(
         if use_own_llm:
             chunks = mcp.retrieve(task_input.task, category=task_input.category)
             chunks_text = MCPClient.format_chunks(chunks, config.pipeline.retrieve_max_chars)
-            code = llm.generate_code(
+            regen_result = llm.generate_code(
                 prompt, chunks_text,
                 rules_text=generation_rules,
                 category=task_input.category,
             )
+            code = regen_result.get("code", "") if regen_result else None
         else:
             code = mcp.generate(prompt, category=task_input.category, product=task_input.product, limit=config.pipeline.retrieve_limit)
         if not code:

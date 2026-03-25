@@ -297,7 +297,7 @@ def run_job(
                 add_log(job_id, f"Passed ({badge})")
                 # Commit code to repo
                 if committer:
-                    committer.commit_code(prompt, category or "", final_code)
+                    committer.commit_code(prompt, category or "", final_code, metadata=result.metadata)
             else:
                 add_failed(job_id, "1", prompt[:100], badge, code=final_code, category=category or "", product=product or "")
                 add_log(job_id, f"Failed ({badge})")
@@ -412,7 +412,7 @@ def run_job(
                     add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                     add_log(job_id, f"Task {task_id} passed ({badge})")
                     if committer:
-                        committer.commit_code(task_text, p.get("category", ""), final_code)
+                        committer.commit_code(task_text, p.get("category", ""), final_code, metadata=result.metadata)
                 else:
                     add_failed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                     add_log(job_id, f"Task {task_id} failed ({badge})")
@@ -465,7 +465,7 @@ def run_job(
                         add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                         add_log(job_id, f"Task {task_id} passed on retry ({badge})")
                         if committer:
-                            committer.commit_code(task_text, p.get("category", ""), final_code)
+                            committer.commit_code(task_text, p.get("category", ""), final_code, metadata=result.metadata)
                     else:
                         add_failed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                         add_log(job_id, f"Task {task_id} failed after retries ({badge})")
@@ -1012,7 +1012,7 @@ def run_sweep(
                     add_passed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
                     add_log(job_id, f"Task {task_id} passed ({badge})")
                     if committer:
-                        committer.commit_code(task_text, cat_name, final_code)
+                        committer.commit_code(task_text, cat_name, final_code, metadata=result.metadata)
                 else:
                     cat_failed += 1
                     add_failed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
@@ -1039,7 +1039,7 @@ def run_sweep(
                     add_passed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
                     add_log(job_id, f"Task {task_id} passed on retry ({badge})")
                     if committer:
-                        committer.commit_code(task_text, cat_name, final_code)
+                        committer.commit_code(task_text, cat_name, final_code, metadata=result.metadata)
                 else:
                     cat_failed += 1
                     add_failed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
