@@ -25,7 +25,7 @@ import uuid
 from fastapi import APIRouter, Body, File, Form, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from jobs import run_job, run_sweep, run_version_bump, retry_pr, create_pr, update_repo_docs
+from jobs import run_job, run_sweep, run_version_bump, run_promote_to_main, retry_pr, create_pr, update_repo_docs
 from knowledge.auto_fixes import load_auto_fixes, approve_auto_fix, approve_all_auto_fixes, delete_auto_fix
 from state import (
     JOB_CANCEL_FLAGS, JOB_LOCK,
@@ -187,7 +187,7 @@ async def api_start_sweep(data: dict = Body(...)):
 
 @router.post("/api/version-bump")
 async def api_version_bump(data: dict = Body(...)):
-    """Bump NuGet version: tag old, clean examples, sweep with new version."""
+    """Version bump setup: tag old version, create empty staging branch, update .env."""
     new_version = (data.get("new_version") or "").strip()
     repo_push = bool(data.get("repo_push", True))
 
@@ -199,6 +199,27 @@ async def api_version_bump(data: dict = Body(...)):
         target=run_version_bump,
         args=(job_id, new_version),
         kwargs={"repo_push": repo_push},
+        daemon=True,
+    )
+    thread.start()
+    return {"job_id": job_id}
+
+
+@router.post("/api/promote-to-main")
+async def api_promote_to_main(data: dict = Body(...)):
+    """Promote staging branch to main: merge PR, tag release, reset config."""
+    staging_branch = (data.get("staging_branch") or "").strip()
+    new_version = (data.get("new_version") or "").strip()
+
+    if not staging_branch:
+        return JSONResponse({"error": "staging_branch is required"}, status_code=400)
+    if not new_version:
+        return JSONResponse({"error": "new_version is required"}, status_code=400)
+
+    job_id = str(uuid.uuid4())
+    thread = threading.Thread(
+        target=run_promote_to_main,
+        args=(job_id, staging_branch, new_version),
         daemon=True,
     )
     thread.start()

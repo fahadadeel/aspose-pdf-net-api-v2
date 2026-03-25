@@ -860,7 +860,8 @@
   <div class="header-actions">
     <button class="btn-docs" id="update-docs-btn" onclick="updateRepoDocs()">&#128196; Update Repo Docs</button>
     <button class="btn-docs" id="version-bump-btn" onclick="startVersionBump()" style="background:#2d8cf0;">&#x1F4E6; Version Bump</button>
-    <span class="repo-badge">{{ repo_display }} : {{ repo_branch }}</span>
+    <button class="btn-docs" id="promote-btn" onclick="promoteToMain()" style="background:#4caf50;display:{% if pr_target_branch %}inline-flex{% else %}none{% endif %};">&#x1F680; Promote to Main</button>
+    <span class="repo-badge">{{ repo_display }} : {{ repo_branch }}{% if pr_target_branch %} &rarr; {{ pr_target_branch }}{% endif %}</span>
     <button class="btn hidden" id="run-again-btn" onclick="runAgain()">&#9654; Run Again</button>
     <button class="btn btn-danger hidden" id="stop-btn" onclick="stopJob()">&#9209; Stop</button>
   </div>
@@ -2054,17 +2055,19 @@
 
     var currentVersion = '{{ nuget_version }}';
     if (!confirm(
-      'Version Bump: ' + currentVersion + ' → ' + newVersion + '\n\n' +
+      'Version Bump Setup: ' + currentVersion + ' → ' + newVersion + '\n\n' +
       'This will:\n' +
-      '1. Tag v' + currentVersion + ' and create a GitHub Release\n' +
-      '2. Delete all existing examples from the repo\n' +
-      '3. Run a full sweep to regenerate with v' + newVersion + '\n\n' +
+      '1. Tag v' + currentVersion + ' on main and create a GitHub Release\n' +
+      '2. Create empty staging branch: release/' + newVersion + '\n' +
+      '3. Update .env: NUGET_VERSION, PR_TARGET_BRANCH, REPO_BRANCH\n\n' +
+      'After this, restart the app and run Sweep per category.\n' +
+      'PRs will target release/' + newVersion + ' (not main).\n\n' +
       'Continue?'
     )) return;
 
     var btn = document.getElementById('version-bump-btn');
     btn.disabled = true;
-    btn.innerHTML = '<span class="loading-spinner"></span> Bumping...';
+    btn.innerHTML = '<span class="loading-spinner"></span> Setting up...';
 
     fetch('/api/version-bump', {
       method: 'POST',
@@ -2089,6 +2092,58 @@
       alert('Failed: ' + err);
       btn.disabled = false;
       btn.innerHTML = '&#x1F4E6; Version Bump';
+    });
+  };
+
+  /* ── Promote to Main ──────────────────────────────────────── */
+  window.promoteToMain = function() {
+    var stagingBranch = '{{ pr_target_branch }}';
+    var newVersion = '{{ nuget_version }}';
+
+    if (!stagingBranch) {
+      alert('No staging branch configured. Run Version Bump first.');
+      return;
+    }
+
+    if (!confirm(
+      'Promote to Main: ' + stagingBranch + ' → main\n\n' +
+      'This will:\n' +
+      '1. Create PR: ' + stagingBranch + ' → main\n' +
+      '2. Auto-merge the PR\n' +
+      '3. Tag main as v' + newVersion + ' + create GitHub Release\n' +
+      '4. Reset .env REPO_BRANCH=main, PR_TARGET_BRANCH=(cleared)\n' +
+      '5. Delete staging branch ' + stagingBranch + '\n\n' +
+      '⚠ Only do this when ALL category sweeps are done and merged!\n\n' +
+      'Continue?'
+    )) return;
+
+    var btn = document.getElementById('promote-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Promoting...';
+
+    fetch('/api/promote-to-main', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ staging_branch: stagingBranch, new_version: newVersion })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) {
+        alert('Error: ' + data.error);
+        btn.disabled = false;
+        btn.innerHTML = '&#x1F680; Promote to Main';
+        return;
+      }
+      currentJobId = data.job_id;
+      showMonitor();
+      connectSSE(currentJobId);
+      btn.disabled = false;
+      btn.innerHTML = '&#x1F680; Promote to Main';
+    })
+    .catch(function(err) {
+      alert('Failed: ' + err);
+      btn.disabled = false;
+      btn.innerHTML = '&#x1F680; Promote to Main';
     });
   };
 

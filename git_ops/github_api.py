@@ -187,6 +187,91 @@ class GitHubAPI:
             print(f"[GitHub] Error creating release: {e}")
             return None
 
+    def create_empty_branch(self, owner: str, repo: str, branch: str) -> bool:
+        """Create an empty orphan branch (no parent commits) via GitHub Git Data API."""
+        try:
+            # 1. Create an empty tree
+            tree_r = self._session.post(
+                f"https://api.github.com/repos/{owner}/{repo}/git/trees",
+                headers=self._headers,
+                json={"tree": []},
+                timeout=10,
+            )
+            if tree_r.status_code not in (200, 201):
+                print(f"[GitHub] Empty tree creation failed: {tree_r.text[:200]}")
+                return False
+            tree_sha = tree_r.json()["sha"]
+
+            # 2. Create an empty commit (no parents)
+            commit_r = self._session.post(
+                f"https://api.github.com/repos/{owner}/{repo}/git/commits",
+                headers=self._headers,
+                json={"message": f"Init {branch}", "tree": tree_sha, "parents": []},
+                timeout=10,
+            )
+            if commit_r.status_code not in (200, 201):
+                print(f"[GitHub] Empty commit creation failed: {commit_r.text[:200]}")
+                return False
+            commit_sha = commit_r.json()["sha"]
+
+            # 3. Create branch from empty commit
+            return self.create_branch(owner, repo, branch, commit_sha)
+        except Exception as e:
+            print(f"[GitHub] Error creating empty branch: {e}")
+            return False
+
+    def merge_pull_request(self, owner: str, repo: str, pr_number: int,
+                           commit_message: str = "") -> bool:
+        """Merge a pull request via GitHub API. Returns True on success."""
+        try:
+            payload = {"merge_method": "merge"}
+            if commit_message:
+                payload["commit_message"] = commit_message
+            r = self._session.put(
+                f"https://api.github.com/repos/{owner}/{repo}/pulls/{pr_number}/merge",
+                headers=self._headers,
+                json=payload,
+                timeout=15,
+            )
+            if r.status_code in (200, 201):
+                return True
+            error_msg = r.json().get("message", r.text[:200])
+            print(f"[GitHub] PR merge failed ({r.status_code}): {error_msg}")
+            return False
+        except Exception as e:
+            print(f"[GitHub] Error merging PR: {e}")
+            return False
+
+    def get_pr_number(self, owner: str, repo: str, head: str, base: str) -> Optional[int]:
+        """Find open PR number for head→base. Returns PR number or None."""
+        try:
+            r = self._session.get(
+                f"https://api.github.com/repos/{owner}/{repo}/pulls",
+                headers=self._headers,
+                params={"head": f"{owner}:{head}", "base": base, "state": "open"},
+                timeout=10,
+            )
+            if r.status_code == 200:
+                pulls = r.json()
+                if pulls:
+                    return pulls[0].get("number")
+        except Exception as e:
+            print(f"[GitHub] Could not get PR number: {e}")
+        return None
+
+    def delete_branch(self, owner: str, repo: str, branch: str) -> bool:
+        """Delete a remote branch via GitHub API."""
+        try:
+            r = self._session.delete(
+                f"https://api.github.com/repos/{owner}/{repo}/git/refs/heads/{branch}",
+                headers=self._headers,
+                timeout=10,
+            )
+            return r.status_code == 204
+        except Exception as e:
+            print(f"[GitHub] Error deleting branch {branch}: {e}")
+            return False
+
     @staticmethod
     def decode_base64(encoded: str) -> str:
         """Decode base64-encoded GitHub file content."""
