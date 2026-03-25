@@ -1,16 +1,25 @@
 {
+  "rotation-enum-uses-on-prefix": {
+    "note": "The Aspose.Pdf.Rotation enum values use the 'on' prefix, NOT 'Rotate'. The correct values are: Rotation.None, Rotation.on90, Rotation.on180, Rotation.on270, Rotation.on360. Using 'Rotate90', 'Rotate180', etc. causes CS0117.",
+    "code": "// CORRECT — use 'on' prefix:\npage.Rotate = Rotation.on180;\npage.Rotate = Rotation.on90;\npage.Rotate = Rotation.on270;\n\n// WRONG — 'Rotate' prefix does not exist:\n// page.Rotate = Rotation.Rotate180; // CS0117\n// page.Rotate = Rotation.Rotate90;  // CS0117",
+    "errors": [
+      "CS0117: 'Rotation' does not contain a definition for 'Rotate180'",
+      "CS0117: 'Rotation' does not contain a definition for 'Rotate90'",
+      "CS0117: 'Rotation' does not contain a definition for 'Rotate270'"
+    ]
+  },
   "prefer-fully-qualified-names-for-ambiguous-types": {
-      "note": "When a type name can resolve to multiple namespaces (especially with Aspose.Pdf, Aspose.Pdf.Drawing, System.IO, and System.Drawing), ALWAYS use fully qualified names for ANY type that exists in more than one imported namespace. This prevents CS0104 ambiguity errors. Common ambiguous types include: Rectangle, Path, Image, Color, Matrix, Point, Pen, Font, GraphicsPath. Apply this rule globally for all samples — if in doubt, fully qualify.",
-      "code": "// CORRECT — always fully qualify ambiguous types:\nAspose.Pdf.Rectangle pageRect = new Aspose.Pdf.Rectangle(100, 500, 300, 550);\nAspose.Pdf.Drawing.Rectangle shapeRect = new Aspose.Pdf.Drawing.Rectangle(100, 500, 200, 100);\nSystem.IO.Path.GetFileName(\"input.pdf\");\nAspose.Pdf.Image pdfImg = new Aspose.Pdf.Image();\nSystem.Drawing.Image sysImg = System.Drawing.Image.FromFile(\"photo.jpg\");\nAspose.Pdf.Color pdfColor = Aspose.Pdf.Color.Blue;\nSystem.Drawing.Color sysColor = System.Drawing.Color.Blue;\nAspose.Pdf.Point pdfPoint = new Aspose.Pdf.Point(100, 200);\nAspose.Pdf.Matrix pdfMatrix = new Aspose.Pdf.Matrix(new double[] { 1, 0, 0, 1, 0, 0 });\n\n// CORRECT (optional alias style):\n// using PdfRect = Aspose.Pdf.Rectangle;\n// using DrawRect = Aspose.Pdf.Drawing.Rectangle;\n// using SysImage = System.Drawing.Image;\n// using PdfImage = Aspose.Pdf.Image;\n\n// WRONG — unqualified types cause ambiguity:\n// Rectangle rect = new Rectangle(100, 500, 300, 550); // CS0104\n// Path.GetFileName(\"input.pdf\");                      // CS0104\n// Image img = Image.FromFile(\"photo.jpg\");             // CS0104\n// Color c = Color.Blue;                                // CS0104",
-      "errors": [
-          "CS0104: 'Rectangle' is an ambiguous reference between 'Aspose.Pdf.Drawing.Rectangle' and 'Aspose.Pdf.Rectangle'",
-          "CS0104: 'Rectangle' is an ambiguous reference between 'Aspose.Pdf.Rectangle' and 'System.Drawing.Rectangle'",
-          "CS0104: 'Path' is an ambiguous reference between 'Aspose.Pdf.Drawing.Path' and 'System.IO.Path'",
-          "CS0104: 'Image' is an ambiguous reference between 'Aspose.Pdf.Image' and 'System.Drawing.Image'",
-          "CS0104: 'Color' is an ambiguous reference between 'Aspose.Pdf.Color' and 'System.Drawing.Color'",
-          "CS0104: 'Point' is an ambiguous reference between 'Aspose.Pdf.Point' and 'System.Drawing.Point'",
-          "CS0104: 'Matrix' is an ambiguous reference between 'Aspose.Pdf.Matrix' and 'System.Drawing.Drawing2D.Matrix'"
-      ]
+    "note": "When a type name can resolve to multiple namespaces (especially with Aspose.Pdf, Aspose.Pdf.Drawing, System.IO, and System.Drawing), ALWAYS use fully qualified names for ANY type that exists in more than one imported namespace. This prevents CS0104 ambiguity errors. Common ambiguous types include: Rectangle, Path, Image, Color, Matrix, Point, Pen, Font, GraphicsPath. Apply this rule globally for all samples — if in doubt, fully qualify.",
+    "code": "// CORRECT — always fully qualify ambiguous types:\nAspose.Pdf.Rectangle pageRect = new Aspose.Pdf.Rectangle(100, 500, 300, 550);\nAspose.Pdf.Drawing.Rectangle shapeRect = new Aspose.Pdf.Drawing.Rectangle(100, 500, 200, 100);\nSystem.IO.Path.GetFileName(\"input.pdf\");\nAspose.Pdf.Image pdfImg = new Aspose.Pdf.Image();\nSystem.Drawing.Image sysImg = System.Drawing.Image.FromFile(\"photo.jpg\");\nAspose.Pdf.Color pdfColor = Aspose.Pdf.Color.Blue;\nSystem.Drawing.Color sysColor = System.Drawing.Color.Blue;\nAspose.Pdf.Point pdfPoint = new Aspose.Pdf.Point(100, 200);\nAspose.Pdf.Matrix pdfMatrix = new Aspose.Pdf.Matrix(new double[] { 1, 0, 0, 1, 0, 0 });\n\n// CORRECT (optional alias style):\n// using PdfRect = Aspose.Pdf.Rectangle;\n// using DrawRect = Aspose.Pdf.Drawing.Rectangle;\n// using SysImage = System.Drawing.Image;\n// using PdfImage = Aspose.Pdf.Image;\n\n// WRONG — unqualified types cause ambiguity:\n// Rectangle rect = new Rectangle(100, 500, 300, 550); // CS0104\n// Path.GetFileName(\"input.pdf\");                      // CS0104\n// Image img = Image.FromFile(\"photo.jpg\");             // CS0104\n// Color c = Color.Blue;                                // CS0104",
+    "errors": [
+      "CS0104: 'Rectangle' is an ambiguous reference between 'Aspose.Pdf.Drawing.Rectangle' and 'Aspose.Pdf.Rectangle'",
+      "CS0104: 'Rectangle' is an ambiguous reference between 'Aspose.Pdf.Rectangle' and 'System.Drawing.Rectangle'",
+      "CS0104: 'Path' is an ambiguous reference between 'Aspose.Pdf.Drawing.Path' and 'System.IO.Path'",
+      "CS0104: 'Image' is an ambiguous reference between 'Aspose.Pdf.Image' and 'System.Drawing.Image'",
+      "CS0104: 'Color' is an ambiguous reference between 'Aspose.Pdf.Color' and 'System.Drawing.Color'",
+      "CS0104: 'Point' is an ambiguous reference between 'Aspose.Pdf.Point' and 'System.Drawing.Point'",
+      "CS0104: 'Matrix' is an ambiguous reference between 'Aspose.Pdf.Matrix' and 'System.Drawing.Drawing2D.Matrix'"
+    ]
   },
   "annotation-collection-one-based-indexing": {
     "note": "Aspose.Pdf annotation collections use 1-based indexing, same as Pages. page.Annotations[1] is the first annotation. page.Annotations[0] throws an exception. page.Annotations.Delete(index) also expects a 1-based index. Always iterate from 1 to page.Annotations.Count inclusive.",
@@ -5654,6 +5663,1705 @@
     "code": "// CORRECT — use the format-specific class:\nnew HtmlLoadOptions()    // for .html\nnew SvgLoadOptions()     // for .svg\nnew XpsLoadOptions()     // for .xps\nnew EpubLoadOptions()    // for .epub\nnew MdLoadOptions()      // for .md (Markdown)\nnew MhtLoadOptions()     // for .mht/.mhtml\nnew PclLoadOptions()     // for .pcl\nnew CgmLoadOptions()     // for .cgm\nnew XslFoLoadOptions()   // for .fo (XSL-FO)\nnew TeXLoadOptions()     // for .tex\nnew PsLoadOptions()      // for .ps (PostScript)\nnew OfdLoadOptions()     // for .ofd\n\n// WRONG — abstract class:\n// new LoadOptions()  // CS0144: cannot create instance of abstract class",
     "errors": [
       "CS0144: Cannot create an instance of the abstract type or interface 'LoadOptions'"
+    ]
+  },
+  "use-docsaveoptions-from-aspose-pdf-namespace": {
+    "note": "Reference DocSaveOptions directly from the Aspose.Pdf namespace (do not use Aspose.Pdf.Saving) when saving PDFs to DOCX.",
+    "code": "using Aspose.Pdf;\n\n// ...\nDocSaveOptions options = new DocSaveOptions {\n    Format = DocSaveOptions.DocFormat.DocX\n    // EnableEnhancedConversion = true; // if supported\n};\npdfDocument.Save(\"output.docx\", options);",
+    "errors": [
+      "CS0234: The type or namespace name 'Saving' does not exist in the namespace 'Aspose.Pdf'",
+      "Namespace not found errors when referencing Aspose.Pdf.Saving for DocSaveOptions"
+    ]
+  },
+  "remove-enableenhancedmode-from-docsaveoptions": {
+    "note": "Do not set the removed EnableEnhancedMode property on DocSaveOptions; high‑fidelity conversion is default.",
+    "code": "DocSaveOptions docxOptions = new DocSaveOptions {\n    Format = DocSaveOptions.DocFormat.DocX\n};",
+    "errors": [
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'EnableEnhancedMode'"
+    ]
+  },
+  "remove-preserve-page-options-from-docsaveoptions": {
+    "note": "Do not set PreservePageSize or PreserveOriginalPageMargins on DocSaveOptions; these properties were removed in recent Aspose.PDF versions.",
+    "code": "var docOptions = new DocSaveOptions { Format = DocSaveOptions.DocFormat.Doc };",
+    "errors": [
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'PreservePageSize'",
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'PreserveOriginalPageMargins'"
+    ]
+  },
+  "use-docx-enum-member": {
+    "note": "When saving a PDF as DOCX, set DocSaveOptions.Format to the enum member DocSaveOptions.DocFormat.DocX (capital X) instead of the non‑existent Docx.",
+    "code": "DocSaveOptions saveOptions = new DocSaveOptions {\n    Format = DocSaveOptions.DocFormat.DocX,\n    // other options …\n};",
+    "errors": [
+      "CS0117: 'DocSaveOptions.DocFormat' does not contain a definition for 'Docx'"
+    ]
+  },
+  "use-mode-property-for-docsaveoptions-recognition": {
+    "note": "Set the recognition mode for DocSaveOptions via the 'Mode' property, not by initializing a non‑existent 'RecognitionMode' member.",
+    "code": "var docOpts = new DocSaveOptions();\ndocOpts.Mode = DocSaveOptions.RecognitionMode.Flow;",
+    "errors": [
+      "CS0572: 'RecognitionMode': cannot reference a type through an expression; try 'DocSaveOptions.RecognitionMode' instead",
+      "CS1913: Member 'RecognitionMode' cannot be initialized. It is not a field or property."
+    ]
+  },
+  "remove-unsupported-docsaveoptions-properties": {
+    "note": "Do not set EnableEmbeddedFonts, EnableDocxCompression, or EnableUpdateFields on DocSaveOptions; these members are not part of the Aspose.PDF API and are enabled by default or unavailable.",
+    "code": "var docOptions = new DocSaveOptions {\n    Format = DocSaveOptions.DocFormat.DocX\n    // Do not include unsupported properties such as EnableEmbeddedFonts, EnableDocxCompression, EnableUpdateFields\n};",
+    "errors": [
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'EnableEmbeddedFonts'",
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'EnableDocxCompression'",
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'EnableUpdateFields'"
+    ]
+  },
+  "remove-detectlist-from-docsaveoptions": {
+    "note": "Do not use the removed DetectList property on DocSaveOptions; bullet‑list detection is now automatic and you should set the output format via the Format property.",
+    "code": "var docOptions = new DocSaveOptions {\n    Format = DocSaveOptions.DocFormat.DocX // DetectList is no longer needed\n};\npdfDoc.Save(outputPath, docOptions);",
+    "errors": [
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'DetectList'"
+    ]
+  },
+  "remove-layoutoptions-from-docsaveoptions": {
+    "note": "Do not use the removed LayoutOptions property on DocSaveOptions; set only the Format (e.g., DocX) as layout is preserved by default.",
+    "code": "var saveOpts = new DocSaveOptions { Format = DocSaveOptions.DocFormat.DocX };",
+    "errors": [
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'LayoutOptions'",
+      "CS0246: The type or namespace name 'LayoutOptions' could not be found"
+    ]
+  },
+  "use-xlsx-format-or-default-for-excelsaveoptions": {
+    "note": "Do not assign ExcelSaveOptions.ExcelFormat.XLS; the enum no longer includes XLS—use the default (XLSX) or explicitly set ExcelSaveOptions.ExcelFormat.Xlsx.",
+    "code": "ExcelSaveOptions excelOpts = new ExcelSaveOptions();\n// optional: excelOpts.Format = ExcelSaveOptions.ExcelFormat.Xlsx;",
+    "errors": [
+      "CS0117: 'ExcelSaveOptions.ExcelFormat' does not contain a definition for 'XLS'"
+    ]
+  },
+  "use-textabsorber-for-csv-export": {
+    "note": "Aspose.Pdf does not provide a CsvSaveOptions class; extract text with TextAbsorber and write CSV manually.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Text;\n...\nusing (Document doc = new Document(inputPdf))\n{\n    TextAbsorber absorber = new TextAbsorber();\n    doc.Pages.Accept(absorber);\n    string[] lines = (absorber.Text ?? string.Empty)\n        .Split(new[] { \"\\r\\n\", \"\\n\", \"\\r\" }, StringSplitOptions.None);\n    using (var writer = new StreamWriter(outputCsv, false, System.Text.Encoding.UTF8))\n    {\n        foreach (var line in lines)\n        {\n            writer.WriteLine($\"\\\"{line.Replace(\"\\\"\", \"\\\"\\\"\")}\\\"\");\n        }\n    }\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'CsvSaveOptions' could not be found"
+    ]
+  },
+  "no-ods-saveformat": {
+    "note": "Aspose.Pdf does not support saving directly to ODS; avoid using SaveFormat.Ods or OdsSaveOptions and use another approach (e.g., extract data and use Aspose.Cells).",
+    "code": "// Incorrect (unsupported):\n// pdfDoc.Save(\"output.ods\", SaveFormat.Ods);\n\n// Correct: acknowledge lack of support and handle conversion manually.\nusing (Document pdfDoc = new Document(inputPdf))\n{\n    Console.WriteLine(\"Direct conversion to ODS is not supported by Aspose.Pdf.\");\n    // Extract data with TextAbsorber, then create ODS via Aspose.Cells, etc.\n}",
+    "errors": [
+      "CS0117: 'SaveFormat' does not contain a definition for 'Ods'"
+    ]
+  },
+  "tocinfo-title-requires-textfragment-and-tocielement-has-no-settext": {
+    "note": "TocInfo.Title is of type Aspose.Pdf.Text.TextFragment, NOT string. Assigning a plain string causes CS0029. Also, TOCIElement does not have a SetText() method (CS1061) — use the ActualText or Title property instead to set text on a TOCI element.",
+    "code": "// CORRECT — TocInfo.Title must be a TextFragment:\nTocInfo tocInfo = new TocInfo\n{\n    Title = new Aspose.Pdf.Text.TextFragment(\"Table of Contents\"),\n    IsShowPageNumbers = true\n};\n\n// CORRECT — TOCIElement uses ActualText property, not SetText():\nvar toci = tagged.CreateTOCIElement();\ntoci.ActualText = headingText;\ntocElement.AppendChild(toci);\n\n// WRONG — string is not implicitly convertible to TextFragment:\n// TocInfo tocInfo = new TocInfo { Title = \"Table of Contents\" }; // CS0029\n\n// WRONG — TOCIElement has no SetText method:\n// toci.SetText(headingText); // CS1061",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'string' to 'Aspose.Pdf.Text.TextFragment'",
+      "CS1061: 'TOCIElement' does not contain a definition for 'SetText'"
+    ]
+  },
+  "gdiplus-dll-not-found-on-macos": {
+    "note": "On macOS (and some Linux environments), Aspose.PDF internally depends on GDI+ (gdiplus.dll) for rendering operations like Document.Save(). This native library is only available on Windows. The exception manifests as a deeply nested TypeInitializationException → DllNotFoundException at runtime (not at compile time). Wrap Document.Save() in a try-catch that walks the full InnerException chain to detect DllNotFoundException.",
+    "code": "// CORRECT — catch GDI+ missing on non-Windows platforms:\ntry\n{\n    doc.Save(outputPath);\n    Console.WriteLine($\"PDF saved to '{outputPath}'.\");\n}\ncatch (TypeInitializationException ex) when (ContainsDllNotFound(ex))\n{\n    Console.WriteLine(\"Warning: GDI+ (gdiplus.dll) is not available on this platform (e.g. macOS).\");\n    Console.WriteLine(\"The code compiled and ran correctly, but Save requires GDI+ at runtime.\");\n}\n\n// Helper method to walk nested exceptions:\nstatic bool ContainsDllNotFound(Exception ex)\n{\n    Exception? current = ex;\n    while (current != null)\n    {\n        if (current is DllNotFoundException)\n            return true;\n        current = current.InnerException;\n    }\n    return false;\n}\n\n// WRONG — only checks one level of InnerException (misses deeply nested DllNotFoundException):\n// catch (TypeInitializationException ex) when (ex.InnerException is DllNotFoundException) // won't match",
+    "errors": [
+      "System.TypeInitializationException: The type initializer for 'Windows.Win32.PInvoke' threw an exception. ---> System.DllNotFoundException: Unable to load shared library 'gdiplus.dll'"
+    ]
+  },
+  "skip-pdf-save-on-macos-when-libgdiplus-missing": {
+    "note": "When running Aspose.Pdf on macOS (or Linux without libgdiplus), guard the Document.Save call with a RuntimeInformation OS check to avoid a TypeInitializationException caused by the missing GDI+ native library.",
+    "code": "using System.Runtime.InteropServices;\n...\nif (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))\n{\n    Console.WriteLine(\"libgdiplus is required for PDF creation on macOS. Install libgdiplus or run on a supported platform.\");\n    // Skip doc.Save(...);\n}\nelse\n{\n    doc.Save(outputPath);\n}",
+    "errors": [
+      "System.TypeInitializationException: The type initializer for 'Windows.Win32.PInvoke' threw an exception.",
+      "System.TypeInitializationException: The type initializer for 'System.Drawing.Gdip' threw an exception.",
+      "System.DllNotFoundException: Unable to load shared library 'gdiplus.dll' or one of its dependencies."
+    ]
+  },
+  "avoid-systemdrawing-color-with-borderinfo": {
+    "note": "Do not set System.Drawing.Color on BorderInfo (or other Aspose.Pdf.Drawing objects) when running on non‑Windows platforms; use the default border or draw colored lines via Graph instead.",
+    "code": "BorderInfo border = new BorderInfo(); // no Color property used\nrow.Border = border; // apply border without System.Drawing dependencies",
+    "errors": [
+      "System.TypeInitializationException: The type initializer for 'System.Drawing.Gdip' threw an exception.",
+      "DllNotFoundException: Unable to load shared library 'gdiplus.dll' on macOS/Linux"
+    ]
+  },
+  "form-field-no-annotation-property": {
+    "note": "Form field classes (TextBoxField, CheckboxField, ComboBoxField, etc.) do NOT have an .Annotation property. They themselves inherit from WidgetAnnotation → Annotation, so they ARE annotations. When tagging a field with a structure element's Tag() method, pass the field directly — do not access .Annotation.",
+    "code": "// CORRECT — pass the field directly (it IS an Annotation):\nFormElement formElem = tagged.CreateFormElement();\nformElem.Tag(txtField);\n\n// WRONG — .Annotation does not exist on form fields:\n// formElem.Tag(txtField.Annotation); // CS1061",
+    "errors": [
+      "CS1061: 'TextBoxField' does not contain a definition for 'Annotation'",
+      "CS1061: 'CheckboxField' does not contain a definition for 'Annotation'",
+      "CS1061: 'ComboBoxField' does not contain a definition for 'Annotation'"
+    ]
+  },
+  "form-field-requires-page-not-document": {
+    "note": "When creating form fields (TextBoxField, CheckboxField, etc.), use the constructor that accepts a Page, not just a Document. Passing only Document + Rectangle causes 'Page was not specified at page creation' at runtime when calling Form.Add(). Also use the Form.Add(field, pageNumber) overload to bind the field to a specific page.",
+    "code": "// CORRECT — pass Page to the constructor and page number to Form.Add:\nPage page = doc.Pages[1];\nTextBoxField txtField = new TextBoxField(page, fieldRect);\ndoc.Form.Add(txtField, page.Number);\n\n// WRONG — Document constructor doesn't bind to a page:\n// TextBoxField txtField = new TextBoxField(doc, fieldRect);\n// doc.Form.Add(txtField); // throws ArgumentException: Page was not specified",
+    "errors": [
+      "System.ArgumentException: Page was not specified at page creation"
+    ]
+  },
+  "tocinfo-title-uses-textfragment-and-toci-actualtext": {
+    "note": "Assign a TextFragment to TocInfo.Title (it does not accept a plain string) and set a TOCIElement's label via the ActualText property instead of a non‑existent SetText method.",
+    "code": "tocPage.TocInfo.Title = new TextFragment(\"Table of Contents\");\n\nTOCIElement toci = taggedContent.CreateTOCIElement();\ntoci.ActualText = \"Chapter 1\";",
+    "errors": [
+      "Cannot implicitly convert type 'string' to 'Aspose.Pdf.Text.TextFragment' (TocInfo.Title expects TextFragment)",
+      "'TOCIElement' does not contain a definition for 'SetText' (use ActualText property instead)"
+    ]
+  },
+  "guard-docsave-with-runtimeinformation": {
+    "note": "Wrap Document.Save() in a RuntimeInformation OS check to avoid GDI+ (libgdiplus) loading errors on non‑Windows platforms.",
+    "code": "using System.Runtime.InteropServices;\n...\nif (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    doc.Save(outputPath);\n}\nelse\n{\n    // optional: install libgdiplus or skip saving on unsupported platforms\n}",
+    "errors": [
+      "System.TypeInitializationException: The type initializer for 'Windows.Win32.Graphics.GdiPlus.GdiPlusInitialization' threw an exception.",
+      "System.DllNotFoundException: Unable to load shared library 'gdiplus.dll' or one of its dependencies."
+    ]
+  },
+  "use-margininfo-and-borderinfo-for-table-cell-styling": {
+    "note": "When styling Aspose.Pdf Table cells, use MarginInfo for padding/margin and BorderInfo for borders instead of the non‑existent Margin and Border classes, and avoid using Table.Rectangle which is not part of the API.",
+    "code": "Cell cell = new Cell {\n    BackgroundColor = Color.LightGray,\n    Border = new BorderInfo(BorderSide.All, 1f),\n    Margin = new MarginInfo(4, 4, 4, 4)\n};\n// Table default padding\nTable table = new Table {\n    DefaultCellPadding = new MarginInfo(5, 5, 5, 5)\n};",
+    "errors": [
+      "CS0117: 'Table' does not contain a definition for 'Rectangle'",
+      "CS0246: The type or namespace name 'Margin' could not be found",
+      "CS0246: The type or namespace name 'Border' could not be found"
+    ]
+  },
+  "use-borderinfo-constructor": {
+    "note": "Create BorderInfo with its constructor (BorderSide, width, optional System.Drawing.Color) instead of setting BorderColor, BorderWidth, and BorderStyle properties.",
+    "code": "// Windows (or when a color is needed)\nBorderInfo border = new BorderInfo(BorderSide.All, 2f, Color.Red);\n\n// Non‑Windows (or when no color is required)\nBorderInfo border = new BorderInfo(BorderSide.All, 2f);",
+    "errors": [
+      "'BorderInfo' does not contain a definition for 'BorderColor'",
+      "'BorderInfo' does not contain a definition for 'BorderWidth'",
+      "'BorderInfo' does not contain a definition for 'BorderStyle'"
+    ]
+  },
+  "use-listlblelement-actualtext-for-list-label": {
+    "note": "Set the list label (number or bullet) by assigning the Desired text to ListLblElement.ActualText instead of using ListAttributesInfo or ListNumbering attributes.",
+    "code": "ListLblElement lbl = tagged.CreateListLblElement();\nlbl.ActualText = \"1.\"; // or \"•\" for a bullet\nli.AppendChild(lbl, true);",
+    "errors": [
+      "CS0246: The type or namespace name 'ListAttributesInfo' could not be found",
+      "CS0103: The name 'ListNumbering' does not exist in the current context"
+    ]
+  },
+  "use-pdfua1-format-constant": {
+    "note": "For PDF/UA 1.0 validation use the PdfFormat.PDF_UA_1 constant (the older PdfFormat.PDF_UA or PdfFormat.PdfUa1 constants do not exist).",
+    "code": "bool isCompliant = doc.Validate(reportPath, PdfFormat.PDF_UA_1);",
+    "errors": [
+      "CS0117: 'PdfFormat' does not contain a definition for 'PdfUa1'",
+      "CS0117: 'PdfFormat' does not contain a definition for 'PDF_UA' (when using older constant names)"
+    ]
+  },
+  "use-string-path-overload-for-xsltransform": {
+    "note": "When calling XslCompiledTransform.Transform, pass the XML input as a file path (string) or XmlReader, not as a FileStream.",
+    "code": "XslCompiledTransform xslt = new XslCompiledTransform();\nxslt.Load(xsltPath);\nusing (FileStream outStream = File.Create(reportPath))\n{\n    xslt.Transform(xmlPath, null, outStream); // xmlPath is a string\n}",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'System.IO.FileStream' to 'string' when calling XslCompiledTransform.Transform"
+    ]
+  },
+  "use-aspose-pdf-namespace-for-hyperlink-types": {
+    "note": "Import the Aspose.Pdf namespace (or use fully‑qualified names) for WebHyperlink and FileHyperlink instead of a non‑existent Aspose.Pdf.Hyperlink namespace.",
+    "code": "using Aspose.Pdf; // provides WebHyperlink, FileHyperlink\n// Do NOT: using Aspose.Pdf.Hyperlink;\nWebHyperlink webLink = new WebHyperlink(\"https://example.com\");\nFileHyperlink fileLink = new FileHyperlink(\"/path/to/file.pdf\");",
+    "errors": [
+      "CS0138: A 'using namespace' directive can only be applied to namespaces; 'Hyperlink' is a type not a namespace."
+    ]
+  },
+  "use-createformelement-instead-of-associatedannotation": {
+    "note": "Create a /Form structure element with TaggedContent.CreateFormElement() and append it to the structure tree; do not use a non‑existent AssociatedAnnotation property on FormElement.",
+    "code": "ITaggedContent tagged = doc.TaggedContent;\nStructureElement root = tagged.RootElement;\nFormElement formStruct = tagged.CreateFormElement();\nroot.AppendChild(formStruct);",
+    "errors": [
+      "CS1061: 'FormElement' does not contain a definition for 'AssociatedAnnotation' and no accessible extension method 'AssociatedAnnotation' accepting a first argument of type 'FormElement' could be found"
+    ]
+  },
+  "add-system-linq-for-count-extension": {
+    "note": "Import the System.Linq namespace to enable LINQ extension methods such as Count() on IEnumerable collections (e.g., XDocument.Descendants).",
+    "code": "using System.Linq; // required for Count()\nint errorCount = logDoc.Descendants(\"error\").Count();",
+    "errors": [
+      "CS1501: No overload for method 'Count' takes 0 arguments"
+    ]
+  },
+  "tocinfo-title-uses-textfragment-and-toc-element-properties": {
+    "note": "Assign a TextFragment to TocInfo.Title, and use the Title (string) property for TOCElement and the ActualText (string) property for TOCIElement instead of calling SetText.",
+    "code": "TocInfo tocInfo = new TocInfo { Title = new TextFragment(\"Table of Contents\") };\nTOCElement toc = tagged.CreateTOCElement();\ntoc.Title = \"Table of Contents\";\nTOCIElement tocItem = tagged.CreateTOCIElement();\ntocItem.ActualText = \"Chapter 1: Introduction\";",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'string' to 'Aspose.Pdf.Text.TextFragment' (when assigning to TocInfo.Title)",
+      "CS1061: 'TOCElement' does not contain a definition for 'SetText'",
+      "CS1061: 'TOCIElement' does not contain a definition for 'SetText'"
+    ]
+  },
+  "use-settag-for-custom-paragraph-tag": {
+    "note": "Assign a custom tag name to a ParagraphElement using SetTag before appending it to the structure tree.",
+    "code": "ParagraphElement paragraph = tagged.CreateParagraphElement();\nparagraph.SetTag(\"MySpecialParagraph\");",
+    "errors": [
+      "Paragraph element lacks the intended custom tag",
+      "Structure tree shows default tag instead of custom tag"
+    ]
+  },
+  "guard-doc-save-for-missing-gdiplus": {
+    "note": "When saving a PDF with Aspose.Pdf on non‑Windows platforms, guard Document.Save with an OS check and handle TypeInitializationException caused by missing GDI+ (libgdiplus).",
+    "code": "if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    doc.Save(outputPath);\n}\nelse\n{\n    try\n    {\n        doc.Save(outputPath);\n    }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex))\n    {\n        // handle missing libgdiplus, e.g., log a warning\n    }\n}\n\nprivate static bool ContainsDllNotFound(Exception ex)\n{\n    while (ex != null)\n    {\n        if (ex is DllNotFoundException) return true;\n        ex = ex.InnerException;\n    }\n    return false;\n}",
+    "errors": [
+      "System.TypeInitializationException thrown from Document.Save due to missing gdiplus.dll on macOS/Linux",
+      "DllNotFoundException for 'gdiplus.dll' when running Aspose.Pdf on non‑Windows platforms"
+    ]
+  },
+  "use-figureelement-actualtext-for-image": {
+    "note": "Create a FigureElement, set its AlternativeText and ActualText, and tag an existing XImage instead of trying to construct an Image with arguments.",
+    "code": "ITaggedContent tagged = doc.TaggedContent;\nFigureElement fig = tagged.CreateFigureElement();\nfig.AlternativeText = \"Screen‑reader description\";\nfig.ActualText = \"Actual replacement text\";\nfig.Tag(xImage); // xImage is an XImage obtained from page.Resources.Images",
+    "errors": [
+      "CS1729: 'Image' does not contain a constructor that takes 2 arguments"
+    ]
+  },
+  "use-taggedcontent-instead-of-istagged": {
+    "note": "Check if a PDF is tagged by verifying Document.TaggedContent is not null instead of using the non‑existent Document.IsTagged property.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Tagged;\n\nDocument doc = new Document(\"input.pdf\");\nif (doc.TaggedContent == null)\n{\n    // PDF is not tagged\n    return;\n}\n\nITaggedContent tagged = doc.TaggedContent;\nvar root = tagged.RootElement; // no cast required\n// proceed with structure element operations",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'IsTagged' and no accessible extension method 'IsTagged' accepting a first argument of type 'Document' could be found"
+    ]
+  },
+  "append-nested-list-to-lbody": {
+    "note": "When creating a nested list, add the inner ListElement to the parent ListLIElement's ListLBodyElement (LBody) rather than directly to the ListLIElement.",
+    "code": "ListLIElement parentLi = tagged.CreateListLIElement();\nparentList.AppendChild(parentLi);\nListLBodyElement parentBody = tagged.CreateListLBodyElement();\nparentLi.AppendChild(parentBody);\n// Correct: add the nested list to the LBody\nparentBody.AppendChild(innerList);",
+    "errors": [
+      "Appending structure element [L, ...] into structure element [LI, ...] is impossible",
+      "Aspose.Pdf.Tagged.TaggedException: Appending structure element ... into structure element ... is impossible"
+    ]
+  },
+  "use-formelement-tag-for-form-field-association": {
+    "note": "Associate a form field with a /Form structure element by calling FormElement.Tag(field) instead of using non‑existent StructureElementId or Id properties.",
+    "code": "FormElement formElement = tagged.CreateFormElement();\nformElement.Tag(textField); // links the TextBoxField (widget annotation) to the /Form element",
+    "errors": [
+      "CS1061: 'TextBoxField' does not contain a definition for 'StructureElementId'",
+      "CS1061: 'FormElement' does not contain a definition for 'Id'",
+      "CS0165: Use of unassigned local variable 'textField'"
+    ]
+  },
+  "tag-formfield-directly": {
+    "note": "When associating a form field with a /Form structure element, pass the field itself to FormElement.Tag instead of trying to access a non‑existent WidgetAnnotation property.",
+    "code": "FormElement formElement = tagged.CreateFormElement();\nformElement.Tag(textBoxField); // use the field directly",
+    "errors": [
+      "CS1061: 'TextBoxField' does not contain a definition for 'WidgetAnnotation' and no accessible extension method 'WidgetAnnotation' accepting a first argument of type 'TextBoxField' could be found"
+    ]
+  },
+  "use-gotouriaction-uri-for-link-url": {
+    "note": "When extracting URLs from a LinkAnnotation, read the URI from its GoToURIAction (uriAction.URI) instead of trying to use Hyperlink.Url, which is not exposed in current Aspose.Pdf versions.",
+    "code": "if (linkAnn.Action is GoToURIAction uriAction && !string.IsNullOrEmpty(uriAction.URI))\n{\n    string url = uriAction.URI;\n}",
+    "errors": [
+      "CS1061: 'Hyperlink' does not contain a definition for 'Url' and no accessible extension method 'Url' accepting a first argument of type 'Hyperlink' could be found"
+    ]
+  },
+  "use-pdfua1-enum-for-validation": {
+    "note": "When validating a PDF for PDF/UA compliance, use the PdfFormat.PDF_UA_1 enum member (PDF/UA 1.0) instead of the non‑existent PdfFormat.PDF_UA.",
+    "code": "bool isCompliant = doc.Validate(logPath, PdfFormat.PDF_UA_1);",
+    "errors": [
+      "CS0117: 'PdfFormat' does not contain a definition for 'PDF_UA'"
+    ]
+  },
+  "pdf-compliance-conversion-use-document-convert-not-saveoptions": {
+    "note": "There are no 'PdfA1bSaveOptions', 'PdfX3SaveOptions', or similar compliance SaveOptions classes in Aspose.PDF. To convert a PDF to any compliance format (PDF/A-1b, PDF/X-3, PDF/UA, etc.), use Document.Convert() with the appropriate PdfFormat enum value and ConvertErrorAction, then call Document.Save() normally. The Convert method modifies the document in-place for compliance. Available formats include: PDF_A_1A, PDF_A_1B, PDF_A_2A, PDF_A_2B, PDF_A_3A, PDF_A_3B, PDF_A_4, PDF_X_1A, PDF_X_3, PDF_X_4, PDF_UA_1, PDF_E_1. Metadata (Document.Info) is preserved automatically.",
+    "code": "// CORRECT — use Document.Convert() for PDF/A compliance:\nusing (Document doc = new Document(inputPath))\n{\n    doc.Convert(\"conversion_log.xml\", PdfFormat.PDF_A_1B, ConvertErrorAction.Delete);\n    doc.Save(outputPath);\n}\n\n// CORRECT — use Document.Convert() for PDF/X-3 compliance:\nusing (Document doc = new Document(inputPath))\n{\n    doc.Convert(\"conversion_log.xml\", PdfFormat.PDF_X_3, ConvertErrorAction.Delete);\n    doc.Save(outputPath);\n}\n\n// WRONG — these SaveOptions classes do not exist:\n// PdfA1bSaveOptions opts = new PdfA1bSaveOptions(); // CS0246\n// PdfX3SaveOptions opts = new PdfX3SaveOptions();   // CS0246\n// doc.Save(outputPath, opts);",
+    "errors": [
+      "CS0246: The type or namespace name 'PdfA1bSaveOptions' could not be found",
+      "CS0246: The type or namespace name 'PdfA2bSaveOptions' could not be found",
+      "CS0246: The type or namespace name 'PdfA3bSaveOptions' could not be found",
+      "CS0246: The type or namespace name 'PdfX3SaveOptions' could not be found",
+      "CS0246: The type or namespace name 'PdfX1aSaveOptions' could not be found",
+      "CS0246: The type or namespace name 'PdfX4SaveOptions' could not be found"
+    ]
+  },
+  "document-version-is-readonly-use-convert": {
+    "note": "Document.Version is a read-only string property — it cannot be assigned. To change the PDF version, use Document.Convert() with PdfFormat.v_1_4 (or v_1_5, v_1_6, v_1_7, v_2_0, etc.). Also, PdfVersion enum values use lowercase 'v_' prefix (e.g. PdfVersion.v_1_4), not 'Version_1_4'.",
+    "code": "// CORRECT — use Document.Convert() to set PDF version:\nusing (Document doc = new Document(inputPath))\n{\n    doc.Convert(\"conversion_log.xml\", PdfFormat.v_1_4, ConvertErrorAction.Delete);\n    doc.Save(outputPath);\n}\n\n// WRONG — Version property is read-only:\n// doc.Version = PdfVersion.Version_1_4; // CS0200 + CS0117\n\n// WRONG — incorrect enum member name:\n// PdfVersion.Version_1_4 // CS0117 — correct name is PdfVersion.v_1_4",
+    "errors": [
+      "CS0200: Property or indexer 'Document.Version' cannot be assigned to -- it is read only",
+      "CS0117: 'PdfVersion' does not contain a definition for 'Version_1_4'",
+      "CS0117: 'PdfVersion' does not contain a definition for 'Version_1_5'",
+      "CS0117: 'PdfVersion' does not contain a definition for 'Version_1_7'"
+    ]
+  },
+  "use-pdffileeditor-splittopages-for-splitting": {
+    "note": "Use Aspose.Pdf.Facades.PdfFileEditor.SplitToPages to split a PDF into individual page streams instead of calling non‑existent methods on Document.",
+    "code": "using Aspose.Pdf.Facades;\n\nPdfFileEditor editor = new PdfFileEditor();\nMemoryStream[] pageStreams = editor.SplitToPages(\"input.pdf\");\nfor (int i = 0; i < pageStreams.Length; i++)\n{\n    using (FileStream fs = new FileStream($\"Page_{i + 1}.pdf\", FileMode.Create, FileAccess.Write))\n    {\n        pageStreams[i].WriteTo(fs);\n    }\n    pageStreams[i].Dispose();\n}",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'Extract' (or 'Split') and no accessible extension method",
+      "Missing using directive for Aspose.Pdf.Facades when attempting to use PdfFileEditor"
+    ]
+  },
+  "use-httpclient-getstreamasync-for-pdf-download": {
+    "note": "Replace obsolete WebClient with HttpClient and use GetStreamAsync to download a PDF directly into a MemoryStream before loading it with Aspose.Pdf.",
+    "code": "using var httpClient = new HttpClient();\nawait using var downloadStream = await httpClient.GetStreamAsync(pdfUrl);\nvar pdfStream = new MemoryStream();\nawait downloadStream.CopyToAsync(pdfStream);\npdfStream.Position = 0;\nusing var doc = new Document(pdfStream);",
+    "errors": [
+      "warning SYSLIB0014: 'WebClient.WebClient()' is obsolete",
+      "runtime errors caused by using WebClient for network operations (e.g., 404 due to incorrect request handling)"
+    ]
+  },
+  "guard-pdfx3-conversion-with-gdi-dependency": {
+    "note": "Wrap Aspose.Pdf PDF/X‑3 conversion and saving in a Windows‑only check or catch TypeInitializationException caused by missing GDI+ (libgdiplus) on non‑Windows platforms.",
+    "code": "if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    doc.Convert(logPath, PdfFormat.PDF_X_3, ConvertErrorAction.Delete);\n    doc.Save(outputPath);\n}\nelse\n{\n    try { doc.Convert(logPath, PdfFormat.PDF_X_3, ConvertErrorAction.Delete); }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex)) { /* handle missing GDI+ */ }\n    try { doc.Save(outputPath); }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex)) { /* handle missing GDI+ */ }\n}\n\nprivate static bool ContainsDllNotFound(Exception ex)\n{\n    while (ex != null)\n    {\n        if (ex is DllNotFoundException) return true;\n        ex = ex.InnerException;\n    }\n    return false;\n}",
+    "errors": [
+      "System.TypeInitializationException thrown when calling Document.Convert or Document.Save on non‑Windows platforms",
+      "System.DllNotFoundException: Unable to load shared library 'gdiplus.dll' (libgdiplus) required for PDF/X‑3 conversion"
+    ]
+  },
+  "use-document-info-title-to-set-pdf-title": {
+    "note": "Set PDF title metadata via the Document.Info.Title property (preferred over SetTitle) after loading the PDF from a byte array.",
+    "code": "using (var stream = new MemoryStream(pdfBytes))\nusing (var doc = new Document(stream))\n{\n    doc.Info.Title = \"Updated PDF Title\";\n    doc.Save(\"output.pdf\");\n}",
+    "errors": [
+      "Using deprecated or less‑preferred SetTitle method for title metadata",
+      "Attempting to modify metadata without accessing the Document.Info object"
+    ]
+  },
+  "use-optimizationoptions-unembedfonts": {
+    "note": "To disable font embedding in a PDF, create an OptimizationOptions with UnembedFonts = true and call Document.OptimizeResources before saving.",
+    "code": "var opt = new OptimizationOptions { UnembedFonts = true };\n\tdoc.OptimizeResources(opt);\n\tdoc.Save(outputPath);",
+    "errors": [
+      "CS1061: 'PdfSaveOptions' does not contain a definition for 'EmbedFonts'",
+      "Attempted use of PdfLoadOptions.DisableFontEmbedding to prevent font embedding"
+    ]
+  },
+  "add-page-before-access": {
+    "note": "Add a page to the document with doc.Pages.Add() before accessing it, instead of indexing Pages[1] on a newly created Document.",
+    "code": "using (Document doc = new Document()) {\n    Page page = doc.Pages.Add();\n    // use the page (e.g., TextBuilder, add content, etc.)\n}",
+    "errors": [
+      "System.IndexOutOfRangeException: Invalid index: index should be in the range [1..n] where n equals to the pages count.",
+      "Accessing doc.Pages[1] on a newly created Document"
+    ]
+  },
+  "use-rotation-on90": {
+    "note": "Use the correct Rotation enum members (e.g., Rotation.on90) instead of non‑existent Clockwise* values when rotating pages.",
+    "code": "doc.Pages[2].Rotate = Rotation.on90;",
+    "errors": [
+      "CS0117: 'Rotation' does not contain a definition for 'Clockwise90'"
+    ]
+  },
+  "use-document-constructor-with-stream-instead-of-comhelper": {
+    "note": "Do not import Aspose.Pdf.ComHelper; load a PDF from a stream by passing the stream to the Document constructor.",
+    "code": "using System.Net.Http;\nusing Aspose.Pdf;\n\n// ... obtain Stream pdfStream ...\nusing var pdfDocument = new Document(pdfStream);\npdfDocument.Save(\"local.pdf\");",
+    "errors": [
+      "CS0138: A 'using namespace' directive can only be applied to namespaces; 'ComHelper' is a type not a namespace."
+    ]
+  },
+  "cast-permissions-int-to-enum": {
+    "note": "Cast the integer value returned by Document.Permissions (or a literal zero) to the Permissions enum before using bitwise operators or assigning it.",
+    "code": "Permissions current = (Permissions)doc.Permissions;\nbool canPrint = (current & Permissions.PrintDocument) == Permissions.PrintDocument;\nPermissions noPermissions = (Permissions)0;",
+    "errors": [
+      "Operator '&' cannot be applied to operands of type 'int' and 'Permissions'",
+      "Cannot assign integer literal 0 directly to a variable of type Permissions"
+    ]
+  },
+  "use-colorspaceconversionmode-only-on-supported-versions": {
+    "note": "Only set PdfFormatConversionOptions.ColorSpaceConversionMode (and use the ColorSpaceConversionMode enum) when targeting Aspose.Pdf version 22.9 or later; older versions do not expose this property.",
+    "code": "PdfFormatConversionOptions opts = new PdfFormatConversionOptions(PdfFormat.PDF_X_3);\n// opts.ColorSpaceConversionMode = ColorSpaceConversionMode.ConvertToCMYK; // available in 22.9+",
+    "errors": [
+      "CS0117: 'PdfFormatConversionOptions' does not contain a definition for 'ColorSpaceConversionMode'",
+      "CS0103: The name 'ColorSpaceConversionMode' does not exist in the current context"
+    ]
+  },
+  "use-valid-permissions-enum": {
+    "note": "Use a defined Permissions enum value (e.g., Permissions.PrintDocument or (Permissions)0) instead of the non‑existent Permissions.None, and import Aspose.Pdf.Security.",
+    "code": "using Aspose.Pdf.Security;\n...\nPermissions perms = Permissions.PrintDocument; // or (Permissions)0 for no permissions\n...",
+    "errors": [
+      "CS0117: 'Permissions' does not contain a definition for 'None'"
+    ]
+  },
+  "use-pdfformatconversionoptions-for-pdfx3": {
+    "note": "Use PdfFormatConversionOptions with PdfFormat.PDF_X_3 instead of the non‑existent PdfX3ConversionOptions to convert a PDF to PDF/X‑3.",
+    "code": "var options = new PdfFormatConversionOptions(PdfFormat.PDF_X_3);\n// optional: options.IccProfileFileName = \"sRGB.icc\";\n// optional: options.OutputIntent = new OutputIntent(...);\ndocument.Convert(options);",
+    "errors": [
+      "CS0234: The type or namespace name 'PdfX3ConversionOptions' does not exist in the namespace 'Aspose.Pdf'"
+    ]
+  },
+  "use-rotation-on180-enum": {
+    "note": "Use the correct enum member Rotation.on180 for 180° page rotation",
+    "code": "page.Rotate = Rotation.on180;",
+    "errors": [
+      "CS0117: 'Rotation' does not contain a definition for 'Rotate180'"
+    ]
+  },
+  "use-static-permissions-enum-with-bitwise-or": {
+    "note": "Access Permissions enum members via the type name and combine them with the bitwise OR operator when passing to Document.Encrypt",
+    "code": "Permissions perms = Permissions.PrintDocument | Permissions.PrintingQuality;\n\ndoc.Encrypt(userPassword, ownerPassword, perms, CryptoAlgorithm.AESx128);",
+    "errors": [
+      "Member 'Permissions.PrintDocument' cannot be accessed with an instance reference; qualify it with a type name instead",
+      "Cannot implicitly convert type 'int' to 'Aspose.Pdf.Permissions'"
+    ]
+  },
+  "guard-doc-save-for-gdiplus": {
+    "note": "Wrap Aspose.Pdf Document.Save in a platform‑aware guard that catches TypeInitializationException caused by a missing libgdiplus (GDI+) on non‑Windows systems.",
+    "code": "if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    doc.Save(path);\n}\nelse\n{\n    try\n    {\n        doc.Save(path);\n    }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex))\n    {\n        // handle missing libgdiplus gracefully\n    }\n}\n\nprivate static bool ContainsDllNotFound(Exception ex)\n{\n    while (ex != null)\n    {\n        if (ex is DllNotFoundException) return true;\n        ex = ex.InnerException;\n    }\n    return false;\n}",
+    "errors": [
+      "System.TypeInitializationException thrown from Document.Save due to missing gdiplus.dll (GDI+) on macOS/Linux",
+      "System.DllNotFoundException for 'gdiplus.dll' when saving a PDF on non‑Windows platforms"
+    ]
+  },
+  "set-custom-tag-on-structure-element": {
+    "note": "Use the SetTag method on a StructureElement (e.g., ParagraphElement) to assign a custom tag name for specialized content.",
+    "code": "ParagraphElement paragraph = tagged.CreateParagraphElement();\nparagraph.SetTag(\"SpecialParagraph\");",
+    "errors": [
+      "Missing custom tag on a structure element (default tag used)",
+      "Need to represent specialized content type with a custom tag"
+    ]
+  },
+  "use-textboxfield-page-ctor": {
+    "note": "Import Aspose.Pdf.Forms and instantiate TextBoxField with a Page object and a Rectangle (not with Document) to avoid missing type errors.",
+    "code": "using Aspose.Pdf.Forms;\n...\nAspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(100, 500, 300, 550);\nTextBoxField txt = new TextBoxField(doc.Pages[1], rect);",
+    "errors": [
+      "CS0246: The type or namespace name 'Form' could not be found",
+      "CS0246: The type or namespace name 'TextBoxField' could not be found",
+      "CS1729: 'TextBoxField' does not contain a constructor that takes 2 arguments"
+    ]
+  },
+  "use-div-element-for-pagebreak": {
+    "note": "Represent a page break in a tagged PDF by inserting a Div element and setting its tag to \"PageBreak\" instead of using the non‑existent IsInNewPage property on ParagraphElement.",
+    "code": "var pageBreak = tagged.CreateDivElement();\npageBreak.SetTag(\"PageBreak\");\nsection.AppendChild(pageBreak);",
+    "errors": [
+      "CS1061: 'ParagraphElement' does not contain a definition for 'IsInNewPage' and no accessible extension method 'IsInNewPage' accepting a first argument of type 'ParagraphElement' could be found"
+    ]
+  },
+  "use-document-convert-for-pdfa1b": {
+    "note": "Use Document.Convert with PdfFormat.PDF_A_1B (and optional log) to create PDF/A‑1b files instead of the non‑existent PdfA1bSaveOptions class.",
+    "code": "using Aspose.Pdf;\n\nDocument doc = new Document(inputPath);\n// Convert to PDF/A‑1b; metadata is preserved automatically\ndoc.Convert(logPath, PdfFormat.PDF_A_1B, ConvertErrorAction.Delete);\n// Save the converted document\ndoc.Save(outputPath);",
+    "errors": [
+      "CS0246: The type or namespace name 'PdfA1bSaveOptions' could not be found",
+      "CS0246: The type or namespace name 'PdfA1bSaveOptions' could not be found (are you missing a using directive or an assembly reference?)"
+    ]
+  },
+  "use-document-convert-for-pdfx3": {
+    "note": "Use Document.Convert with PdfFormat.PDF_X_3 (and optional ConvertErrorAction) instead of the non‑existent PdfX3SaveOptions and ColorProfileType classes to create PDF/X‑3 files.",
+    "code": "using Aspose.Pdf;\n\nDocument doc = new Document(inputPath);\n// Convert in‑place to PDF/X‑3, generating a conversion log.\ndoc.Convert(logPath, PdfFormat.PDF_X_3, ConvertErrorAction.Delete);\n// Save the converted document.\ndoc.Save(outputPath);",
+    "errors": [
+      "CS0246: The type or namespace name 'PdfX3SaveOptions' could not be found",
+      "CS0246: The type or namespace name 'ColorProfileType' could not be found",
+      "CS0103: The name 'ColorProfileType' does not exist in the current context"
+    ]
+  },
+  "use-document-info-title-for-metadata": {
+    "note": "Set or update PDF title metadata via the Document.Info.Title property instead of using a non‑existent SetTitle method.",
+    "code": "using (var doc = new Document(stream))\n{\n    doc.Info.Title = \"My Document Title\";\n    doc.Save(outputPath);\n}",
+    "errors": [
+      "Method 'SetTitle' not found or does not modify PDF metadata",
+      "Unable to set PDF title using deprecated or missing API"
+    ]
+  },
+  "use-parameterless-save-for-incremental-update": {
+    "note": "To perform an incremental update, open the PDF with a read/write FileStream and call Document.Save() without using PdfSaveOptions.IncrementalUpdate (which does not exist).",
+    "code": "using (var fs = new FileStream(outputPath, FileMode.Open, FileAccess.ReadWrite))\nusing (var doc = new Document(fs))\n{\n    // modify document (e.g., add pages)\n    doc.Save(); // parameterless Save performs incremental update\n}",
+    "errors": [
+      "CS0117: 'PdfSaveOptions' does not contain a definition for 'IncrementalUpdate'"
+    ]
+  },
+  "use-document-convert-for-pdf-version": {
+    "note": "To change a PDF's version, call Document.Convert with the appropriate PdfFormat value instead of assigning to the read‑only Document.Version property.",
+    "code": "using (var doc = new Document(stream))\n{\n    doc.Convert(logPath, PdfFormat.v_1_4, ConvertErrorAction.Delete);\n    doc.Save(outputPath);\n}",
+    "errors": [
+      "CS0200: Property or indexer 'Document.Version' cannot be assigned to -- it is read only",
+      "CS0117: 'PdfVersion' does not contain a definition for 'PDF_1_4'"
+    ]
+  },
+  "guard-pdfa-conversion-with-gdiplus-check": {
+    "note": "When converting or saving a PDF/A document on non‑Windows platforms, check the OS or catch TypeInitializationException caused by a missing GDI+ (libgdiplus) library.",
+    "code": "if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    doc.Convert(logPath, PdfFormat.PDF_A_1B, ConvertErrorAction.Delete);\n    doc.Save(outputPath);\n}\nelse\n{\n    try { doc.Convert(logPath, PdfFormat.PDF_A_1B, ConvertErrorAction.Delete); }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex)) { /* handle missing GDI+ */ }\n\n    try { doc.Save(outputPath); }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex)) { /* handle missing GDI+ */ }\n}\n\nprivate static bool ContainsDllNotFound(Exception ex)\n{\n    while (ex != null)\n    {\n        if (ex is DllNotFoundException) return true;\n        ex = ex.InnerException;\n    }\n    return false;\n}",
+    "errors": [
+      "System.TypeInitializationException: The type initializer for 'System.Drawing.Gdip' threw an exception",
+      "DllNotFoundException: Unable to load shared library 'gdiplus.dll' on macOS/Linux"
+    ]
+  },
+  "use-rotation-on90-instead-of-rotateangle90": {
+    "note": "Use the correct enum member `Rotation.on90` to rotate a page 90 degrees clockwise; the older `Rotation.RotateAngle90` does not exist.",
+    "code": "doc.Pages[2].Rotate = Rotation.on90;",
+    "errors": [
+      "CS0117: 'Rotation' does not contain a definition for 'RotateAngle90'"
+    ]
+  },
+  "use-optimizationoptions-for-high-compression": {
+    "note": "Use OptimizationOptions with Document.OptimizeResources for high PDF compression instead of PdfSaveOptions.CompressionLevel",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Optimization;\n\n// Load PDF\nusing (Document doc = new Document(inputPath))\n{\n    var opt = new OptimizationOptions\n    {\n        CompressObjects = true,\n        SubsetFonts = true,\n        RemoveUnusedObjects = true,\n        RemoveUnusedStreams = true,\n        AllowReusePageContent = true,\n        LinkDuplicateStreams = true\n    };\n    doc.OptimizeResources(opt);\n    doc.Save(outputPath);\n}",
+    "errors": [
+      "PdfSaveOptions does not provide a CompressionLevel property for PDF compression",
+      "FileNotFoundException when input PDF path is invalid (missing existence check)"
+    ]
+  },
+  "use-httpclient-and-document-stream-constructor": {
+    "note": "Replace obsolete WebRequest with HttpClient and load a PDF directly from the response stream using the Document(Stream) constructor.",
+    "code": "using var httpClient = new HttpClient();\nusing var response = await httpClient.GetAsync(pdfUrl);\nresponse.EnsureSuccessStatusCode();\nawait using var pdfStream = await response.Content.ReadAsStreamAsync();\nvar pdfDocument = new Document(pdfStream);\npdfDocument.Save(outputPath);",
+    "errors": [
+      "warning SYSLIB0014: 'WebRequest.Create(string)' is obsolete",
+      "runtime WebException when using HttpWebRequest for a missing URL"
+    ]
+  },
+  "cast-permissions-to-enum-before-hasflag": {
+    "note": "When checking PDF permissions in older Aspose.Pdf versions, cast the integer Permissions property to the Permissions enum before calling HasFlag.",
+    "code": "Permissions perms = (Permissions)document.Permissions;\nbool canPrint = perms.HasFlag(Permissions.PrintDocument);",
+    "errors": [
+      "CS1061: 'int' does not contain a definition for 'HasFlag' and no accessible extension method 'HasFlag' accepting a first argument of type 'int' could be found"
+    ]
+  },
+  "use-aes256-encryption-with-permissions": {
+    "note": "When encrypting a PDF, call Document.Encrypt specifying user and owner passwords, the required Permissions, and set CryptoAlgorithm to AESx256 for strong encryption",
+    "code": "using Aspose.Pdf;\n...\nDocument doc = new Document(inputPath);\nPermissions perms = Permissions.PrintDocument | Permissions.ExtractContent;\ndoc.Encrypt(userPassword: userPwd,\n            ownerPassword: ownerPwd,\n            permissions: perms,\n            cryptoAlgorithm: CryptoAlgorithm.AESx256);\n...",
+    "errors": [
+      "No overload for method 'Encrypt' takes the provided arguments (missing CryptoAlgorithm parameter)",
+      "Encryption using default algorithm is weak or not applied"
+    ]
+  },
+  "keep-xmpmetadata-stream-open-until-save": {
+    "note": "When using Document.SetXmpMetadata, keep the MemoryStream alive until after Document.Save, then dispose it.",
+    "code": "MemoryStream xmpStream = new MemoryStream(Encoding.UTF8.GetBytes(xmpXml));\n\ndoc.SetXmpMetadata(xmpStream);\n\ndoc.Save(outputPath);\n\nxmpStream.Dispose();",
+    "errors": [
+      "ObjectDisposedException or InvalidOperationException when SetXmpMetadata is called on a closed stream",
+      "Metadata not applied because the stream was disposed before Document.Save"
+    ]
+  },
+  "use-permissions-encrypt-with-aes128": {
+    "note": "Use the Permissions enum together with Document.Encrypt and CryptoAlgorithm.AESx128 to set PDF encryption and printing rights, instead of non‑existent DocumentPermissions or EncryptionOptions types.",
+    "code": "using Aspose.Pdf;\n\n// Load PDF\nusing (Document doc = new Document(inputPath))\n{\n    Permissions perms = Permissions.PrintDocument | Permissions.PrintingQuality;\n    doc.Encrypt(userPassword, ownerPassword, perms, CryptoAlgorithm.AESx128);\n    doc.Save(encryptedPath);\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'DocumentPermissions' could not be found",
+      "CS0246: The type or namespace name 'EncryptionOptions' could not be found",
+      "CS1061: 'int' does not contain a definition for 'AllowPrint' (or 'AllowPrintHighResolution')"
+    ]
+  },
+  "use-os-agnostic-paths-with-getpath": {
+    "note": "Build file and folder paths using a helper that combines a base directory (e.g., user profile) with sub‑folders via Path.Combine instead of hard‑coding Windows style absolute paths.",
+    "code": "string inputFolder = GetPath(\"PdfBatch\", \"Input\");\nstring outputFolder = GetPath(\"PdfBatch\", \"Encrypted\");\nstring logFilePath = Path.Combine(GetPath(\"PdfBatch\"), \"encryption_log.txt\");\n\nprivate static string GetPath(params string[] parts)\n{\n    string basePath = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);\n    if (string.IsNullOrEmpty(basePath))\n        basePath = Directory.GetCurrentDirectory();\n    return Path.GetFullPath(Path.Combine(new[] { basePath }.Concat(parts).ToArray()));\n}",
+    "errors": [
+      "System.IO.DirectoryNotFoundException: Could not find a part of the path ...",
+      "Hard‑coded Windows paths (e.g., \"C:\\PdfBatch\\Input\") cause invalid combined paths on non‑Windows platforms"
+    ]
+  },
+  "use-permissions-enum-and-extractcontent-flag": {
+    "note": "Use the Aspose.Pdf.Permissions enum (not a non‑existent Permission type) and the ExtractContent flag to control copying when encrypting and checking PDF security settings.",
+    "code": "Permissions permissions = Permissions.PrintDocument;\n\ndoc.Encrypt(userPassword, ownerPassword, permissions, CryptoAlgorithm.RC4x128);\n\nPermissions currentPermissions = (Permissions)encryptedDoc.Permissions;\nbool copyingAllowed = (currentPermissions & Permissions.ExtractContent) == Permissions.ExtractContent;",
+    "errors": [
+      "CS0246: The type or namespace name 'Permission' could not be found",
+      "CS0103: The name 'Permission' does not exist in the current context",
+      "CS0103: The name 'EncryptionAlgorithm' does not exist in the current context"
+    ]
+  },
+  "pdf-comparison-static-classes-and-correct-methods": {
+    "note": "SideBySidePdfComparer is a static class — it cannot be instantiated with 'new'. Its Compare method is static and requires 4 arguments: (Document, Document, String targetPdfPath, SideBySideComparisonOptions). It returns void and outputs a visual comparison PDF. For text-based diff that returns List<List<DiffOperation>> (usable with JsonDiffOutputGenerator), use TextPdfComparer.CompareDocumentsPageByPage(doc1, doc2, ComparisonOptions) instead. JsonDiffOutputGenerator.GenerateOutput can write directly to a file path.",
+    "code": "// CORRECT — TextPdfComparer for diff operations + JSON output:\nvar diffs = TextPdfComparer.CompareDocumentsPageByPage(firstDoc, secondDoc, new ComparisonOptions());\nvar jsonGen = new JsonDiffOutputGenerator();\njsonGen.GenerateOutput(diffs, \"diffReport.json\");\n\n// CORRECT — SideBySidePdfComparer for visual PDF comparison (static, void return):\nSideBySidePdfComparer.Compare(firstDoc, secondDoc, \"comparison.pdf\", new SideBySideComparisonOptions());\n\n// WRONG — cannot instantiate static class:\n// SideBySidePdfComparer comparer = new SideBySidePdfComparer(); // CS0712 + CS0723\n\n// WRONG — Compare takes 4 args, not 2:\n// comparer.Compare(firstDoc, secondDoc); // CS1501",
+    "errors": [
+      "CS0723: Cannot declare a variable of static type 'SideBySidePdfComparer'",
+      "CS0712: Cannot create an instance of the static class 'SideBySidePdfComparer'",
+      "CS1501: No overload for method 'Compare' takes 2 arguments"
+    ]
+  },
+  "catch-pdfexception-instead-of-sanitizationexception": {
+    "note": "Catch Aspose.Pdf.PdfException for PDF‑related errors instead of a non‑existent SanitizationException.",
+    "code": "try {\n    // PDF processing code\n}\ncatch (PdfException ex) {\n    // handle PDF‑specific errors\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'SanitizationException' could not be found"
+    ]
+  },
+  "use-diffoperation-operation-property": {
+    "note": "Use the DiffOperation.Operation string property to identify the type of change (e.g., font) instead of the non‑existent DiffOperationType enum.",
+    "code": "foreach (var diff in diffsByPage)\n{\n    if (diff.Operation != null && diff.Operation.IndexOf(\"Font\", StringComparison.OrdinalIgnoreCase) >= 0)\n    {\n        // handle font‑related diff\n    }\n}",
+    "errors": [
+      "CS0103: The name 'DiffOperationType' does not exist in the current context",
+      "CS1061: 'DiffOperation' does not contain a definition for 'OperationType'"
+    ]
+  },
+  "use-pdfoutputgenerator-for-diff-highlights": {
+    "note": "Generate a diff PDF with the default highlight style by using TextPdfComparer.CompareDocumentsPageByPage together with PdfOutputGenerator.GenerateOutput, instead of GraphicalPdfComparer.",
+    "code": "ComparisonOptions opts = new ComparisonOptions();\nvar diff = TextPdfComparer.CompareDocumentsPageByPage(doc1, doc2, opts);\nPdfOutputGenerator generator = new PdfOutputGenerator();\ngenerator.GenerateOutput(diff, \"diff.pdf\");",
+    "errors": [
+      "Aspose.Pdf.InvalidPdfFileFormatException: Incorrect file header",
+      "Using GraphicalPdfComparer for diff generation (does not produce default highlight annotations)"
+    ]
+  },
+  "copy-document-metadata-using-documentinfo": {
+    "note": "Copy both standard and custom metadata from one Aspose.Pdf.Document to another via the DocumentInfo properties and Add for non‑predefined keys.",
+    "code": "using (Document src = new Document(srcPath))\nusing (Document dst = new Document(dstPath))\n{\n    // Standard metadata fields\n    dst.Info.Title = src.Info.Title;\n    dst.Info.Author = src.Info.Author;\n    dst.Info.Subject = src.Info.Subject;\n    dst.Info.Keywords = src.Info.Keywords;\n    dst.Info.Creator = src.Info.Creator;\n    dst.Info.Producer = src.Info.Producer;\n    dst.Info.CreationDate = src.Info.CreationDate;\n    dst.Info.ModDate = src.Info.ModDate;\n    dst.Info.Trapped = src.Info.Trapped;\n\n    // Custom metadata entries\n    dst.Info.ClearCustomData();\n    foreach (var kvp in src.Info)\n    {\n        if (!DocumentInfo.IsPredefinedKey(kvp.Key))\n        {\n            dst.Info.Add(kvp.Key, kvp.Value);\n        }\n    }\n\n    dst.Save(dstPath);\n}",
+    "errors": [
+      "Metadata not preserved in the resulting PDF after comparison",
+      "Custom metadata entries are lost when saving a new PDF document"
+    ]
+  },
+  "use-comparepages-instead-of-copypage": {
+    "note": "When comparing specific pages of two PDFs, retrieve the Page objects by index and call TextPdfComparer.ComparePages; the Page class has no CopyTo method and ComparisonOptions does not support StartPage/EndPage.",
+    "code": "using (Document doc1 = new Document(path1))\nusing (Document doc2 = new Document(path2))\n{\n    ComparisonOptions opts = new ComparisonOptions();\n    for (int i = startPage; i <= endPage; i++)\n    {\n        Page p1 = doc1.Pages[i];\n        Page p2 = doc2.Pages[i];\n        List<DiffOperation> diffs = TextPdfComparer.ComparePages(p1, p2, opts);\n        // process diffs\n    }\n}",
+    "errors": [
+      "CS1061: 'Page' does not contain a definition for 'CopyTo'",
+      "Compilation error when setting non‑existent ComparisonOptions.StartPage/EndPage properties"
+    ]
+  },
+  "use-textrpdfcomparer-instead-of-documentcomparer": {
+    "note": "Replace the non‑existent DocumentComparer with Aspose.Pdf.Comparison.TextPdfComparer for page‑by‑page PDF comparison.",
+    "code": "using Aspose.Pdf.Comparison;\n...\nComparisonOptions options = new ComparisonOptions();\nList<DiffOperation> diffs = TextPdfComparer.ComparePages(page1, page2, options);",
+    "errors": [
+      "CS0103: The name 'DocumentComparer' does not exist in the current context"
+    ]
+  },
+  "use-graphicalpdfcomparer-threshold": {
+    "note": "Set image similarity tolerance with GraphicalPdfComparer.Threshold instead of non‑existent ComparisonOptions.ImageSimilarityThreshold or PdfComparer.",
+    "code": "using Aspose.Pdf.Comparison;\n\nvar comparer = new GraphicalPdfComparer();\ncomparer.Threshold = 5.0; // tolerance in percent\ncomparer.CompareDocumentsToPdf(doc1, doc2, \"result.pdf\");",
+    "errors": [
+      "'ComparisonOptions' does not contain a definition for 'ImageSimilarityThreshold'",
+      "The type or namespace name 'PdfComparer' could not be found"
+    ]
+  },
+  "use-comparisonoptions-parameterless": {
+    "note": "Instantiate Aspose.Pdf.Comparison.ComparisonOptions with its parameter‑less constructor (do not use a non‑existent CompareOptions type or pass arguments).",
+    "code": "ComparisonOptions options = new ComparisonOptions(); // default includes form field values",
+    "errors": [
+      "CS0103: The name 'CompareOptions' does not exist in the current context",
+      "CS1729: 'ComparisonOptions' does not contain a constructor that takes 1 arguments"
+    ]
+  },
+  "use-form-fields-for-signaturefield": {
+    "note": "When the Form class lacks a SignatureFields property, import Aspose.Pdf.Forms and iterate over Form.Fields, filtering for SignatureField, to obtain signature field rectangles.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nList<Rectangle> GetSignatureFieldRectangles(Document doc)\n{\n    var rects = new List<Rectangle>();\n    if (doc?.Form?.Fields == null) return rects;\n    foreach (var field in doc.Form.Fields)\n        if (field is SignatureField sig)\n            rects.Add(sig.Rect);\n    return rects;\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'SignatureFields'",
+      "CS0246: The type or namespace name 'SignatureField' could not be found"
+    ]
+  },
+  "omit-comparisonmode-property": {
+    "note": "Do not set the non‑existent ComparisonMode property on ComparisonOptions; instantiate ComparisonOptions without it to use the default Normal mode.",
+    "code": "using Aspose.Pdf.Comparison;\n\n// Correct usage\nComparisonOptions options = new ComparisonOptions();\nvar diffOps = TextPdfComparer.CompareFlatDocuments(doc1, doc2, options);",
+    "errors": [
+      "CS0117: 'ComparisonOptions' does not contain a definition for 'ComparisonMode'"
+    ]
+  },
+  "use-diffoperation-operation-not-pagenumber": {
+    "note": "When using TextPdfComparer.CompareDocumentsPageByPage, access the page number from the outer list index and use DiffOperation.Operation (not a non‑existent PageNumber property).",
+    "code": "var pageDifferences = TextPdfComparer.CompareDocumentsPageByPage(doc1, doc2, options);\nfor (int i = 0; i < pageDifferences.Count; i++)\n{\n    var diffs = pageDifferences[i];\n    if (diffs == null) continue;\n    foreach (DiffOperation diff in diffs)\n    {\n        Console.WriteLine($\"Page {i + 1}: {diff.Operation} – \\\"{diff.Text}\\\"\");\n    }\n}",
+    "errors": [
+      "CS1061: 'DiffOperation' does not contain a definition for 'PageNumber'",
+      "Attempting to access a non‑existent PageNumber property on DiffOperation returned by CompareDocumentsPageByPage"
+    ]
+  },
+  "validate-file-exists-before-document": {
+    "note": "Always verify that a PDF file exists before creating an Aspose.Pdf.Document with its path to prevent FileNotFoundException.",
+    "code": "if (File.Exists(pdfPath))\n{\n    using var doc = new Document(pdfPath);\n    // proceed with comparison\n}\nelse\n{\n    Console.Error.WriteLine($\"Input file not found: {pdfPath}\");\n}",
+    "errors": [
+      "System.IO.FileNotFoundException when constructing Document with a missing file",
+      "Unhandled AggregateException caused by missing input PDF files"
+    ]
+  },
+  "use-docsaveoptions-mode-property": {
+    "note": "Set the DOC conversion recognition mode via the DocSaveOptions.Mode property (e.g., DocSaveOptions.RecognitionMode.Textbox) and avoid using non‑existent properties like RecognitionMode or ExtractImagesOnly, and do not reference the Aspose.Pdf.Saving namespace.",
+    "code": "using Aspose.Pdf;\n\nvar pdfDoc = new Document(inputPdf);\nvar docOptions = new DocSaveOptions();\ndocOptions.Mode = DocSaveOptions.RecognitionMode.Textbox;\npdfDoc.Save(outputDoc, docOptions);",
+    "errors": [
+      "CS0234: The type or namespace name 'Saving' does not exist in the namespace 'Aspose.Pdf'",
+      "CS1061: 'DocSaveOptions' does not contain a definition for 'RecognitionMode'",
+      "CS1061: 'DocSaveOptions' does not contain a definition for 'ExtractImagesOnly'"
+    ]
+  },
+  "omit-docsaveoptions-mode-auto": {
+    "note": "Do not set DocSaveOptions.Mode (or RecognitionMode) to Auto; automatic content detection is the default – only specify the output format.",
+    "code": "var saveOptions = new DocSaveOptions {\n    Format = DocSaveOptions.DocFormat.DocX\n    // No Mode/RecognitionMode property is set – defaults to automatic detection\n};",
+    "errors": [
+      "'DocSaveOptions.RecognitionMode' does not contain a definition for 'Auto'",
+      "'DocSaveOptions.DocMode' does not contain a definition for 'Auto'"
+    ]
+  },
+  "use-filestream-with-ximage-save": {
+    "note": "When saving an XImage, pass a FileStream (or any Stream) to XImage.Save instead of a file path string.",
+    "code": "using (FileStream fs = new FileStream(imagePath, FileMode.Create, FileAccess.Write))\n{\n    xImage.Save(fs);\n}",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'string' to 'System.IO.Stream' when calling XImage.Save"
+    ]
+  },
+  "omit-hyphenationoptions-from-docsaveoptions": {
+    "note": "When saving a PDF as DOCX, do not use HyphenationOptions on DocSaveOptions because this property is not supported; configure only the Format (or other supported members).",
+    "code": "var saveOptions = new DocSaveOptions { Format = DocSaveOptions.DocFormat.DocX };\npdfDocument.Save(outputPath, saveOptions);",
+    "errors": [
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'HyphenationOptions'",
+      "CS0246: The type or namespace name 'HyphenationOptions' could not be found"
+    ]
+  },
+  "use-filestream-with-fontrepository-openfont": {
+    "note": "When loading a custom font with FontRepository.OpenFont, pass a Stream (e.g., FileStream) instead of a file path string.",
+    "code": "using (FileStream fontStream = File.OpenRead(customFontPath))\n{\n    Font customFont = FontRepository.OpenFont(fontStream, FontTypes.TTF);\n}",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'string' to 'System.IO.Stream' when calling FontRepository.OpenFont"
+    ]
+  },
+  "avoid-pptxsaveoptions-progresseventtype-enum": {
+    "note": "Do not reference the non‑existent PptxSaveOptions.ProgressEventType enum; instead use the EventType property from ProgressEventHandlerInfo directly.",
+    "code": "static void ShowProgress(PptxSaveOptions.ProgressEventHandlerInfo e)\n{\n    Console.WriteLine($\"{DateTime.Now:T} - {e.EventType}: {e.Value}% (max {e.MaxValue})\");\n}",
+    "errors": [
+      "CS0117: 'PptxSaveOptions' does not contain a definition for 'ProgressEventType'"
+    ]
+  },
+  "use-aspse-slides-protectionmanager-for-pptx-encryption": {
+    "note": "Aspose.Pdf's PptxSaveOptions does not support EncryptionOptions; use Aspose.Slides ProtectionManager to password‑protect PPTX files.",
+    "code": "using Aspose.Slides;\n\n// Load or create a PPTX presentation\nPresentation ppt = new Presentation(\"output.pptx\");\n\n// Apply password protection (user and owner passwords)\nppt.ProtectionManager.Encrypt(\"userPassword\", \"ownerPassword\", ProtectionType.Standard, EncryptionAlgorithm.AES256);\n\n// Save the protected presentation\nppt.Save(\"output_protected.pptx\", SaveFormat.Pptx);",
+    "errors": [
+      "CS1061: 'PptxSaveOptions' does not contain a definition for 'EncryptionOptions'",
+      "CS0246: The type or namespace name 'EncryptionOptions' could not be found"
+    ]
+  },
+  "use-pdf-saveformat-pptx-instead-of-aspse-slides": {
+    "note": "When converting a PDF to PPTX, use Aspose.Pdf's Document.Save with SaveFormat.Pptx instead of adding a reference to Aspose.Slides.",
+    "code": "using Aspose.Pdf;\n\nusing (Document pdfDoc = new Document(inputPdf))\n{\n    pdfDoc.Save(outputPptx, SaveFormat.Pptx);\n}",
+    "errors": [
+      "CS0234: The type or namespace name 'Slides' does not exist in the namespace 'Aspose' (are you missing an assembly reference?)"
+    ]
+  },
+  "avoid-documentinfo-customproperties": {
+    "note": "Do not use DocumentInfo.CustomProperties because the Aspose.PDF API does not expose custom properties; set the built‑in properties (Subject, Producer, Author, etc.) directly on DocumentInfo.",
+    "code": "doc.Info.Subject = \"Presentation Subject\";\n// e.g. doc.Info.Producer = \"My Company\";\n// No doc.Info.CustomProperties usage.",
+    "errors": [
+      "'DocumentInfo' does not contain a definition for 'CustomProperties'"
+    ]
+  },
+  "use-aspdf-drawing-namespace-for-imagestamp": {
+    "note": "Import Aspose.Pdf.Drawing (not Aspose.Pdf.Saving or Aspose.Slides) to access ImageStamp and related drawing classes; SaveOptions are available directly under Aspose.Pdf.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Drawing; // for ImageStamp, HorizontalAlignment, etc.\n\n// Example usage\nvar stamp = new ImageStamp(\"logo.png\") {\n    Width = 100,\n    Height = 50,\n    XIndent = 10,\n    YIndent = 10,\n    HorizontalAlignment = HorizontalAlignment.Left,\n    VerticalAlignment = VerticalAlignment.Top\n};\npage.AddStamp(stamp);\n\n// Saving PDF to PPTX without separate SaveOptions class\npdfDoc.Save(\"out.pptx\", SaveFormat.Pptx);",
+    "errors": [
+      "CS0234: The type or namespace name 'Saving' does not exist in the namespace 'Aspose.Pdf'",
+      "CS0234: The type or namespace name 'Slides' does not exist in the namespace 'Aspose'"
+    ]
+  },
+  "omit-removed-htmlsaveoptions-enums": {
+    "note": "In recent Aspose.Pdf versions the RasterImagesSavingMode and FontSavingMode enum members have been removed; use PartsEmbeddingMode = EmbedAllIntoHtml (and optionally SplitIntoPages = false) to embed images and fonts in a single HTML file.",
+    "code": "HtmlSaveOptions htmlOpts = new HtmlSaveOptions {\n    PartsEmbeddingMode = HtmlSaveOptions.PartsEmbeddingModes.EmbedAllIntoHtml,\n    SplitIntoPages = false // optional, ensures single‑page output\n};",
+    "errors": [
+      "CS0117: 'HtmlSaveOptions.RasterImagesSavingModes' does not contain a definition for 'AsPngImagesEmbeddedIntoHtml'",
+      "CS0117: 'HtmlSaveOptions.FontSavingModes' does not contain a definition for 'EmbedAllFonts'"
+    ]
+  },
+  "remove-compresssvgimages-from-htmlsaveoptions": {
+    "note": "Do not set HtmlSaveOptions.CompressSvgImages because this property is not present in older Aspose.Pdf versions; rely on the default SVG handling or upgrade the library.",
+    "code": "HtmlSaveOptions htmlOpts = new HtmlSaveOptions(); // no CompressSvgImages property",
+    "errors": [
+      "CS0117: 'HtmlSaveOptions' does not contain a definition for 'CompressSvgImages'"
+    ]
+  },
+  "use-aspdf-namespace-for-htmlsaveoptions": {
+    "note": "Import only Aspose.Pdf (not Aspose.Pdf.Facades) to access HtmlSaveOptions, and avoid duplicate using directives.",
+    "code": "using Aspose.Pdf;\n\n// ...\nHtmlSaveOptions htmlOptions = new HtmlSaveOptions();\n// HtmlSaveOptions is available directly from Aspose.Pdf namespace.",
+    "errors": [
+      "CS0105: The using directive for 'Aspose.Pdf' appeared previously in this namespace",
+      "Missing or ambiguous reference to HtmlSaveOptions when imported from Aspose.Pdf.Facades"
+    ]
+  },
+  "use-instance-partsembeddingmode": {
+    "note": "Set the PartsEmbeddingMode on an HtmlSaveOptions instance, not via the static HtmlSaveOptions.PartsEmbeddingMode member.",
+    "code": "var htmlOptions = new HtmlSaveOptions {\n    PartsEmbeddingMode = HtmlSaveOptions.PartsEmbeddingModes.NoEmbedding\n};",
+    "errors": [
+      "CS0120: An object reference is required for the non-static field, method, or property 'HtmlSaveOptions.PartsEmbeddingMode'"
+    ]
+  },
+  "remove-embedsfonts-from-docsaveoptions": {
+    "note": "Do not set the non‑existent EmbedFonts property on DocSaveOptions; fonts are embedded automatically when possible.",
+    "code": "var docOpts = new DocSaveOptions {\n    Format = DocSaveOptions.DocFormat.DocX\n    // No EmbedFonts property – fonts are embedded automatically\n};",
+    "errors": [
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'EmbedFonts'"
+    ]
+  },
+  "use-jpegdevice-for-pdf-to-jpeg": {
+    "note": "Instantiate Aspose.Pdf.Devices.JpegDevice (with default constructor) to convert each PDF page to a JPEG image; ensure the Aspose.Pdf.Devices namespace/assembly is referenced.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Devices;\n...\nusing (Document pdf = new Document(inputPath))\n{\n    JpegDevice jpeg = new JpegDevice(); // default 150 DPI, max quality\n    for (int i = 1; i <= pdf.Pages.Count; i++)\n    {\n        using (FileStream fs = new FileStream(Path.Combine(outputDir, $\"page_{i}.jpeg\"), FileMode.Create))\n        {\n            jpeg.Process(pdf.Pages[i], fs);\n        }\n    }\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'JpegDevice' could not be found (are you missing a using directive or an assembly reference?)"
+    ]
+  },
+  "do-not-use-emfdevice-in-using": {
+    "note": "Instantiate EmfDevice directly without a using block because it does not implement IDisposable",
+    "code": "Resolution resolution = new Resolution(300);\nEmfDevice emfDevice = new EmfDevice(resolution);\n// use emfDevice.Process(page, stream);",
+    "errors": [
+      "CS1674: The type used in a using statement must be implicitly convertible to System.IDisposable",
+      "CS0200: Cannot assign to 'using' variable because it is read‑only"
+    ]
+  },
+  "use-svgsaveoptions-with-document-save": {
+    "note": "When converting PDF to SVG, instantiate SvgSaveOptions and pass it to Document.Save; do not set PageIndex or PageCount on SvgSaveOptions (those members do not exist).",
+    "code": "using (Document pdf = new Document(inputPath))\n{\n    var svgOptions = new SvgSaveOptions();\n    pdf.Save(outputPath, svgOptions);\n}",
+    "errors": [
+      "CS0117: 'SvgSaveOptions' does not contain a definition for 'PageIndex'",
+      "CS0117: 'SvgSaveOptions' does not contain a definition for 'PageCount'"
+    ]
+  },
+  "use-pageto-pngmemorystream-instead-of-pngdevice": {
+    "note": "Render a PDF page to PNG by calling Page.ConvertToPNGMemoryStream() rather than creating a PngDevice with a Resolution and calling Process",
+    "code": "using (Document doc = new Document(pdfPath)) {\n    Page page = doc.Pages[pageNumber];\n    MemoryStream pngStream = page.ConvertToPNGMemoryStream();\n    // pngStream now contains the PNG image of the whole page\n}",
+    "errors": [
+      "System.TypeInitializationException for Windows.Win32.PInvoke when using PngDevice on non‑Windows platforms",
+      "Runtime failure loading gdiplus.dll when rendering PDF pages with PngDevice"
+    ]
+  },
+  "use-resolution-with-jpegdevice": {
+    "note": "When creating a JpegDevice, pass a Aspose.Pdf.Devices.Resolution object (or two ints via Resolution) instead of raw int parameters.",
+    "code": "Resolution resolution = new Resolution(300); // DPI for X and Y\nJpegDevice jpegDevice = new JpegDevice(resolution, 100); // quality 0‑100",
+    "errors": [
+      "CS1503: Argument 3: cannot convert from 'int' to 'Aspose.Pdf.Devices.Resolution'",
+      "CS1503: No overload for method 'JpegDevice' takes arguments (int, int, int)"
+    ]
+  },
+  "avoid-using-with-tiffdevice": {
+    "note": "Do not place Aspose.Pdf.Devices.TiffDevice in a using statement because it does not implement IDisposable; instantiate it normally and dispose only the stream.",
+    "code": "TiffDevice tiffDevice = new TiffDevice();\nusing (FileStream tiffStream = new FileStream(tiffPath, FileMode.Create, FileAccess.Write))\n{\n    tiffDevice.Process(pdfDoc, 1, pdfDoc.Pages.Count, tiffStream);\n}",
+    "errors": [
+      "CS1674: 'TiffDevice': type used in a using statement must implement 'System.IDisposable'."
+    ]
+  },
+  "use-fontrepository-substitutions-for-missing-fonts": {
+    "note": "Add the Aspose.Pdf.Text namespace and use FontRepository.Substitutions with SimpleFontSubstitution to replace missing fonts before PDF/A conversion.",
+    "code": "using Aspose.Pdf.Text;\nFontRepository.Substitutions.Add(new SimpleFontSubstitution(\"MissingFont\", \"Arial\"));",
+    "errors": [
+      "CS1061: 'Font' does not contain a definition for 'Font' and no accessible extension method 'Font' accepting a first argument of type 'Font' could be found"
+    ]
+  },
+  "omit-fileattachmenticon-enum": {
+    "note": "Do not reference the removed FileAttachmentAnnotation.FileAttachmentIcon enum; omit setting the Icon property (or use the default icon) when creating a FileAttachmentAnnotation.",
+    "code": "var attachment = new FileAttachmentAnnotation(page, rect, fileSpec) {\n    Contents = \"Attached notes.txt\"\n    // Icon property is omitted because FileAttachmentIcon enum is unavailable\n};",
+    "errors": [
+      "'FileAttachmentAnnotation' does not contain a definition for 'FileAttachmentIcon'"
+    ]
+  },
+  "use-embeddedfiles-with-filespec-contents-stream": {
+    "note": "To embed an external file in a PDF/A document, create a FileSpecification with the file path and description, assign its Contents via a Stream (e.g., MemoryStream), and add it to Document.EmbeddedFiles instead of a non‑existent Attachments collection.",
+    "code": "var fileSpec = new FileSpecification(filePath, \"description\");\nfileSpec.Contents = new MemoryStream(File.ReadAllBytes(filePath));\ndoc.EmbeddedFiles.Add(fileSpec);",
+    "errors": [
+      "CS1503: cannot convert from 'string' to 'System.IO.Stream'",
+      "CS1503: cannot convert from 'byte[]' to 'string'",
+      "CS1061: 'Document' does not contain a definition for 'Attachments'"
+    ]
+  },
+  "omit-enablehpgl2-for-pcl": {
+    "note": "Do not set the non‑existent EnableHPGL2 property on PclLoadOptions; HP‑GL/2 vectors are loaded automatically, so use the default options.",
+    "code": "var pclLoadOptions = new PclLoadOptions(); // no EnableHPGL2 assignment",
+    "errors": [
+      "CS1061: 'PclLoadOptions' does not contain a definition for 'EnableHPGL2'",
+      "Property 'EnableHPGL2' is unavailable in the current Aspose.Pdf version"
+    ]
+  },
+  "verify-xslfo-file-exists-before-loading": {
+    "note": "Before creating a Document with XslFoLoadOptions, ensure the XSL‑FO source file exists to avoid FileNotFoundException.",
+    "code": "string xslFoPath = Path.Combine(dataDir, \"XSLFO-to-PDF.xslfo\");\nif (!File.Exists(xslFoPath))\n    throw new FileNotFoundException($\"XSL‑FO file not found: {xslFoPath}\");\n\nvar loadOptions = new XslFoLoadOptions();\nusing (var pdfDoc = new Document(xslFoPath, loadOptions))\n{\n    pdfDoc.Save(outputPdfPath);\n}",
+    "errors": [
+      "System.IO.FileNotFoundException: Cannot find source file 'YOUR_DATA_DIRECTORY/...'",
+      "Runtime error when Document constructor is called with a non‑existent XSL‑FO file"
+    ]
+  },
+  "use-textdevice-instead-of-textsaveoptions": {
+    "note": "Replace the non‑existent TextSaveOptions with TextDevice to extract PDF text page‑by‑page.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Devices;\n\nDocument doc = new Document(inputPdf);\nTextDevice textDevice = new TextDevice();\nusing (FileStream outStream = new FileStream(outputTxt, FileMode.Create, FileAccess.Write))\n{\n    for (int pageNum = 1; pageNum <= doc.Pages.Count; pageNum++)\n    {\n        textDevice.Process(doc.Pages[pageNum], outStream);\n    }\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'TextSaveOptions' could not be found",
+      "CS0246: The type or namespace name 'TextSaveOptions' could not be found (are you missing a using directive or an assembly reference?)"
+    ]
+  },
+  "use-textabsorber-instead-of-textdevice": {
+    "note": "Use TextAbsorber with TextExtractionOptions (Pure mode) to extract PDF text and write it with UTF‑8 encoding, instead of using the non‑existent TextDevice class.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Text;\nusing System.Text;\n\n// Load document\nusing (Document doc = new Document(inputPdf))\n{\n    var absorber = new TextAbsorber();\n    absorber.ExtractionOptions = new TextExtractionOptions(TextExtractionOptions.TextFormattingMode.Pure);\n    doc.Pages.Accept(absorber);\n    File.WriteAllText(outputTxt, absorber.Text, Encoding.UTF8);\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'TextDevice' could not be found"
+    ]
+  },
+  "remove-pageinfo-orientation-use-width-height": {
+    "note": "Do not set PageInfo.Orientation; instead achieve landscape or portrait by assigning Width and Height values (width > height for landscape, height > width for portrait).",
+    "code": "page.PageInfo.Width = customWidth;\npage.PageInfo.Height = customHeight; // no Orientation property",
+    "errors": [
+      "CS1061: 'PageInfo' does not contain a definition for 'Orientation'",
+      "CS0103: The name 'PageOrientation' does not exist in the current context"
+    ]
+  },
+  "use-tiffdevice-binarizebradley-for-bradley-contrast": {
+    "note": "Use TiffDevice.BinarizeBradley to apply Bradley binarization on an image stream instead of the non‑existent ImageDevice.Binarize method.",
+    "code": "using (MemoryStream source = new MemoryStream())\nusing (MemoryStream result = new MemoryStream())\n{\n    // source stream contains the rendered image (e.g., PNG)\n    TiffDevice tiff = new TiffDevice();\n    tiff.BinarizeBradley(source, result, 0.5); // threshold between 0.0 and 1.0\n    // result now holds the binarized image\n}",
+    "errors": [
+      "CS0117: 'ImageDevice' does not contain a definition for 'Binarize'",
+      "CS0103: The name 'BinarizationMethod' does not exist in the current context"
+    ]
+  },
+  "use-correct-tiffsettings-enums": {
+    "note": "When configuring TiffSettings, use the existing enum members CompressionType.LZW and ColorDepth.Format8bpp (the older names Lzw and Bits8 are not defined).",
+    "code": "TiffSettings settings = new TiffSettings\n{\n    Compression = CompressionType.LZW,\n    Depth = ColorDepth.Format8bpp\n};",
+    "errors": [
+      "CS0117: 'CompressionType' does not contain a definition for 'Lzw'",
+      "CS0117: 'ColorDepth' does not contain a definition for 'Bits8'"
+    ]
+  },
+  "use-document-save-with-svgsaveoptions": {
+    "note": "For SVG conversion use Document.Save with SvgSaveOptions from the Aspose.Pdf namespace; do not use DocumentDevice or Aspose.Pdf.Facades.",
+    "code": "using Aspose.Pdf;\n...\nusing (Document pdf = new Document(pdfPath))\n{\n    var svgOptions = new SvgSaveOptions();\n    pdf.Save(svgPath, svgOptions);\n}",
+    "errors": [
+      "CS0234: The type or namespace name 'Saving' does not exist in the namespace 'Aspose.Pdf'",
+      "Missing or incorrect use of Aspose.Pdf.Facades (DocumentDevice) for SVG conversion"
+    ]
+  },
+  "use-svgsaveoptions-instead-of-documentdevice": {
+    "note": "For SVG conversion use SvgSaveOptions with TreatTargetFileNameAsDirectory = true instead of the non‑existent DocumentDevice class.",
+    "code": "using Aspose.Pdf;\n\nvar pdf = new Document(inputPdfPath);\nvar options = new SvgSaveOptions { TreatTargetFileNameAsDirectory = true };\npdf.Save(Path.Combine(outputFolder, \"document.svg\"), options);",
+    "errors": [
+      "CS0246: The type or namespace name 'DocumentDevice' could not be found"
+    ]
+  },
+  "use-textfragmentabsorber-for-textfragments": {
+    "note": "Use TextFragmentAbsorber (not TextAbsorber) when you need to access the TextFragments collection of a page.",
+    "code": "TextFragmentAbsorber absorber = new TextFragmentAbsorber();\nabsorber.ExtractionOptions = new TextExtractionOptions(TextExtractionOptions.TextFormattingMode.Pure);\npage.Accept(absorber);\nforeach (TextFragment fragment in absorber.TextFragments)\n{\n    // process fragment\n}",
+    "errors": [
+      "CS1061: 'TextAbsorber' does not contain a definition for 'TextFragments' and no accessible extension method 'TextFragments' accepting a first argument of type 'TextAbsorber' could be found"
+    ]
+  },
+  "sign-with-signaturefield-pkcs7": {
+    "note": "Use SignatureField.Sign with a PKCS7 object after adding the field to the document's Form collection, instead of calling Document.Sign with a pageNumber parameter.",
+    "code": "SignatureField sigField = new SignatureField(doc, new Aspose.Pdf.Rectangle(100, 100, 300, 200))\n{\n    Name = \"Signature1\"\n};\n\ndoc.Form.Add(sigField);\n\nPKCS7 pkcs7 = new PKCS7(\"certificate.pfx\", \"password\");\n\nsigField.Sign(pkcs7);",
+    "errors": [
+      "CS1739: The best overload for 'Sign' does not have a parameter named 'pageNumber'"
+    ]
+  },
+  "remove-javascript-and-embedded-files-via-openaction-and-annotations": {
+    "note": "Document does not expose RemoveJavaScript or RemoveEmbeddedFiles; clear JavaScript by setting Document.OpenAction to null and resetting page Actions, and delete embedded files by removing FileAttachmentAnnotation objects from page annotations.",
+    "code": "doc.OpenAction = null;\nforeach (Page page in doc.Pages)\n{\n    page.Actions.OnOpen = null;\n    page.Actions.OnClose = null;\n    for (int i = page.Annotations.Count; i >= 1; i--)\n    {\n        if (page.Annotations[i] is FileAttachmentAnnotation)\n            page.Annotations.Delete(i);\n    }\n}",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'RemoveJavaScript'",
+      "CS1061: 'Document' does not contain a definition for 'RemoveEmbeddedFiles'"
+    ]
+  },
+  "use-javascriptaction-for-openaction": {
+    "note": "Use the `JavascriptAction` class from `Aspose.Pdf.Annotations` (note the lowercase 's') when assigning a JavaScript OpenAction to a PDF document.",
+    "code": "using Aspose.Pdf.Annotations;\n...\nstring js = \"...\";\ndoc.OpenAction = new JavascriptAction(js);",
+    "errors": [
+      "CS0246: The type or namespace name 'JavaScriptAction' could not be found"
+    ]
+  },
+  "use-embeddedfiles-with-filespecification-for-portfolio": {
+    "note": "Attach a PDF as a portfolio by creating a FileSpecification, setting its Contents stream, and adding it to Document.EmbeddedFiles; set document description via Document.Info.Title.",
+    "code": "var fileSpec = new FileSpecification(\"attachment.pdf\", \"Custom description\");\nfileSpec.Contents = new MemoryStream(File.ReadAllBytes(\"attachment.pdf\"));\ndoc.EmbeddedFiles.Add(fileSpec);\n\ndoc.Info.Title = \"Custom document description metadata\";",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'Portfolio'",
+      "CS1061: 'Document' does not contain a definition for 'SetTitle' (if using older API version)"
+    ]
+  },
+  "use-pdfviewer-printdocument": {
+    "note": "Use Aspose.Pdf.Facades.PdfViewer and its PrintDocument method to print PDFs instead of the non‑existent Document.Print method.",
+    "code": "using Aspose.Pdf.Facades;\nusing System.Drawing.Printing;\n\nusing (PdfViewer viewer = new PdfViewer())\n{\n    viewer.BindPdf(\"sample.pdf\");\n    // Print to default printer\n    viewer.PrintDocument();\n    // Or print to a specific printer\n    // var settings = new PrinterSettings { PrinterName = \"MyPrinter\" };\n    // viewer.PrintDocument(settings);\n}",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'Print' and no accessible extension method 'Print' accepting a first argument of type 'Document' could be found"
+    ]
+  },
+  "use-embeddedfiles-instead-of-attachments": {
+    "note": "Access embedded files via the Document.EmbeddedFiles collection; the Document.Attachments property does not exist.",
+    "code": "using Aspose.Pdf;\n\nDocument doc = new Document(pdfPath);\ndoc.BindXml(xmlPath);\nif (doc.EmbeddedFiles != null && doc.EmbeddedFiles.Count > 0)\n{\n    // XML successfully embedded\n}",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'Attachments' and no accessible extension method 'Attachments' accepting a first argument of type 'Document' could be found"
+    ]
+  },
+  "use-borderinfo-and-string-columnwidths": {
+    "note": "Set Table.ColumnWidths using a space‑separated string and use BorderInfo (not Border) for Table.Border and DefaultCellBorder.",
+    "code": "Table table = new Table {\n    ColumnWidths = \"150 200 150\",\n    Border = new BorderInfo(BorderSide.All, 1f, Aspose.Pdf.Color.Black),\n    DefaultCellBorder = new BorderInfo(BorderSide.All, 0.5f, Aspose.Pdf.Color.Black)\n};",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'double[]' to 'string' (ColumnWidths)",
+      "CS0246: The type or namespace name 'Border' could not be found"
+    ]
+  },
+  "use-mergedocuments-static-method": {
+    "note": "Use Document.MergeDocuments static method to merge PDFs (preserves bookmarks) instead of the non‑existent AppendDocument or instance Merge methods.",
+    "code": "using (Document doc1 = new Document(\"first.pdf\"))\nusing (Document doc2 = new Document(\"second.pdf\"))\n{\n    using (Document merged = Document.MergeDocuments(doc1, doc2))\n    {\n        merged.Save(\"merged.pdf\");\n    }\n}",
+    "errors": [
+      "'Document' does not contain a definition for 'AppendDocument'",
+      "'Document' does not contain a definition for 'Merge' (when used as an instance method)"
+    ]
+  },
+  "use-individual-margin-properties-for-imagestamp": {
+    "note": "ImageStamp does not expose a Margin object; set positioning margins using the TopMargin, BottomMargin, LeftMargin, and RightMargin properties.",
+    "code": "ImageStamp stamp = new ImageStamp(\"logo.png\")\n{\n    HorizontalAlignment = HorizontalAlignment.Center,\n    VerticalAlignment   = VerticalAlignment.Top,\n    TopMargin = 10, // distance from the top edge of the page\n    Background = false\n};",
+    "errors": [
+      "CS0117: 'ImageStamp' does not contain a definition for 'Margin'",
+      "CS0246: The type or namespace name 'Margin' could not be found"
+    ]
+  },
+  "guard-doc-save-for-libgdiplus": {
+    "note": "When calling Document.Save on non‑Windows platforms, wrap the call in an OS check and catch TypeInitializationException that wraps a DllNotFoundException for libgdiplus, so the program does not crash if GDI+ is unavailable.",
+    "code": "if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    doc.Save(path);\n}\nelse\n{\n    try\n    {\n        doc.Save(path);\n    }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex))\n    {\n        // handle missing libgdiplus gracefully\n    }\n}\n\nprivate static bool ContainsDllNotFound(Exception? ex)\n{\n    while (ex != null)\n    {\n        if (ex is DllNotFoundException) return true;\n        ex = ex.InnerException;\n    }\n    return false;\n}",
+    "errors": [
+      "System.TypeInitializationException: The type initializer for 'System.Drawing.Gdip' threw an exception",
+      "DllNotFoundException: Unable to load shared library 'gdiplus.dll' (or libgdiplus) on non‑Windows platforms"
+    ]
+  },
+  "set-linkannotation-border-after-instantiation": {
+    "note": "When creating a LinkAnnotation, assign its Border property after the annotation object has been instantiated (do not reference the variable inside an object initializer).",
+    "code": "LinkAnnotation link = new LinkAnnotation(targetPage, rect);\nlink.Color = Color.Blue;\nlink.Action = new GoToAction(targetPage);\nlink.Border = new Border(link) { Width = 0 }; // set after construction",
+    "errors": [
+      "CS0165: Use of unassigned local variable 'link'"
+    ]
+  },
+  "use-system-drawing-color-for-defaultappearance": {
+    "note": "When setting a form field's DefaultAppearance, pass a System.Drawing.Color (not Aspose.Pdf.Color) and omit Border.Color because the Border class has no Color property; use the field's Color property for the outline.",
+    "code": "SignatureField sigField = new SignatureField(doc, rect);\n// set appearance – color must be System.Drawing.Color\nsigField.DefaultAppearance = new DefaultAppearance(\"Helvetica\", 12, System.Drawing.Color.Black);\n// define border without a Color property (color comes from sigField.Color)\nsigField.Border = new Border(sigField) { Width = 1 };",
+    "errors": [
+      "CS1503: Argument 3: cannot convert from 'Aspose.Pdf.Color' to 'System.Drawing.Color'",
+      "CS0117: 'Border' does not contain a definition for 'Color'"
+    ]
+  },
+  "use-collection-and-filespec-for-pdf-portfolio": {
+    "note": "Create a PDF portfolio by initializing Document.Collection with a new Collection and adding FileSpecification objects; do not use non‑existent Attachments or Portfolio members.",
+    "code": "using Aspose.Pdf;\n\nDocument portfolio = new Document();\nportfolio.Collection = new Collection();\nFileSpecification spec = new FileSpecification(\"doc1.pdf\") { Description = \"Embedded file: doc1.pdf\" };\nportfolio.Collection.Add(spec);\nportfolio.Save(\"portfolio.pdf\");",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'Attachments' (or 'Portfolio') and no accessible extension method ... could be found"
+    ]
+  },
+  "use-actions-oncalculate-for-formfield": {
+    "note": "Assign JavaScript to a form field via the field's Actions.OnCalculate property instead of using a non‑existent Annotation property.",
+    "code": "TextBoxField sumField = new TextBoxField(page, rect);\nsumField.Actions.OnCalculate = new JavascriptAction(jsCode);",
+    "errors": [
+      "CS1061: 'TextBoxField' does not contain a definition for 'Annotation' and no accessible extension method 'Annotation' accepting a first argument of type 'TextBoxField' could be found"
+    ]
+  },
+  "use-pdfpagestamp-from-aspose-pdf-namespace": {
+    "note": "Instantiate PdfPageStamp from the Aspose.Pdf namespace (not Aspose.Pdf.Facades) and use its Put method to apply the stamp to a page.",
+    "code": "PdfPageStamp stamp = new PdfPageStamp(templatePage) { Background = true };\nstamp.Put(targetPage);",
+    "errors": [
+      "CS1061: 'Stamp' does not contain a definition for 'BindPdfPage'",
+      "CS1061: 'Stamp' does not contain a definition for 'Put'"
+    ]
+  },
+  "use-filespecification-for-embedded-files": {
+    "note": "Iterate over Document.EmbeddedFiles using FileSpecification and save the file via its Contents stream instead of using a non‑existent EmbeddedFile type.",
+    "code": "foreach (FileSpecification fileSpec in doc.EmbeddedFiles)\n{\n    string dest = Path.Combine(outputDir, fileSpec.Name);\n    using (FileStream outStream = File.Create(dest))\n    using (Stream content = fileSpec.Contents)\n    {\n        content.CopyTo(outStream);\n    }\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'EmbeddedFile' could not be found",
+      "Attempting to call Save on an EmbeddedFile object (method does not exist)"
+    ]
+  },
+  "use-aspose-pdf-forms-and-system-drawing-color-for-textboxfield": {
+    "note": "Import Aspose.Pdf.Forms for TextBoxField and pass a System.Drawing.Color to DefaultAppearance constructor.",
+    "code": "using Aspose.Pdf.Forms;\nusing System.Drawing;\n\nTextBoxField textField = new TextBoxField(page, rect);\nDefaultAppearance appearance = new DefaultAppearance(\"Helvetica\", 12, System.Drawing.Color.Black);\ntextField.DefaultAppearance = appearance;",
+    "errors": [
+      "CS0246: The type or namespace name 'TextBoxField' could not be found",
+      "CS1503: Argument 3: cannot convert from 'Aspose.Pdf.Color' to 'System.Drawing.Color'"
+    ]
+  },
+  "guard-pdf-save-against-gdiplus-missing": {
+    "note": "When saving a PDF on non‑Windows platforms, guard the Aspose.Pdf Document.Save call against missing GDI+ (libgdiplus) by checking the OS and catching TypeInitializationException caused by a DllNotFoundException.",
+    "code": "using System.Runtime.InteropServices;\n\n// ... after creating and populating the Document 'doc'\nif (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    doc.Save(outputPath);\n}\nelse\n{\n    try\n    {\n        doc.Save(outputPath);\n    }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex))\n    {\n        // Handle missing libgdiplus (e.g., log a warning, skip saving)\n    }\n}\n\nprivate static bool ContainsDllNotFound(Exception ex)\n{\n    while (ex != null)\n    {\n        if (ex is DllNotFoundException) return true;\n        ex = ex.InnerException;\n    }\n    return false;\n}",
+    "errors": [
+      "System.TypeInitializationException: The type initializer for 'System.Drawing.Gdip' threw an exception.",
+      "System.DllNotFoundException: Unable to load shared library 'gdiplus.dll' (or libgdiplus) on non‑Windows platforms."
+    ]
+  },
+  "use-float-arguments-for-rectangle-constructor": {
+    "note": "When constructing Aspose.Pdf.Drawing.Rectangle, supply float values (or cast) for the left, bottom, width, and height parameters.",
+    "code": "var rect = new Aspose.Pdf.Drawing.Rectangle(0f, 0f, (float)pageWidth, (float)pageHeight);",
+    "errors": [
+      "Argument 3: cannot convert from 'double' to 'float'",
+      "Argument 4: cannot convert from 'double' to 'float'"
+    ]
+  },
+  "use-formeditor-addfield-for-dropdown": {
+    "note": "Create dropdown (list box) form fields with FormEditor.AddField(FieldType.ListBox) and populate items using FormEditor.AddListItem, instead of using the Option or ComboBoxField classes.",
+    "code": "FormEditor editor = new FormEditor();\neditor.BindPdf(doc);\neditor.AddField(FieldType.ListBox, \"MyDropdown\", 1, llx, lly, urx, ury);\neditor.AddListItem(\"MyDropdown\", \"Item 1\");\neditor.AddListItem(\"MyDropdown\", \"Item 2\");",
+    "errors": [
+      "CS1729: 'Option' does not contain a constructor that takes 1 arguments",
+      "CS1061: 'Option' does not contain a definition for 'Display'"
+    ]
+  },
+  "use-textfragment-placeholders-for-footer": {
+    "note": "Add a footer by creating a HeaderFooter, inserting a TextFragment with $p (current page) and $P (total pages) placeholders, and assigning the HeaderFooter to the page.",
+    "code": "HeaderFooter footer = new HeaderFooter();\nTextFragment tf = new TextFragment(\"Page $p of $P\");\nfooter.Paragraphs.Add(tf);\npage.Footer = footer;",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.PageNumber' to 'Aspose.Pdf.BaseParagraph'",
+      "Attempting to assign a PageNumber object directly to HeaderFooter.PageNumber"
+    ]
+  },
+  "use-on-prefixed-rotation-enum": {
+    "note": "Use the 'on' prefixed members of Aspose.Pdf.Rotation (e.g., on90, on180, on270) to set page rotation",
+    "code": "page.Rotate = Rotation.on90; // rotates page 90° clockwise",
+    "errors": [
+      "CS0117: 'Rotation' does not contain a definition for 'RotateClockwise'"
+    ]
+  },
+  "use-pkcs1-from-facades-for-signature": {
+    "note": "Create a digital signature with Aspose.Pdf.Facades.PKCS1 (or PKCS7) instead of the non‑existent Aspose.Pdf.Signature class, and add the required using directive.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\n// ... after loading Document doc\nSignatureField sigField = new SignatureField(doc, new Rectangle(100, 500, 300, 550));\nPKCS1 pkcs1Signature = new PKCS1(certPath, certPass);\nsigField.Sign(pkcs1Signature);",
+    "errors": [
+      "CS0234: The type or namespace name 'Signature' does not exist in the namespace 'Aspose.Pdf'",
+      "Missing reference to Aspose.Pdf.Facades for digital signature classes"
+    ]
+  },
+  "use-radiobuttonfield-page-constructor": {
+    "note": "Instantiate RadioButtonField with a Page object (e.g., new RadioButtonField(page)) instead of a Document, then add the field to the document's Form collection.",
+    "code": "RadioButtonField radio = new RadioButtonField(page);\n// configure field …\ndoc.Form.Add(radio);",
+    "errors": [
+      "CS1729: 'RadioButtonField' does not contain a constructor that takes 2 arguments",
+      "CS1729: 'RadioButtonField' does not contain a constructor that takes 2 arguments"
+    ]
+  },
+  "use-gotouriaction-uri-instead-of-hyperlink-uri": {
+    "note": "When extracting hyperlinks from a PDF, do not access Hyperlink.URI (removed in recent Aspose.PDF versions); instead retrieve the URL from a GoToURIAction attached to a LinkAnnotation.",
+    "code": "if (annotation is LinkAnnotation link && link.Action is GoToURIAction uriAction && !string.IsNullOrEmpty(uriAction.URI))\n{\n    links.Add(uriAction.URI);\n}",
+    "errors": [
+      "CS1061: 'Hyperlink' does not contain a definition for 'URI'",
+      "CS1061: 'Hyperlink' does not contain a definition for 'URI' (duplicate)"
+    ]
+  },
+  "clear-annotations-collection-instead-of-sanitizer": {
+    "note": "When the HiddenDataSanitizerOptions class or Document.Sanitize() method is unavailable, remove all annotations by iterating through each page and clearing its Annotations collection.",
+    "code": "foreach (Page page in doc.Pages)\n{\n    page.Annotations.Clear();\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'HiddenDataSanitizerOptions' could not be found",
+      "CS1061: 'Document' does not contain a definition for 'Sanitize'"
+    ]
+  },
+  "use-remove-metadata-and-optimizationoptions-for-sanitization": {
+    "note": "Clear PDF metadata by calling Document.RemoveMetadata (and clearing Info/Metadata) and then use OptimizationOptions with RemovePrivateInfo, RemoveUnusedObjects, and RemoveUnusedStreams, applying them via Document.OptimizeResources.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Optimization;\n\nusing (Document doc = new Document(inputPath))\n{\n    doc.RemoveMetadata();\n    doc.Info.Clear();\n    doc.Metadata.Clear();\n\n    var opt = new OptimizationOptions\n    {\n        RemovePrivateInfo = true,\n        RemoveUnusedObjects = true,\n        RemoveUnusedStreams = true\n    };\n    doc.OptimizeResources(opt);\n    doc.Save(outputPath);\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'PdfFileInfo' could not be found",
+      "CS1061: 'Document' does not contain a definition for 'Sanitize'"
+    ]
+  },
+  "use-rasterimagesavingmode-for-html-rasterization": {
+    "note": "When converting PDF to HTML, replace the removed HtmlSaveOptions properties ConvertPagesToImages and ImageDpi with RasterImagesSavingMode (e.g., AsExternalPngFilesReferencedViaSvg) to rasterize each page as an image.",
+    "code": "var htmlOpts = new HtmlSaveOptions {\n    RasterImagesSavingMode = HtmlSaveOptions.RasterImagesSavingModes.AsExternalPngFilesReferencedViaSvg,\n    SplitIntoPages = false,\n    PartsEmbeddingMode = HtmlSaveOptions.PartsEmbeddingModes.NoEmbedding\n};",
+    "errors": [
+      "CS0117: 'HtmlSaveOptions' does not contain a definition for 'ConvertPagesToImages'",
+      "CS0117: 'HtmlSaveOptions' does not contain a definition for 'ImageDpi'"
+    ]
+  },
+  "use-optimizationoptions-for-image-compression": {
+    "note": "Use Aspose.Pdf.Optimization.OptimizationOptions (not the non‑existent Optimization class) and configure its ImageCompressionOptions before calling Document.OptimizeResources.",
+    "code": "using Aspose.Pdf.Optimization;\n\n// Create options\nvar opt = new OptimizationOptions();\nopt.ImageCompressionOptions.CompressImages = true;\nopt.ImageCompressionOptions.ImageQuality = 80; // JPEG quality\n\n// Apply to document\ndocument.OptimizeResources(opt);",
+    "errors": [
+      "CS0103: The name 'Optimization' does not exist in the current context"
+    ]
+  },
+  "use-pngdevice-for-page-to-png": {
+    "note": "When converting PDF pages to PNG images, use Aspose.Pdf.Devices.PngDevice (or other Device classes) instead of ImageSaveOptions and OptimizationOptions, which may be obsolete or unavailable.",
+    "code": "using Aspose.Pdf.Devices;\n...\nvar pngDevice = new PngDevice(new Resolution(300));\npngDevice.Process(doc.Pages[pageNumber], outputPath);",
+    "errors": [
+      "CS0618: 'Document.OptimizationOptions' is obsolete",
+      "CS0572: cannot reference a type through an expression; try 'Document.OptimizationOptions' instead",
+      "CS0120: An object reference is required for the non-static field, method, or property 'OptimizationOptions.ImageCompressionOptions'",
+      "CS0246: The type or namespace name 'ImageSaveOptions' could not be found",
+      "CS0117: 'SaveFormat' does not contain a definition for 'Png'"
+    ]
+  },
+  "delete-embeddedfiles-by-name-instead-of-clear": {
+    "note": "Use 1‑based indexing and the Delete(string name) overload to remove items from EmbeddedFileCollection instead of calling a non‑existent Clear() method.",
+    "code": "if (doc.EmbeddedFiles != null && doc.EmbeddedFiles.Count > 0)\n{\n    for (int i = doc.EmbeddedFiles.Count; i >= 1; i--)\n    {\n        var fileSpec = doc.EmbeddedFiles[i];\n        if (fileSpec != null && !string.IsNullOrEmpty(fileSpec.Name))\n        {\n            doc.EmbeddedFiles.Delete(fileSpec.Name);\n        }\n    }\n}",
+    "errors": [
+      "CS1061: 'EmbeddedFileCollection' does not contain a definition for 'Clear'"
+    ]
+  },
+  "use-crashreportoptions-constructor": {
+    "note": "Create CrashReportOptions by passing the caught exception to its constructor and set CrashReportDirectory, CrashReportFilename, and CustomMessage instead of trying to assign to non‑existent or read‑only properties.",
+    "code": "catch (Exception ex)\n{\n    var crashOptions = new CrashReportOptions(ex)\n    {\n        CrashReportDirectory = Path.GetDirectoryName(outputPath) ?? Directory.GetCurrentDirectory(),\n        CrashReportFilename = \"crash_report.html\",\n        CustomMessage = \"Unexpected error during PDF processing.\"\n    };\n    PdfException.GenerateCrashReport(crashOptions);\n}",
+    "errors": [
+      "CS7036: No argument given that corresponds to the required parameter 'exception' of 'CrashReportOptions.CrashReportOptions(Exception)'",
+      "CS0200: Property or indexer 'CrashReportOptions.Exception' cannot be assigned to -- it is read only",
+      "CS0117: 'CrashReportOptions' does not contain a definition for 'OutputPath'"
+    ]
+  },
+  "use-heading-style-with-numberingstyle": {
+    "note": "Set hierarchical numbering on a Heading by assigning the NumberingStyle enum to the Heading.Style property (not a non‑existent Heading.NumberingStyle property).",
+    "code": "Heading heading = new Heading(level) {\n    Text = \"Your title\",\n    IsAutoSequence = true,\n    Style = NumberingStyle.NumeralsArabic // decimal numbering\n};",
+    "errors": [
+      "CS1061: 'Heading' does not contain a definition for 'NumberingStyle'",
+      "CS0117: 'NumberingStyle' does not contain a definition for 'Decimal' (or other enum members when accessed incorrectly)"
+    ]
+  },
+  "use-hidden-data-sanitizer-classes": {
+    "note": "Replace the obsolete HiddenDataSanitizerOptions and Document.SanitizeHiddenData with HiddenDataSanitizationOptions and HiddenDataSanitizer from Aspose.Pdf.Security.HiddenDataSanitization",
+    "code": "using Aspose.Pdf.Security.HiddenDataSanitization;\n\nvar options = new HiddenDataSanitizationOptions();\noptions.RemoveMetadata = false; // keep metadata\nvar sanitizer = new HiddenDataSanitizer(options);\nsanitizer.Sanitize(document);",
+    "errors": [
+      "CS0234: The type or namespace name 'Sanitizer' does not exist in the namespace 'Aspose.Pdf'",
+      "CS1061: 'Document' does not contain a definition for 'SanitizeHiddenData'"
+    ]
+  },
+  "use-taggedcontent-structure-elements": {
+    "note": "When building a PDF logical structure, create HeaderElement, ParagraphElement, etc., via ITaggedContent and append them to the root element instead of using TextFragment.",
+    "code": "ITaggedContent tagged = doc.TaggedContent;\nStructureElement root = tagged.RootElement;\nHeaderElement h1 = tagged.CreateHeaderElement(1);\nh1.SetText(\"Document Title\");\nroot.AppendChild(h1);",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Text.TextFragment' to 'Aspose.Pdf.LogicalStructure.Element'"
+    ]
+  },
+  "use-crashreportfilename-property": {
+    "note": "Use the correctly named property CrashReportFilename (not CrashReportFileName) to set the crash report file name.",
+    "code": "CrashReportOptions options = new CrashReportOptions(ex);\noptions.CrashReportDirectory = \"...\";\noptions.CrashReportFilename = \"MyCrashReport.html\";",
+    "errors": [
+      "CS0117: 'CrashReportOptions' does not contain a definition for 'CrashReportFileName'"
+    ]
+  },
+  "use-textpdfcomparer-comparedocumentspagebypage-with-list": {
+    "note": "Use TextPdfComparer.CompareDocumentsPageByPage to compare selected pages and include System.Collections.Generic for the List<T> return types.",
+    "code": "using System.Collections.Generic;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Comparison;\n\nint[] pagesToCompare = { 1, 3, 5 };\nComparisonOptions options = new ComparisonOptions();\nusing (Document doc1 = new Document(\"doc1.pdf\"))\nusing (Document doc2 = new Document(\"doc2.pdf\"))\n{\n    List<List<DiffOperation>> allPageDiffs = TextPdfComparer.CompareDocumentsPageByPage(\n        doc1, doc2, options, \"result.pdf\");\n    // Access diffs for each requested page, e.g., allPageDiffs[pageNumber-1]\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'DocumentComparer' could not be found",
+      "CS0246: The type or namespace name 'List<T>' could not be found (missing using System.Collections.Generic)"
+    ]
+  },
+  "no-ignorecase-in-comparisonoptions": {
+    "note": "Aspose.Pdf.Comparison.ComparisonOptions does not provide an IgnoreCase property; case‑insensitive text comparison must be handled manually (e.g., preprocess documents) rather than setting a non‑existent option.",
+    "code": "ComparisonOptions options = new ComparisonOptions();\n// options.IgnoreCase = true; // <-- not available in the API\n// Perform comparison with the options as needed\nList<DiffOperation> diffs = TextPdfComparer.CompareFlatDocuments(doc1, doc2, options, resultPdfPath);",
+    "errors": [
+      "CS1061: 'ComparisonOptions' does not contain a definition for 'TextComparisonOptions' (or 'IgnoreCase')",
+      "CS0103: The name 'TextComparisonOptions' does not exist in the current context"
+    ]
+  },
+  "remove-includeformfields-flag": {
+    "note": "Do not set a non‑existent IncludeFormFields/CompareFormFields flag on SideBySideComparisonOptions; form field values are compared by default.",
+    "code": "ComparisonOptions compOptions = new ComparisonOptions();\nSideBySideComparisonOptions sideOptions = new SideBySideComparisonOptions(); // no IncludeFormFields property",
+    "errors": [
+      "CS0117: 'SideBySideComparisonOptions' does not contain a definition for 'IncludeFormFields'",
+      "CS0117: 'SideBySideComparisonOptions' does not contain a definition for 'CompareFormFields'"
+    ]
+  },
+  "convert-list-to-rectangle-array-for-excludeareas": {
+    "note": "When setting ComparisonOptions.ExcludeAreas1 or ExcludeAreas2, provide a Rectangle[] by converting any List<Aspose.Pdf.Rectangle> with ToArray().",
+    "code": "List<Aspose.Pdf.Rectangle> exclude = GetSignatureFieldRectangles(doc);\nComparisonOptions options = new ComparisonOptions\n{\n    ExcludeAreas1 = exclude.ToArray()\n    // ExcludeAreas2 = otherList.ToArray(); // similarly for the second document\n};",
+    "errors": [
+      "Cannot implicitly convert type 'System.Collections.Generic.List<Aspose.Pdf.Rectangle>' to 'Aspose.Pdf.Rectangle[]'"
+    ]
+  },
+  "use-diffoperation-tostring": {
+    "note": "When iterating over DiffOperation results from TextPdfComparer, use the object's ToString() method (or other provided members) instead of accessing non‑existent SourceText, TargetText, or PageIndex properties.",
+    "code": "var diffs = TextPdfComparer.CompareFlatDocuments(doc1, doc2, options);\nforeach (var diff in diffs)\n{\n    Console.WriteLine(diff.ToString()); // prints operation type, texts, page index, etc.\n}",
+    "errors": [
+      "CS1061: 'DiffOperation' does not contain a definition for 'SourceText'",
+      "CS1061: 'DiffOperation' does not contain a definition for 'TargetText'",
+      "CS1061: 'DiffOperation' does not contain a definition for 'PageIndex'"
+    ]
+  },
+  "detect-font-changes-via-operation-name": {
+    "note": "Use the Operation enum's string value to detect font‑related changes instead of non‑existent members like Operation.FontChanged or DiffOperationType.Font.",
+    "code": "if (diff.Operation.ToString().IndexOf(\"Font\", StringComparison.OrdinalIgnoreCase) >= 0)\n{\n    // handle font change\n}",
+    "errors": [
+      "CS0117: 'Operation' does not contain a definition for 'FontChanged'",
+      "CS0117: 'Operation' does not contain a definition for 'FontChanged' (or similar missing enum member errors)"
+    ]
+  },
+  "use-textpdfcomparer-static-method": {
+    "note": "Use the static TextPdfComparer.CompareDocumentsPageByPage method (which returns IList<DiffOperation>) and the JsonDiffOutputGenerator.GenerateOutput overload that accepts the diff list and an output file path, instead of instantiating PdfDocumentComparer or TextPdfComparer and handling List conversion manually.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Comparison;\n\n// Load documents\nusing (Document doc1 = new Document(path1))\nusing (Document doc2 = new Document(path2))\n{\n    ComparisonOptions options = new ComparisonOptions();\n    // Perform comparison – returns IList<DiffOperation>\n    var diffs = TextPdfComparer.CompareDocumentsPageByPage(doc1, doc2, options);\n    // Write JSON report directly to file\n    new JsonDiffOutputGenerator().GenerateOutput(diffs, \"report.json\");\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'PdfDocumentComparer' could not be found",
+      "CS0246: The type or namespace name 'ComparisonResult' could not be found",
+      "CS1503: cannot convert from 'IList<DiffOperation>' to 'List<DiffOperation>'"
+    ]
+  },
+  "use-docsaveoptions-format-instead-of-savemode": {
+    "note": "Do not set DocSaveOptions.SaveMode; the automatic content detection is the default—specify the output format via the Format property.",
+    "code": "var docOptions = new DocSaveOptions { Format = DocSaveOptions.DocFormat.DocX };",
+    "errors": [
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'SaveMode'"
+    ]
+  },
+  "use-pdfextractor-getnextimage-with-system-drawing-imaging-imageformat": {
+    "note": "When extracting images with Aspose.Pdf, use PdfExtractor.GetNextImage and pass System.Drawing.Imaging.ImageFormat (e.g., ImageFormat.Png) instead of accessing a non‑existent ImageFormat property on XImage.",
+    "code": "using Aspose.Pdf.Facades;\nusing System.Drawing.Imaging;\n\nusing (PdfExtractor extractor = new PdfExtractor())\n{\n    extractor.BindPdf(inputPdfPath);\n    extractor.ExtractImage();\n    int idx = 1;\n    while (extractor.HasNextImage())\n    {\n        string outPath = System.IO.Path.Combine(outputDir, $\"image_{idx}.png\");\n        extractor.GetNextImage(outPath, ImageFormat.Png);\n        idx++;\n    }\n}",
+    "errors": [
+      "CS1061: 'XImage' does not contain a definition for 'ImageFormat'",
+      "CS0117: 'ImageFormat' does not contain a definition for 'Jpeg2000'"
+    ]
+  },
+  "remove-hyphenationsettings-from-docsaveoptions": {
+    "note": "Do not set HyphenationSettings on DocSaveOptions when saving to DOCX, as the property does not exist; only configure the Format property.",
+    "code": "DocSaveOptions docxOptions = new DocSaveOptions { Format = DocSaveOptions.DocFormat.DocX };",
+    "errors": [
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'HyphenationSettings'",
+      "CS0246: The type or namespace name 'HyphenationSettings' could not be found"
+    ]
+  },
+  "use-customprogresshandler-with-pptxsaveoptions": {
+    "note": "Assign a method matching PptxSaveOptions.ProgressEventHandlerInfo to the CustomProgressHandler property instead of using the non‑existent IProgressHandler interface.",
+    "code": "private static void ProgressHandler(PptxSaveOptions.ProgressEventHandlerInfo info) { /* handle progress */ }\n\nvar pptxOptions = new PptxSaveOptions {\n    CustomProgressHandler = ProgressHandler\n};\n\ndocument.Save(outputPath, pptxOptions);",
+    "errors": [
+      "CS0234: The type or namespace name 'IProgressHandler' does not exist in the namespace 'Aspose.Pdf.Facades'",
+      "Missing or incorrect property for assigning a progress handler to PptxSaveOptions"
+    ]
+  },
+  "use-pptxsaveoptions-and-convert-for-pdfa": {
+    "note": "When converting a PDF to PPTX, instantiate a PptxSaveOptions object and pass it to Document.Save; then convert the PPTX to PDF/A by calling Document.Convert with PdfFormat.PDF_A_1B and a ConvertErrorAction, checking the returned bool before saving.",
+    "code": "using Aspose.Pdf;\n\n// PDF → PPTX\nusing (var pdfDoc = new Document(\"input.pdf\"))\n{\n    var pptxOptions = new PptxSaveOptions();\n    pdfDoc.Save(\"output.pptx\", pptxOptions);\n}\n\n// PPTX → PDF/A\nusing (var pptxDoc = new Document(\"output.pptx\"))\n{\n    bool success = pptxDoc.Convert(\"conversion.log\", PdfFormat.PDF_A_1B, ConvertErrorAction.Delete);\n    if (success)\n        pptxDoc.Save(\"archival.pdf\");\n}",
+    "errors": [
+      "Document.Save without PptxSaveOptions may produce an invalid PPTX file",
+      "Ignoring the bool result of Document.Convert can hide conversion failures"
+    ]
+  },
+  "use-fontrepository-substitutions-instead-of-addfont": {
+    "note": "In recent Aspose.PDF versions the FontRepository.AddFont method was removed; register custom fonts via FontRepository.Substitutions.Add with a SimpleFontSubstitution.",
+    "code": "using Aspose.Pdf.Text;\n\n// Register custom font\nFontRepository.Substitutions.Add(new SimpleFontSubstitution(\"MyCustomFont\", \"path/to/MyCustomFont.ttf\"));",
+    "errors": [
+      "CS0117: 'FontRepository' does not contain a definition for 'AddFont'"
+    ]
+  },
+  "use-textabsorber-to-get-slide-title": {
+    "note": "Extract page text with Aspose.Pdf.TextAbsorber and take the first non‑empty line as the slide title",
+    "code": "TextAbsorber absorber = new TextAbsorber();\npdfDoc.Pages[pageNumber].Accept(absorber);\nstring title = absorber.Text\n    .Split(new[] { '\\r', '\\n' }, StringSplitOptions.RemoveEmptyEntries)\n    .FirstOrDefault() ?? string.Empty;",
+    "errors": [
+      "CS1061: 'IEnumerable<XElement>' does not contain a definition for 'FirstOrDefault' (missing System.Linq)",
+      "Missing slide title extraction when converting PDF to PPTX"
+    ]
+  },
+  "remove-fontsavingmode-embedfonts": {
+    "note": "Do not set HtmlSaveOptions.FontSavingMode; fonts are embedded automatically when PartsEmbeddingMode is set to EmbedAllIntoHtml.",
+    "code": "var htmlOpts = new HtmlSaveOptions {\n    PartsEmbeddingMode = HtmlSaveOptions.PartsEmbeddingModes.EmbedAllIntoHtml,\n    SplitIntoPages = false\n    // No FontSavingMode property needed\n};",
+    "errors": [
+      "CS0117: 'HtmlSaveOptions.FontSavingModes' does not contain a definition for 'Embedded'"
+    ]
+  },
+  "enable-splitintopages-for-htmlsaveoptions": {
+    "note": "Set HtmlSaveOptions.SplitIntoPages = true to generate one HTML file per PDF page and guard the Save call against GDI+ missing errors.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Text;\n\nvar doc = new Document(\"input.pdf\");\nvar htmlOpts = new HtmlSaveOptions { SplitIntoPages = true };\ntry\n{\n    doc.Save(\"output.html\", htmlOpts);\n}\ncatch (TypeInitializationException ex) when (ContainsDllNotFound(ex))\n{\n    // handle missing libgdiplus on non‑Windows platforms\n}\n\nbool ContainsDllNotFound(Exception? ex)\n{\n    while (ex != null)\n    {\n        if (ex is DllNotFoundException) return true;\n        ex = ex.InnerException;\n    }\n    return false;\n}",
+    "errors": [
+      "TypeInitializationException thrown by Document.Save when GDI+ (libgdiplus) is unavailable on the current platform",
+      "Missing input PDF causing FileNotFoundException (optional placeholder creation may be added)"
+    ]
+  },
+  "remove-custompagesavinghandler-use-splitintopages": {
+    "note": "Do not use the non‑existent HtmlSaveOptions.CustomPageSavingHandler; enable SplitIntoPages (and optionally PartsEmbeddingMode) and let Aspose.PDF generate separate HTML files automatically.",
+    "code": "HtmlSaveOptions htmlOptions = new HtmlSaveOptions {\n    SplitIntoPages = true,\n    PartsEmbeddingMode = HtmlSaveOptions.PartsEmbeddingModes.NoEmbedding // optional\n};\npdfDoc.Save(Path.Combine(outputDir, \"output.html\"), htmlOptions);",
+    "errors": [
+      "CS0117: 'HtmlSaveOptions' does not contain a definition for 'CustomPageSavingHandler'"
+    ]
+  },
+  "use-specialfolderforallimages-in-htmlsaveoptions": {
+    "note": "Use HtmlSaveOptions.SpecialFolderForAllImages (with SplitIntoPages) to store each page's images in separate subfolders instead of the removed IImageSavingStrategy API.",
+    "code": "var htmlOpts = new Aspose.Pdf.HtmlSaveOptions {\n    SplitIntoPages = true,\n    RasterImagesSavingMode = Aspose.Pdf.HtmlSaveOptions.RasterImagesSavingModes.AsExternalPngFilesReferencedViaSvg,\n    SpecialFolderForAllImages = \"PageImages\"\n};\npdfDoc.Save(\"output.html\", htmlOpts);",
+    "errors": [
+      "CS0234: The type or namespace name 'Saving' does not exist in the namespace 'Aspose.Pdf'",
+      "CS0246: The type or namespace name 'IImageSavingStrategy' could not be found",
+      "CS0246: The type or namespace name 'ImageSavingInfo' could not be found"
+    ]
+  },
+  "use-static-readonly-for-runtime-path": {
+    "note": "Declare path values that are built at runtime (e.g., using Path.Combine) as static readonly instead of const.",
+    "code": "static readonly string combinedHtml = Path.Combine(htmlDir, \"combined.html\");",
+    "errors": [
+      "CS0133: The expression being assigned to '...' must be constant"
+    ]
+  },
+  "use-noembedding-partsembeddingmode": {
+    "note": "Use HtmlSaveOptions.PartsEmbeddingModes.NoEmbedding to save resources as separate files; the SeparateFiles enum value was removed.",
+    "code": "var htmlOpts = new HtmlSaveOptions {\n    PartsEmbeddingMode = HtmlSaveOptions.PartsEmbeddingModes.NoEmbedding\n};",
+    "errors": [
+      "'HtmlSaveOptions.PartsEmbeddingModes' does not contain a definition for 'SeparateFiles'"
+    ]
+  },
+  "guard-pdf-save-for-libgdiplus": {
+    "note": "Wrap Aspose.Pdf Document.Save calls with an OS check and catch TypeInitializationException to handle missing GDI+ (libgdiplus) on non‑Windows platforms.",
+    "code": "if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    pdfDoc.Save(outputPath, saveOptions);\n}\nelse\n{\n    try\n    {\n        pdfDoc.Save(outputPath, saveOptions);\n    }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex))\n    {\n        // Handle missing libgdiplus (e.g., log and abort)\n    }\n}",
+    "errors": [
+      "System.TypeInitializationException: The type initializer for 'Aspose.Pdf...' threw an exception (missing libgdiplus on Linux/macOS)",
+      "Runtime failure of Document.Save on non‑Windows platforms due to unavailable GDI+"
+    ]
+  },
+  "remove-fontsavingmode-from-docsaveoptions": {
+    "note": "Do not set FontSavingMode on DocSaveOptions; recent Aspose.PDF versions embed fonts in DOCX by default.",
+    "code": "DocSaveOptions docOpts = new DocSaveOptions {\n    Format = DocSaveOptions.DocFormat.DocX\n};",
+    "errors": [
+      "CS0117: 'DocSaveOptions' does not contain a definition for 'FontSavingMode'",
+      "CS0103: The name 'FontSavingModes' does not exist in the current context"
+    ]
+  },
+  "avoid-using-with-emfdevice": {
+    "note": "Do not wrap Aspose.Pdf.Devices.EmfDevice in a using statement because it does not implement IDisposable; instantiate it directly.",
+    "code": "Resolution resolution = new Resolution(300);\nEmfDevice emfDevice = new EmfDevice(resolution); // no using block",
+    "errors": [
+      "CS1674: 'EmfDevice' type used in a using statement must implement 'System.IDisposable'"
+    ]
+  },
+  "use-svgsaveoptions-instead-of-svgdevice": {
+    "note": "Replace the deprecated SvgDevice with Document.Save using SvgSaveOptions to export PDF pages to SVG.",
+    "code": "Document pdfDoc = new Document(inputPdf);\npdfDoc.Save(outputSvgPath, new SvgSaveOptions());",
+    "errors": [
+      "CS0246: The type or namespace name 'SvgDevice' could not be found",
+      "CS0246: The type or namespace name 'SvgDevice' could not be found (missing using directive or assembly reference)"
+    ]
+  },
+  "use-coordinate-type-cropbox-with-pngdevice-process": {
+    "note": "Set PngDevice.CoordinateType to PageCoordinateType.CropBox and call Process with only the page and output stream (2 arguments) to render a cropped region.",
+    "code": "Resolution res = new Resolution(300);\nPngDevice png = new PngDevice(res) { CoordinateType = PageCoordinateType.CropBox };\npng.Process(page, outputStream);",
+    "errors": [
+      "CS1501: No overload for method 'Process' takes 3 arguments"
+    ]
+  },
+  "no-using-for-jpegdevice": {
+    "note": "Do not place Aspose.Pdf.Devices.JpegDevice inside a using statement because it does not implement IDisposable; instantiate it directly.",
+    "code": "JpegDevice jpegDevice = new JpegDevice(300);\n// use jpegDevice.Process(...);",
+    "errors": [
+      "CS1674: 'JpegDevice': type used in a using statement must implement 'System.IDisposable'."
+    ]
+  },
+  "avoid-using-statement-with-tiffdevice": {
+    "note": "Do not place Aspose.Pdf.Devices.TiffDevice inside a using statement because it does not implement IDisposable; create it normally and only dispose the streams you use.",
+    "code": "TiffDevice tiffDevice = new TiffDevice();\nusing (FileStream tiffStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))\n{\n    tiffDevice.Process(document, 1, document.Pages.Count, tiffStream);\n}",
+    "errors": [
+      "CS1674: 'TiffDevice': type used in a using statement must implement 'System.IDisposable'"
+    ]
+  },
+  "use-fontrepository-substitutions-and-document-convert-for-pdfa": {
+    "note": "Use FontRepository.Substitutions with SimpleFontSubstitution for font substitution and use Document.Convert(logPath, PdfFormat, ConvertErrorAction) overload for PDF/A conversion instead of non‑existent PdfFormatConversionOptions properties.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Text;\n\n// Font substitution\nFontRepository.Substitutions.Add(new SimpleFontSubstitution(\"*\", \"Arial\"));\n\n// PDF/A‑3b conversion\nDocument doc = new Document(inputPath);\ndoc.Convert(\"conversion_log.xml\", PdfFormat.PDF_A_3B, ConvertErrorAction.Delete);",
+    "errors": [
+      "CS0572: 'RemoveFontsStrategy': cannot reference a type through an expression; try 'PdfFormatConversionOptions.RemoveFontsStrategy' instead",
+      "CS1913: Member 'RemoveFontsStrategy' cannot be initialized. It is not a field or property.",
+      "CS0103: The name 'RemoveFontsStrategy' does not exist in the current context",
+      "CS0117: 'PdfFormatConversionOptions' does not contain a definition for 'FontSubstitution'",
+      "CS0246: The type or namespace name 'FontSubstitutionOptions' could not be found"
+    ]
+  },
+  "use-document-convert-for-pdfa3b-and-filespec-string": {
+    "note": "Create a FileSpecification using the file path (string) and set its Contents via a MemoryStream, then convert the document to PDF/A‑3b with Document.Convert instead of using PdfSaveOptions.ConformanceLevel.",
+    "code": "var fileSpec = new FileSpecification(\"notes.txt\", \"Notes attachment\");\nfileSpec.Contents = new MemoryStream(File.ReadAllBytes(\"notes.txt\"));\ndoc.EmbeddedFiles.Add(fileSpec);\n\ndoc.Convert(\"conversion_log.xml\", PdfFormat.PDF_A_3B, ConvertErrorAction.Delete);\ndoc.Save(\"output_pdfa3b.pdf\");",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'System.IO.FileStream' to 'string' (FileSpecification constructor)",
+      "CS0117: 'PdfSaveOptions' does not contain a definition for 'ConformanceLevel'",
+      "CS0103: The name 'PdfAConformanceLevel' does not exist in the current context"
+    ]
+  },
+  "use-simplefontsublstitution-via-fontrepository": {
+    "note": "Register missing‑font fallbacks with FontRepository.Substitutions.Add(new SimpleFontSubstitution(...)) instead of assigning Document.FontSubstitution or using PdfFormatConversionOptions.",
+    "code": "using Aspose.Pdf.Text;\n\n// Register a fallback for any missing font (e.g., Arial)\nFontRepository.Substitutions.Add(new SimpleFontSubstitution(\"*\", \"Arial\"));\n\nusing (Document doc = new Document(inputPath))\n{\n    // Convert to PDF/A‑1b using the overload that accepts a log file and error‑handling action\n    doc.Convert(logPath, PdfFormat.PDF_A_1B, ConvertErrorAction.Delete);\n    doc.Save(outputPath);\n}",
+    "errors": [
+      "CS0079: The event 'Document.FontSubstitution' can only appear on the left hand side of += or -=",
+      "CS0200: Property or indexer 'PdfFormatConversionOptions.FontEmbeddingOptions' cannot be assigned to -- it is read only",
+      "CS0117: 'PdfFormatConversionOptions' does not contain a definition for 'PdfANonSpecificationFlags'",
+      "CS1503: Argument 1: cannot convert from 'string' to 'Aspose.Pdf.Document.CallBackGetHocrWithPage'",
+      "CS1503: Argument 2: cannot convert from 'Aspose.Pdf.PdfFormatConversionOptions' to 'bool'"
+    ]
+  },
+  "use-epubloadoptions-constructor-for-custom-pagesize": {
+    "note": "Instantiate EpubLoadOptions with a SizeF argument to set a custom page size, because the PageSize property is read‑only and cannot be set via an object initializer.",
+    "code": "SizeF customPageSize = new SizeF(600f, 800f);\nvar loadOptions = new EpubLoadOptions(customPageSize);\nusing var pdfDoc = new Document(epubPath, loadOptions);",
+    "errors": [
+      "Attempting to set EpubLoadOptions.PageSize via object initializer (property is read‑only)",
+      "FileNotFoundException when the EPUB source file does not exist"
+    ]
+  },
+  "validate-xslfo-path-before-xmlloadoptions": {
+    "note": "Always verify that the XSL‑FO stylesheet file exists before creating XmlLoadOptions, otherwise XmlLoadOptions will throw a DirectoryNotFoundException.",
+    "code": "string xslFoPath = Path.Combine(dataDir, \"stylesheet.xslfo\");\nif (!File.Exists(xslFoPath))\n    throw new FileNotFoundException($\"XSL‑FO stylesheet not found: {xslFoPath}\");\nXmlLoadOptions loadOptions = new XmlLoadOptions(xslFoPath);",
+    "errors": [
+      "System.IO.DirectoryNotFoundException: Could not find a part of the path ... when constructing XmlLoadOptions"
+    ]
+  },
+  "set-outdirectorypath-on-texsaveoptions": {
+    "note": "Assign the OutDirectoryPath property of TeXSaveOptions to control where auxiliary LaTeX files (e.g., images) are written.",
+    "code": "var texOptions = new TeXSaveOptions {\n    OutDirectoryPath = \"output\"\n};\npdfDocument.Save(\"output.tex\", texOptions);",
+    "errors": [
+      "Auxiliary files are written to the default directory instead of the intended output folder",
+      "LaTeX conversion creates resources in an unexpected location"
+    ]
+  },
+  "use-textextractionoptions-constructor-with-formattingmode": {
+    "note": "When configuring TextExtractionOptions, pass the desired TextFormattingMode enum value to the constructor instead of setting a TextFormattingMode property after construction.",
+    "code": "var opts = new TextExtractionOptions(TextExtractionOptions.TextFormattingMode.Pure);",
+    "errors": [
+      "CS7036: No argument given that corresponds to the required parameter 'formattingMode' of 'TextExtractionOptions.TextExtractionOptions(TextExtractionOptions.TextFormattingMode)'",
+      "CS0572: 'TextFormattingMode': cannot reference a type through an expression; try 'TextExtractionOptions.TextFormattingMode' instead",
+      "CS0118: 'TextExtractionOptions.TextFormattingMode' is a type but is used like a variable"
+    ]
+  },
+  "use-bitmap-binarization-instead-of-pngdevice-binarizebradley": {
+    "note": "The Aspose.Pdf PngDevice class does not provide a BinarizeBradley method; render the page to a PNG stream, load it into a System.Drawing.Bitmap, apply Bradley (or any) binarization manually, and then save the bitmap.",
+    "code": "PngDevice pngDevice = new PngDevice();\nusing (MemoryStream pngStream = new MemoryStream())\n{\n    pngDevice.Process(page, pngStream);\n    pngStream.Position = 0;\n    using (Bitmap bmp = new Bitmap(pngStream))\n    {\n        Bitmap binarized = ApplyBradleyBinarization(bmp, 0.5);\n        binarized.Save(outputPath, ImageFormat.Png);\n    }\n}",
+    "errors": [
+      "CS1061: 'PngDevice' does not contain a definition for 'BinarizeBradley' and no accessible extension method 'BinarizeBradley' accepting a first argument of type 'PngDevice' could be found"
+    ]
+  },
+  "use-correct-compressiontype-and-colordepth-enums": {
+    "note": "When configuring TiffSettings, use the current enum members CompressionType.CCITT4 and ColorDepth.Format1bpp (the older names CcittFax4 and Bits1 are no longer defined).",
+    "code": "TiffSettings tiffSettings = new TiffSettings {\n    Compression = CompressionType.CCITT4,\n    Depth = ColorDepth.Format1bpp\n};",
+    "errors": [
+      "CS0117: 'CompressionType' does not contain a definition for 'CcittFax4'",
+      "CS0117: 'ColorDepth' does not contain a definition for 'Bits1'"
+    ]
+  },
+  "use-scale-to-pixels-for-css-embedding-in-svgsaveoptions": {
+    "note": "When converting PDF to SVG, enable CSS style embedding by setting SvgSaveOptions.ScaleToPixels = true (the CssStyleEmbedding property does not exist).",
+    "code": "using Aspose.Pdf;\n\n// ... load PDF document ...\nSvgSaveOptions svgOptions = new SvgSaveOptions();\nsvgOptions.ScaleToPixels = true; // enables CSS style embedding\npdfDoc.Save(outputSvgPath, svgOptions);",
+    "errors": [
+      "CS0117: 'SvgSaveOptions' does not contain a definition for 'CssStyleEmbedding'"
+    ]
+  },
+  "use-svgsaveoptions-treattargetfilenameasdirectory": {
+    "note": "When converting PDF to SVG per page, use Document.Save with SvgSaveOptions and set TreatTargetFileNameAsDirectory = true instead of using DocumentDevice.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Devices; // optional for other devices\n\nstring outputPath = Path.Combine(outputFolder, \"output.svg\");\nSvgSaveOptions svgOptions = new SvgSaveOptions { TreatTargetFileNameAsDirectory = true };\npdfDocument.Save(outputPath, svgOptions);",
+    "errors": [
+      "Attempting to use DocumentDevice (from Aspose.Pdf.Facades) for SVG conversion",
+      "Saving to a folder path without setting TreatTargetFileNameAsDirectory, causing incorrect output"
+    ]
+  },
+  "add-invisible-textfragment-for-searchable-pdf": {
+    "note": "Instead of calling Document.Convert() with no arguments, create a TextFragment, set its TextState.Invisible to true, position it, and add it to each page to embed hidden searchable text.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Text;\n\n// inside a Document context\nfor (int i = 1; i <= doc.Pages.Count; i++)\n{\n    Page page = doc.Pages[i];\n    TextFragment tf = new TextFragment(\"searchable text\");\n    tf.TextState.Invisible = true;               // make text invisible\n    tf.Position = new Position(50, page.PageInfo.Height - 50);\n    page.Paragraphs.Add(tf);\n}\n\ndoc.Save(\"output.pdf\");",
+    "errors": [
+      "CS1501: No overload for method 'Convert' takes 0 arguments"
+    ]
+  },
+  "use-heading-for-toc-entries-instead-of-textfragment-pagenumber": {
+    "note": "Create Table of Contents entries by adding Heading objects (with IsAutoSequence, TocPage, DestinationPage, Top, and Segments) to a page that has TocInfo, instead of trying to read a non‑existent PageNumber property from TextFragment.",
+    "code": "Heading heading = new Heading(level);\nheading.IsAutoSequence = true;            // auto‑numbered page reference\nheading.TocPage = tocPage;                     // page that holds the TOC\nheading.DestinationPage = doc.Pages[pageIndex]; // page the heading points to\nheading.Top = doc.Pages[pageIndex].Rect.Height; // vertical position on target page\nheading.Segments.Add(new TextSegment(\"Section Title\"));\n\ntocPage.Paragraphs.Add(heading);",
+    "errors": [
+      "CS1061: 'TextFragment' does not contain a definition for 'PageNumber' and no accessible extension method 'PageNumber' accepting a first argument of type 'TextFragment' could be found"
+    ]
+  },
+  "use-line-dash-for-toc-leader-and-tabstops-add": {
+    "note": "Set the TOC entry leader type via LevelFormat.LineDash (not a TabStops collection) and add custom page‑number tab stops with TextFragmentState.TabStops.Add; TocInfo does not expose a TabStops property.",
+    "code": "LevelFormat level = new LevelFormat { LineDash = TabLeaderType.Solid };\n\nTextFragment entry = new TextFragment(\"Chapter 1 #$TAB 2\");\nTextFragmentState state = new TextFragmentState(entry);\nstate.TabStops.Add(400, TabLeaderType.Solid); // position + leader type",
+    "errors": [
+      "CS1061: 'TabStop' does not contain a definition for 'Leader'",
+      "CS1061: 'LevelFormat' does not contain a definition for 'TabStops'",
+      "CS1061: 'Document' does not contain a definition for 'TocInfo'"
+    ]
+  },
+  "use-pdfextractor-getnextimage-with-imagformat": {
+    "note": "Use Aspose.Pdf.Facades.PdfExtractor and System.Drawing.Imaging.ImageFormat when extracting images, instead of Aspose.Pdf.Image namespace.",
+    "code": "using System.Drawing.Imaging;\nusing Aspose.Pdf.Facades;\n\nPdfExtractor extractor = new PdfExtractor();\nextractor.BindPdf(\"input.pdf\");\nextractor.ExtractImage();\nwhile (extractor.HasNextImage())\n{\n    extractor.GetNextImage(outputPath, ImageFormat.Png);\n}",
+    "errors": [
+      "CS0234: The type or namespace name 'ImageFormat' does not exist in the namespace 'Aspose.Pdf'",
+      "Missing reference to System.Drawing.Imaging when saving images with PdfExtractor"
+    ]
+  },
+  "use-pkcs7-for-signature-field": {
+    "note": "Use the concrete PKCS7 class from Aspose.Pdf.Facades to sign a SignatureField instead of the abstract Signature type",
+    "code": "using Aspose.Pdf.Facades;\n...\nusing (FileStream certStream = File.OpenRead(certificatePath))\n{\n    PKCS7 pkcs7 = new PKCS7(certStream, certificatePassword);\n    sigField.Sign(pkcs7);\n}",
+    "errors": [
+      "CS0144: Cannot create an instance of the abstract type or interface 'Signature'"
+    ]
+  },
+  "guard-aspdf-with-windows-check": {
+    "note": "Wrap Aspose.Pdf PDF generation code in a RuntimeInformation.IsOSPlatform(OSPlatform.Windows) guard to avoid GDI+‑related TypeInitializationException on non‑Windows platforms.",
+    "code": "if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    Console.WriteLine(\"Skipping PDF generation – GDI+ (libgdiplus) is not available on this platform.\");\n    return;\n}\n// Aspose.Pdf PDF creation code here",
+    "errors": [
+      "System.TypeInitializationException: The type initializer for 'System.Drawing.Gdip' threw an exception",
+      "DllNotFoundException: Unable to load shared library 'gdiplus.dll' or one of its dependencies"
+    ]
+  },
+  "use-collection-and-filespec-for-portfolio": {
+    "note": "Attach files to a PDF portfolio by initializing Document.Collection (if null) and adding a FileSpecification, instead of using a non‑existent Document.Portfolio property.",
+    "code": "if (doc.Collection == null) doc.Collection = new Collection();\nvar fileSpec = new FileSpecification(filePath, description) {\n    Contents = new MemoryStream(File.ReadAllBytes(filePath))\n};\ndoc.Collection.Add(fileSpec);",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'Portfolio'",
+      "CS1061: 'Document' does not contain a definition for 'SetTitle' (if used)"
+    ]
+  },
+  "set-crashreportdirectory-and-filename": {
+    "note": "Specify CrashReportDirectory and CrashReportFilename in CrashReportOptions before calling PdfException.GenerateCrashReport to avoid invalid default paths.",
+    "code": "var options = new CrashReportOptions(exception)\n{\n    CrashReportDirectory = Path.GetTempPath(),\n    CrashReportFilename = \"CrashReport.html\",\n    CustomMessage = \"...\"\n};\nPdfException.GenerateCrashReport(options);",
+    "errors": [
+      "System.IO.DirectoryNotFoundException: Could not find a part of the path .../CrashReport_.../.html",
+      "Crash report generation fails because the default CrashReportDirectory does not exist"
+    ]
+  },
+  "use-embeddedfiles-with-filespecification": {
+    "note": "Embed files in a PDF using Document.EmbeddedFiles with a FileSpecification instead of the non‑existent Attachments/FileAttachment API.",
+    "code": "using Aspose.Pdf;\nusing (Document doc = new Document(pdfPath))\n{\n    using (FileStream xmlStream = File.OpenRead(xmlPath))\n    {\n        var fileSpec = new FileSpecification(\"invoice.xml\", \"ZUGFeRD Invoice\");\n        fileSpec.Contents = xmlStream; // set the file data\n        doc.EmbeddedFiles.Add(fileSpec);\n    }\n}",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'Attachments'",
+      "CS0246: The type or namespace name 'FileAttachment' could not be found"
+    ]
+  },
+  "use-textboxfield-and-formeditor-document-for-justified-alignment": {
+    "note": "Cast a form field to TextBoxField to set its Value, and use the FormEditor(Document) constructor with a FormFieldFacade set to AlignJustified before calling DecorateField and Save.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\nusing Aspose.Pdf.Facades;\n\n// Fill the textbox field\nDocument doc = new Document(sourcePdf);\nif (doc.Form[fieldName] is TextBoxField txtField)\n    txtField.Value = fillText;\n\ndoc.Save(tempFilledPdf);\n\n// Apply justified alignment\nusing (Document filledDoc = new Document(tempFilledPdf))\n{\n    FormEditor editor = new FormEditor(filledDoc);\n    editor.Facade = new FormFieldFacade();\n    editor.Facade.Alignment = FormFieldFacade.AlignJustified;\n    editor.DecorateField(fieldName);\n    editor.Save(outputPdf);\n}",
+    "errors": [
+      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Value'",
+      "CS0618: 'FormEditor.FormEditor(string, string)' is obsolete"
+    ]
+  },
+  "convert-getbuttonoptionvalues-dictionary-to-hashtable": {
+    "note": "Use Form.GetButtonOptionValues to obtain a Dictionary<string,string> and copy its entries into a Hashtable when a Hashtable is required.",
+    "code": "Dictionary<string, string> dict = form.GetButtonOptionValues(\"RadioGroupName\");\nHashtable values = new Hashtable();\nforeach (KeyValuePair<string, string> kvp in dict)\n{\n    values.Add(kvp.Key, kvp.Value);\n}",
+    "errors": [
+      "Attempting to assign the Dictionary returned by GetButtonOptionValues directly to a Hashtable",
+      "Missing PDF file path causing FileNotFoundException (resolved by using Path.Combine with AppDomain.CurrentDomain.BaseDirectory and checking File.Exists)"
+    ]
+  },
+  "validate-pdf-path-before-form-construction": {
+    "note": "Verify that the PDF file exists and use an absolute path (e.g., based on AppDomain.CurrentDomain.BaseDirectory) before creating a Form instance.",
+    "code": "string pdfPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, \"PdfForm.pdf\");\nif (!File.Exists(pdfPath))\n    throw new FileNotFoundException($\"PDF not found: {pdfPath}\");\nusing (var form = new Form(pdfPath))\n{\n    string value = form.GetButtonOptionCurrentValue(\"btnField\");\n    // ...\n}",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file '<path>' when constructing Aspose.Pdf.Facades.Form"
+    ]
+  },
+  "avoid-using-with-non-disposable-jsondocumentbuilder": {
+    "note": "Do not wrap JsonDocumentBuilder in a using statement because it does not implement IDisposable; instantiate it normally.",
+    "code": "var outputDoc = new JsonDocumentBuilder(); // no using",
+    "errors": [
+      "CS1674: 'JsonDocumentBuilder': type used in a using statement must implement 'System.IDisposable'."
+    ]
+  },
+  "iterate-form-fields-array": {
+    "note": "Iterate over Form.Fields as a Field[] array and use Field.Name/FullName for the key and Field.Value for the value; do not use a non‑existent Keys collection.",
+    "code": "Form form = doc.Form;\nforeach (Field field in form.Fields)\n{\n    string fieldName = field.Name ?? field.FullName ?? string.Empty;\n    string fieldValue = field.Value?.ToString() ?? string.Empty;\n    // process fieldName and fieldValue\n}",
+    "errors": [
+      "CS1061: 'Field[]' does not contain a definition for 'Keys'",
+      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Value'"
+    ]
+  },
+  "use-form-exporttojson-stream-instead-of-exportfieldsjsonoptions": {
+    "note": "Use Form.ExportToJson(Stream) to export all form fields to JSON and then filter the required fields yourself, rather than using ExportFieldsToJsonOptions (which requires the Aspose.Pdf.Forms namespace).",
+    "code": "using (var doc = new Document(pdfPath))\nusing (var fs = new FileStream(tempJsonPath, FileMode.Create, FileAccess.Write))\n{\n    doc.Form.ExportToJson(fs);\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'FormField' could not be found (are you missing a using directive or an assembly reference?)",
+      "Missing Aspose.Pdf.Forms namespace for ExportFieldsToJsonOptions"
+    ]
+  },
+  "use-importxml-instead-of-importdatafromxml": {
+    "note": "When importing XML data into a PDF form, call Form.ImportXml (or its overload) rather than the non‑existent ImportDataFromXML method.",
+    "code": "Form form = new Form(pdfTemplatePath, outputPdfPath);\nusing (FileStream xmlStream = new FileStream(xmlPath, FileMode.Open, FileAccess.Read))\n{\n    form.ImportXml(xmlStream); // correct API call\n}\nform.Save();",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'ImportDataFromXML' and no accessible extension method 'ImportDataFromXML' accepting a first argument of type 'Form' could be found"
+    ]
+  },
+  "enumerate-form-fields-correctly": {
+    "note": "When iterating Aspose.Pdf form fields, use LINQ's Count() (or Any()) to test for emptiness and obtain the field type via field.GetType().Name, because the Field class does not expose a FieldType property.",
+    "code": "using System.Linq; // needed for Count()\n...\nvar form = pdfDoc.Form;\nif (form == null || form.Fields == null || form.Fields.Count() == 0) { /* no fields */ }\nforeach (var field in form.Fields)\n{\n    string name = field.Name;\n    string type = field.GetType().Name; // e.g., TextBoxField, CheckBoxField\n    // write to CSV or process as needed\n}",
+    "errors": [
+      "CS0019: Operator '==' cannot be applied to operands of type 'method group' and 'int' (caused by using form.Fields.Count without invoking it)",
+      "CS1061: 'Field' does not contain a definition for 'FieldType' and no accessible extension method 'FieldType' accepting a first argument of type 'Field' could be found"
+    ]
+  },
+  "check-pdf-file-exists-before-form-construction": {
+    "note": "Verify the PDF file exists (using File.Exists) before creating an Aspose.Pdf.Facades.Form instance to avoid a FileNotFoundException.",
+    "code": "string pdfPath = \"PdfForm.pdf\";\nif (!File.Exists(pdfPath))\n{\n    Console.WriteLine($\"File '{pdfPath}' not found.\");\n    return; // or handle the error appropriately\n}\nusing (var form = new Form(pdfPath))\n{\n    // use the form\n}",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file '<path>'",
+      "Unhandled exception when constructing Aspose.Pdf.Facades.Form with a missing file"
+    ]
+  },
+  "use-facades-form-namespace": {
+    "note": "When working with PDF form operations, import only Aspose.Pdf.Facades and use its Form class to avoid ambiguity with Aspose.Pdf.Forms.Form.",
+    "code": "using Aspose.Pdf.Facades;\n\n// Correct usage\nForm form = new Form(pdfPath); // uses Aspose.Pdf.Facades.Form",
+    "errors": [
+      "CS0104: 'Form' is an ambiguous reference between 'Aspose.Pdf.Facades.Form' and 'Aspose.Pdf.Forms.Form'"
+    ]
+  },
+  "use-form-constructor-without-destination-and-save-with-path": {
+    "note": "When using Aspose.Pdf.Facades.Form, instantiate it with only the source PDF path and call Save(string destinationPath) instead of the obsolete constructors and parameterless Save method.",
+    "code": "using Aspose.Pdf.Facades;\n\nusing (var form = new Form(inputPdfPath))\n{\n    // fill fields, e.g. form.FillField(\"FieldName\", \"value\");\n    form.Save(outputPdfPath);\n}",
+    "errors": [
+      "CS0618: 'Form.Form(string, string)' is obsolete: 'Use constructor without destination.'",
+      "CS0618: 'Form.Save()' is obsolete: 'Use Save(destination) method for saving facade results.'"
+    ]
+  },
+  "use-exporttojson-for-form-fields": {
+    "note": "Export PDF form fields to JSON using Document.Form.ExportToJson and deserialize into a typed List instead of referencing non‑existent field types like CheckBoxField.",
+    "code": "using (MemoryStream ms = new MemoryStream())\n{\n    pdfDoc.Form.ExportToJson(ms);\n    ms.Position = 0;\n    string json = new StreamReader(ms).ReadToEnd();\n    var fields = JsonConvert.DeserializeObject<List<FormFieldData>>(json);\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'CheckBoxField' could not be found",
+      "CS1061: 'Form' does not contain a definition for 'ExportFormFieldsToJson' (if the old method was used)"
+    ]
+  },
+  "add-system-text-json-nodes-and-convert-jsonelement-to-jsonnode": {
+    "note": "Include `using System.Text.Json.Nodes;` and convert `JsonElement` values to `JsonNode` (e.g., via `JsonNode.Parse`) before assigning them to a `JsonObject`.",
+    "code": "using System.Text.Json.Nodes;\n...\nJsonObject obj = new JsonObject();\nJsonElement element = ...; // obtained from JsonDocument\nJsonNode node = JsonNode.Parse(element.GetRawText());\nobj[\"key\"] = node;",
+    "errors": [
+      "CS0246: The type or namespace name 'JsonObject' could not be found (are you missing a using directive or an assembly reference?)",
+      "Cannot assign a JsonElement directly to a JsonObject indexer – requires a JsonNode"
+    ]
+  },
+  "use-form-constructor-and-save-with-destination": {
+    "note": "Instantiate Form with only the source PDF (no destination) and call Save with the output path; catch a generic Exception and, if present, read the optional FieldName property via reflection to log missing fields.",
+    "code": "using Aspose.Pdf.Facades;\n\nusing (Form form = new Form(inputPdfPath))\n{\n    try\n    {\n        form.ImportXml(importStream);\n    }\n    catch (Exception ex)\n    {\n        var fieldProp = ex.GetType().GetProperty(\"FieldName\");\n        if (fieldProp != null)\n        {\n            Console.Error.WriteLine($\"Missing field: {fieldProp.GetValue(ex)}\");\n        }\n    }\n    form.Save(outputPdfPath);\n}",
+    "errors": [
+      "CS0618: 'Form.Form(string, string)' is obsolete",
+      "CS0618: 'Form.Save()' is obsolete",
+      "CS0246: The type or namespace name 'FormException' could not be found",
+      "CS0246: The type or namespace name 'FormImportResult' could not be found",
+      "CS0103: The name 'ImportStatus' does not exist in the current context"
+    ]
+  },
+  "use-defaultcelltextstate-for-cell-formatting-and-convert-fieldtype-enum": {
+    "note": "Set cell text formatting via Cell.DefaultCellTextState using a TextState object, and convert Form.GetFieldType enum to string with ToString() for display.",
+    "code": "cell.DefaultCellTextState = new TextState {\n    Font = FontRepository.FindFont(\"Helvetica\"),\n    FontSize = 12,\n    ForegroundColor = Aspose.Pdf.Color.Black\n};\nvar fieldType = form.GetFieldType(fieldName).ToString();",
+    "errors": [
+      "CS1061: 'Cell' does not contain a definition for 'DefaultAppearance' and no accessible extension method 'DefaultAppearance' accepting a first argument of type 'Cell' could be found",
+      "CS0246: The type or namespace name 'DefaultAppearance' could not be found",
+      "CS0029: Cannot implicitly convert type 'Aspose.Pdf.Facades.FieldType' to 'string'"
     ]
   }
 }
