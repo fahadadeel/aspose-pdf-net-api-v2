@@ -968,6 +968,18 @@
             <label for="opt-create-pr">Create Pull Request after successful builds</label>
           </div>
 
+          <!-- PR Target Branch -->
+          <div id="pr-target-branch-row" style="margin-top:10px;">
+            <label style="font-size:12px;color:var(--text-dim);display:block;margin-bottom:4px;">
+              PR Target Branch
+              <span style="font-size:11px;color:#888;"> — branch PRs merge into (leave blank for default: <code>{{ repo_branch or 'main' }}</code>)</span>
+            </label>
+            <input type="text" id="opt-pr-target-branch"
+              value="{{ pr_target_branch }}"
+              placeholder="e.g. release/26.3.0"
+              style="width:100%;max-width:320px;font-size:12px;padding:4px 8px;border:1px solid var(--border);border-radius:4px;background:var(--surface);color:var(--text);" />
+          </div>
+
           <!-- Admin Section -->
           <div class="admin-section" id="admin-section">
             <label style="margin-bottom: 10px;">API URL Override</label>
@@ -1159,9 +1171,10 @@
 
   function getOptions() {
     return {
-      repo_push:   document.getElementById('opt-create-pr').checked,
-      force:       false,
-      api_url:     getApiUrl()
+      repo_push:        document.getElementById('opt-create-pr').checked,
+      force:            false,
+      api_url:          getApiUrl(),
+      pr_target_branch: (document.getElementById('opt-pr-target-branch').value || '').trim()
     };
   }
 
@@ -1519,6 +1532,7 @@
       fd.append('repo_push', opts.repo_push);
       fd.append('force', opts.force);
       if (opts.api_url) fd.append('api_url', opts.api_url);
+      if (opts.pr_target_branch) fd.append('pr_target_branch', opts.pr_target_branch);
       promise = fetch('/api/start', { method: 'POST', body: fd });
 
     } else if (activeTab === 'csv') {
@@ -1535,6 +1549,7 @@
       fd2.append('repo_push', opts.repo_push);
       fd2.append('force', opts.force);
       if (opts.api_url) fd2.append('api_url', opts.api_url);
+      if (opts.pr_target_branch) fd2.append('pr_target_branch', opts.pr_target_branch);
       promise = fetch('/api/start', { method: 'POST', body: fd2 });
 
     } else if (activeTab === 'taskgen') {
@@ -1549,10 +1564,11 @@
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          tasks:      tasks,
-          repo_push:  opts.repo_push,
-          force:      opts.force,
-          api_url:    opts.api_url || undefined
+          tasks:            tasks,
+          repo_push:        opts.repo_push,
+          force:            opts.force,
+          api_url:          opts.api_url || undefined,
+          pr_target_branch: opts.pr_target_branch || undefined
         })
       });
     }
@@ -1604,9 +1620,10 @@
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        categories: selected,
-        repo_push:  opts.repo_push,
-        api_url:    opts.api_url || undefined
+        categories:       selected,
+        repo_push:        opts.repo_push,
+        api_url:          opts.api_url || undefined,
+        pr_target_branch: opts.pr_target_branch || undefined
       })
     })
     .then(function(r) { return r.json(); })
