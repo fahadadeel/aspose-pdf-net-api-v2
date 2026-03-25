@@ -13,7 +13,11 @@ Automated C# code generation and testing pipeline for **Aspose.PDF for .NET**. G
   - [CLI](#cli)
   - [REST API](#rest-api)
 - [Category Sweep Mode](#category-sweep-mode)
-- [Version Bump](#version-bump)
+- [Version Lifecycle](#version-lifecycle)
+  - [Version Bump](#version-bump)
+  - [Promote to Main](#promote-to-main)
+  - [Full Release Workflow](#full-release-workflow)
+- [PR Target Branch](#pr-target-branch)
 - [Usage Reporting](#usage-reporting)
 - [Configuration](#configuration)
   - [Environment Variables](#environment-variables)
@@ -28,6 +32,7 @@ Automated C# code generation and testing pipeline for **Aspose.PDF for .NET**. G
 - [PR Workflow](#pr-workflow)
 - [Knowledge Base](#knowledge-base)
 - [Project Structure](#project-structure)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -144,10 +149,12 @@ The UI has three modes:
 
 **Header Buttons:**
 - **Update Repo Docs** — Scan repo and generate cumulative `agents.md` files (creates a separate docs PR)
-- **Version Bump** — Tag current version, clean all examples, and regenerate with a new NuGet version
+- **Version Bump** — Tag current version on main, create empty `release/{version}` staging branch, update `.env`
+- **Promote to Main** — Merge staging branch into main, tag release, reset `.env` (visible only when `PR_TARGET_BRANCH` is set)
 
 **Options:**
 - **Create Pull Request** — Commit passed results to GitHub and create a PR
+- **PR Target Branch** — Override which branch PRs merge into (e.g., `release/26.3.0`). Leave blank to use `REPO_BRANCH`
 - **API URL Override** — Use a custom MCP API URL (admin mode, append `?admin` to URL)
 
 **Monitor Panel:**
@@ -163,6 +170,12 @@ The UI has three modes:
 - Use the search boxes to filter categories and tasks
 - Select All / Deselect All for bulk selection
 - **Sweep Selected** button — Process ALL tasks across selected categories (per-category usage reports and PRs)
+
+**Learned Rules Tab:**
+- Review auto-learned rules with confidence score, hit count, and source stage
+- **Approve** — Promote individual rule to curated `error_fixes.json`
+- **Approve All** — Promote all auto-learned rules at once
+- **Delete** — Remove a bad rule
 
 ### CLI
 
@@ -191,8 +204,11 @@ python cli.py --sweep --categories "Basic Operations,Conversion"
 # Category sweep with PR creation
 python cli.py --sweep --repo-push
 
-# Version bump — tag old, clean, regenerate with new version
-python cli.py --version-bump 26.3.0 --repo-push
+# Version bump — tag old version, create staging branch, update .env
+python cli.py --version-bump 26.3.0
+
+# Promote staging branch to main
+python cli.py --promote-to-main release/26.3.0 --version 26.3.0
 ```
 
 **CLI Arguments:**
@@ -203,13 +219,16 @@ python cli.py --version-bump 26.3.0 --repo-push
 | `--csv` | Yes* | — | Path to CSV file (columns: `task`/`prompt`, `category`, `product`) |
 | `--sweep` | Yes* | — | Sweep all tasks across categories |
 | `--version-bump` | Yes* | — | Bump NuGet version (e.g., `26.3.0`) |
+| `--promote-to-main` | Yes* | — | Promote staging branch to main (e.g., `release/26.3.0`) |
+| `--version` | No | — | Version string for `--promote-to-main` |
 | `--category` | No | `""` | Category for single task |
 | `--categories` | No | `""` | Comma-separated category filter (sweep mode) |
 | `--product` | No | `aspose.pdf` | Product name |
 | `--repo-push` | No | `false` | Commit results and create PR |
+| `--pr-target-branch` | No | `""` | Override PR base branch (e.g., `release/26.3.0`) |
 | `--tfm` | No | `net10.0` | .NET target framework override |
 
-*One of `--task`, `--csv`, `--sweep`, or `--version-bump` is required.
+*One of `--task`, `--csv`, `--sweep`, `--version-bump`, or `--promote-to-main` is required.
 
 ### REST API
 
@@ -222,15 +241,22 @@ All endpoints are served under the root path.
 | `POST /api/start` | Multipart form | Start single or CSV job |
 | `POST /api/start-tasks` | JSON body | Start job from task list |
 | `POST /api/start-sweep` | JSON body | Start category sweep job |
-| `POST /api/version-bump` | JSON body | Bump NuGet version (tag + clean + sweep) |
+| `POST /api/version-bump` | JSON body | Tag old version, create staging branch, update `.env` |
+| `POST /api/promote-to-main` | JSON body | Merge staging branch to main, tag release, reset `.env` |
 | `GET /api/status/{job_id}` | — | Poll job status |
 | `GET /api/stream/{job_id}` | SSE | Real-time event stream |
 | `POST /api/cancel/{job_id}` | — | Cancel a running job |
 | `POST /api/retry-pr/{job_id}` | — | Create or retry PR for completed job |
 | `POST /api/update-repo-docs` | JSON body | Generate cumulative repo docs PR |
-| `GET /api/auto-fixes` | — | List auto-learned rules (confidence, hits) |
-| `POST /api/auto-fixes/{id}/approve` | — | Promote auto rule to curated |
-| `DELETE /api/auto-fixes/{id}` | — | Remove auto-learned rule |
+
+#### Learned Rules
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `GET /api/auto-fixes` | — | List auto-learned rules (confidence, hits, stage) |
+| `POST /api/auto-fixes/{id}/approve` | — | Promote single auto rule to curated `error_fixes.json` |
+| `POST /api/auto-fixes/approve-all` | — | Promote all auto-learned rules at once |
+| `DELETE /api/auto-fixes/{id}` | — | Remove an auto-learned rule |
 
 #### Data & Utilities
 
@@ -252,6 +278,7 @@ All endpoints are served under the root path.
 | `repo_push` | form | No | `"true"` to create PR |
 | `force` | form | No | `"true"` to force regeneration |
 | `api_url` | form | No | Custom MCP API URL |
+| `pr_target_branch` | form | No | Override PR base branch |
 | `csv` | file | CSV mode | CSV file upload |
 
 #### POST /api/start-tasks — JSON Body
@@ -259,12 +286,13 @@ All endpoints are served under the root path.
 ```json
 {
   "tasks": [
-    {"task": "Save PDF", "category": "BasicOperations", "product": "aspose.pdf"},
+    {"task": "Save PDF", "category": "Basic Operations", "product": "aspose.pdf"},
     {"task": "Add bookmark", "category": "Bookmarks"}
   ],
   "repo_push": true,
   "force": false,
-  "api_url": null
+  "api_url": null,
+  "pr_target_branch": "release/26.3.0"
 }
 ```
 
@@ -274,7 +302,8 @@ All endpoints are served under the root path.
 {
   "categories": ["Basic Operations", "Conversion"],
   "repo_push": true,
-  "api_url": null
+  "api_url": null,
+  "pr_target_branch": "release/26.3.0"
 }
 ```
 
@@ -289,7 +318,18 @@ Processes ALL tasks for each selected category sequentially. Creates a usage rep
 }
 ```
 
-Tags the current version, creates a GitHub Release, deletes all existing examples, and runs a full sweep with the new NuGet version.
+Tags current `main` as `v{current_version}`, creates a GitHub Release, creates an empty orphan `release/{new_version}` branch, and updates `.env` with new version and branch settings. Does **not** touch main or run any sweep — generation is triggered manually per category.
+
+#### POST /api/promote-to-main — JSON Body
+
+```json
+{
+  "staging_branch": "release/26.3.0",
+  "new_version": "26.3.0"
+}
+```
+
+Creates PR `release/{version}` → `main`, auto-merges it, tags `main` as `v{new_version}`, creates a GitHub Release, resets `.env` (`REPO_BRANCH=main`, `PR_TARGET_BRANCH=` cleared), and deletes the staging branch.
 
 #### POST /api/update-repo-docs — JSON Body
 
@@ -348,7 +388,7 @@ A `done` event is sent when the job finishes.
 
 ## Category Sweep Mode
 
-Sweep mode processes ALL tasks across selected (or all) categories in a single job. Unlike the normal Task Generator where you pick individual tasks, sweep auto-fetches everything.
+Sweep mode processes ALL tasks across selected (or all) categories in a single job. Unlike the normal Task Generator where you pick individual tasks, sweep auto-fetches everything from the tasks API.
 
 **How it works:**
 1. Fetches all tasks per category from the external tasks API (paginated)
@@ -367,23 +407,109 @@ Sweep mode processes ALL tasks across selected (or all) categories in a single j
 
 ---
 
-## Version Bump
+## Version Lifecycle
 
-Automates the process of upgrading to a new Aspose.PDF NuGet version while preserving old examples via Git tags and GitHub Releases.
+### Version Bump
 
-**Flow:**
-1. **Tag** current main branch as `v{old_version}` (e.g., `v26.2.0`)
-2. **Create GitHub Release** from the tag (with version metadata)
-3. **Clean** all existing `.cs` example files from the repo
-4. **Commit** the cleanup to main
-5. **Sweep** all categories with the new NuGet version (full regeneration)
+Prepares a new version release by preserving the old version and setting up a clean staging environment.
+
+**What it does:**
+1. **Tag** `main` as `v{current_version}` (e.g., `v26.2.0`) — read-only, does NOT modify main
+2. **Create GitHub Release** from the tag
+3. **Create** empty orphan branch `release/{new_version}` (no parent commits, completely clean)
+4. **Update `.env`**: sets `NUGET_VERSION`, `PR_TARGET_BRANCH`, and `REPO_BRANCH` to the new values
+
+**What it does NOT do:**
+- Does not touch or modify the `main` branch in any way
+- Does not delete or clean existing examples
+- Does not run a sweep automatically — you trigger sweeps manually per category
 
 **Access:**
 - **UI:** Click **Version Bump** in the header → enter new version → confirm
-- **CLI:** `python cli.py --version-bump 26.3.0 --repo-push`
+- **CLI:** `python cli.py --version-bump 26.3.0`
 - **API:** `POST /api/version-bump`
 
-**After bumping:** Update `NUGET_VERSION` in your `.env` file to persist the new version across restarts.
+**After version bump:** Restart the app to load new `.env` settings. All subsequent PRs will automatically target `release/{new_version}`.
+
+---
+
+### Promote to Main
+
+Promotes the completed staging branch to `main` once all category sweeps are done and reviewed.
+
+**What it does:**
+1. **Create PR** `release/{version}` → `main`
+2. **Auto-merge** the PR
+3. **Tag** `main` as `v{new_version}` + create GitHub Release
+4. **Update `.env`**: resets `REPO_BRANCH=main`, clears `PR_TARGET_BRANCH`
+5. **Delete** the staging branch
+
+**Access:**
+- **UI:** Click **Promote to Main** (green button, visible when `PR_TARGET_BRANCH` is set)
+- **CLI:** `python cli.py --promote-to-main release/26.3.0 --version 26.3.0`
+- **API:** `POST /api/promote-to-main`
+
+**After promotion:** Restart the app to load updated `.env`. Main now has the new version examples.
+
+---
+
+### Full Release Workflow
+
+Complete end-to-end guide for releasing a new version (e.g., `26.3.0`):
+
+```
+Step 1 — Version Bump
+  Click "Version Bump" → enter 26.3.0
+  ├── Tags main as v26.2.0
+  ├── Creates GitHub Release v26.2.0
+  ├── Creates empty branch: release/26.3.0
+  └── Updates .env: NUGET_VERSION=26.3.0, PR_TARGET_BRANCH=release/26.3.0
+
+  → Restart the app
+
+Step 2 — Generate per category (repeat for all 35 categories)
+  Task Generator → select category → Sweep Selected
+  ├── Builds examples with Aspose.PDF 26.3.0
+  ├── PR targets release/26.3.0 (not main)
+  └── Review and merge each category PR on GitHub
+
+Step 3 — Promote to Main (when all categories are done)
+  Click "Promote to Main"
+  ├── Creates PR: release/26.3.0 → main
+  ├── Auto-merges PR
+  ├── Tags main as v26.3.0
+  ├── Creates GitHub Release v26.3.0
+  ├── Resets .env: REPO_BRANCH=main, PR_TARGET_BRANCH=(cleared)
+  └── Deletes release/26.3.0 branch
+
+  → Restart the app → main now has Aspose.PDF 26.3.0 examples
+```
+
+Old versions are permanently preserved via Git tags and GitHub Releases (`v26.2.0`, `v26.1.0`, etc.).
+
+---
+
+## PR Target Branch
+
+Controls which branch all PRs merge into. This is the key setting for the release workflow.
+
+| Setting | When to use |
+|---------|-------------|
+| Empty (default) | Normal operation — PRs target `REPO_BRANCH` (usually `main`) |
+| `release/26.3.0` | Release workflow — PRs target the staging branch |
+
+**How it flows:**
+- Set via `PR_TARGET_BRANCH` in `.env`
+- Override per-run in UI Options → **PR Target Branch** field
+- Override per-run in API via `pr_target_branch` in request body
+- Override per-run in CLI via `--pr-target-branch`
+
+**Visual indicator:** The repo badge in the header shows the active target:
+```
+aspose-pdf/agentic-net-examples : main → release/26.3.0
+```
+
+Every PR creation path (single job, CSV, sweep, "Create PR" button) uses `effective_pr_target`, which resolves to `PR_TARGET_BRANCH` if set, otherwise `REPO_BRANCH`.
 
 ---
 
@@ -397,9 +523,10 @@ Every job run sends a usage report to a configurable endpoint (Google Apps Scrip
 - Run duration, token usage, API call count
 - Product, platform, website metadata
 
-**Local logging:** Each report is appended as a JSON line to `usage_reports.jsonl` for local review.
+**Local logging:** Each report is appended as a JSON line to `usage_reports.jsonl` for local review before sending to remote.
 
 **Config switches:**
+
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `REPORTING_ENABLED` | `true` | Master switch for all reporting |
@@ -447,7 +574,7 @@ Control how generated C# code is compiled and executed.
 |----------|---------|-------------|
 | `BUILD_TFM` | `net10.0` | .NET target framework moniker |
 | `NUGET_PACKAGE` | `Aspose.PDF` | NuGet package name in `.csproj` |
-| `NUGET_VERSION` | `26.2.0` | Aspose.PDF NuGet package version |
+| `NUGET_VERSION` | `26.2.0` | Aspose.PDF NuGet package version — updated automatically by Version Bump |
 | `BUILD_TIMEOUT` | `30` | Max seconds for `dotnet build` |
 | `RUN_TIMEOUT` | `30` | Max seconds for `dotnet run` |
 | `BUILD_VERBOSITY` | `minimal` | dotnet build verbosity (`quiet`, `minimal`, `normal`, `detailed`) |
@@ -512,7 +639,8 @@ Control how generated examples are committed and how PRs are created.
 |----------|---------|-------------|
 | `REPO_URL` | `https://github.com/aspose-pdf/agentic-net-examples.git` | Target GitHub repository |
 | `REPO_PATH` | *(local path)* | Local clone path |
-| `REPO_BRANCH` | `main` | Base branch for feature branches |
+| `REPO_BRANCH` | `main` | Branch to check out and push commits to |
+| `PR_TARGET_BRANCH` | *(empty)* | Branch PRs merge INTO — overrides `REPO_BRANCH` for PR base. Set to `release/26.3.0` during release workflow, leave empty for normal operation |
 | `REPO_PUSH` | `false` | Auto-push commits (CLI override with `--repo-push`) |
 | `REPO_TOKEN` | *(required for PR)* | GitHub PAT with repo scope |
 | `REPO_USER` | *(required for PR)* | Git author email |
@@ -542,7 +670,7 @@ When `PR_SPLIT_THRESHOLD=0` (default):
 
 The **Update Repo Docs** feature creates a separate PR with cumulative documentation:
 
-- Scans all `.cs` files on the main branch
+- Scans all `.cs` files on the target branch
 - Generates root `agents.md` with full example listing
 - Generates per-category `agents.md` files
 - Optionally updates the README.md category listing
@@ -663,6 +791,7 @@ Auto-learned rules can be reviewed in the **Learned Rules** tab in the Web UI, o
 |----------|--------|-------------|
 | `GET /api/auto-fixes` | — | List all auto rules with confidence, hit count, source stage |
 | `POST /api/auto-fixes/{id}/approve` | — | Promote to curated `error_fixes.json` |
+| `POST /api/auto-fixes/approve-all` | — | Promote all auto rules at once |
 | `DELETE /api/auto-fixes/{id}` | — | Remove a bad auto rule |
 
 ### Configuration
@@ -683,13 +812,18 @@ Auto-learned rules can be reviewed in the **Learned Rules** tab in the Web UI, o
 When `repo_push=true` is enabled, the pipeline commits results to GitHub:
 
 1. **Clone/Pull** — `RepoManager` clones the repo (or pulls latest) with token auth
-2. **Branch** — Creates a feature branch from the base branch (e.g., `examples/batch-abc123`)
+2. **Branch** — Creates a feature branch from `REPO_BRANCH` (e.g., `examples/batch-abc123`)
 3. **Write Files** — Each passed example is saved as `{category}/{slug}.cs`
 4. **Commit** — LLM generates a commit message summarizing the changes
 5. **Push** — Push branch to origin
-6. **Create PR** — LLM generates PR title and body, creates via GitHub API
+6. **Create PR** — LLM generates PR title and body, creates via GitHub API targeting `effective_pr_target`
 
 **File naming:** Tasks are slugified (lowercase, special chars removed). If a file already exists, it auto-versions: `file__v2.cs`, `file__v3.cs`.
+
+**PR target resolution:**
+```
+PR_TARGET_BRANCH (if set) → REPO_BRANCH → "main"
+```
 
 **PR Splitting:** For large batches, set `PR_SPLIT_THRESHOLD` to create one PR per category instead of a single massive PR.
 
@@ -717,6 +851,18 @@ Regex-based pattern matching for common build errors. Each entry maps an error p
 
 Curated database of real error→fix pairs. Scored by error code matches (3 pts) and key phrase matches (2 pts). Top 10 fixes are included as context for LLM and regeneration stages.
 
+### Auto-Generation Rules (`auto_generation_rules.json`)
+
+Auto-generated from MCP `/retrieve` across all 35 categories (1,487 unique rules). Contains the full API surface documentation — class signatures, method parameters, and usage patterns — organized by category. Generated by running:
+
+```bash
+python scripts/populate_generation_rules.py
+python scripts/populate_generation_rules.py --categories "Basic Operations" "Conversion"
+python scripts/populate_generation_rules.py --limit 30  # chunks per query
+```
+
+Re-run after each major NuGet version upgrade to pick up new APIs.
+
 ### Fix History (`fix_history.json`)
 
 Auto-populated from successful fixes. Caps at 500 entries. Boosts future searches for similar error patterns, making the system learn from its own corrections over time.
@@ -728,15 +874,16 @@ Auto-populated from successful fixes. Caps at 500 entries. Boosts future searche
 ```
 aspose-pdf-api-v2/
 ├── main.py                    # FastAPI app entry point
-├── cli.py                     # CLI interface (single, csv, sweep, version-bump)
+├── cli.py                     # CLI interface (single, csv, sweep, version-bump, promote)
 ├── config.py                  # Typed configuration (dataclasses + env vars)
 ├── state.py                   # Thread-safe in-memory job state
-├── jobs.py                    # Background job runner (run_job, run_sweep, run_version_bump)
+├── jobs.py                    # Background job runners (run_job, run_sweep, run_version_bump, run_promote_to_main)
 ├── reporting.py               # Fire-and-forget usage reporting (remote + local JSONL)
 │
 ├── pipeline/
 │   ├── runner.py              # 5-stage pipeline orchestrator
 │   ├── stages.py              # Individual stage implementations
+│   ├── models.py              # Data classes (TaskInput, PipelineResult, StageOutcome with metadata)
 │   ├── build.py               # DotnetBuilder (compile + run with timeout kill)
 │   ├── mcp_client.py          # MCP API client (generate + retrieve)
 │   ├── llm_client.py          # LLM client (fix, decompose, commit msg, PR)
@@ -749,22 +896,22 @@ aspose-pdf-api-v2/
 │   ├── error_catalog.py       # Error pattern → fix guidance matching
 │   ├── error_fixes.py         # Scored error fix matching (confidence-weighted)
 │   ├── fix_history.py         # Auto-recorded successful fix history
-│   ├── auto_fixes.py          # Auto-learned fix persistence + promotion
+│   ├── auto_fixes.py          # Auto-learned fix persistence + promotion (incl. approve_all)
 │   ├── auto_learner.py        # Self-learning: extract rules from successful fixes
 │   └── pattern_tracker.py     # Track recurring code transformations
 │
 ├── git_ops/
 │   ├── repo.py                # RepoManager (clone, pull, branch)
 │   ├── committer.py           # CodeCommitter (write files, stage, commit)
-│   ├── pr.py                  # PRManager (create PR, agents.md)
-│   ├── github_api.py          # GitHub REST API v3 wrapper (files, PRs, tags, releases)
+│   ├── pr.py                  # PRManager (create PR, agents.md) — uses effective_pr_target
+│   ├── github_api.py          # GitHub REST API v3 wrapper (files, PRs, tags, releases, branches)
 │   ├── agents_md.py           # Generate agents.md from batch results
 │   ├── agents_content.py      # Domain knowledge + agents.md content generation
 │   └── repo_docs.py           # Cumulative repo scanning + docs generation
 │
 ├── routers/
 │   ├── ui.py                  # HTML UI endpoint (serves index.html)
-│   ├── jobs.py                # Job endpoints (start, sweep, version-bump, status, stream)
+│   ├── jobs.py                # Job endpoints (start, sweep, version-bump, promote, status, stream)
 │   ├── files.py               # File upload endpoint
 │   └── proxy.py               # Categories/tasks API proxy
 │
@@ -773,11 +920,16 @@ aspose-pdf-api-v2/
 │
 ├── resources/
 │   ├── kb.json                # Knowledge base rules
+│   ├── generation_rules.json  # Curated generation rules (API usage constraints)
+│   ├── auto_generation_rules.json  # Auto-generated rules from MCP /retrieve (1,487 rules)
 │   ├── error_catalog.json     # Error pattern catalog
 │   ├── error_fixes.json       # Curated error fixes
 │   ├── auto_fixes.json        # Auto-learned error fixes (generated)
 │   ├── auto_error_catalog.json # Auto-learned catalog entries (generated)
 │   └── auto_patterns.json     # Auto-promoted pattern fixes (generated)
+│
+├── scripts/
+│   └── populate_generation_rules.py  # One-time script to generate auto_generation_rules.json
 │
 ├── requirements.txt           # Python dependencies
 ├── .env.example               # Environment variable template
@@ -797,3 +949,6 @@ aspose-pdf-api-v2/
 | State lost on restart | Expected — state is in-memory only. Use CSV export to save results |
 | Multi-worker state issues | Must run with `--workers 1`. State is not shared across processes |
 | MCP API timeouts | Auto-retried 3 times with 2s backoff. Increase `MCP_TIMEOUT` if persistent |
+| PRs targeting wrong branch | Check `PR_TARGET_BRANCH` in `.env` and the **PR Target Branch** field in UI Options |
+| Version bump created branch already exists | Safe to re-run — it detects existing branch and skips creation |
+| Promote to Main auto-merge failed | PR is still created — merge manually on GitHub, then re-run promote or tag manually |

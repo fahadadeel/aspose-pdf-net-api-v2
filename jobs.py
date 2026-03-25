@@ -1208,10 +1208,15 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
 
         if gh.get_branch_sha(owner, repo_name, staging_branch):
             add_log(job_id, f"Branch {staging_branch} already exists — skipping creation")
-        elif gh.create_empty_branch(owner, repo_name, staging_branch):
+        elif gh.create_empty_branch(
+            owner, repo_name, staging_branch,
+            log_fn=lambda msg: add_log(job_id, msg),
+        ):
             add_log(job_id, f"✓ Created empty branch: {staging_branch}")
         else:
             add_log(job_id, f"ERROR: Could not create branch {staging_branch}")
+            add_log(job_id, "  Check: REPO_TOKEN has 'repo' (contents write) scope")
+            add_log(job_id, f"  Repo:  {config.git.repo_url}")
             set_status(job_id, "failed")
             return
 
