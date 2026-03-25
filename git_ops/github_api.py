@@ -187,22 +187,36 @@ class GitHubAPI:
             print(f"[GitHub] Error creating release: {e}")
             return None
 
-    def create_empty_branch(self, owner: str, repo: str, branch: str) -> bool:
-        """Create an empty orphan branch (no parent commits) via GitHub Git Data API."""
+    def create_empty_branch(self, owner: str, repo: str, branch: str,
+                            log_fn=None) -> bool:
+        """Create an orphan branch (no parent commits) via GitHub Git Data API.
+
+        Uses a minimal tree with a .gitkeep placeholder — empty trees are
+        rejected by the GitHub API. Accepts an optional log_fn(msg) callback
+        so callers can route error messages to their own logging system.
+        """
+        def _log(msg: str):
+            if log_fn:
+                log_fn(msg)
+            print(msg)
+
         try:
-            # 1. Create an empty tree
+            # 1. Create a minimal tree with a .gitkeep blob (empty trees fail on GitHub)
             tree_r = self._session.post(
                 f"https://api.github.com/repos/{owner}/{repo}/git/trees",
                 headers=self._headers,
-                json={"tree": []},
+                json={"tree": [
+                    {"path": ".gitkeep", "mode": "100644", "type": "blob", "content": ""}
+                ]},
                 timeout=10,
             )
             if tree_r.status_code not in (200, 201):
-                print(f"[GitHub] Empty tree creation failed: {tree_r.text[:200]}")
+                _log(f"[GitHub] Tree creation failed ({tree_r.status_code}): {tree_r.text[:300]}")
                 return False
             tree_sha = tree_r.json()["sha"]
+            _log(f"[GitHub] Created tree: {tree_sha}")
 
-            # 2. Create an empty commit (no parents)
+            # 2. Create orphan commit (no parents)
             commit_r = self._session.post(
                 f"https://api.github.com/repos/{owner}/{repo}/git/commits",
                 headers=self._headers,
@@ -210,14 +224,26 @@ class GitHubAPI:
                 timeout=10,
             )
             if commit_r.status_code not in (200, 201):
-                print(f"[GitHub] Empty commit creation failed: {commit_r.text[:200]}")
+                _log(f"[GitHub] Commit creation failed ({commit_r.status_code}): {commit_r.text[:300]}")
                 return False
             commit_sha = commit_r.json()["sha"]
+            _log(f"[GitHub] Created orphan commit: {commit_sha}")
 
-            # 3. Create branch from empty commit
-            return self.create_branch(owner, repo, branch, commit_sha)
+            # 3. Create branch ref from the orphan commit
+            ref_r = self._session.post(
+                f"https://api.github.com/repos/{owner}/{repo}/git/refs",
+                headers=self._headers,
+                json={"ref": f"refs/heads/{branch}", "sha": commit_sha},
+                timeout=10,
+            )
+            if ref_r.status_code in (200, 201):
+                _log(f"[GitHub] Branch ref created: refs/heads/{branch}")
+                return True
+            error_msg = ref_r.json().get("message", ref_r.text[:200])
+            _log(f"[GitHub] Branch ref creation failed ({ref_r.status_code}): {error_msg}")
+            return False
         except Exception as e:
-            print(f"[GitHub] Error creating empty branch: {e}")
+            _log(f"[GitHub] Error creating empty branch: {e}")
             return False
 
     def merge_pull_request(self, owner: str, repo: str, pr_number: int,
