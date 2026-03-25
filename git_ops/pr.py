@@ -186,7 +186,17 @@ class PRManager:
         return pr_url
 
     def retry_pr(self, old_pr_branch: str, results_summary: list) -> Optional[str]:
-        """Create a new conflict-free PR from already-generated examples."""
+        """Create a new PR from already-generated examples, including agents.md and index.json.
+
+        Recovers .cs files from the old branch, then generates agents.md and
+        index.json per category so the new PR is fully populated.
+        """
+        import json
+        from datetime import datetime, timezone
+        from pathlib import Path
+        from git_ops.repo_docs import generate_cumulative_category_agents_md
+        from git_ops.agents_md import _generate_run_id
+
         if not self.repo.ensure_ready():
             return None
 
@@ -197,6 +207,7 @@ class PRManager:
         base = self.config.git.effective_pr_target
         new_branch = f"examples/retry-{uuid.uuid4().hex[:8]}"
         repo_path = self.config.git.repo_path
+        run_id = _generate_run_id()
 
         try:
             with _git_lock:
@@ -209,21 +220,96 @@ class PRManager:
                     cwd=repo_path, check=True, capture_output=True, text=True,
                 )
 
+                # Recover .cs files from the old branch
+                # Try LLM filename first, fall back to slugified task name
                 files_ok = 0
+                recovered: dict = {}  # cat_slug → {filename_stem → metadata}
+
                 for result in results_summary:
                     category = result.get("category", "")
                     task = result.get("task", "")
+                    metadata = result.get("metadata") or {}
                     if not task:
                         continue
-                    cat_dir = normalize_category(category)
-                    filename = slugify(task, max_len=120) + ".cs"
-                    file_path = f"{cat_dir}/{filename}"
-                    r = subprocess.run(
-                        ["git", "checkout", f"origin/{old_pr_branch}", "--", file_path],
-                        cwd=repo_path, capture_output=True, text=True,
+                    cat_slug = normalize_category(category)
+
+                    # Try LLM filename first, then slugified fallback
+                    llm_filename = metadata.get("filename", "").strip()
+                    candidates = []
+                    if llm_filename:
+                        import re as _re
+                        llm_slug = _re.sub(r"[^a-z0-9._-]", "-", llm_filename.lower())
+                        llm_slug = _re.sub(r"-+", "-", llm_slug).strip("-")[:100]
+                        candidates.append(f"{llm_slug}.cs")
+                    candidates.append(f"{slugify(task, max_len=120)}.cs")
+
+                    for filename in candidates:
+                        file_path = f"{cat_slug}/{filename}"
+                        r = subprocess.run(
+                            ["git", "checkout", f"origin/{old_pr_branch}", "--", file_path],
+                            cwd=repo_path, capture_output=True, text=True,
+                        )
+                        if r.returncode == 0:
+                            files_ok += 1
+                            recovered.setdefault(cat_slug, {})[
+                                filename.replace(".cs", "")
+                            ] = {"metadata": metadata, "category": category}
+                            break
+
+                # Generate index.json and agents.md per recovered category
+                for cat_slug, entries in recovered.items():
+                    cat_dir = Path(repo_path) / cat_slug
+                    cat_dir.mkdir(parents=True, exist_ok=True)
+                    category_name = next(
+                        (v["category"] for v in entries.values() if v.get("category")),
+                        cat_slug,
                     )
-                    if r.returncode == 0:
-                        files_ok += 1
+
+                    # Build / merge index.json
+                    index_path = cat_dir / "index.json"
+                    index_data: dict = {}
+                    if index_path.exists():
+                        try:
+                            index_data = json.loads(index_path.read_text(encoding="utf-8"))
+                        except Exception:
+                            index_data = {}
+                    index_data.setdefault("category", category_name)
+                    index_data["nuget_version"] = self.config.build.nuget_version
+                    index_data["last_updated"] = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                    index_data.setdefault("examples", {})
+
+                    for stem, info in entries.items():
+                        m = info["metadata"]
+                        index_data["examples"][stem] = {
+                            "title": m.get("title") or stem.replace("-", " ").title(),
+                            "filename": f"{stem}.cs",
+                            "description": m.get("description", ""),
+                            "tags": m.get("tags", []),
+                            "apis_used": m.get("apis_used", []),
+                            "difficulty": m.get("difficulty", ""),
+                            "generated_at": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                            "status": "verified",
+                        }
+                    index_path.write_text(
+                        json.dumps(index_data, indent=2, ensure_ascii=False), encoding="utf-8"
+                    )
+
+                    # Generate agents.md
+                    cs_files = sorted(f"{stem}.cs" for stem in entries)
+                    agents_content = generate_cumulative_category_agents_md(
+                        category_name, cs_files, run_id,
+                        kb_path=self.config.rules_examples_path,
+                        repo_path=repo_path,
+                        tfm=self.config.build.tfm,
+                        nuget_version=self.config.build.nuget_version,
+                    )
+                    agents_path = cat_dir / "agents.md"
+                    agents_path.write_text(agents_content, encoding="utf-8")
+
+                    subprocess.run(
+                        ["git", "add", str(index_path), str(agents_path)],
+                        cwd=repo_path, check=True, capture_output=True, text=True,
+                    )
 
                 status_out = subprocess.run(
                     ["git", "status", "--porcelain"],
@@ -232,7 +318,8 @@ class PRManager:
 
                 if status_out:
                     subprocess.run(
-                        ["git", "commit", "-m", f"Add {files_ok} code example(s) (retry)"],
+                        ["git", "commit", "-m",
+                         f"Add {files_ok} example(s) with index.json + agents.md (retry)"],
                         cwd=repo_path, check=True, capture_output=True, text=True,
                     )
 
