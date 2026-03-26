@@ -262,9 +262,14 @@ def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_su
                     timeout=60,
                 )
 
-            # Create PR for this category
+            # Create PR for this category — build results_summary from commits for LLM description
+            cat_results_summary = [
+                {"task": c["prompt"], "category": cat_name, "status": "PASSED"}
+                for c in commits
+            ]
             repo.pr_branch = cat_branch
-            pr_url = pr_manager.create_category_pr(cat_name, len(commits))
+            pr_url = pr_manager.create_category_pr(cat_name, len(commits),
+                                                    results_summary=cat_results_summary)
             if pr_url:
                 pr_urls.append(pr_url)
                 add_log(job_id, f"[{cat_name}] PR created: {pr_url}")
@@ -1105,8 +1110,13 @@ def run_sweep(
                         subprocess.run(["git", "commit", "-m", f"Add {len(committer._pending_commits)} example(s) for {cat_name}"], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
                         subprocess.run(["git", "push", "-u", "origin", cat_branch], cwd=config.git.repo_path, check=True, capture_output=True, text=True, timeout=60)
 
+                    sweep_results_summary = [
+                        {"task": c["prompt"], "category": cat_name, "status": "PASSED"}
+                        for c in committer._pending_commits
+                    ]
                     repo.pr_branch = cat_branch
-                    pr_url = pr_manager.create_category_pr(cat_name, len(committer._pending_commits))
+                    pr_url = pr_manager.create_category_pr(cat_name, len(committer._pending_commits),
+                                                           results_summary=sweep_results_summary)
                     if pr_url:
                         all_pr_urls.append(pr_url)
                         add_log(job_id, f"[{cat_name}] PR created: {pr_url}")
