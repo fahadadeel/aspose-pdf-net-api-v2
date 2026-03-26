@@ -4,6 +4,13 @@
   "version": "26.2.0",
   "rules": {
     "__comment_section_1__": "=== GLOBAL RULES — apply across ALL tasks ===",
+    "no-var-use-explicit-types": {
+      "note": "NEVER use `var` in generated examples. Always declare the explicit type. This is rule #1 for code style — all examples must use explicit type declarations for clarity and discoverability. The only exception is anonymous types in LINQ projections where no explicit type exists.",
+      "code": "// CORRECT — explicit types always:\nDocument doc = new Document();\nPage page = doc.Pages.Add();\nTextFragment text = new TextFragment(\"Hello World\");\nAnnotationCollection annotations = page.Annotations;\n\n// CORRECT — foreach with explicit type:\nforeach (Annotation ann in page.Annotations) { }\n\n// WRONG — never use var:\n// var doc = new Document();       // VIOLATION\n// var page = doc.Pages.Add();     // VIOLATION\n// var text = new TextFragment();  // VIOLATION",
+      "errors": [],
+      "works_on": ["Windows", "macOS", "Linux"],
+      "fails_on": []
+    },
     "default-appearance-font-is-readonly-and-no-fontcolor": {
       "note": "DefaultAppearance.Font is a read-only property — it cannot be assigned via object initializer. Use the constructor overload that accepts font name and size: new DefaultAppearance(string fontName, double fontSize, Color textColor). Also, there is no 'FontColor' property; the correct property name is 'TextColor' or pass the color via the constructor.",
       "code": "// CORRECT — use the constructor:\nDefaultAppearance appearance = new DefaultAppearance(\"Helvetica\", 12, Aspose.Pdf.Color.Black);\n\n// CORRECT — use parameterless then set via TextColor:\nDefaultAppearance appearance = new DefaultAppearance();\nappearance.TextColor = Aspose.Pdf.Color.Black;\nappearance.FontSize = 12;\n\n// WRONG — Font is read-only:\n// DefaultAppearance appearance = new DefaultAppearance\n// {\n//     Font = FontRepository.FindFont(\"Helvetica\"),  // CS0200: read only\n//     FontSize = 12,\n//     FontColor = Aspose.Pdf.Color.Black             // CS0117: no 'FontColor'\n// };",
