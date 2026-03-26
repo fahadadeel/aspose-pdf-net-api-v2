@@ -217,6 +217,14 @@ TASK:
 GROUND TRUTH DOCUMENTATION:
 {chunks_text}
 
+CODE STYLE RULES (MANDATORY — violations will be rejected):
+- NEVER use `var`. Always declare the explicit type: `Document doc = new Document();` NOT `var doc = new Document();`
+- NEVER use implicit usings. Always write every `using` directive explicitly at the top of the file.
+- ALWAYS use fully qualified type names when ambiguity exists: `Aspose.Pdf.Color`, `Aspose.Pdf.Rectangle`, `Aspose.Pdf.Image`.
+- ALWAYS use explicit float literals: `0.5f` or `(float)0.5`, never assign a double literal to a float variable.
+- ALWAYS wrap `Document` operations in `using` blocks: `using (Document doc = new Document()) {{ ... }}`
+- Output path must be a simple filename: `doc.Save("output.pdf");` — no directory paths.
+
 OUTPUT REQUIREMENTS:
 Return a JSON object with exactly these keys:
 {{

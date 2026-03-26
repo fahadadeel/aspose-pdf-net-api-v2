@@ -33,6 +33,35 @@ from knowledge.reranker import llm_rerank_rules
 Notify = Callable[[str, str], None]
 
 
+# ── var → explicit-type regex replacements ────────────────────────────────────
+# These cover the most common patterns the LLM produces with `var`.
+# Each tuple: (regex pattern, replacement using captured groups)
+# Applied deterministically before building — no LLM involved.
+_VAR_REPLACEMENTS: list = [
+    # var x = new SomeType(         →  SomeType x = new SomeType(
+    (re.compile(r'\bvar\s+(\w+)\s*=\s*new\s+([\w.]+)\s*\('), r'\2 \1 = new \2('),
+    # var x = new SomeType {        →  SomeType x = new SomeType {
+    (re.compile(r'\bvar\s+(\w+)\s*=\s*new\s+([\w.]+)\s*\{'), r'\2 \1 = new \2 {'),
+    # var x = new SomeType[         →  SomeType[] x = new SomeType[
+    (re.compile(r'\bvar\s+(\w+)\s*=\s*new\s+([\w.]+)\[\]'), r'\2[] \1 = new \2[]'),
+    # foreach (var x in            →  foreach (var x in  — skip (type unknown without analysis)
+]
+
+
+def _sanitize_code(code: str) -> str:
+    """Apply deterministic style fixes to generated C# code.
+
+    Currently enforces:
+    - No `var` for `new T(...)` / `new T {` / `new T[]` patterns
+      where the type is recoverable from the right-hand side.
+    - Does NOT touch: foreach(var ...), LINQ anonymous projections,
+      or any pattern where the type cannot be inferred syntactically.
+    """
+    for pattern, replacement in _VAR_REPLACEMENTS:
+        code = pattern.sub(replacement, code)
+    return code
+
+
 def run_baseline(
     task_input: TaskInput, mcp: MCPClient, builder: DotnetBuilder, notify: Notify,
     llm: LLMClient = None, config: AppConfig = None, generation_rules: str = "",
@@ -69,6 +98,9 @@ def run_baseline(
 
     if not code:
         return StageOutcome(success=False, stage="baseline", build_log="API call failed")
+
+    # Apply deterministic style guard (e.g. var → explicit types)
+    code = _sanitize_code(code)
 
     builder.write_csproj()
     builder.write_program_cs(code)
