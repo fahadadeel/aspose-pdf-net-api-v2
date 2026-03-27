@@ -826,6 +826,50 @@
       opacity: 0.5;
       cursor: not-allowed;
     }
+    .btn-release {
+      background: #2d8cf0;
+      border: 1px solid #1a7ae0;
+      color: #fff;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn-release:hover:not(:disabled) {
+      background: #1a7ae0;
+    }
+    .btn-release:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+    .btn-merge {
+      background: #2ea043;
+      border: 1px solid #238636;
+      color: #fff;
+      padding: 6px 14px;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: var(--radius);
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s ease;
+      white-space: nowrap;
+    }
+    .btn-merge:hover:not(:disabled) {
+      background: #238636;
+    }
+    .btn-merge:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
 
     /* ── Hidden ─────────────────────────────────────────────────────── */
     .hidden { display: none !important; }
@@ -859,8 +903,8 @@
   </div>
   <div class="header-actions">
     <button class="btn-docs" id="update-docs-btn" onclick="updateRepoDocs()">&#128196; Update Repo Docs</button>
-    <button class="btn-docs" id="version-bump-btn" onclick="startVersionBump()" style="background:#2d8cf0;">&#x1F4E6; Version Bump</button>
-    <button class="btn-docs" id="promote-btn" onclick="promoteToMain()" style="background:#4caf50;display:{% if pr_target_branch %}inline-flex{% else %}none{% endif %};">&#x1F680; Promote to Main</button>
+    <button class="btn-release" id="version-bump-btn" onclick="startVersionBump()">&#x1F3F7;&#xFE0F; New Release</button>
+    <button class="btn-merge" id="promote-btn" onclick="promoteToMain()" style="display:{% if pr_target_branch %}inline-flex{% else %}none{% endif %};">&#x1F500; Merge to Main</button>
     <span class="repo-badge">{{ repo_display }} : {{ repo_branch }}{% if pr_target_branch %} &rarr; {{ pr_target_branch }}{% endif %}</span>
     <button class="btn hidden" id="run-again-btn" onclick="runAgain()">&#9654; Run Again</button>
     <button class="btn btn-danger hidden" id="stop-btn" onclick="stopJob()">&#9209; Stop</button>
@@ -1008,7 +1052,7 @@
         &#9654; Start
       </button>
       <button class="btn btn-primary" id="sweep-btn" onclick="startSweep()" style="display:none;margin-left:8px;background:#2d8cf0;" title="Processes ALL tasks in each selected category. Creates a usage report and PR (if enabled) after each category.">
-        &#x1F500; Sweep Selected
+        &#x26A1; Batch Generate
       </button>
     </div>
     <div id="sweep-hint" style="display:none;text-align:center;margin-top:6px;font-size:0.78em;color:#888;">
@@ -1606,7 +1650,7 @@
       alert('Please select at least one category to sweep.');
       return;
     }
-    if (!confirm('Sweep ' + selected.length + ' category(ies)? This will process ALL tasks in each selected category.\n\nCategories: ' + selected.join(', '))) {
+    if (!confirm('Batch Generate ' + selected.length + ' category(ies)? This will process ALL tasks in each selected category.\n\nCategories: ' + selected.join(', '))) {
       return;
     }
 
@@ -1632,7 +1676,7 @@
       if (data.error) {
         alert('Error: ' + data.error);
         btn.disabled = false;
-        btn.innerHTML = '&#x1F500; Sweep Selected';
+        btn.innerHTML = '&#x26A1; Batch Generate';
         startBtn.disabled = false;
         return;
       }
@@ -1643,7 +1687,7 @@
     .catch(function(err) {
       alert('Failed to start sweep: ' + err);
       btn.disabled = false;
-      btn.innerHTML = '&#x1F500; Sweep Selected';
+      btn.innerHTML = '&#x26A1; Batch Generate';
       startBtn.disabled = false;
     });
   };
@@ -2055,7 +2099,7 @@
 
     var currentVersion = '{{ nuget_version }}';
     if (!confirm(
-      'Version Bump Setup: ' + currentVersion + ' → ' + newVersion + '\n\n' +
+      'New Release: ' + currentVersion + ' → ' + newVersion + '\n\n' +
       'This will:\n' +
       '1. Tag v' + currentVersion + ' on main and create a GitHub Release\n' +
       '2. Create empty staging branch: release/' + newVersion + '\n' +
@@ -2079,19 +2123,19 @@
       if (data.error) {
         alert('Error: ' + data.error);
         btn.disabled = false;
-        btn.innerHTML = '&#x1F4E6; Version Bump';
+        btn.innerHTML = '&#x1F3F7;&#xFE0F; New Release';
         return;
       }
       currentJobId = data.job_id;
       showMonitor();
       connectSSE(currentJobId);
       btn.disabled = false;
-      btn.innerHTML = '&#x1F4E6; Version Bump';
+      btn.innerHTML = '&#x1F3F7;&#xFE0F; New Release';
     })
     .catch(function(err) {
       alert('Failed: ' + err);
       btn.disabled = false;
-      btn.innerHTML = '&#x1F4E6; Version Bump';
+      btn.innerHTML = '&#x1F3F7;&#xFE0F; New Release';
     });
   };
 
@@ -2101,12 +2145,12 @@
     var newVersion = '{{ nuget_version }}';
 
     if (!stagingBranch) {
-      alert('No staging branch configured. Run Version Bump first.');
+      alert('No staging branch configured. Run New Release first.');
       return;
     }
 
     if (!confirm(
-      'Promote to Main: ' + stagingBranch + ' → main\n\n' +
+      'Merge to Main: ' + stagingBranch + ' → main\n\n' +
       'This will:\n' +
       '1. Create PR: ' + stagingBranch + ' → main\n' +
       '2. Auto-merge the PR\n' +
@@ -2131,19 +2175,19 @@
       if (data.error) {
         alert('Error: ' + data.error);
         btn.disabled = false;
-        btn.innerHTML = '&#x1F680; Promote to Main';
+        btn.innerHTML = '&#x1F500; Merge to Main';
         return;
       }
       currentJobId = data.job_id;
       showMonitor();
       connectSSE(currentJobId);
       btn.disabled = false;
-      btn.innerHTML = '&#x1F680; Promote to Main';
+      btn.innerHTML = '&#x1F500; Merge to Main';
     })
     .catch(function(err) {
       alert('Failed: ' + err);
       btn.disabled = false;
-      btn.innerHTML = '&#x1F680; Promote to Main';
+      btn.innerHTML = '&#x1F500; Merge to Main';
     });
   };
 
