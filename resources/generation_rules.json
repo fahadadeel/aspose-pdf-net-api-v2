@@ -12,7 +12,11 @@
         "CS1069: The type name 'ServiceBase' could not be found in the namespace 'System.ServiceProcess'",
         "CS0234: The type or namespace name 'SQLite' does not exist in the namespace 'System.Data'"
       ],
-      "works_on": ["Windows", "macOS", "Linux"],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
       "fails_on": []
     },
     "document-factory-not-static-use-new-document": {
@@ -21,14 +25,91 @@
       "errors": [
         "CS0120: An object reference is required for the non-static field, method, or property 'DocumentFactory.CreateDocument(Stream)'"
       ],
-      "works_on": ["Windows", "macOS", "Linux"],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "autofiller-class-name-is-autofiller-not-autofiller-lowercase": {
+      "note": "The correct class name is `AutoFiller` (capital F) — NOT `Autofiller` (lowercase f). `Autofiller` does not exist in Aspose.Pdf.Facades and causes CS0246. Always write `AutoFiller` exactly as shown.",
+      "code": "// CORRECT — capital F:\nusing Aspose.Pdf.Facades;\n\nAutoFiller autoFiller = new AutoFiller();\nautoFiller.BindPdf(\"template.pdf\");\nautoFiller.ImportDataTable(dataTable);\nautoFiller.Save(\"filled.pdf\");\n\n// WRONG — lowercase f causes CS0246:\n// Autofiller autofiller = new Autofiller(\"template.pdf\"); // CS0246",
+      "errors": [
+        "CS0246: The type or namespace name 'Autofiller' could not be found"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "form-facades-does-not-have-importdatatable-use-autofiller": {
+      "note": "Aspose.Pdf.Facades.Form does NOT have an `ImportDataTable()` method. To import a DataTable into a PDF form, use `AutoFiller.ImportDataTable()`. Use `Form` only for reading field names, checking required fields, or getting/setting individual field values. Use `AutoFiller` to do the actual DataTable import.",
+      "code": "// CORRECT — use AutoFiller for DataTable import:\nusing Aspose.Pdf.Facades;\nusing System.Data;\n\nDataTable dataTable = new DataTable();\ndataTable.Columns.Add(\"FirstName\", typeof(string));\nDataRow row = dataTable.NewRow();\nrow[\"FirstName\"] = \"John\";\ndataTable.Rows.Add(row);\n\nAutoFiller autoFiller = new AutoFiller();\nautoFiller.BindPdf(\"template.pdf\");\nautoFiller.ImportDataTable(dataTable);\nautoFiller.Save(\"filled.pdf\");\n\n// ALSO OK — use Form to check required fields first, then AutoFiller to fill:\nusing (Aspose.Pdf.Document doc = new Aspose.Pdf.Document(\"template.pdf\"))\n{\n    Form form = new Form(doc);\n    foreach (string fieldName in form.FieldNames)\n    {\n        if (form.IsRequiredField(fieldName) && !dataTable.Columns.Contains(fieldName))\n            throw new Exception($\"Missing column: {fieldName}\");\n    }\n}\n\n// WRONG — Form does not have ImportDataTable:\n// Form pdfForm = new Form(doc);\n// pdfForm.ImportDataTable(dataTable); // CS1061",
+      "errors": [
+        "CS1061: 'Form' does not contain a definition for 'ImportDataTable'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-unit-test-frameworks-write-console-app": {
+      "note": "NEVER generate unit test code using NUnit, xUnit, MSTest, or any testing framework. The project only has Aspose.PDF NuGet — test frameworks are not available (CS0246). Instead, write a plain console application that demonstrates the same behavior: perform the operation, then verify the result with a Console.WriteLine or conditional check.",
+      "code": "// CORRECT — console app demonstrating verification:\nusing System;\nusing System.Data;\nusing Aspose.Pdf.Facades;\n\nDataTable dataTable = new DataTable();\ndataTable.Columns.Add(\"FirstName\", typeof(string));\nDataRow row = dataTable.NewRow();\nrow[\"FirstName\"] = \"John\";\ndataTable.Rows.Add(row);\n\nAutoFiller autoFiller = new AutoFiller();\nautoFiller.BindPdf(\"template.pdf\");\nautoFiller.ImportDataTable(dataTable);\nautoFiller.Save(\"filled.pdf\");\n\n// Verify by reading back\nForm form = new Form(\"filled.pdf\");\nstring value = form.GetFieldValue(\"FirstName\");\nConsole.WriteLine(value == \"John\" ? \"PASS: FirstName matches\" : $\"FAIL: got '{value}'\");\n\n// WRONG — NUnit not available in this project:\n// using NUnit.Framework; // CS0246\n// [Test] public void MyTest() { ... } // CS0246",
+      "errors": [
+        "CS0246: The type or namespace name 'NUnit' could not be found",
+        "CS0246: The type or namespace name 'TestAttribute' could not be found",
+        "CS0246: The type or namespace name 'Assert' could not be found"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "no-pagecollection-before-page-generate-event": {
+      "note": "`PageCollection.BeforePageGenerate` does NOT exist in Aspose.PDF. To add headers, footers, or other content to pages after generation, iterate `doc.Pages` directly and call `page.Paragraphs.Add()` on each page. For AutoFiller output, save first then open the output document and modify each page.",
+      "code": "// CORRECT — add date header to each page after AutoFiller completes:\nusing System;\nusing System.Data;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Facades;\nusing Aspose.Pdf.Text;\n\nAutoFiller filler = new AutoFiller();\nfiller.BindPdf(\"template.pdf\");\nfiller.Save(\"output.pdf\");\n\nusing (Document doc = new Document(\"output.pdf\"))\n{\n    string currentDate = DateTime.Now.ToString(\"d\");\n    foreach (Page page in doc.Pages)\n    {\n        TextFragment header = new TextFragment(currentDate);\n        header.Position = new Position(50, page.PageInfo.Height - 50);\n        header.TextState.FontSize = 12;\n        header.TextState.ForegroundColor = Aspose.Pdf.Color.Gray;\n        page.Paragraphs.Add(header);\n    }\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — BeforePageGenerate does not exist:\n// doc.Pages.BeforePageGenerate += ...; // CS1061\n// doc.Pages.UpdatePagination();        // CS1061",
+      "errors": [
+        "CS1061: 'PageCollection' does not contain a definition for 'BeforePageGenerate'",
+        "CS1061: 'PageCollection' does not contain a definition for 'UpdatePagination'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "watermark-use-watermarkartifact-not-watermark-class": {
+      "note": "To add a watermark to a PDF page, use `WatermarkArtifact` (in `Aspose.Pdf` namespace) — NOT `new Watermark(image, rect)`. The `Watermark(Image, Rectangle)` constructor requires `System.Drawing.Image`, not `Aspose.Pdf.Image`. There is no `page.AddWatermark()` method. Use `WatermarkArtifact.SetTextAndState()` for text watermarks or `WatermarkArtifact.SetImage()` for image watermarks, then `page.Artifacts.Add(artifact)`.",
+      "code": "// CORRECT — text watermark using WatermarkArtifact:\nusing Aspose.Pdf;\n\nusing (Document doc = new Document(\"input.pdf\"))\n{\n    foreach (Page page in doc.Pages)\n    {\n        WatermarkArtifact artifact = new WatermarkArtifact();\n        artifact.SetTextAndState(\n            \"CONFIDENTIAL\",\n            new Aspose.Pdf.Text.TextState()\n            {\n                FontSize = 72,\n                ForegroundColor = Aspose.Pdf.Color.FromArgb(50, 128, 128, 128)\n            }\n        );\n        artifact.ArtifactHorizontalAlignment = HorizontalAlignment.Center;\n        artifact.ArtifactVerticalAlignment = VerticalAlignment.Center;\n        artifact.Rotation = 45;\n        artifact.Opacity = 0.5;\n        artifact.IsBackground = true;\n        page.Artifacts.Add(artifact);\n    }\n    doc.Save(\"output.pdf\");\n}\n\n// WRONG — Watermark constructor requires System.Drawing.Image, not Aspose.Pdf.Image:\n// Image img = new Image(); img.File = \"watermark.png\";\n// Watermark wm = new Watermark(img, rect); // CS1503\n// page.AddWatermark(wm); // CS1061 — method does not exist",
+      "errors": [
+        "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Image' to 'System.Drawing.Image'",
+        "CS1061: 'Page' does not contain a definition for 'AddWatermark'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
       "fails_on": []
     },
     "no-var-use-explicit-types": {
       "note": "NEVER use `var` in generated examples. Always declare the explicit type. This is rule #1 for code style — all examples must use explicit type declarations for clarity and discoverability. The only exception is anonymous types in LINQ projections where no explicit type exists.",
       "code": "// CORRECT — explicit types always:\nDocument doc = new Document();\nPage page = doc.Pages.Add();\nTextFragment text = new TextFragment(\"Hello World\");\nAnnotationCollection annotations = page.Annotations;\n\n// CORRECT — foreach with explicit type:\nforeach (Annotation ann in page.Annotations) { }\n\n// WRONG — never use var:\n// var doc = new Document();       // VIOLATION\n// var page = doc.Pages.Add();     // VIOLATION\n// var text = new TextFragment();  // VIOLATION",
       "errors": [],
-      "works_on": ["Windows", "macOS", "Linux"],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
       "fails_on": []
     },
     "default-appearance-font-is-readonly-and-no-fontcolor": {
