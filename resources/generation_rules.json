@@ -4,6 +4,26 @@
   "version": "26.2.0",
   "rules": {
     "__comment_section_1__": "=== GLOBAL RULES — apply across ALL tasks ===",
+    "no-external-frameworks-console-app-only": {
+      "note": "Examples MUST be standalone console applications using ONLY Aspose.PDF NuGet package. NEVER use external frameworks or packages that are not in the project: no ASP.NET Core (Microsoft.AspNetCore.*), no Windows Services (System.ServiceProcess.ServiceBase), no SQLite (System.Data.SQLite, Microsoft.Data.Sqlite), no network server listeners (TcpListener, HttpListener as a server). If the task involves these, rewrite it as a simple console app that demonstrates the same Aspose.PDF operation without the external dependency. For example: instead of a REST API endpoint, write a console app that reads a PDF file and extracts text; instead of a Windows service, write a console app that processes a PDF in a directory.",
+      "code": "// CORRECT — standalone console app with only Aspose.PDF:\nusing Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nPdfExtractor extractor = new PdfExtractor();\nextractor.BindPdf(\"input.pdf\");\nextractor.ExtractText();\nextractor.GetText(\"output.txt\");\nConsole.WriteLine(\"Text extracted to output.txt\");\n\n// WRONG — requires external NuGet packages not in project:\n// app.MapPost(\"/extract\", ...) // ASP.NET Core — CS0234\n// public class MyService : ServiceBase // Windows Service — CS1069\n// SQLiteConnection conn = new SQLiteConnection(...) // SQLite — CS0246\n// TcpListener listener = new TcpListener(...) // hangs at AcceptTcpClient()",
+      "errors": [
+        "CS0234: The type or namespace name 'AspNetCore' does not exist in the namespace 'Microsoft'",
+        "CS1069: The type name 'ServiceBase' could not be found in the namespace 'System.ServiceProcess'",
+        "CS0234: The type or namespace name 'SQLite' does not exist in the namespace 'System.Data'"
+      ],
+      "works_on": ["Windows", "macOS", "Linux"],
+      "fails_on": []
+    },
+    "document-factory-not-static-use-new-document": {
+      "note": "DocumentFactory.CreateDocument(Stream) is an INSTANCE method, not static. Calling it as a static method causes CS0120. To load a Document from a Stream, always use `new Document(stream)` directly.",
+      "code": "// CORRECT — load Document from MemoryStream:\nusing System.IO;\nusing Aspose.Pdf;\n\nbyte[] pdfBytes = File.ReadAllBytes(\"input.pdf\");\nusing (MemoryStream inputStream = new MemoryStream(pdfBytes))\nusing (Document document = new Document(inputStream))\n{\n    Console.WriteLine($\"Pages: {document.Pages.Count}\");\n}\n\n// WRONG — DocumentFactory.CreateDocument is not static:\n// using (Document document = DocumentFactory.CreateDocument(inputStream)) // CS0120",
+      "errors": [
+        "CS0120: An object reference is required for the non-static field, method, or property 'DocumentFactory.CreateDocument(Stream)'"
+      ],
+      "works_on": ["Windows", "macOS", "Linux"],
+      "fails_on": []
+    },
     "no-var-use-explicit-types": {
       "note": "NEVER use `var` in generated examples. Always declare the explicit type. This is rule #1 for code style — all examples must use explicit type declarations for clarity and discoverability. The only exception is anonymous types in LINQ projections where no explicit type exists.",
       "code": "// CORRECT — explicit types always:\nDocument doc = new Document();\nPage page = doc.Pages.Add();\nTextFragment text = new TextFragment(\"Hello World\");\nAnnotationCollection annotations = page.Annotations;\n\n// CORRECT — foreach with explicit type:\nforeach (Annotation ann in page.Annotations) { }\n\n// WRONG — never use var:\n// var doc = new Document();       // VIOLATION\n// var page = doc.Pages.Add();     // VIOLATION\n// var text = new TextFragment();  // VIOLATION",
