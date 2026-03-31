@@ -25,12 +25,13 @@ import uuid
 from fastapi import APIRouter, Body, File, Form, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from jobs import run_job, run_sweep, run_version_bump, run_promote_to_main, retry_pr, create_pr, update_repo_docs
+from jobs import run_job, run_sweep, run_version_bump, run_promote_to_main, retry_pr, create_pr, update_repo_docs, run_retry_failed
 from knowledge.auto_fixes import load_auto_fixes, approve_auto_fix, approve_all_auto_fixes, delete_auto_fix
 from state import (
     JOB_CANCEL_FLAGS, JOB_LOCK,
     get_build_state, add_log,
     register_listener, unregister_listener,
+    pause_job, resume_job,
 )
 
 router = APIRouter()
@@ -363,12 +364,81 @@ async def api_cancel(job_id: str):
     state = get_build_state(job_id)
     if not state:
         return JSONResponse({"error": "Job not found"}, status_code=404)
-    if state["status"] != "running":
+    if state["status"] not in ("running",) and not state.get("paused"):
         return JSONResponse({"error": f"Job is already {state['status']}"}, status_code=400)
     with JOB_LOCK:
         JOB_CANCEL_FLAGS[job_id] = True
+    # Wake the thread if it is paused so it can see the cancel flag
+    resume_job(job_id)
     add_log(job_id, "Cancellation requested - finishing current task...")
     return {"status": "cancel_requested"}
+
+
+@router.post("/api/pause/{job_id}")
+async def api_pause(job_id: str):
+    state = get_build_state(job_id)
+    if not state:
+        return JSONResponse({"error": "Job not found"}, status_code=404)
+    if state["status"] != "running":
+        return JSONResponse({"error": f"Job is not running (status={state['status']})"}, status_code=400)
+    if state.get("paused"):
+        return JSONResponse({"error": "Job is already paused"}, status_code=400)
+    pause_job(job_id)
+    return {"status": "paused"}
+
+
+@router.post("/api/resume/{job_id}")
+async def api_resume(job_id: str):
+    state = get_build_state(job_id)
+    if not state:
+        return JSONResponse({"error": "Job not found"}, status_code=404)
+    if not state.get("paused"):
+        return JSONResponse({"error": "Job is not paused"}, status_code=400)
+    resume_job(job_id)
+    add_log(job_id, "▶ Job resumed.")
+    return {"status": "resumed"}
+
+
+@router.post("/api/retry-failed/{job_id}")
+async def api_retry_failed(job_id: str, data: dict = Body(None)):
+    """Start a new job that re-runs only the failed tasks from a completed job.
+
+    Passes category_branches from the original job so new passing examples
+    are pushed to the same branches (Option B — same PR auto-updated).
+    """
+    state = get_build_state(job_id)
+    if not state:
+        return JSONResponse({"error": "Job not found"}, status_code=404)
+    if state["status"] not in _FINISHED_STATUSES:
+        return JSONResponse({"error": "Job has not finished yet"}, status_code=400)
+
+    failed_tasks = state.get("failed_tasks", [])
+    if not failed_tasks:
+        return JSONResponse({"error": "No failed tasks to retry"}, status_code=400)
+
+    # Allow caller to override settings; fall back to original job's settings
+    repo_push = bool((data or {}).get("repo_push", state.get("repo_push", False)))
+    api_url = (data or {}).get("api_url") or None
+    pr_target_branch = ((data or {}).get("pr_target_branch") or "").strip() or None
+
+    new_job_id = str(uuid.uuid4())
+    thread = threading.Thread(
+        target=run_retry_failed,
+        args=(new_job_id, job_id, failed_tasks),
+        kwargs={
+            "repo_push": repo_push,
+            "api_url": api_url,
+            "pr_target_branch": pr_target_branch,
+        },
+        daemon=True,
+    )
+    thread.start()
+    return {
+        "new_job_id": new_job_id,
+        "original_job_id": job_id,
+        "retrying": len(failed_tasks),
+        "repo_push": repo_push,
+    }
 
 
 @router.post("/api/update-repo-docs")
