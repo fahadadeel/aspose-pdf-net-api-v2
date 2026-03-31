@@ -137,6 +137,12 @@
       color: #fff;
     }
     .btn-danger:hover { background: #f85149; border-color: #f85149; }
+    .btn-warning { background: #e3a008; border-color: #e3a008; color: #fff; }
+    .btn-warning:hover { background: #c98800; border-color: #c98800; }
+    .btn-pause { background: #6c757d; border-color: #6c757d; color: #fff; }
+    .btn-pause:hover { background: #545b62; border-color: #545b62; }
+    .btn-resume { background: #2ea043; border-color: #2ea043; color: #fff; }
+    .btn-resume:hover { background: #238636; border-color: #238636; }
     .btn-sm { padding: 5px 12px; font-size: 13px; }
 
     /* ── Container ─────────────────────────────────────────────────── */
@@ -907,6 +913,9 @@
     <button class="btn-merge" id="promote-btn" onclick="promoteToMain()" style="display:{% if pr_target_branch %}inline-flex{% else %}none{% endif %};">&#x1F500; Merge to Main</button>
     <span class="repo-badge">{{ repo_display }} : {{ repo_branch }}{% if pr_target_branch %} &rarr; {{ pr_target_branch }}{% endif %}</span>
     <button class="btn hidden" id="run-again-btn" onclick="runAgain()">&#9654; Run Again</button>
+    <button class="btn btn-warning hidden" id="retry-failed-btn" onclick="retryFailed()">&#128257; Retry Failed (<span id="retry-failed-count">0</span>)</button>
+    <button class="btn btn-pause hidden" id="pause-btn" onclick="pauseJob()">&#9208; Pause</button>
+    <button class="btn btn-resume hidden" id="resume-btn" onclick="resumeJob()">&#9654; Resume</button>
     <button class="btn btn-danger hidden" id="stop-btn" onclick="stopJob()">&#9209; Stop</button>
   </div>
 </header>
@@ -1713,7 +1722,10 @@
     document.getElementById('now-badge').className      = 'now-badge';
     document.getElementById('now-badge').innerHTML      = '<span class="pulse"></span> NOW';
     document.getElementById('stop-btn').classList.remove('hidden');
+    document.getElementById('pause-btn').classList.remove('hidden');
+    document.getElementById('resume-btn').classList.add('hidden');
     document.getElementById('run-again-btn').classList.add('hidden');
+    document.getElementById('retry-failed-btn').classList.add('hidden');
     document.getElementById('download-csv-btn').classList.add('hidden');
     document.getElementById('create-pr-btn').classList.add('hidden');
     document.getElementById('pr-link-banner').classList.remove('visible');
@@ -1745,7 +1757,10 @@
     btn.innerHTML = '&#9654; Start';
     // Hide job controls, show setup
     document.getElementById('stop-btn').classList.add('hidden');
+    document.getElementById('pause-btn').classList.add('hidden');
+    document.getElementById('resume-btn').classList.add('hidden');
     document.getElementById('run-again-btn').classList.add('hidden');
+    document.getElementById('retry-failed-btn').classList.add('hidden');
     document.getElementById('monitor-panel').classList.add('hidden');
     document.getElementById('setup-panel').classList.remove('hidden');
   };
@@ -1895,6 +1910,18 @@
       _renderedLogCount += logItems.length;
     }
 
+    // Handle paused state
+    if (data.status === 'running') {
+      if (data.paused) {
+        document.getElementById('pause-btn').classList.add('hidden');
+        document.getElementById('resume-btn').classList.remove('hidden');
+        document.getElementById('stop-btn').classList.remove('hidden');
+      } else {
+        document.getElementById('pause-btn').classList.remove('hidden');
+        document.getElementById('resume-btn').classList.add('hidden');
+      }
+    }
+
     // Check completion
     if (data.status === 'completed' || data.status === 'cancelled' || data.status === 'failed') {
       jobFinished();
@@ -1909,11 +1936,20 @@
 
     // Update UI
     document.getElementById('stop-btn').classList.add('hidden');
+    document.getElementById('pause-btn').classList.add('hidden');
+    document.getElementById('resume-btn').classList.add('hidden');
     document.getElementById('run-again-btn').classList.remove('hidden');
     document.getElementById('now-badge').innerHTML = '';
     document.getElementById('now-badge').className = 'done-badge';
     document.getElementById('now-badge').textContent = 'DONE';
     document.getElementById('status-text').textContent = 'All tasks complete.';
+
+    // Show "Retry Failed (N)" button if there are failures
+    var failedCount = _allFailed.length;
+    if (failedCount > 0) {
+      document.getElementById('retry-failed-count').textContent = failedCount;
+      document.getElementById('retry-failed-btn').classList.remove('hidden');
+    }
 
     // Show "Create PR" button if there are passed results
     if (_allPassed.length > 0) {
@@ -2241,6 +2277,96 @@
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
+  };
+
+  /* ── Pause Job ──────────────────────────────────────────────── */
+  window.pauseJob = function() {
+    if (!currentJobId) return;
+    var btn = document.getElementById('pause-btn');
+    btn.disabled = true;
+    fetch('/api/pause/' + currentJobId, { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          addLogLine('Pause failed: ' + data.error);
+        } else {
+          btn.classList.add('hidden');
+          document.getElementById('resume-btn').classList.remove('hidden');
+          addLogLine('⏸ Pause requested — will pause after current task finishes.');
+        }
+      })
+      .catch(function(err) { addLogLine('Pause request failed: ' + err); })
+      .finally(function() { btn.disabled = false; });
+  };
+
+  /* ── Resume Job ─────────────────────────────────────────────── */
+  window.resumeJob = function() {
+    if (!currentJobId) return;
+    var btn = document.getElementById('resume-btn');
+    btn.disabled = true;
+    fetch('/api/resume/' + currentJobId, { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          addLogLine('Resume failed: ' + data.error);
+        } else {
+          btn.classList.add('hidden');
+          document.getElementById('pause-btn').classList.remove('hidden');
+          addLogLine('▶ Job resumed.');
+        }
+      })
+      .catch(function(err) { addLogLine('Resume request failed: ' + err); })
+      .finally(function() { btn.disabled = false; });
+  };
+
+  /* ── Retry Failed ───────────────────────────────────────────── */
+  window.retryFailed = function() {
+    if (!currentJobId) return;
+    var failedCount = _allFailed.length;
+    if (failedCount === 0) { alert('No failed tasks to retry.'); return; }
+    if (!confirm('Re-run ' + failedCount + ' failed task(s) using the same settings?\n\nPassing examples will be pushed to the existing PR branches.')) return;
+
+    var btn = document.getElementById('retry-failed-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="loading-spinner"></span> Starting retry...';
+
+    fetch('/api/retry-failed/' + currentJobId, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ repo_push: true }),
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.error) {
+          alert('Retry failed: ' + data.error);
+          btn.disabled = false;
+          btn.innerHTML = '&#128257; Retry Failed (' + failedCount + ')';
+          return;
+        }
+        // Switch monitor to the new retry job
+        addLogLine('🔄 Retry job started: ' + data.new_job_id.slice(0, 8) + ' (' + data.retrying + ' task(s))');
+        btn.classList.add('hidden');
+        currentJobId = data.new_job_id;
+        // Reset counters for new job
+        _allPassed = [];
+        _allFailed = [];
+        _renderedPassedCount = 0;
+        _renderedFailedCount = 0;
+        _renderedLogCount = 0;
+        document.getElementById('passed-list').innerHTML = '';
+        document.getElementById('failed-list').innerHTML = '';
+        document.getElementById('stop-btn').classList.remove('hidden');
+        document.getElementById('pause-btn').classList.remove('hidden');
+        document.getElementById('run-again-btn').classList.add('hidden');
+        document.getElementById('now-badge').className = 'now-badge';
+        document.getElementById('now-badge').innerHTML = '<span class="pulse"></span> NOW';
+        connectSSE(data.new_job_id);
+      })
+      .catch(function(err) {
+        alert('Request failed: ' + err);
+        btn.disabled = false;
+        btn.innerHTML = '&#128257; Retry Failed (' + failedCount + ')';
+      });
   };
 
   /* ── Stop Job ───────────────────────────────────────────────── */

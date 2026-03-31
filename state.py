@@ -17,6 +17,7 @@ JOB_LOCK = threading.Lock()
 
 BUILD_STATE: Dict[str, dict] = {}
 JOB_CANCEL_FLAGS: Dict[str, bool] = {}
+JOB_PAUSE_EVENTS: Dict[str, threading.Event] = {}
 JOB_NOTIFY: Dict[str, List[threading.Event]] = {}
 
 _MAX_LOGS = 500
@@ -63,8 +64,16 @@ def init_build(job_id: str, total: int = 0):
             "pr_url": "",
             "pr_branch": "",
             "results_summary": [],
+            "paused": False,
+            "category_branches": {},   # {category_name: branch_name} — for retry-failed
+            "failed_tasks": [],        # full task dicts for failed items — for retry-failed
+            "repo_push": False,        # whether job ran with repo_push=True
         }
         JOB_CANCEL_FLAGS[job_id] = False
+        # Pause event: set = running, clear = paused
+        pause_evt = threading.Event()
+        pause_evt.set()
+        JOB_PAUSE_EVENTS[job_id] = pause_evt
     _notify_listeners(job_id)
 
 
@@ -141,6 +150,31 @@ def set_results_summary(job_id: str, summary: list):
     _notify_listeners(job_id)
 
 
+def set_repo_push(job_id: str, repo_push: bool):
+    with JOB_LOCK:
+        state = BUILD_STATE.get(job_id)
+        if state:
+            state["repo_push"] = repo_push
+
+
+def set_category_branch(job_id: str, category: str, branch: str):
+    """Record the branch created for a category — used by retry-failed."""
+    with JOB_LOCK:
+        state = BUILD_STATE.get(job_id)
+        if state:
+            state["category_branches"][category] = branch
+    _notify_listeners(job_id)
+
+
+def set_failed_tasks(job_id: str, tasks: list):
+    """Store the full task dicts for all failed examples — used by retry-failed."""
+    with JOB_LOCK:
+        state = BUILD_STATE.get(job_id)
+        if state:
+            state["failed_tasks"] = list(tasks)
+    _notify_listeners(job_id)
+
+
 def set_status(job_id: str, status: str):
     with JOB_LOCK:
         state = BUILD_STATE.get(job_id)
@@ -148,6 +182,51 @@ def set_status(job_id: str, status: str):
             state["status"] = status
             state["current_task"] = "All tasks complete." if status == "completed" else f"Job {status}."
     _notify_listeners(job_id)
+
+
+# ── Pause / Resume ─────────────────────────────────────────────────────────
+
+def pause_job(job_id: str):
+    """Pause the job — the worker thread will block after its current example."""
+    with JOB_LOCK:
+        state = BUILD_STATE.get(job_id)
+        if state:
+            state["paused"] = True
+        evt = JOB_PAUSE_EVENTS.get(job_id)
+    if evt:
+        evt.clear()  # clear = paused (worker blocks on evt.wait())
+    _notify_listeners(job_id)
+
+
+def resume_job(job_id: str):
+    """Resume a paused job."""
+    with JOB_LOCK:
+        state = BUILD_STATE.get(job_id)
+        if state:
+            state["paused"] = False
+        evt = JOB_PAUSE_EVENTS.get(job_id)
+    if evt:
+        evt.set()  # set = running
+    _notify_listeners(job_id)
+
+
+def is_paused(job_id: str) -> bool:
+    with JOB_LOCK:
+        state = BUILD_STATE.get(job_id)
+        return bool(state and state.get("paused", False))
+
+
+def wait_if_paused(job_id: str):
+    """Block the calling (worker) thread until the job is resumed or cancelled.
+
+    Uses the pause Event so there is no busy-wait.
+    Wakes automatically when resume_job() or cancel_job() sets the event.
+    """
+    evt = None
+    with JOB_LOCK:
+        evt = JOB_PAUSE_EVENTS.get(job_id)
+    if evt:
+        evt.wait()  # blocks until event is set (resumed or cancelled)
 
 
 def get_build_state(job_id: str) -> Optional[dict]:
@@ -163,6 +242,7 @@ def get_build_state(job_id: str) -> Optional[dict]:
         pass_rate = round((passed_count / processed * 100) if processed > 0 else 0)
         return {
             "status": state["status"],
+            "paused": state.get("paused", False),
             "total": total,
             "processed": processed,
             "passed_count": passed_count,
@@ -176,6 +256,9 @@ def get_build_state(job_id: str) -> Optional[dict]:
             "pr_url": state.get("pr_url", ""),
             "pr_branch": state.get("pr_branch", ""),
             "results_summary": list(state.get("results_summary", [])),
+            "category_branches": dict(state.get("category_branches", {})),
+            "failed_tasks": list(state.get("failed_tasks", [])),
+            "repo_push": state.get("repo_push", False),
         }
 
 
