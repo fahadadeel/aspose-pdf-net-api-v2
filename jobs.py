@@ -704,6 +704,17 @@ def run_job(
                         else:
                             add_log(job_id, "PR creation failed - changes are on the feature branch")
 
+                    # Store the single branch under every category that was committed,
+                    # so retry-failed can push to it (Option B)
+                    if repo and repo.pr_branch:
+                        groups = committer.get_pending_by_category() if committer._pending_commits else {}
+                        committed_cats = set(groups.keys())
+                        # If pending already cleared by batch_commit, derive from results_summary
+                        if not committed_cats:
+                            committed_cats = {r["category"] for r in results_summary if r["status"] == "PASSED" and r["category"]}
+                        for cat in committed_cats:
+                            set_category_branch(job_id, cat, repo.pr_branch)
+
             with JOB_LOCK:
                 was_cancelled = JOB_CANCEL_FLAGS.pop(job_id, False)
 
@@ -839,6 +850,12 @@ def create_pr(job_id: str, passed_results: list, results_summary: list):
             add_log(job_id, f"Pull request created: {pr_url}")
         else:
             add_log(job_id, "PR creation failed - changes are on the feature branch")
+
+        # Store branch under each committed category so retry-failed can use Option B
+        committed_cats = {item.get("category", "") for item in passed_results if item.get("category")}
+        for cat in committed_cats:
+            set_category_branch(job_id, cat, branch_name)
+        set_repo_push(job_id, True)
 
         set_current_task(job_id, "PR retry complete.")
 
