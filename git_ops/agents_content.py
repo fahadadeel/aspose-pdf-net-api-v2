@@ -549,10 +549,26 @@ def load_category_tips(kb_path: str, category_name: str, max_count: int = 5) -> 
             matches.append(entry)
 
     # Pass 2: keyword fallback if no exact match
+    # Use ALL meaningful keywords and require the entry to match ALL of them
+    # (not just any one). This prevents "Facades - Metadata" from matching
+    # "Facades - Fill Forms" just because both share the "facades" keyword.
     if not matches:
         keywords = [
             w for w in re.split(r"[\s\-_]+", category_name.lower())
             if len(w) >= 3 and w not in _CATEGORY_STOP_WORDS
+        ]
+        if keywords:
+            for entry in data:
+                entry_cat = _norm(entry.get("category", ""))
+                # Require ALL keywords to match (AND logic instead of OR)
+                if all(kw in entry_cat for kw in keywords):
+                    matches.append(entry)
+
+    # Pass 3: single-keyword fallback (OR logic) but only if no multi-keyword match
+    if not matches:
+        keywords = [
+            w for w in re.split(r"[\s\-_]+", category_name.lower())
+            if len(w) >= 4 and w not in _CATEGORY_STOP_WORDS and w != "facades"
         ]
         if keywords:
             for entry in data:
@@ -765,12 +781,30 @@ def read_category_files(
 
     Returns ``{filename: file_content_string}``.
     Returns empty dict if *repo_path* is unavailable or the folder is missing.
+
+    The category display name (e.g. "Facades - Metadata") is normalised to
+    its folder slug (e.g. "facades-metadata") before the path is built, so
+    this works regardless of how the caller spells the category.
     """
     if not repo_path:
         return {}
-    cat_dir = Path(repo_path) / category
+
+    import re as _re
+
+    def _to_slug(name: str) -> str:
+        s = name.strip().lower()
+        s = _re.sub(r"[^a-z0-9]+", "-", s)
+        return _re.sub(r"-+", "-", s).strip("-")
+
+    root = Path(repo_path)
+    # Try slug first, then original name as fallback
+    slug = _to_slug(category)
+    cat_dir = root / slug
+    if not cat_dir.is_dir():
+        cat_dir = root / category
     if not cat_dir.is_dir():
         return {}
+
     contents: Dict[str, str] = {}
     for fname in filenames:
         fp = cat_dir / fname

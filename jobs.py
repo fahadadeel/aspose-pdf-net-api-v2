@@ -209,8 +209,9 @@ def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_su
             cat_slug = normalize_category(cat_name, config.git.default_category)
             cat_dir = _Path(config.git.repo_path) / cat_slug
 
-            # Generate agents.md for this category (uses actual .cs files on disk)
-            cs_files = sorted(c["path"].name for c in commits)
+            # Scan actual .cs files on disk — more reliable than commit path list
+            # (filenames may differ if LLM provided a short name vs task-slug fallback)
+            cs_files = sorted(f.name for f in cat_dir.iterdir() if f.is_file() and f.suffix == ".cs") if cat_dir.exists() else sorted(c["path"].name for c in commits)
             agents_content = generate_cumulative_category_agents_md(
                 cat_name, cs_files, run_id,
                 kb_path=config.rules_examples_path,
