@@ -1,1075 +1,312 @@
 {
-  "use-pdfannotationeditor-exportannotationsxfdf": {
-    "note": "Use PdfAnnotationEditor.ExportAnnotationsXfdf with a MemoryStream (instead of Document.ExportAnnotationsToXfdf) to export annotations without invoking System.Drawing‑dependent APIs.",
-    "code": "using (PdfAnnotationEditor editor = new PdfAnnotationEditor())\n{\n    editor.BindPdf(\"input.pdf\");\n    using (MemoryStream xfdfStream = new MemoryStream())\n    {\n        AnnotationType[] types = Enum.GetValues(typeof(AnnotationType))\n                                    .Cast<AnnotationType>()\n                                    .ToArray();\n        editor.ExportAnnotationsXfdf(xfdfStream, 1, 2, types);\n        // xfdfStream now contains the XFDF data\n    }\n}",
+  "use-customfont-instead-of-font-string": {
+    "note": "Assign a font name via FormFieldFacade.CustomFont; the Font property expects a FontStyle enum, not a string.",
+    "code": "var facade = new FormFieldFacade();\nfacade.CustomFont = \"Arial\"; // set font name\nfacade.Font = FontStyle.Bold; // optional, set style using FontStyle enum",
     "errors": [
-      "System.TypeInitializationException for System.Drawing.Gdip when using Document.ExportAnnotationsToXfdf",
-      "Missing gdiplus.dll dependency caused by Document‑based annotation export"
+      "Cannot implicitly convert type 'string' to 'Aspose.Pdf.Facades.FontStyle'",
+      "Invalid assignment of a string to FormFieldFacade.Font"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774425060.6075132,
+    "_created_at": 1774934092.330092,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "use-pdfannotationeditor-exportannotationsxfdf-with-string-types": {
-    "note": "Use PdfAnnotationEditor (from Aspose.Pdf.Facades) and its ExportAnnotationsXfdf overload that accepts a string[] of annotation type names (e.g., \"Highlight\") instead of calling a non‑existent Document method.",
-    "code": "using Aspose.Pdf.Facades;\nusing Aspose.Pdf.Annotations;\n\nPdfAnnotationEditor editor = new PdfAnnotationEditor();\neditor.BindPdf(inputPdfPath);\nint startPage = 1;\nint endPage = editor.Document.Pages.Count;\nstring[] annotTypes = new[] { \"Highlight\" };\nusing (FileStream xfdf = File.Create(outputXfdfPath))\n{\n    editor.ExportAnnotationsXfdf(xfdf, startPage, endPage, annotTypes);\n}",
+  "use-propertyflag-with-formeditor-setfieldattribute": {
+    "note": "Use FormEditor.SetFieldAttribute with a PropertyFlag enum value; custom dictionary entries cannot be set through this method.",
+    "code": "FormEditor editor = new FormEditor(inputPath, outputPath);\nbool result = editor.SetFieldAttribute(\"OrderNumber\", PropertyFlag.NoExport);",
     "errors": [
-      "CS1061: 'Document' does not contain a definition for 'ExportAnnotationsXfdf' and no accessible extension method 'ExportAnnotationsXfdf' accepting a first argument of type 'Document' could be found"
+      "CS1061: 'WidgetAnnotation' does not contain a definition for 'AnnotationDictionary' and no accessible extension method 'AnnotationDictionary' accepting a first argument of type 'WidgetAnnotation' could be found",
+      "CS0234: The type or namespace name 'String' does not exist in the namespace 'Aspose.Pdf.Text'"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774425109.783256,
+    "_created_at": 1774934392.293181,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "import-annotation-no-page-range": {
-    "note": "PdfAnnotationEditor.ImportAnnotationFromXfdf does not accept a page‑range parameter; import all matching annotations and filter pages manually if needed.",
-    "code": "using (PdfAnnotationEditor editor = new PdfAnnotationEditor())\n{\n    editor.BindPdf(pdfPath);\n    // Import annotations from XFDF (no page range argument)\n    editor.ImportAnnotationFromXfdf(xfdfPath, new[] { AnnotationType.Highlight, AnnotationType.Text });\n    editor.Save(outputPath);\n}",
+  "use-two-arg-setfieldappearance": {
+    "note": "Call FormEditor.SetFieldAppearance with only the field name and an AnnotationFlags value (the three‑argument overload does not exist).",
+    "code": "using Aspose.Pdf.Annotations;\n\nFormEditor editor = new FormEditor(inputPdf, outputPdf);\neditor.SetFieldAppearance(\"TotalAmount\", AnnotationFlags.Print);",
     "errors": [
-      "No overload for method 'ImportAnnotationFromXfdf' takes a page‑range argument",
-      "Attempting to specify page range for ImportAnnotationFromXfdf results in a compile‑time error"
+      "CS1501: No overload for method 'SetFieldAppearance' takes 3 arguments"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774425192.440293,
+    "_created_at": 1774935269.747456,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "use-annotationtype-array-when-importing-annotations": {
-    "note": "When importing annotations with PdfAnnotationEditor, pass an AnnotationType[] (or omit the overload) instead of a bool to preserve existing annotations.",
-    "code": "PdfAnnotationEditor editor = new PdfAnnotationEditor();\neditor.BindPdf(targetPdf);\nAnnotationType[] types = { AnnotationType.Highlight, AnnotationType.Text };\neditor.ImportAnnotations(sourcePdfPaths, types); // does not overwrite existing annotations",
+  "use-formeditor-with-output-path-and-save-output": {
+    "note": "Instantiate FormEditor with target PDF path and output path (both strings) and call Save(outputPath) instead of the obsolete parameterless Save()",
+    "code": "using Aspose.Pdf.Facades;\n\nFormEditor editor = new FormEditor(targetPdfPath, outputPdfPath);\neditor.CopyOuterField(templatePdfPath, fieldName);\neditor.Save(outputPdfPath);",
     "errors": [
-      "CS1503: Argument 2: cannot convert from 'bool' to 'Aspose.Pdf.Annotations.AnnotationType[]'"
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Document' to 'string'",
+      "CS0618: 'FormEditor.Save()' is obsolete: 'Use Save(destination) method for saving facade results.'",
+      "CS0103: The name 'targetDoc' does not exist in the current context"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774425267.961882,
+    "_created_at": 1774935459.317944,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "use-title-for-annotation-author": {
-    "note": "In Aspose.PDF, the annotation's author is stored in the Title property; set Title to change the author.",
-    "code": "var annotation = new TextAnnotation(page, rect) {\n    Title = \"New Author\", // author of the annotation\n    Subject = \"Demo\",\n    Contents = \"Sample text\"\n};",
+  "use-formeditor-with-document-and-field-rect": {
+    "note": "Create FormEditor with a Document instance and move fields using each field's Rect property (cast coordinates to float) instead of the obsolete Form.GetFieldRect method.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document(inputPath);\nusing (FormEditor editor = new FormEditor(doc))\n{\n    foreach (var field in doc.Form.Fields)\n    {\n        var r = field.Rect;\n        float llx = (float)r.LLX + 10f;\n        float lly = (float)r.LLY + 15f;\n        float urx = (float)r.URX + 10f;\n        float ury = (float)r.URY + 15f;\n        editor.MoveField(field.Name, llx, lly, urx, ury);\n    }\n    editor.Save(outputPath);\n}",
     "errors": [
-      "Attempting to read or modify an annotation's author using a non‑existent Author property",
-      "Annotation author not being updated because Title property was not set"
+      "CS1061: 'Form' does not contain a definition for 'GetFieldRect'",
+      "CS0266: Cannot implicitly convert type 'double' to 'float'",
+      "CS0618: 'FormEditor.FormEditor(string, string)' is obsolete"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774425326.045887,
+    "_created_at": 1774935572.986239,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "use-page-rectangle-constructor-for-textannotation": {
-    "note": "Instantiate TextAnnotation with the (Page, Rectangle) constructor instead of a parameterless constructor.",
-    "code": "Page page = doc.Pages[1];\nAspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(0, 0, 0, 0);\nTextAnnotation annot = new TextAnnotation(page, rect) { Subject = \"New Subject\", Color = Aspose.Pdf.Color.Red };",
+  "use-document-form-property": {
+    "note": "Access the PDF form via the Document.Form property instead of trying to instantiate a Form with a constructor.",
+    "code": "using (Document doc = new Document(path))\n{\n    Form form = doc.Form;\n    if (form[\"Comments\"] is TextBoxField commentsField)\n    {\n        commentsField.Multiline = true;\n    }\n}",
     "errors": [
-      "CS1729: 'TextAnnotation' does not contain a constructor that takes 0 arguments"
+      "CS1729: 'Form' does not contain a constructor that takes 1 arguments"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774425356.362346,
+    "_created_at": 1774935641.1950772,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "fluent-pdfannotationeditor-extensions": {
-    "note": "Create extension methods for PdfAnnotationEditor that return the editor instance after calling DeleteAnnotations and FlatteningAnnotations, and add a SaveTo method, enabling a fluent method‑chaining workflow.",
-    "code": "public static class PdfAnnotationEditorExtensions {\n    public static PdfAnnotationEditor DeleteAll(this PdfAnnotationEditor editor) {\n        editor.DeleteAnnotations();\n        return editor;\n    }\n\n    public static PdfAnnotationEditor FlattenAll(this PdfAnnotationEditor editor) {\n        editor.FlatteningAnnotations();\n        return editor;\n    }\n\n    public static void SaveTo(this PdfAnnotationEditor editor, string path) {\n        editor.Save(path);\n    }\n}",
+  "set-field-border-width-via-border-property": {
+    "note": "Set a form field's border thickness by accessing the field's Border.Width property instead of using SetFieldAttribute with \"BorderWidth\".",
+    "code": "SignatureField sigField = (SignatureField)doc.Form[\"Signature\"];\nif (sigField != null)\n{\n    sigField.Border.Width = 2; // thickness in points\n}",
     "errors": [
-      "DeleteAnnotations returns void, so it cannot be chained in a fluent call",
-      "FlatteningAnnotations returns void, so it cannot be chained in a fluent call",
-      "Save returns void, preventing inclusion in a method chain"
+      "CS1729: 'Border' does not contain a constructor that takes 2 arguments",
+      "Using Form.SetFieldAttribute(\"fieldName\", \"BorderWidth\", value) to set border thickness"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774425561.6361558,
+    "_created_at": 1774935864.4105039,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Forms"
+  },
+  "use-formfieldfacade-with-systemdrawing-color": {
+    "note": "Use FormFieldFacade and set its BackgroundColor with System.Drawing.Color (e.g., LightGreen) instead of the non‑existent Aspose.Pdf.Facades.FieldAppearance or Aspose.Pdf.Color.",
+    "code": "FormEditor editor = new FormEditor();\neditor.BindPdf(inputPath);\nvar facade = new FormFieldFacade();\nfacade.BackgroundColor = System.Drawing.Color.LightGreen;\neditor.Facade = facade;\neditor.DecorateField(\"Status\");\neditor.Save(outputPath);",
+    "errors": [
+      "CS0234: The type or namespace name 'FieldAppearance' does not exist in the namespace 'Aspose.Pdf.Facades'",
+      "CS0234: The type or namespace name 'Color' does not exist in the namespace 'Aspose.Pdf' when used for FormFieldFacade.BackgroundColor"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774936049.249332,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Forms"
+  },
+  "use-document-constructor-for-formeditor": {
+    "note": "Instantiate FormEditor with a Document object (using the non‑obsolete constructor) and call Save to write changes, instead of using the obsolete FormEditor(string, string) overload.",
+    "code": "using (Document pdfDoc = new Document(inputPath))\n{\n    using (FormEditor formEditor = new FormEditor(pdfDoc))\n    {\n        formEditor.SetFieldLimit(\"PhoneNumber\", 15);\n        formEditor.Save(outputPath);\n    }\n}",
+    "errors": [
+      "CS0618: 'FormEditor.FormEditor(string, string)' is obsolete",
+      "Runtime FileNotFoundException when FormEditor expects a Document but receives a file path"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774936341.2099872,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "cast-annotation-rect-to-float": {
-    "note": "When populating a float[] with annotation rectangle coordinates, explicitly cast the double values (LLX, LLY, URX, URY) to float.",
-    "code": "float[] rect = new float[] {\n    (float)ann.Rect.LLX,\n    (float)ann.Rect.LLY,\n    (float)ann.Rect.URX,\n    (float)ann.Rect.URY\n};",
+  "use-pushbutton-fieldtype-and-float-rect-coords": {
+    "note": "When adding a push button to a PDF form, use FieldType.PushButton (not FieldType.Button) and pass the rectangle coordinates as float values.",
+    "code": "formEditor.AddField(\n    FieldType.PushButton,\n    \"ResetForm\",\n    pageNumber,\n    (float)rect.LLX,\n    (float)rect.LLY,\n    (float)rect.URX,\n    (float)rect.URY);\n",
     "errors": [
-      "CS0266: Cannot implicitly convert type 'double' to 'float'. An explicit conversion exists (are you missing a cast?)"
+      "CS0117: 'FieldType' does not contain a definition for 'Button'",
+      "CS1502/CS1503: No overload for method 'AddField' takes arguments of type 'FieldType', 'string', 'int', 'double', 'double', 'double', 'double' (expects float coordinates)"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774425646.276449,
+    "_created_at": 1774936462.0560482,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "use-subject-for-author-in-markupannotation": {
-    "note": "MarkupAnnotation does not expose an Author property; use its Subject property to store or compare author information.",
-    "code": "if (annotation is MarkupAnnotation markup && markup.Subject == targetAuthor) {\n    // process annotation\n}",
+  "use-numberfield-allowedchars-maxlen-for-integer-range": {
+    "note": "For a numeric PDF form field, enforce integer values between 0 and 100 by setting NumberField.AllowedChars to digits and NumberField.MaxLen to 3 instead of using JavaScriptAction.",
+    "code": "NumberField numberField = field as NumberField;\nif (numberField != null)\n{\n    numberField.AllowedChars = \"0123456789\"; // only digits\n    numberField.MaxLen = 3; // allows values 0‑100\n}",
     "errors": [
-      "CS1061: 'MarkupAnnotation' does not contain a definition for 'Author' and no accessible extension method 'Author' accepting a first argument of type 'MarkupAnnotation' could be found"
+      "CS0234: The type or namespace name 'JavaScriptAction' does not exist in the namespace 'Aspose.Pdf.Annotations'",
+      "Need to restrict a NumberField to integer range without JavaScript validation"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774425718.375992,
+    "_created_at": 1774936767.966702,
     "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
+    "_stage": "regen",
+    "_category": "Facades - Forms"
   },
-  "stub-nunit-framework-for-tests": {
-    "note": "When the NUnit package is not referenced, define minimal stub types (TestFixtureAttribute, TestAttribute, OneTimeSetUpAttribute, and Assert.AreEqual) inside a NUnit.Framework namespace to allow test code to compile.",
-    "code": "namespace NUnit.Framework {\n    [AttributeUsage(AttributeTargets.Class)]\n    public sealed class TestFixtureAttribute : Attribute { }\n\n    [AttributeUsage(AttributeTargets.Method)]\n    public sealed class TestAttribute : Attribute { }\n\n    [AttributeUsage(AttributeTargets.Method)]\n    public sealed class OneTimeSetUpAttribute : Attribute { }\n\n    public static class Assert {\n        public static void AreEqual<T>(T expected, T actual, string message = null) {\n            if (!object.Equals(expected, actual))\n                throw new Exception(message ?? $\"Assert.AreEqual failed. Expected:<{expected}>. Actual:<{actual}>.\");\n        }\n    }\n}",
+  "use-field-value-instead-of-widgetannotation": {
+    "note": "When reading or checking a form field's content, use the Field.Value property from Aspose.Pdf.Forms, not WidgetAnnotation.Value.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nDocument doc = new Document(\"input.pdf\");\nField field = doc.Form[\"TempField\"]; // or locate via iteration\nstring value = field?.Value?.ToString() ?? string.Empty;",
     "errors": [
-      "CS0246: The type or namespace name 'NUnit' could not be found",
-      "CS0246: The type or namespace name 'TestFixtureAttribute' could not be found",
-      "CS0246: The type or namespace name 'TestAttribute' could not be found",
-      "CS0246: The type or namespace name 'OneTimeSetUpAttribute' could not be found",
-      "CS0246: The type or namespace name 'Assert' could not be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.7999999999999999,
-    "_created_at": 1774425896.971563,
-    "_hit_count": 3,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "rebind-pdf-before-retry-with-pdfannotationeditor": {
-    "note": "When an operation on PdfAnnotationEditor fails, call BindPdf again to reset its internal state before retrying the operation.",
-    "code": "using (var editor = new PdfAnnotationEditor())\n{\n    editor.BindPdf(sourcePath);\n    try\n    {\n        editor.DeleteAnnotation(annotationName);\n    }\n    catch\n    {\n        // Reset internal state\n        editor.BindPdf(sourcePath);\n        // Retry the operation\n        editor.DeleteAnnotation(annotationName);\n    }\n    editor.Save(destinationPath);\n}",
-    "errors": [
-      "Exception thrown by PdfAnnotationEditor methods after first use (e.g., DeleteAnnotation) due to stale binding",
-      "Operation fails unless the PDF is rebound before retry"
+      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Value' and no accessible extension method 'Value' accepting a first argument of type 'WidgetAnnotation' could be found"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774425929.355157,
+    "_created_at": 1774936995.054701,
     "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
+    "_stage": "regen",
+    "_category": "Facades - Forms"
   },
-  "validate-pdf-path-before-binding": {
-    "note": "Always verify that a PDF file exists before calling Aspose.Pdf methods such as Document constructor, PdfAnnotationEditor.BindPdf, or other file‑based APIs.",
-    "code": "if (!File.Exists(pdfPath))\n{\n    Console.Error.WriteLine($\"PDF not found: {pdfPath}\");\n    return; // or continue\n}\nusing (var doc = new Document(pdfPath))\n{\n    // Aspose.Pdf operations\n}",
+  "use-pkcs7-contactinfo": {
+    "note": "When creating a digital signature with Aspose.Pdf, use the PKCS7 class (not PKCS1) and set the contact information via the ContactInfo property.",
+    "code": "PKCS7 pkcs7 = new PKCS7(certificatePath, certificatePassword);\npkcs7.Reason = \"Document approved\";\npkcs7.ContactInfo = \"john.doe@example.com\"; // correct property\npkcs7.Location = \"New York\";",
     "errors": [
-      "System.IO.FileNotFoundException when Aspose.Pdf tries to open a non‑existent PDF file",
-      "Unhandled exception caused by missing template or target PDF"
+      "CS1061: 'PKCS1' does not contain a definition for 'Contact' and no accessible extension method 'Contact' accepting a first argument of type 'PKCS1' could be found"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774426090.416748,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "use-pdfannotationeditor-to-delete-annotations": {
-    "note": "Use Aspose.Pdf.Facades.PdfAnnotationEditor: bind the PDF, call DeleteAnnotations(), then Save() to remove all annotations.",
-    "code": "using Aspose.Pdf.Facades;\n\nusing (PdfAnnotationEditor editor = new PdfAnnotationEditor())\n{\n    editor.BindPdf(inputPdfPath);\n    editor.DeleteAnnotations();\n    editor.Save(outputPdfPath);\n}",
-    "errors": [
-      "CS1024: Preprocessor directive expected",
-      "CS1056: Unexpected character '$'",
-      "CS1002: ; expected",
-      "CS7000: Unexpected use of an aliased name"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774426558.141133,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "delete-annotation-by-name": {
-    "note": "Locate an annotation by its Name with Page.Annotations.FindByName and delete it using Page.Annotations.Delete (works with a variable holding the name).",
-    "code": "using (Document doc = new Document(\"input.pdf\"))\n{\n    Page page = doc.Pages[1];\n    string annotationName = \"4cfa69cd-9bff-49e0-9005-e22a77cebf38\";\n    Annotation ann = page.Annotations.FindByName(annotationName);\n    if (ann != null)\n        page.Annotations.Delete(ann);\n    doc.Save(\"output.pdf\");\n}",
-    "errors": [
-      "System.IO.FileNotFoundException when the input PDF file does not exist (ensure the file is created or present before calling DeleteAnnotation)",
-      "Annotation not deleted because FindByName was not used; DeleteAnnotation requires the annotation's Name"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774426939.062023,
+    "_created_at": 1774937386.856676,
     "_hit_count": 0,
     "_stage": "final_llm",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "use-float-values-for-drawing-rectangle": {
-    "note": "When drawing annotation bounds, import Aspose.Pdf.Annotations and construct Aspose.Pdf.Drawing.Rectangle with float arguments (cast if necessary) and set GraphInfo.LineWidth as a float.",
-    "code": "using Aspose.Pdf.Annotations; // for Annotation\n...\nAnnotation annotation = srcPage.Annotations[i];\nAspose.Pdf.Rectangle annRect = annotation.Rect;\nvar drawRect = new Aspose.Pdf.Drawing.Rectangle(\n    (float)annRect.LLX,\n    (float)annRect.LLY,\n    (float)(annRect.URX - annRect.LLX),\n    (float)(annRect.URY - annRect.LLY));\n\ndrawRect.GraphInfo = new GraphInfo { Color = Color.Red, LineWidth = 2f, FillColor = Color.Transparent };",
+  "use-doc-form-and-iterate-fields-to-delete-buttons": {
+    "note": "Access the form via `doc.Form`, iterate over `form.Fields` and delete fields of type `ButtonField` by name; do not use the non‑existent `Form.FieldNames` property or cast to `WidgetAnnotation`.",
+    "code": "Form form = doc.Form;\nif (form?.Fields != null)\n{\n    var buttonNames = new List<string>();\n    foreach (Field f in form.Fields)\n        if (f is ButtonField) buttonNames.Add(f.Name);\n    foreach (string n in buttonNames) form.Delete(n);\n}",
     "errors": [
-      "CS0246: The type or namespace name 'Annotation' could not be found",
-      "CS1503: Argument 1: cannot convert from 'double' to 'float' (Rectangle constructor)",
-      "CS1503: Argument 2: cannot convert from 'double' to 'float' (Rectangle constructor)",
-      "CS1503: Argument 3: cannot convert from 'double' to 'float' (Rectangle constructor)",
-      "CS1503: Argument 4: cannot convert from 'double' to 'float' (Rectangle constructor)",
-      "CS1503: cannot convert from 'int' to 'float' for GraphInfo.LineWidth"
-    ],
-    "_auto": true,
-    "_confidence": 1.0,
-    "_created_at": 1774427027.1697862,
-    "_hit_count": 6,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "use-pdfannotationeditor-to-flatten-annotations": {
-    "note": "Use Aspose.Pdf.Facades.PdfAnnotationEditor to flatten all annotations in a PDF and save the document.",
-    "code": "using Aspose.Pdf.Facades;\n\nusing (PdfAnnotationEditor editor = new PdfAnnotationEditor())\n{\n    editor.BindPdf(pdfPath);\n    editor.FlatteningAnnotations();\n    editor.Save(pdfPath);\n}",
-    "errors": [
-      "The type or namespace name 'PdfAnnotationEditor' could not be found (missing Aspose.Pdf.Facades reference)",
-      "Cannot resolve method 'FlatteningAnnotations' on the used PDF class"
+      "CS1061: 'Form' does not contain a definition for 'FieldNames'",
+      "CS0266: Cannot implicitly convert type 'Aspose.Pdf.Annotations.WidgetAnnotation' to 'Aspose.Pdf.Forms.Field'"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774427258.921648,
+    "_created_at": 1774938657.571407,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "use-reflection-for-annotationtype-overload": {
-    "note": "When calling PdfAnnotationEditor methods that have overloads accepting AnnotationType[] (e.g., DeleteAnnotations or FlatteningAnnotations), use reflection to invoke the overload if it exists; otherwise fall back to the parameterless method to maintain compatibility with older Aspose.PDF versions.",
-    "code": "var method = typeof(PdfAnnotationEditor).GetMethod(\"DeleteAnnotations\", new[] { typeof(AnnotationType[]) });\nif (method != null)\n    method.Invoke(editor, new object[] { types });\nelse\n    editor.DeleteAnnotations();\n\n// Similar pattern for FlatteningAnnotations:\nvar flattenMethod = typeof(PdfAnnotationEditor).GetMethod(\"FlatteningAnnotations\", new[] { typeof(int), typeof(int), typeof(AnnotationType[]) });\nif (flattenMethod != null)\n    flattenMethod.Invoke(editor, new object[] { startPage, endPage, types });\nelse\n    editor.FlatteningAnnotations();",
+  "use-addfieldappearance-to-move-signaturefield": {
+    "note": "When repositioning a signature field, retrieve it as a SignatureField, set its Rect, and call Document.Form.AddFieldAppearance(field, pageNumber, rect) instead of accessing a non‑existent PageNumber property on WidgetAnnotation.",
+    "code": "SignatureField sigField = (SignatureField)doc.Form[\"Signature\"];\nAspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(llx, lly, urx, ury);\nsigField.Rect = rect;\ndoc.Form.AddFieldAppearance(sigField, 5, rect);",
     "errors": [
-      "Argument 1: cannot convert from 'Aspose.Pdf.Annotations.AnnotationType[]' to 'string'",
-      "No overload for method 'FlatteningAnnotations' takes 3 arguments (when passing AnnotationType[])"
+      "CS1061: 'WidgetAnnotation' does not contain a definition for 'PageNumber'",
+      "Attempting to move a form field by modifying a WidgetAnnotation's PageNumber property"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774427326.204407,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "export-annotations-to-xfdf-validate-root": {
-    "note": "Use Document.ExportAnnotationsToXfdf with a MemoryStream, reset the stream, read the UTF‑8 string and verify it contains the <xfdf> root element.",
-    "code": "using (var doc = new Document())\nusing (var ms = new MemoryStream())\n{\n    doc.ExportAnnotationsToXfdf(ms);\n    ms.Position = 0;\n    string xfdf = new StreamReader(ms, Encoding.UTF8).ReadToEnd();\n    bool isValid = xfdf.Contains(\"<xfdf\") && xfdf.Contains(\"</xfdf>\");\n    // isValid == true means the XFDF is well‑formed\n}",
-    "errors": [
-      "CS0246: The type or namespace name 'NUnit' could not be found (are you missing a using directive or an assembly reference?)",
-      "CS0246: The type or namespace name 'TestFixtureAttribute' could not be found",
-      "CS0246: The type or namespace name 'TestFixture' could not be found",
-      "CS0246: The type or namespace name 'TestAttribute' could not be found",
-      "CS0246: The type or namespace name 'Test' could not be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.7999999999999999,
-    "_created_at": 1774427367.039755,
-    "_hit_count": 3,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "log-annotation-using-page-index": {
-    "note": "When logging annotation details, use the page index from your iteration (or pass it explicitly) instead of a non‑existent Annotation.PageNumber property, and avoid passing a custom IAnnotationVisitor to AnnotationSelector.",
-    "code": "for (int i = 1; i <= doc.Pages.Count; i++)\n{\n    Page page = doc.Pages[i];\n    for (int j = 1; j <= page.Annotations.Count; j++)\n    {\n        Annotation ann = page.Annotations[j];\n        var rect = ann.Rect;\n        logWriter.WriteLine($\"{DateTime.Now:O} - Processed {ann.GetType().Name} on page {i} Rect [{rect.LLX},{rect.LLY},{rect.URX},{rect.URY}]\");\n    }\n}",
-    "errors": [
-      "CS1061: 'Annotation' does not contain a definition for 'PageNumber'",
-      "CS1503: Argument 1: cannot convert from 'AnnotationDiagnosticVisitor' to 'Aspose.Pdf.Annotations.AnnotationSelector'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774427406.319257,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "cast-annotation-from-collection-and-clone": {
-    "note": "When retrieving an annotation from Page.Annotations or cloning it via Annotation.Clone(), explicitly cast the returned object to Aspose.Pdf.Annotations.Annotation (or a derived type) because the API returns object.",
-    "code": "Annotation original = page.Annotations[annotationIndex] as Annotation;\nAnnotation cloned = original.Clone() as Annotation;",
-    "errors": [
-      "CS0266: Cannot implicitly convert type 'object' to 'Aspose.Pdf.Annotations.Annotation'. An explicit conversion exists (are you missing a cast?)"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774427436.385122,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "use-base-directory-and-pathcombine-for-input-output-folders": {
-    "note": "Construct input and output folder paths with AppDomain.CurrentDomain.BaseDirectory and Path.Combine instead of hard‑coded absolute Windows paths to avoid invalid combined paths and ensure cross‑platform compatibility.",
-    "code": "string baseDir = AppDomain.CurrentDomain.BaseDirectory;\nstring inputFolder = Path.Combine(baseDir, \"Input\");\nstring outputFolder = Path.Combine(baseDir, \"Output\");\nDirectory.CreateDirectory(inputFolder);\nDirectory.CreateDirectory(outputFolder);",
-    "errors": [
-      "System.IO.DirectoryNotFoundException: Could not find a part of the path '/.../_build/C:\\Input'",
-      "Invalid path caused by concatenating a hard‑coded Windows path with the application base directory"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774427458.305669,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "use-pdffileeditor-trydelete-for-concurrent-page-deletion": {
-    "note": "Use PdfFileEditor.TryDelete to delete pages from a PDF file instead of loading the document and modifying its Pages collection, which is not thread‑safe.",
-    "code": "var editor = new PdfFileEditor();\nbool success = editor.TryDelete(inputPdfPath, new int[] { 2, 3 }, outputPdfPath);",
-    "errors": [
-      "System.IndexOutOfRangeException caused by concurrent access to a Document instance",
-      "Runtime failures when multiple threads modify the same PDF using Document.Pages"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774427533.5498922,
+    "_created_at": 1774939438.6133351,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "skip-flatten-readonly-annotations": {
-    "note": "Check an annotation's Flags for AnnotationFlags.ReadOnly before calling Flatten to avoid flattening read‑only annotations.",
-    "code": "if ((annotation.Flags & AnnotationFlags.ReadOnly) != AnnotationFlags.ReadOnly)\n{\n    annotation.Flatten();\n}",
+  "use-formeditor-setfieldscript-for-field-javascript": {
+    "note": "Use Aspose.Pdf.Facades.FormEditor and its SetFieldScript method to attach JavaScript to a form field instead of using JavaScriptAction on Document.",
+    "code": "using Aspose.Pdf.Facades;\n\nFormEditor editor = new FormEditor();\neditor.BindPdf(inputPath);\nstring js = \"this.getField('Date').value = util.printd('dd/MM/yyyy', new Date());\";\neditor.SetFieldScript(\"Date\", js);\neditor.Save(outputPath);\neditor.Close();",
     "errors": [
-      "Flattening read‑only annotations when they should be preserved"
+      "CS0234: The type or namespace name 'Actions' does not exist in the namespace 'Aspose.Pdf'"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774427587.8268008,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "use-direct-annotation-processor-instead-of-visitor": {
-    "note": "When you need to perform custom work on each annotation (e.g., timing), iterate over the Annotation collection directly and call your own processor method instead of implementing IAnnotationVisitor, which cannot be passed where an AnnotationSelector is required.",
-    "code": "foreach (var annotation in page.Annotations)\n{\n    processor.Process(annotation);\n}",
-    "errors": [
-      "CS1503: Argument 1: cannot convert from 'YourVisitor' to 'Aspose.Pdf.Annotations.AnnotationSelector'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774427628.035132,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "use-annotation-object-with-modifyannotations": {
-    "note": "When using PdfAnnotationEditor.ModifyAnnotations, bind the PDF document first and pass a proper Annotation (e.g., TextAnnotation), not a Rectangle, as the third argument.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\nusing Aspose.Pdf.Annotations;\n\nusing (Document doc = new Document(inputPath))\n{\n    using (PdfAnnotationEditor editor = new PdfAnnotationEditor())\n    {\n        editor.BindPdf(doc);\n        var rect = new Rectangle(100, 500, 300, 550);\n        var annotation = new TextAnnotation(doc.Pages[1], rect);\n        editor.ModifyAnnotations(1, doc.Pages.Count, annotation);\n    }\n    doc.Save(outputPath);\n}",
-    "errors": [
-      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Rectangle' to 'Aspose.Pdf.Document'",
-      "CS1503: No overload for method 'ModifyAnnotations' takes arguments of type '(Aspose.Pdf.Rectangle, ...)'"
-    ],
-    "_auto": true,
-    "_confidence": 0.6,
-    "_created_at": 1774427774.370862,
-    "_hit_count": 1,
-    "_stage": "regen",
-    "_category": "Facades - Annotations"
-  },
-  "cast-to-markupannotation-for-title": {
-    "note": "When accessing the Title of an annotation, cast the base Annotation to MarkupAnnotation (or a derived type) because the Title property is defined only on MarkupAnnotation.",
-    "code": "Annotation ann = page.Annotations[i];\nstring title = string.Empty;\nif (ann is MarkupAnnotation markup && !string.IsNullOrEmpty(markup.Title))\n{\n    title = markup.Title;\n}",
-    "errors": [
-      "CS1061: 'Annotation' does not contain a definition for 'Title' and no accessible extension method 'Title' accepting a first argument of type 'Annotation' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774427797.163248,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "use-pathcombine-for-relative-directories": {
-    "note": "Construct file and folder paths with Path.Combine (using a base directory) instead of hard‑coded absolute strings to avoid invalid mixed path errors.",
-    "code": "string baseDir = Path.Combine(Directory.GetCurrentDirectory(), \"PdfBatch\");\nstring sourceFolder = Path.Combine(baseDir, \"Input\");\nstring outputFolder = Path.Combine(baseDir, \"Processed\");\nstring archiveFolder = Path.Combine(baseDir, \"XFDFArchive\");",
-    "errors": [
-      "System.IO.DirectoryNotFoundException: Could not find a part of the path '/.../_build/C:\\PdfBatch\\Input'",
-      "Invalid path caused by mixing absolute Windows paths with relative build directory"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774428061.567884,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "use-document-flatten-without-flattensettings": {
-    "note": "For default PDF flattening, call Document.Flatten() directly and omit the Aspose.Pdf.Forms namespace and FlattenSettings object.",
-    "code": "using Aspose.Pdf;\n\nusing (Document doc = new Document(inputPath))\n{\n    doc.Flatten(); // default flattening\n    doc.Save(outputPath);\n}",
-    "errors": [
-      "CS0246: The type or namespace name 'FlattenSettings' could not be found (are you missing a using directive or an assembly reference?)",
-      "Unnecessary import of Aspose.Pdf.Forms when only default flattening is required"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774428112.029809,
+    "_created_at": 1774940050.414052,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "clone-annotation-using-reflection": {
-    "note": "Create a clone of an existing annotation on another page by invoking its (Page, Rectangle) constructor via reflection and copying common properties.",
-    "code": "Annotation original = sourcePage.Annotations[1];\nType annoType = original.GetType();\nvar rect = original.Rect;\nAnnotation clone = (Annotation)Activator.CreateInstance(annoType, targetPage, rect);\n// copy needed properties\nclone.Color = original.Color;\nclone.Contents = original.Contents;\nclone.Border = original.Border != null\n    ? new Border(clone) { Width = original.Border.Width, Style = original.Border.Style }\n    : null;",
+  "use-formeditor-with-document": {
+    "note": "Instantiate FormEditor with a Document object (using the overload without file paths) and call Save(outputPath) to write changes, instead of the obsolete FormEditor(string, string) constructor.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\n// Load PDF\nusing (Document pdfDoc = new Document(inputPath))\nusing (FormEditor formEditor = new FormEditor(pdfDoc))\n{\n    // ... perform editing operations ...\n    formEditor.Save(outputPath);\n}",
     "errors": [
-      "Cannot instantiate annotation of the same concrete type on a different page without using its (Page, Rectangle) constructor"
+      "CS0618: 'FormEditor.FormEditor(string, string)' is obsolete",
+      "Runtime FileNotFoundException when the input file path is passed directly to FormEditor"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774428320.213048,
+    "_created_at": 1774940289.045133,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "use-annotationtype-property": {
-    "note": "Use the Annotation.AnnotationType property to obtain an annotation's type instead of the non‑existent Subtype property.",
-    "code": "Annotation annotation = page.Annotations[annIndex];\nAnnotationType type = annotation.AnnotationType;",
+  "use-border-and-color-for-listboxfield": {
+    "note": "ListBoxField does not expose BackgroundColor, BorderColor or TextColor; style it by assigning a Border object and using the Color property for border/background appearance.",
+    "code": "foreach (Aspose.Pdf.Forms.ListBoxField listField in document.Form.Fields)\n{\n    // set border width (and optionally other border properties)\n    listField.Border = new Border(listField) { Width = 2 };\n    // set border color\n    listField.Color = Aspose.Pdf.Color.Blue;\n    // set a background‑like color (ListBoxField has no separate background property)\n    listField.Color = Aspose.Pdf.Color.LightGray;\n}",
     "errors": [
-      "CS1061: 'Annotation' does not contain a definition for 'Subtype' and no accessible extension method 'Subtype' accepting a first argument of type 'Annotation' could be found"
+      "CS1061: 'ListBoxField' does not contain a definition for 'BackgroundColor'",
+      "CS1061: 'ListBoxField' does not contain a definition for 'BorderColor'",
+      "CS1061: 'ListBoxField' does not contain a definition for 'TextColor'"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774428477.6874812,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "use-document-validate-return-bool": {
-    "note": "Call Document.Validate with a log file path and PdfFormat; it returns a bool indicating validity, not a ValidationResult object.",
-    "code": "bool isValid = document.Validate(logFilePath, PdfFormat.PDF_A_1B);",
-    "errors": [
-      "CS0246: The type or namespace name 'ValidationResult' could not be found",
-      "Attempting to assign Document.Validate result to a non‑existent ValidationResult type"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774428734.6937332,
+    "_created_at": 1774940598.3962839,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Annotations"
+    "_category": "Facades - Forms"
   },
-  "use-single-bookmark-with-childitem-for-createbookmarks": {
-    "note": "Pass a single Bookmark (with its ChildItem collection) to PdfBookmarkEditor.CreateBookmarks instead of an array of Bookmark objects.",
-    "code": "PdfBookmarkEditor editor = new PdfBookmarkEditor();\neditor.BindPdf(inputPdf);\n\n// child bookmarks\nBookmark child = new Bookmark { Title = \"Section 1.1\", PageNumber = 2, Action = \"GoTo\" };\nBookmarks children = new Bookmarks();\nchildren.Add(child);\n\n// parent bookmark with hierarchy\nBookmark parent = new Bookmark {\n    Title = \"Chapter 1\",\n    PageNumber = 1,\n    Action = \"GoTo\",\n    ChildItem = children\n};\n\neditor.CreateBookmarks(parent);\neditor.Save(outputPdf);",
+  "use-textboxfield-instead-of-form-addtextbox": {
+    "note": "Create a TextBoxField via the page‑based constructor and add it with Document.Form.Add instead of using Form.AddTextBox / Form.SetFieldFlag.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nRectangle rect = new Rectangle(0, 0, 0, 0);\nTextBoxField authField = new TextBoxField(doc.Pages[1], rect);\nauthField.PartialName = \"AuthToken\";\nauthField.Value = authToken;\n// hidden by zero‑size rectangle, no FieldFlag needed\n\ndoc.Form.Add(authField, 1);",
     "errors": [
-      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Facades.Bookmark[]' to 'Aspose.Pdf.Facades.Bookmark'"
+      "CS1061: 'Form' does not contain a definition for 'AddTextBox'",
+      "CS1061: 'Form' does not contain a definition for 'SetFieldFlag'",
+      "CS0103: The name 'FieldFlag' does not exist in the current context"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774428884.237123,
+    "_created_at": 1774941714.065431,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Forms"
+  },
+  "use-annotations-namespace-for-javascriptaction": {
+    "note": "Import Aspose.Pdf.Annotations and use JavascriptAction from that namespace when adding JavaScript to form fields",
+    "code": "using Aspose.Pdf.Annotations;\n\n// ... create field\nJavascriptAction js = new JavascriptAction(\"your JS code\");\nfield.ExecuteFieldJavaScript(js);",
+    "errors": [
+      "CS0246: The type or namespace name 'JavascriptAction' could not be found (are you missing a using directive or an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774941943.762045,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Forms"
+  },
+  "use-importfromjson-for-form-fields": {
+    "note": "Import form fields (including layout) from a JSON definition using Document.Form.ImportFromJson(Stream) instead of manually constructing field objects.",
+    "code": "using (FileStream jsonStream = new FileStream(jsonPath, FileMode.Open, FileAccess.Read))\n{\n    document.Form.ImportFromJson(jsonStream);\n}",
+    "errors": [
+      "CS1729: 'TextBoxField' does not contain a constructor that takes 3 arguments",
+      "CS1503: Argument 2: cannot convert from 'string' to 'int'",
+      "CS0246: The type or namespace name 'CheckBoxField' could not be found",
+      "CS1729: 'ComboBoxField' does not contain a constructor that takes 3 arguments",
+      "CS1061: 'ComboBoxField' does not contain a definition for 'Choices'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774942466.98473,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Bookmarks"
+    "_category": "Facades - Forms"
   },
-  "avoid-xyzdestination-for-bookmark-deletion": {
-    "note": "When removing a bookmark, call PdfBookmarkEditor.DeleteBookmarks(string title) directly instead of using the non‑existent XYZDestination type.",
-    "code": "var editor = new PdfBookmarkEditor();\neditor.BindPdf(inputPdf);\neditor.DeleteBookmarks(\"Target Bookmark\");\neditor.Save(outputPdf);",
+  "use-signaturecustomappearance-via-signature-property": {
+    "note": "Assign a custom appearance to a signature field using the Signature property and SignatureCustomAppearance class",
+    "code": "SignatureCustomAppearance custom = new SignatureCustomAppearance();\ncustom.IsForegroundImage = false; // or true for foreground image\nsigField.Signature.CustomAppearance = custom;",
     "errors": [
-      "CS0246: The type or namespace name 'XYZDestination' could not be found"
+      "CS0246: The type or namespace name 'SignatureAppearance' could not be found",
+      "CS1061: 'SignatureField' does not contain a definition for 'CustomAppearance'",
+      "CS1729: 'Image' does not contain a constructor that takes 1 arguments"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774429041.77663,
+    "_created_at": 1774942684.7122402,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Bookmarks"
-  },
-  "use-systemdrawing-color-for-bookmark-titlecolor": {
-    "note": "Assign Bookmark.TitleColor with a System.Drawing.Color value (e.g., System.Drawing.Color.Blue) instead of Aspose.Pdf.Color.",
-    "code": "Bookmark bm = new Bookmark {\n    Title = \"First Page\",\n    PageNumber = 1,\n    TitleColor = System.Drawing.Color.Blue\n};",
-    "errors": [
-      "CS0029: Cannot implicitly convert type 'Aspose.Pdf.Color' to 'System.Drawing.Color'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774429090.4441862,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Bookmarks"
-  },
-  "use-modifybookmarks-by-title": {
-    "note": "Rename PDF bookmarks by calling PdfBookmarkEditor.ModifyBookmarks(oldTitle, newTitle) after extracting the bookmarks, rather than passing a string to a method that expects an OutlineItemCollection.",
-    "code": "using Aspose.Pdf.Facades;\n\nPdfBookmarkEditor editor = new PdfBookmarkEditor();\neditor.BindPdf(\"input.pdf\");\nBookmarks bookmarks = editor.ExtractBookmarks();\nforeach (Bookmark bm in bookmarks)\n{\n    string newTitle = ConvertToTitleCase(bm.Title, properNouns);\n    if (newTitle != bm.Title)\n        editor.ModifyBookmarks(bm.Title, newTitle);\n}\neditor.Save(\"output.pdf\");",
-    "errors": [
-      "CS1503: Argument 1: cannot convert from 'string' to 'Aspose.Pdf.OutlineItemCollection'",
-      "CS0815: Cannot assign void to an implicitly-typed variable"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774429338.3079638,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Bookmarks"
-  },
-  "use-pdfbookmarkeditor-createbookmarkofpage": {
-    "note": "Use PdfBookmarkEditor.CreateBookmarkOfPage to add page bookmarks instead of accessing a non‑existent DestinationPageNumber on OutlineItemCollection",
-    "code": "PdfBookmarkEditor editor = new PdfBookmarkEditor();\neditor.BindPdf(pdfPath);\neditor.CreateBookmarkOfPage(\"Page 1\", 1); // repeat for each page\neditor.Save(outputPdfPath);",
-    "errors": [
-      "'OutlineItemCollection' does not contain a definition for 'DestinationPageNumber'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774429566.506287,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Bookmarks"
-  },
-  "use-streamwriter-csv-instead-of-aspose-cells": {
-    "note": "When exporting simple tabular data (e.g., PDF bookmarks) to a file that Excel can open, avoid using Aspose.Cells and instead write a CSV with System.IO.StreamWriter.",
-    "code": "using System.IO;\n\nusing (var writer = new StreamWriter(\"output.csv\"))\n{\n    writer.WriteLine(\"Title,Level,Destination\");\n    // write rows: writer.WriteLine($\"{title},{level},{destination}\");\n}",
-    "errors": [
-      "CS0234: The type or namespace name 'Cells' does not exist in the namespace 'Aspose' (are you missing an assembly reference?)"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774429665.514675,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Bookmarks"
-  },
-  "bookmark-to-named-destination": {
-    "note": "To create a bookmark that points to an existing named destination, use a GoToAction initialized with the document and the destination name, assign it to the OutlineItemCollection.Action, and add the outline item to the document's Outlines collection.",
-    "code": "Document doc = new Document(\"input.pdf\");\nGoToAction goTo = new GoToAction(doc, \"MyNamedDest\");\nOutlineItemCollection bookmark = new OutlineItemCollection(doc.Outlines)\n{\n    Title = \"Cross‑Reference Bookmark\",\n    Action = goTo\n};\ndoc.Outlines.Add(bookmark);\ndoc.Save(\"output.pdf\");",
-    "errors": [
-      "CS1061: 'NamedDestination' does not contain a definition for 'Destination' and no accessible extension method 'Destination' accepting a first argument of type 'NamedDestination' could be found",
-      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Annotations.NamedDestination' to 'System.Collections.Generic.KeyValuePair<string, object>'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774429763.077725,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Bookmarks"
-  },
-  "use-resolution-object-for-pdfconverter-resolution": {
-    "note": "Assign a Resolution object to PdfConverter.Resolution (e.g., new Resolution(150)) instead of an integer, and omit the non‑existent PageSize property which now defaults to the page's CropBox.",
-    "code": "PdfConverter converter = new PdfConverter();\nconverter.BindPdf(doc);\nconverter.StartPage = 1;\nconverter.EndPage = 10;\nconverter.Resolution = new Resolution(150); // correct usage\n// No converter.PageSize assignment – CropBox is used by default",
-    "errors": [
-      "Cannot implicitly convert type 'int' to 'Aspose.Pdf.Devices.Resolution'",
-      "'PdfConverter' does not contain a definition for 'PageSize'",
-      "'PageSize' does not contain a definition for 'CropBox'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430113.403718,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "use-fontrepository-simplefonts-substitution-and-bmpdevice-correct-instantiation": {
-    "note": "Replace the non‑existent Document.FontSubstitutions with FontRepository.Substitutions.Add(new SimpleFontSubstitution(...)) and create BmpDevice from Aspose.Pdf.Devices using its Resolution constructor (do not use a using block).",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Devices;\n\n// Font substitution\nFontRepository.Substitutions.Add(new SimpleFontSubstitution(\"Helvetica\", \"Arial\"));\n\n// BMP rendering\nBmpDevice bmpDevice = new BmpDevice(new Resolution(300));\nbmpDevice.Process(doc.Pages[pageNumber], outputPath);",
-    "errors": [
-      "CS1061: 'Document' does not contain a definition for 'FontSubstitutions'",
-      "CS1729: 'FontSubstitution' does not contain a constructor that takes 2 arguments",
-      "CS0246: The type or namespace name 'BmpDevice' could not be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430165.611271,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "conditional-placeholder-pdf-creation-windows-only": {
-    "note": "Create a placeholder PDF only on Windows before loading, because Document.Save requires GDI+ (libgdiplus) which is unavailable on non‑Windows platforms.",
-    "code": "if (!File.Exists(inputPdf))\n{\n    if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n    {\n        var placeholder = new Document();\n        placeholder.Pages.Add();\n        placeholder.Save(inputPdf);\n    }\n    else\n    {\n        Console.WriteLine($\"Input PDF '{inputPdf}' not found and cannot create placeholder on non‑Windows platforms.\");\n        return;\n    }\n}",
-    "errors": [
-      "System.IO.FileNotFoundException: Could not find file '<path>/input.pdf'",
-      "Document.Save throws on non‑Windows platforms due to missing GDI+ (libgdiplus)"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430217.714977,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "use-fontrrepository-substitution-for-font-replacement": {
-    "note": "Use FontRepository.Substitutions with SimpleFontSubstitution instead of TextEditOptions to replace fonts in a PDF.",
-    "code": "FontRepository.Substitutions.Add(new SimpleFontSubstitution(\"Times New Roman\", \"Calibri\"));",
-    "errors": [
-      "CS1729: 'TextEditOptions' does not contain a constructor that takes 0 arguments",
-      "CS1061: 'TextEditOptions' does not contain a definition for 'FontSubstitution'",
-      "CS0572: 'FontReplace': cannot reference a type through an expression",
-      "CS0118: 'TextEditOptions.FontReplace' is a type but is used like a variable",
-      "CS0103: The name 'FontReplace' does not exist in the current context",
-      "CS1061: 'Document' does not contain a definition for 'ProcessTextEdit'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430256.44683,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "use-resolution-property-for-pdfconverter": {
-    "note": "Set the DPI for PdfConverter using the Resolution property (new Resolution(dpi)) and use DoConvert + SaveAsTIFF for TIFF output",
-    "code": "PdfConverter converter = new PdfConverter();\nconverter.Resolution = new Resolution(300);\nconverter.BindPdf(inputPdf);\nconverter.DoConvert();\nconverter.SaveAsTIFF(outputTiff);\nconverter.Close();",
-    "errors": [
-      "CS1503: cannot convert from 'string' to 'Aspose.Pdf.Devices.Resolution'",
-      "CS1503: cannot convert from 'Aspose.Pdf.Devices.Resolution' to 'Aspose.Pdf.Devices.TiffSettings'",
-      "CS0103: The name 'TiffCompression' does not exist in the current context",
-      "CS1501: No overload for method 'Process' takes 1 arguments"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430326.8116732,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Convert Documents"
-  },
-  "avoid-using-with-bmpdevice": {
-    "note": "Instantiate BmpDevice directly without a using statement because BmpDevice does not implement IDisposable.",
-    "code": "using Aspose.Pdf.Devices;\nResolution resolution = new Resolution(300);\nBmpDevice bmpDevice = new BmpDevice(resolution); // no using",
-    "errors": [
-      "The using statement requires a variable of type IDisposable",
-      "BmpDevice does not implement IDisposable"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430383.115954,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "use-resolution-object-for-pdfconverter": {
-    "note": "Assign a Resolution object to PdfConverter.Resolution instead of an integer DPI value.",
-    "code": "converter.Resolution = new Resolution(600);",
-    "errors": [
-      "CS0029: Cannot implicitly convert type 'int' to 'Aspose.Pdf.Devices.Resolution'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430398.452652,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "use-fontrepository-substitutions-for-font-substitution": {
-    "note": "Use FontRepository.Substitutions with SimpleFontSubstitution instead of the non‑existent Document.FontSubstitutions property to replace missing fonts.",
-    "code": "FontRepository.Substitutions.Add(new SimpleFontSubstitution(\"MissingFont\", \"Arial\"));",
-    "errors": [
-      "CS1061: 'Document' does not contain a definition for 'FontSubstitutions' and no accessible extension method 'FontSubstitutions' accepting a first argument of type 'Document' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430517.365497,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "omit-coordinatetype-for-bmpdevice": {
-    "note": "Do not set BmpDevice.CoordinateType; recent Aspose.Pdf versions use CropBox by default",
-    "code": "BmpDevice bmpDevice = new BmpDevice(resolution); // no CoordinateType assignment needed",
-    "errors": [
-      "CS0103: The name 'CoordinateType' does not exist in the current context"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430597.185305,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "use-fontrepository-substitutions-and-pdfconverter-facade": {
-    "note": "Register custom font substitution via FontRepository.Substitutions and use Aspose.Pdf.Facades.PdfConverter (with its SaveAsTIFF overload) to convert a PDF to TIFF, instead of accessing Document.FontSubstitutes or using TiffSettings.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\nusing Aspose.Pdf.Text;\n\n// Register substitution\nFontRepository.Substitutions.Add(new SimpleFontSubstitution(\"Symbol\", \"Arial Unicode MS\"));\n\n// Convert PDF to TIFF\nusing var pdfDoc = new Document(inputPdfPath);\nusing var converter = new PdfConverter();\nconverter.BindPdf(pdfDoc);\nconverter.DoConvert();\nconverter.SaveAsTIFF(outputTiffPath);",
-    "errors": [
-      "CS1061: 'Document' does not contain a definition for 'FontSubstitutes'",
-      "CS0246: The type or namespace name 'PdfConverter' could not be found",
-      "CS0246: The type or namespace name 'TiffSettings' could not be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430646.938279,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "use-simplefontsusbstitution-and-pngdevice-process": {
-    "note": "Use FontRepository.Substitutions with SimpleFontSubstitution for font substitution and use PngDevice.Process to render pages to PNG files.",
-    "code": "FontRepository.Substitutions.Add(new SimpleFontSubstitution(\"Helvetica\", \"Times New Roman\"));\nnew PngDevice(new Resolution(300)).Process(page, \"output.png\");",
-    "errors": [
-      "Document does not contain a definition for 'FontSubstitutions'",
-      "PngDevice does not contain a definition for 'Save'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430749.241856,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "clamp-page-range-when-converting-pdf-to-images": {
-    "note": "Clamp the start/end page numbers to the PDF's actual page count before passing them to JpegDevice.Process",
-    "code": "int actualEnd = Math.Min(endPage, pdfDocument.Pages.Count);\nfor (int page = startPage; page <= actualEnd; page++)\n{\n    using (FileStream stream = new FileStream(outputPath, FileMode.Create))\n    {\n        jpegDevice.Process(pdfDocument.Pages[page], stream);\n    }\n}",
-    "errors": [
-      "ArgumentOutOfRangeException or runtime error when a page index exceeds pdfDocument.Pages.Count",
-      "Incorrect page range causing processing of non‑existent pages"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430799.0910988,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Convert Documents"
-  },
-  "create-placeholder-pdf-when-input-missing": {
-    "note": "If the source PDF file may be absent, generate a minimal one‑page PDF with Aspose.Pdf.Document before performing any conversion.",
-    "code": "if (!File.Exists(inputPdfPath))\n{\n    using var placeholder = new Document();\n    placeholder.Pages.Add();\n    placeholder.Save(inputPdfPath);\n}",
-    "errors": [
-      "System.IO.FileNotFoundException: Could not find file 'input.pdf'",
-      "Runtime error when loading a non‑existent PDF file"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430900.944438,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "use-pathcombine-for-cross-platform-paths": {
-    "note": "Construct file and folder paths with Path.Combine (and optionally Directory.GetCurrentDirectory) instead of hard‑coded Windows style strings to avoid invalid paths on non‑Windows platforms.",
-    "code": "string dataDir = Path.Combine(Directory.GetCurrentDirectory(), \"PdfData\");\nDirectory.CreateDirectory(dataDir);\nstring pdfPath = Path.Combine(dataDir, \"sample.pdf\");\nif (!File.Exists(pdfPath))\n{\n    Console.Error.WriteLine($\"Error: PDF file not found at '{pdfPath}'.\");\n    return;\n}",
-    "errors": [
-      "System.IO.DirectoryNotFoundException: Could not find a part of the path '/.../_build/C:\\PdfData/sample.pdf'",
-      "Invalid path errors caused by mixing Windows absolute paths with Unix working directories"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430939.071879,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "font-substitution-with-fontrepository": {
-    "note": "Use FontRepository.Substitutions with SimpleFontSubstitution for font substitution and set PdfConverter page range via StartPage/EndPage instead of a non‑existent FontSubstitution property.",
-    "code": "using Aspose.Pdf.Text;\n\n// Font substitution\nFontRepository.Substitutions.Add(new SimpleFontSubstitution(\"Courier\", \"LiberationMono\"));\n\n// PdfConverter page range (convert all pages)\nconverter.StartPage = 1;\nconverter.EndPage = converter.PageCount;",
-    "errors": [
-      "CS0246: The type or namespace name 'FontSubstitution' could not be found",
-      "CS1061: 'PdfConverter' does not contain a definition for 'FontSubstitution'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774430967.259967,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "use-resolution-parameter-for-pngdevice": {
-    "note": "Add a reference to Aspose.Pdf.Devices and instantiate PngDevice with a Resolution object (e.g., new PngDevice(new Resolution(300))) instead of passing a raw integer DPI.",
-    "code": "using Aspose.Pdf.Devices;\n...\nvar pngDevice = new PngDevice(new Resolution(300));",
-    "errors": [
-      "CS0246: The type or namespace name 'PngDevice' could not be found (are you missing a using directive or an assembly reference?)",
-      "Constructor overload mismatch when passing an int to PngDevice; it expects a Resolution instance."
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774431163.447514,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "use-pagecoordinatetype-for-jpegdevice-coordinate": {
-    "note": "Set JpegDevice.CoordinateType using the PageCoordinateType enum (e.g., CropBox) instead of the non‑existent CoordinateType enum.",
-    "code": "JpegDevice jpegDevice = new JpegDevice(resolution);\njpegDevice.CoordinateType = PageCoordinateType.CropBox;",
-    "errors": [
-      "CS0234: The type or namespace name 'CoordinateType' does not exist in the namespace 'Aspose.Pdf.Drawing'",
-      "Compilation error when assigning JpegDevice.CoordinateType with an undefined enum"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774431216.7842581,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Convert Documents"
-  },
-  "use-fontrepository-substitutions-for-fontsubstitution": {
-    "note": "Replace the obsolete Document.FontSubstitutionRule API with FontRepository.Substitutions using SimpleFontSubstitution to map missing fonts to available ones.",
-    "code": "using Aspose.Pdf.Text;\n\n// Map a missing font to a substitute font\nFontRepository.Substitutions.Add(new SimpleFontSubstitution(\"MissingFontName\", \"SubstituteFontName\"));",
-    "errors": [
-      "CS1061: 'Document' does not contain a definition for 'FontSubstitutionRule'",
-      "CS1061: 'Document' does not contain a definition for 'FontSubstitutionRule' (when accessing DefaultFont or Substitutes)"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774431241.880849,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Convert Documents"
-  },
-  "ensure-destination-pdf-exists-before-insert": {
-    "note": "Before calling PdfFileEditor.Insert with file paths, make sure the destination PDF file exists; if it does not, create a minimal PDF (e.g., a blank page) using Aspose.Pdf.Document and save it.",
-    "code": "if (!File.Exists(destinationPath))\n{\n    using (var doc = new Aspose.Pdf.Document())\n    {\n        doc.Pages.Add(); // add a blank page\n        doc.Save(destinationPath);\n    }\n}\nvar editor = new Aspose.Pdf.Facades.PdfFileEditor();\neditor.Insert(destinationPath, insertLocation, sourcePath, pagesToInsert, outputPath);",
-    "errors": [
-      "System.IO.FileNotFoundException: Could not find file '<destination-pdf-path>'",
-      "PdfFileEditor.Insert fails when the destination file does not exist"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774431301.5854342,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "use-pdffileeditor-insert-with-streams": {
-    "note": "When inserting pages with PdfFileEditor.Insert, open the destination and source PDFs as read‑only streams, the output PDF as a write stream, and supply a 1‑based insert position that is within the destination page count.",
-    "code": "using (FileStream dest = new FileStream(destPath, FileMode.Open, FileAccess.Read))\nusing (FileStream src  = new FileStream(srcPath,  FileMode.Open, FileAccess.Read))\nusing (FileStream out  = new FileStream(outPath,  FileMode.Create, FileAccess.Write))\n{\n    var editor = new PdfFileEditor();\n    // insertPosition is 1‑based\n    editor.Insert(dest, insertPosition, src, new int[] { 2, 4, 5 }, out);\n}",
-    "errors": [
-      "System.IndexOutOfRangeException when the insert position is out of the destination PDF page range",
-      "Incorrect stream access modes causing runtime failures during Insert"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774431415.103953,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Documents"
-  },
-  "avoid-using-pdffileeditor": {
-    "note": "Do not place Aspose.Pdf.Facades.PdfFileEditor in a using statement because it does not implement IDisposable; instantiate it directly.",
-    "code": "var editor = new PdfFileEditor();\nbool success = editor.Append(inputPdf, sourcePdf, startPage, endPage, outputPdf);",
-    "errors": [
-      "CS1674: 'PdfFileEditor': type used in a using statement must implement 'System.IDisposable'."
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774431600.778233,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "use-pdffileeditor-insert-instead-of-page-clone": {
-    "note": "When inserting pages from other PDFs, use PdfFileEditor.Insert with a page numbers array instead of trying to clone Page objects (Page.Clone does not exist).",
-    "code": "PdfFileEditor editor = new PdfFileEditor();\nbool ok = editor.Insert(basePdfPath, int.MaxValue, sourcePdfPath, new int[] { 2, 4, 5 }, outputPdfPath);",
-    "errors": [
-      "CS1061: 'Page' does not contain a definition for 'Clone' and no accessible extension method 'Clone' accepting a first argument of type 'Page' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774431672.0775402,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Documents"
-  },
-  "use-document-to-load-pdf": {
-    "note": "Load a PDF file with the Document class instead of trying to bind it with PdfFileEditor, which has no BindPdf or Close methods.",
-    "code": "using Aspose.Pdf;\n\n// Load PDF\nDocument pdfDoc = new Document(\"source.pdf\");",
-    "errors": [
-      "CS1061: 'PdfFileEditor' does not contain a definition for 'BindPdf'",
-      "CS1061: 'PdfFileEditor' does not contain a definition for 'Close'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774431695.915754,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "use-document-constructor-and-save-to-memorystream": {
-    "note": "Create a Document with the parameterless constructor for an in‑memory PDF and use Document.Save(Stream) to write it to a MemoryStream instead of loading from a file path.",
-    "code": "using (var doc = new Document()) {\n    doc.Pages.Add(); // modify as needed\n    using (var ms = new MemoryStream()) {\n        doc.Save(ms);\n        ms.Position = 0; // optional: reset for reading\n    }\n}",
-    "errors": [
-      "System.IO.FileNotFoundException: Could not find file '<path>'",
-      "Attempting to load a PDF with Document(string path) when the source file does not exist"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774431761.524929,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "use-stream-overload-for-splitfromfirst": {
-    "note": "When splitting a PDF in memory, call PdfFileEditor.SplitFromFirst with Stream arguments (input stream, end page, output stream) instead of the overload that expects file path strings.",
-    "code": "PdfFileEditor editor = new PdfFileEditor();\nbool success = editor.SplitFromFirst(inputStream, endPage, outputStream);",
-    "errors": [
-      "CS1503: Argument 1: cannot convert from 'System.IO.MemoryStream' to 'string'",
-      "CS1503: Argument 2: cannot convert from 'System.IO.MemoryStream' to 'int'",
-      "CS1503: Argument 4: cannot convert from 'int' to 'string'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774431853.922566,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Documents"
-  },
-  "use-%d-placeholder-for-pdffileeditor-split": {
-    "note": "When calling PdfFileEditor.SplitToPages, use \"%d\" (lower‑case d) as the placeholder for the page number in the output file name pattern.",
-    "code": "var pdfEditor = new PdfFileEditor();\nstring pattern = Path.Combine(outputFolder, \"page%d.pdf\");\npdfEditor.SplitToPages(inputPdfPath, pattern);",
-    "errors": [
-      "Incorrect placeholder \"%NUM%\" used in SplitToPages output pattern, causing files to be named literally \"page%NUM%.pdf\"",
-      "FileNotFoundException at runtime when the input PDF path is invalid or missing"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774432049.864164,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "use-pages-insert-with-pagecollection": {
-    "note": "When appending pages from another PDF, call Pages.Insert with the source document's Pages collection (Insert(pageNumber, sourceDocument.Pages)) instead of the 4‑argument overload.",
-    "code": "Document target = new Document();\nDocument source = new Document(srcPath);\n// Append all pages of source to the end of target\ntarget.Pages.Insert(target.Pages.Count + 1, source.Pages);",
-    "errors": [
-      "CS1501: No overload for method 'Insert' takes 4 arguments"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774432099.405626,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "splittobulks-with-filepath-and-page-ranges": {
-    "note": "Call PdfFileEditor.SplitToBulks with the input PDF file path and an int[][] of page ranges (no output directory argument).",
-    "code": "PdfFileEditor editor = new PdfFileEditor();\nMemoryStream[] bulks = editor.SplitToBulks(inputPdfPath, pageRanges);",
-    "errors": [
-      "CS1501: No overload for method 'SplitToBulks' takes 3 arguments"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774432186.3659651,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Documents"
-  },
-  "validate-input-exists-before-pdffileeditor-delete": {
-    "note": "Before calling PdfFileEditor.Delete with input and output streams, verify that the source PDF file exists and handle exceptions.",
-    "code": "if (!File.Exists(inputPath))\n    return;\nusing (var inStream = new FileStream(inputPath, FileMode.Open, FileAccess.Read))\nusing (var outStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write))\n{\n    var editor = new PdfFileEditor();\n    editor.Delete(inStream, pagesToDelete, outStream);\n}",
-    "errors": [
-      "Aspose.Pdf.InvalidPdfFileFormatException: Incorrect file header",
-      "Runtime failure when input PDF path is invalid or file is missing"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774432283.380461,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Documents"
-  },
-  "use-pdffileeditor-concatenate-with-file-streams": {
-    "note": "Open each source PDF as a read‑only FileStream, pass the array of streams and a writable output FileStream to PdfFileEditor.Concatenate, and dispose the input streams after concatenation (PdfFileEditor itself is not disposable).",
-    "code": "using Aspose.Pdf.Facades;\nusing System.IO;\n\n// inputPdfPaths: string[] of source file paths\n// outputPdfPath: string of destination file path\n\nStream[] inputStreams = inputPdfPaths.Select(p => new FileStream(p, FileMode.Open, FileAccess.Read)).ToArray();\nusing (Stream outputStream = new FileStream(outputPdfPath, FileMode.Create, FileAccess.Write))\n{\n    var editor = new PdfFileEditor();\n    bool success = editor.Concatenate(inputStreams, outputStream);\n    if (!success) throw new InvalidOperationException(\"PDF concatenation failed.\");\n}\nforeach (var s in inputStreams) s?.Dispose();",
-    "errors": [
-      "System.ArgumentException → Aspose.Pdf.InvalidPdfFileFormatException: Incorrect file header (caused by passing invalid or unopened streams to Concatenate)",
-      "Runtime failure when using PdfFileEditor.Concatenate with streams that were not properly opened or disposed"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774432407.632558,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Documents"
-  },
-  "use-memory-streams-and-reset-position-for-pdf-concatenation": {
-    "note": "When concatenating PDFs with PdfFileEditor, provide MemoryStream instances, reset their Position to 0, and optionally set CloseConcatenatedStreams = true before calling Concatenate.",
-    "code": "using (MemoryStream src1 = GetPdfStream1())\nusing (MemoryStream src2 = GetPdfStream2())\nusing (FileStream outStream = new FileStream(\"merged.pdf\", FileMode.Create, FileAccess.Write))\n{\n    src1.Position = 0;\n    src2.Position = 0;\n    var editor = new PdfFileEditor { CloseConcatenatedStreams = true };\n    editor.Concatenate(new Stream[] { src1, src2 }, outStream);\n}",
-    "errors": [
-      "System.IO.FileNotFoundException when trying to read source PDF files from a non‑existent path",
-      "Incorrect concatenation results when input MemoryStreams are not rewound before calling PdfFileEditor.Concatenate"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774432461.701953,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "import-aspdf-pageSize-enum": {
-    "note": "Add `using Aspose.Pdf;` to access the `PageSize` enum when calling the `MakeBooklet` overload that accepts a custom page size.",
-    "code": "using Aspose.Pdf;\n...\nbool result = editor.MakeBooklet(inputPath, outputPath, PageSize.A5);",
-    "errors": [
-      "CS0103: The name 'PageSize' does not exist in the current context"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774432547.802709,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "guard-gdi-dependency-on-non-windows": {
-    "note": "Wrap Aspose.Pdf operations that depend on GDI+ (e.g., Document.Save, PdfFileEditor.MakeBooklet) with a Windows‑platform check and catch TypeInitializationException that wraps a DllNotFoundException when libgdiplus is unavailable.",
-    "code": "if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    // GDI+ is guaranteed to be present on Windows\n    doc.Save(outputPath);\n    editor.MakeBooklet(inputPath, outputPath, leftPages, rightPages);\n}\nelse\n{\n    try\n    {\n        doc.Save(outputPath);\n    }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex))\n    {\n        // handle missing libgdiplus, e.g., skip or log warning\n    }\n\n    try\n    {\n        editor.MakeBooklet(inputPath, outputPath, leftPages, rightPages);\n    }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex))\n    {\n        // handle missing libgdiplus\n    }\n}\n\n// Helper used in the catch clause\nprivate static bool ContainsDllNotFound(Exception? ex)\n{\n    while (ex != null)\n    {\n        if (ex is DllNotFoundException) return true;\n        ex = ex.InnerException;\n    }\n    return false;\n}",
-    "errors": [
-      "TypeInitializationException caused by missing GDI+ (libgdiplus) on non‑Windows platforms when calling Document.Save",
-      "TypeInitializationException caused by missing GDI+ (libgdiplus) on non‑Windows platforms when calling PdfFileEditor.MakeBooklet"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774432712.196419,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "use-setpagesize-with-width-height": {
-    "note": "Use Page.SetPageSize(width, height) with point dimensions (e.g., 612 x 792 for Letter) instead of a non‑existent PageSize enum or Rectangle.",
-    "code": "page.SetPageSize(612, 792); // width and height in points",
-    "errors": [
-      "CS0117: 'PageSize' does not contain a definition for 'Letter'",
-      "Incorrect overload usage: SetPageSize expects width and height, not a Rectangle or enum"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774432746.137517,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "import-pdfviewer-namespace": {
-    "note": "Add a reference to the Aspose.Pdf.Facades namespace to use the PdfViewer class and dispose it with a using statement.",
-    "code": "using Aspose.Pdf.Facades; // required for PdfViewer\n\nusing (PdfViewer viewer = new PdfViewer())\n{\n    // configure viewer and call methods\n}",
-    "errors": [
-      "CS0246: The type or namespace name 'PdfViewer' could not be found (are you missing a using directive or an assembly reference?)"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774432792.386424,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "use-makenup-method": {
-    "note": "Replace the non‑existent NUp method with PdfFileEditor.MakeNUp, which accepts an array of source PDFs, an output path, and a landscape flag.",
-    "code": "using Aspose.Pdf.Facades;\n\nPdfFileEditor editor = new PdfFileEditor();\nbool success = editor.MakeNUp(sourceFiles, outputPdfPath, isLandscape);",
-    "errors": [
-      "CS1061: 'PdfFileEditor' does not contain a definition for 'NUp' and no accessible extension method 'NUp' accepting a first argument of type 'PdfFileEditor' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774432960.840296,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Documents"
-  },
-  "use-explicit-int-array-for-makebooklet": {
-    "note": "Pass explicit int[] page number arrays to PdfFileEditor.MakeBooklet instead of generating them with Enumerable.Range, to avoid runtime evaluation errors.",
-    "code": "int[] leftPages = new int[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };\nint[] rightPages = new int[] { 11, 12, 13, 14, 15, 16, 17, 18, 19, 20 };\nPdfFileEditor editor = new PdfFileEditor();\neditor.MakeBooklet(inputPath, outputPath, leftPages, rightPages);",
-    "errors": [
-      "System.IndexOutOfRangeException: At most 4 elements (for any collection) can be viewed in evaluation mode."
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774433166.866744,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Documents"
-  },
-  "use-float-for-pagesize-constructor": {
-    "note": "When creating a PageSize, pass float values (or cast to float) because the constructor expects float, not double.",
-    "code": "float width = 5.5f * 72f;\nfloat height = 8.5f * 72f;\nPageSize size = new PageSize(width, height);",
-    "errors": [
-      "CS1503: Argument 1: cannot convert from 'double' to 'float'",
-      "CS1503: Argument 2: cannot convert from 'double' to 'float'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774433179.944105,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
-  },
-  "use-setpagesize-width-height": {
-    "note": "When resizing a page, call Page.SetPageSize with width and height doubles instead of passing a PageSize object.",
-    "code": "Page page = doc.Pages[1];\nPageSize size = PageSize.A4;\npage.SetPageSize(size.Width, size.Height);",
-    "errors": [
-      "CS7036: There is no argument given that corresponds to the required parameter 'height' of 'Page.SetPageSize(double, double)'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774433419.4941802,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Documents"
+    "_category": "Facades - Forms"
   }
 }
