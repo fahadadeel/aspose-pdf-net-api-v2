@@ -36,7 +36,7 @@ class BuildConfig:
     """Target framework and NuGet package for .NET builds."""
     tfm: str = "net10.0"
     nuget_package: str = "Aspose.PDF"
-    nuget_version: str = "26.3.0"
+    nuget_version: str = "26.2.0"
 
 
 @dataclass

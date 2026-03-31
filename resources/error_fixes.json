@@ -9969,5 +9969,227 @@
       "CS1061: 'PageCollection' does not contain a definition for 'BeforePageGenerate'",
       "CS1061: 'PageCollection' does not contain a definition for 'UpdatePagination'"
     ]
+  },
+  "use-autofiller-bindpdf-stream": {
+    "note": "Bind the PDF template to AutoFiller using a Stream overload (e.g., MemoryStream) instead of a file path to avoid missing‑file errors.",
+    "code": "using (MemoryStream templateStream = CreatePdfTemplate())\n{\n    AutoFiller autoFiller = new AutoFiller();\n    autoFiller.BindPdf(templateStream); // stream overload\n    autoFiller.ImportDataTable(dataTable);\n    autoFiller.Save(\"filled.pdf\");\n}",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file '...template.pdf' when calling new AutoFiller(string srcFileName, Stream destStream) or BindPdf(string path)",
+      "Runtime error when AutoFiller attempts to open a non‑existent PDF template file"
+    ]
+  },
+  "add-form-fields-to-document-form-collection": {
+    "note": "When creating a PDF template for AutoFiller, instantiate form fields (e.g., TextBoxField) and add them to the Document.Form collection, not directly to page annotations, and ensure the template file exists before binding.",
+    "code": "Document doc = new Document();\nPage page = doc.Pages.Add();\nTextBoxField txt = new TextBoxField(page, new Rectangle(100, 700, 400, 720))\n{\n    PartialName = \"FullName\",\n    Value = string.Empty\n};\ndoc.Form.Add(txt);\n// Save template if needed\nif (!File.Exists(\"template.pdf\"))\n    doc.Save(\"template.pdf\");",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file 'template.pdf' when using AutoFiller",
+      "Form fields not appearing because they were added to page.Annotations instead of Document.Form"
+    ]
+  },
+  "create-pdf-template-from-datacolumncollection": {
+    "note": "Generate a PDF template with TextBoxField form fields for each DataTable column before calling AutoFiller.ImportDataTable",
+    "code": "if (!File.Exists(templatePath)) {\n    Document doc = new Document();\n    Page page = doc.Pages.Add();\n    float yPos = 750;\n    const float left = 100, width = 300, height = 20, verticalSpacing = 30;\n    foreach (DataColumn col in dataTable.Columns) {\n        Rectangle rect = new Rectangle(left, yPos, left + width, yPos + height);\n        TextBoxField txtField = new TextBoxField(page, rect) { PartialName = col.ColumnName };\n        txtField.Border = new Border(txtField) { Style = BorderStyle.Solid, Width = 1 };\n        txtField.Color = Color.Black;\n        doc.Form.Add(txtField);\n        yPos -= verticalSpacing;\n    }\n    doc.Save(templatePath);\n}",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file 'template.pdf' when using AutoFiller",
+      "AutoFiller.ImportDataTable fails when the PDF template lacks form fields matching DataTable column names"
+    ]
+  },
+  "use-autofiller-importdatatable-per-worksheet": {
+    "note": "Create a separate AutoFiller instance for each worksheet (or CSV), bind the template PDF, set GeneratingPath and BasicFileName, import the worksheet's DataTable with ImportDataTable, and call Save() to generate the PDF.",
+    "code": "using (AutoFiller filler = new AutoFiller())\n{\n    filler.BindPdf(templatePdfPath);\n    filler.GeneratingPath = outputFolder + Path.DirectorySeparatorChar;\n    filler.BasicFileName = sheetName; // unique per worksheet\n    filler.ImportDataTable(worksheetTable);\n    filler.Save();\n}",
+    "errors": [
+      "CS1002: ; expected",
+      "CS1513: } expected"
+    ]
+  },
+  "use-autofiller-importdatatable-instead-of-widgetannotation-setvalue": {
+    "note": "Do not call SetValue on WidgetAnnotation; use AutoFiller.ImportDataTable (or FillField) to populate form fields.",
+    "code": "using Aspose.Pdf.Facades;\nusing System.Data;\n\nDataTable dt = new DataTable();\n dt.Columns.Add(\"FieldName\", typeof(string));\n dt.Columns.Add(\"FieldValue\", typeof(string));\n // add rows with field names and values\nusing (AutoFiller filler = new AutoFiller())\n{\n    filler.BindPdf(inputPdf);\n    filler.ImportDataTable(dt);\n    filler.Save(outputPdf);\n}",
+    "errors": [
+      "CS1061: 'WidgetAnnotation' does not contain a definition for 'SetValue' and no accessible extension method 'SetValue' accepting a first argument of type 'WidgetAnnotation' could be found"
+    ]
+  },
+  "dispose-autofiller-after-save": {
+    "note": "Wrap Aspose.Pdf.Facades.AutoFiller in a using statement (or explicitly call Dispose) after saving the PDF to release its unmanaged resources.",
+    "code": "using (var autoFiller = new AutoFiller())\n{\n    autoFiller.BindPdf(templatePath);\n    autoFiller.ImportDataTable(dataTable);\n    autoFiller.Save(outputPath);\n} // autoFiller is disposed here",
+    "errors": [
+      "AutoFiller object not disposed leading to unmanaged resource leaks",
+      "File lock or access violation after PDF processing"
+    ]
+  },
+  "use-field-iteration-for-form-filling": {
+    "note": "Iterate over Document.Form fields (Field objects) and set their Value instead of accessing form fields by name directly; ensure Aspose.Pdf.Forms namespace is imported.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nDocument doc = new Document(templatePath);\nforeach (Field field in doc.Form)\n{\n    string name = field.FullName;\n    if (dataTable.Columns.Contains(name) && row[name] != DBNull.Value)\n        field.Value = row[name].ToString();\n}",
+    "errors": [
+      "System.ArgumentException: Form field not found : <fieldName>",
+      "Missing Aspose.Pdf.Forms namespace when using Field type"
+    ]
+  },
+  "merge-pdfs-using-pages-add": {
+    "note": "Merge multiple PDF files by creating a new Document and adding each source document's pages via mergedDoc.Pages.Add(sourceDoc.Pages)",
+    "code": "using Aspose.Pdf;\n\nDocument mergedDoc = new Document();\nforeach (string file in sourceFiles)\n{\n    Document srcDoc = new Document(file);\n    mergedDoc.Pages.Add(srcDoc.Pages);\n}\nmergedDoc.Save(outputPath);",
+    "errors": [
+      "CS1003: Syntax error, ',' expected",
+      "CS1044: Cannot use more than one type in a for, using, fixed, or declaration statement"
+    ]
+  },
+  "use-async-file-io-for-pdf-generation": {
+    "note": "Read source files with File.ReadAllBytesAsync and write output streams using a FileStream constructed with useAsync:true to perform asynchronous I/O.",
+    "code": "if (!File.Exists(sourcePath)) return; // optional guard\nbyte[] data = await File.ReadAllBytesAsync(sourcePath);\nusing (FileStream outStream = new FileStream(outputPath, FileMode.Create, FileAccess.Write, FileShare.None, 4096, useAsync: true))\n{\n    await inputMemoryStream.CopyToAsync(outStream);\n}",
+    "errors": [
+      "System.IO.FileNotFoundException when the source file path does not exist",
+      "Synchronous file read/write causing blocking in async methods"
+    ]
+  },
+  "retry-autofiller-file-access": {
+    "note": "Wrap AutoFiller (or Form) operations in a retry loop and catch FileNotFoundException before IOException, treating a missing template as a retryable condition.",
+    "code": "int attempt = 0;\nconst int maxRetries = 3;\nwhile (attempt < maxRetries)\n{\n    try\n    {\n        var autoFiller = new AutoFiller();\n        autoFiller.BindPdf(templatePath); // may throw FileNotFoundException\n        autoFiller.ImportDataTable(dataTable);\n        autoFiller.Save(outputPath);\n        break; // success\n    }\n    catch (FileNotFoundException fnf)\n    {\n        // retry – the file might be created by another process\n        attempt++;\n        Thread.Sleep(delayMs);\n    }\n    catch (IOException io)\n    {\n        // retry transient I/O errors (e.g., sharing violations)\n        attempt++;\n        Thread.Sleep(delayMs);\n    }\n}",
+    "errors": [
+      "FileNotFoundException thrown by AutoFiller.BindPdf or Form constructor when the source PDF does not exist",
+      "IOException (transient I/O error) thrown during AutoFiller operations"
+    ]
+  },
+  "add-aspdf-text-namespace-for-tableabsorber": {
+    "note": "Add a reference to the Aspose.Pdf.Text namespace when using the TableAbsorber class.",
+    "code": "using Aspose.Pdf.Text;\n\n// ...\nTableAbsorber absorber = new TableAbsorber();",
+    "errors": [
+      "CS0246: The type or namespace name 'TableAbsorber' could not be found (are you missing a using directive or an assembly reference?)"
+    ]
+  },
+  "stream-csv-to-datatable-for-autofiller": {
+    "note": "Load data into a DataTable by streaming a CSV file line‑by‑line and pass the DataTable to AutoFiller.ImportDataTable instead of using OleDb for large Excel files.",
+    "code": "DataTable table = LoadCsvToDataTable(csvPath);\nusing (var filler = new AutoFiller())\n{\n    filler.BindPdf(templatePdfPath);\n    filler.ImportDataTable(table);\n    filler.Save(outputPdfPath);\n}",
+    "errors": [
+      "CS1069: The type name 'OleDbConnection' could not be found in the namespace 'System.Data.OleDb'.",
+      "CS1069: The type name 'OleDbCommand' could not be found in the namespace 'System.Data.OleDb'.",
+      "CS0103: The name 'OleDbSchemaGuid' does not exist in the current context."
+    ]
+  },
+  "use-cancellationtoken-instead-of-interruptmonitor-and-keys": {
+    "note": "Do not use Document.InterruptMonitor or Form.Fields.Keys for cancellation; iterate over Form.Fields and manually check a CancellationToken inside the processing loop.",
+    "code": "using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));\nCancellationToken token = cts.Token;\nusing var doc = new Document(inputPath);\nforeach (var field in doc.Form.Fields)\n{\n    if (token.IsCancellationRequested)\n        throw new OperationCanceledException();\n    if (field is TextBoxField textBox)\n        textBox.Value = \"Sample\";\n}",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'InterruptMonitor'",
+      "CS1061: 'Field[]' does not contain a definition for 'Keys'"
+    ]
+  },
+  "use-string-columns-for-autofiller-data": {
+    "note": "When using Aspose.Pdf.Facades.AutoFiller.ImportDataTable, define all columns as string and format numeric/date values to strings before importing.",
+    "code": "DataTable dt = new DataTable();\n\ndt.Columns.Add(\"Amount\", typeof(string)); // use string type\n\ndt.Columns.Add(\"Date\", typeof(string));\n\nDataRow r = dt.NewRow();\ndecimal amount = 1234.567m;\nr[\"Amount\"] = amount.ToString(\"N2\"); // format as string\nDateTime date = new DateTime(2023, 5, 1);\nr[\"Date\"] = date.ToString(\"yyyy-MM-dd\"); // format as string\n\ndt.Rows.Add(r);\n\nAutoFiller filler = new AutoFiller();\nfiller.BindPdf(pdfDocument);\nfiller.ImportDataTable(dt);",
+    "errors": [
+      "System.NotSupportedException: The facade does not support this method.",
+      "Runtime error when ImportDataTable contains non‑string column types (e.g., decimal, DateTime)."
+    ]
+  },
+  "use-using-with-autofiller": {
+    "note": "Wrap Aspose.Pdf.Facades.AutoFiller in a using block so it is disposed automatically after filling the PDF.",
+    "code": "using (var autoFiller = new AutoFiller())\n{\n    autoFiller.BindPdf(templatePath);\n    autoFiller.ImportDataTable(dataTable);\n    autoFiller.Save(outputPath);\n}",
+    "errors": [
+      "Resource leak warning when AutoFiller is not disposed",
+      "Potential runtime issues due to undisposed AutoFiller instances"
+    ]
+  },
+  "create-pdf-template-if-missing": {
+    "note": "Before using AutoFiller, ensure the source PDF template exists; if not, create a minimal PDF with required form fields using Aspose.Pdf classes and save it.",
+    "code": "if (!File.Exists(templatePath))\n{\n    Document doc = new Document();\n    Page page = doc.Pages.Add();\n    var rect = new Rectangle(100, 600, 300, 620);\n    TextBoxField field = new TextBoxField(page, rect) { PartialName = \"FirstName\", Value = string.Empty };\n    doc.Form.Add(field);\n    doc.Save(templatePath);\n}",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file '<path>/template.pdf'",
+      "Runtime exception when constructing Aspose.Pdf.Facades.Form with a non‑existent source file"
+    ]
+  },
+  "create-pdf-template-with-textboxfields-for-autofiller": {
+    "note": "Create a PDF containing AcroForm TextBoxField objects whose PartialName matches the DataTable column names before calling AutoFiller.BindPdf, ensuring the template file exists at runtime.",
+    "code": "Document doc = new Document();\nPage page = doc.Pages.Add();\nTextBoxField field = new TextBoxField(page, new Rectangle(100, 700, 300, 720))\n{\n    PartialName = \"FirstName\"\n};\ndoc.Form.Add(field);\ndoc.Save(\"template.pdf\");",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file 'template.pdf'",
+      "AutoFiller.ImportDataTable may fail when the bound PDF does not contain matching form fields"
+    ]
+  },
+  "rename-datatable-columns-to-match-pdf-fields": {
+    "note": "Rename DataTable column names so they exactly match the PDF form field identifiers before calling AutoFiller.ImportDataTable.",
+    "code": "dataTable.Columns[\"FirstName\"].ColumnName = \"First_Name\";\ndataTable.Columns[\"LastName\"].ColumnName = \"Last_Name\";\ndataTable.Columns[\"Email\"].ColumnName = \"Email_Address\";\n// then\nautoFiller.ImportDataTable(dataTable);",
+    "errors": [
+      "AutoFiller fails to populate form fields when DataTable column names differ from PDF field names"
+    ]
+  },
+  "use-document-form-fields-instead-of-autofiller": {
+    "note": "Replace the deprecated AutoFiller API with Aspose.Pdf.Document and access form fields via the Form.Fields collection (e.g., TextBoxField for text, generic field for checkboxes).",
+    "code": "Document pdf = new Document(inputPath);\nvar textField = pdf.Form?.Fields?.FirstOrDefault(f => f.FullName == \"FieldName\") as TextBoxField;\nif (textField == null) throw new InvalidOperationException(\"Text field not found.\");\ntextField.Value = \"value\";\n\nvar checkBox = pdf.Form?.Fields?.FirstOrDefault(f => f.FullName == \"CheckBoxName\");\nif (checkBox == null) throw new InvalidOperationException(\"Checkbox field not found.\");\nvar prop = checkBox.GetType().GetProperty(\"Checked\");\nif (prop != null && prop.CanWrite) prop.SetValue(checkBox, true);\nelse checkBox.Value = \"On\"; // fallback",
+    "errors": [
+      "CS1061: 'AutoFiller' does not contain a definition for 'FillField' and no accessible extension method 'FillField' accepting a first argument of type 'AutoFiller' could be found"
+    ]
+  },
+  "dispose-autofiller-after-use": {
+    "note": "Wrap Aspose.Pdf.Facades.AutoFiller in a using statement (or call Dispose) after saving the filled PDF to release unmanaged resources.",
+    "code": "using (AutoFiller autoFiller = new AutoFiller())\n{\n    autoFiller.BindPdf(templatePath);\n    autoFiller.ImportDataTable(dataTable);\n    autoFiller.Save(outputPath);\n}",
+    "errors": [
+      "Unreleased unmanaged resources when AutoFiller is not disposed",
+      "Potential memory leak warnings for objects implementing IDisposable"
+    ]
+  },
+  "reset-memorystream-before-autofiller-bind": {
+    "note": "When binding a PDF to AutoFiller from a MemoryStream, reset the stream position to the beginning before calling BindPdf, and save the filled result to another stream.",
+    "code": "using (MemoryStream templateStream = new MemoryStream())\n{\n    templateDoc.Save(templateStream);\n    templateStream.Position = 0; // reset\n    using (AutoFiller filler = new AutoFiller())\n    {\n        filler.BindPdf(templateStream);\n        filler.ImportDataTable(dataTable);\n        using (MemoryStream outputStream = new MemoryStream())\n        {\n            filler.Save(outputStream);\n            // optional: write to file\n            File.WriteAllBytes(\"filled.pdf\", outputStream.ToArray());\n        }\n    }\n}",
+    "errors": [
+      "System.IO.FileNotFoundException when trying to load a PDF from a non‑existent file path",
+      "Incorrect PDF binding when the MemoryStream position is at the end, causing AutoFiller to read no data"
+    ]
+  },
+  "create-pdf-template-with-form-fields-before-autofiller": {
+    "note": "Create a PDF file containing the required form fields (e.g., TextBoxField) before calling AutoFiller.BindPdf, otherwise BindPdf throws FileNotFoundException.",
+    "code": "Document doc = new Document();\nPage page = doc.Pages.Add();\nvar rect = new Rectangle(100, 700, 300, 720);\nvar txtField = new TextBoxField(page, rect) { PartialName = \"Name\" };\ndoc.Form.Add(txtField, page.Number);\ndoc.Save(\"template.pdf\");\n\nAutoFiller filler = new AutoFiller();\nfiller.BindPdf(\"template.pdf\");\n// now ImportDataTable, Save, etc.",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file '<path>' when calling AutoFiller.BindPdf",
+      "Potential IndexOutOfRangeException if form field is added with an invalid page number"
+    ]
+  },
+  "validate-required-form-fields-against-datatable": {
+    "note": "Before using AutoFiller, enumerate the PDF form's required fields via Form.IsRequiredField and ensure the DataTable contains matching columns; abort if any are missing.",
+    "code": "Form pdfForm = new Form(document);\nvar requiredFields = new List<string>();\nforeach (string name in pdfForm.FieldNames)\n    if (pdfForm.IsRequiredField(name)) requiredFields.Add(name);\nforeach (string req in requiredFields)\n    if (!dataTable.Columns.Contains(req))\n        throw new Exception($\"Missing required column for field '{req}'.\");",
+    "errors": [
+      "Missing required column for field '{fieldName}'."
+    ]
+  },
+  "use-document-encrypt-with-valid-permissions": {
+    "note": "Use Document.Encrypt with the Permissions enum (e.g., PrintDocument, ExtractContent) instead of PdfFileSecurity or non‑existent Permissions members.",
+    "code": "using (Aspose.Pdf.Document doc = new Aspose.Pdf.Document(inputPath))\n{\n    var perms = Aspose.Pdf.Permissions.PrintDocument | Aspose.Pdf.Permissions.ExtractContent;\n    doc.Encrypt(userPassword, ownerPassword, perms, Aspose.Pdf.CryptoAlgorithm.AESx256);\n    doc.Save(outputPath);\n}",
+    "errors": [
+      "CS0117: 'Permissions' does not contain a definition for 'CopyContents'",
+      "CS0117: 'Permissions' does not contain a definition for 'FillFormFields'",
+      "CS0117: 'Permissions' does not contain a definition for 'Accessibility'",
+      "CS0117: 'Permissions' does not contain a definition for 'HighQualityPrint'"
+    ]
+  },
+  "ensure-pdf-template-exists-with-document": {
+    "note": "Before using AutoFiller, verify that the template PDF file exists; if it does not, create a minimal one‑page PDF using Aspose.Pdf.Document and save it.",
+    "code": "if (!File.Exists(templatePath))\n{\n    using (var doc = new Document())\n    {\n        doc.Pages.Add();\n        doc.Save(templatePath);\n    }\n}",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file 'template.pdf'",
+      "Runtime error when AutoFiller tries to bind a non‑existent PDF template"
+    ]
+  },
+  "validate-tableabsorber-cells-before-access": {
+    "note": "Always verify that TableAbsorber.TableList, Row.CellList and Cell.TextFragments contain items before indexing into them to avoid NullReferenceException or IndexOutOfRangeException.",
+    "code": "TableAbsorber absorber = new TableAbsorber();\nabsorber.Visit(page);\nif (absorber.TableList != null && absorber.TableList.Count > 0)\n{\n    foreach (var table in absorber.TableList)\n    {\n        foreach (var row in table.RowList)\n        {\n            if (row.CellList.Count > 0 && row.CellList[0].TextFragments.Count > 0)\n            {\n                string identifier = row.CellList[0].TextFragments[0].Text.Trim();\n                // use identifier\n            }\n        }\n    }\n}",
+    "errors": [
+      "System.NullReferenceException when TableAbsorber.TableList is null",
+      "System.ArgumentOutOfRangeException when accessing CellList[0] or TextFragments[0] on empty collections"
+    ]
+  },
+  "add-header-with-textfragment": {
+    "note": "Use a TextFragment with a Position and add it to each Page.Paragraphs to create a header (e.g., current date) on every page of a PDF.",
+    "code": "using (Document doc = new Document(pdfPath)) {\n    string headerText = DateTime.Now.ToString(\"d\");\n    foreach (Page page in doc.Pages) {\n        TextFragment tf = new TextFragment(headerText);\n        tf.Position = new Position(50, page.PageInfo.Height - 50);\n        tf.TextState.FontSize = 12;\n        tf.TextState.ForegroundColor = Aspose.Pdf.Color.Gray;\n        page.Paragraphs.Add(tf);\n    }\n    doc.Save(pdfPath);\n}",
+    "errors": [
+      "Header not appearing when adding content to existing PDF pages",
+      "Need to insert the same text (e.g., date) on every page of a generated PDF"
+    ]
+  },
+  "use-docsaveoptions-memorytempfolder-for-pdf-conversion": {
+    "note": "When converting a PDF to another format, configure a unique temporary folder via DocSaveOptions.MemorySaveModePath and clean it up after conversion.",
+    "code": "string tempFolder = Path.Combine(Path.GetTempPath(), \"AsposePdfTemp_\" + Guid.NewGuid().ToString(\"N\"));\nDirectory.CreateDirectory(tempFolder);\nDocSaveOptions docOpts = new DocSaveOptions { MemorySaveModePath = tempFolder };\nusing (var srcDoc = new Document(inputPdfPath))\n{\n    srcDoc.Save(intermediatePdfPath, docOpts);\n}\n// ... convert intermediate PDF to target format ...\nDirectory.Delete(tempFolder, true); // optional cleanup",
+    "errors": [
+      "CS0234: The type or namespace name 'Saving' does not exist in the namespace 'Aspose.Pdf'",
+      "Using ExcelSaveOptions.MemorySaveModePath directly for PDF intermediate storage (unsupported)"
+    ]
   }
 }
