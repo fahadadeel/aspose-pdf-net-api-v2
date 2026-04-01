@@ -102,6 +102,14 @@ def run_baseline(
     # Apply deterministic style guard (e.g. var → explicit types)
     code = _sanitize_code(code)
 
+    # ── Two-pass validation: check code against critical rules before building ──
+    if use_own_llm and generation_rules and llm:
+        notify("baseline", "Validating against rules...")
+        validated = llm.validate_against_rules(code, generation_rules)
+        if validated:
+            code = _sanitize_code(validated)
+            notify("baseline", "Rules violations fixed in pre-build pass")
+
     builder.write_csproj()
     builder.write_program_cs(code)
     notify("baseline", "Building and running...")
