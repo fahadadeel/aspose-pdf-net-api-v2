@@ -4,6 +4,36 @@
   "version": "26.2.0",
   "rules": {
     "__comment_section_1__": "=== GLOBAL RULES — apply across ALL tasks ===",
+    "no-document-attachzugferd-use-embeddedfiles": {
+      "note": "There is no Document.AttachZUGFeRD() method in Aspose.PDF 26.x, and there is no Aspose.Pdf.Facades.ZUGFeRD class. To embed a ZUGFeRD XML into a PDF, create a FileSpecification from the XML stream with AFRelationship.Data and add it to Document.EmbeddedFiles. For ZUGFeRD compliance the document should also be converted to PDF/A-3B.",
+      "code": "// CORRECT — use FileSpecification + EmbeddedFiles.Add with AFRelationship.Data:\nusing Aspose.Pdf;\n\nusing (Document document = new Document(\"input.pdf\"))\n{\n    using (FileStream xmlStream = File.OpenRead(\"invoice.xml\"))\n    {\n        var fileSpec = new FileSpecification(xmlStream, \"invoice.xml\", \"ZUGFeRD Invoice XML\")\n        {\n            MIMEType = \"application/xml\",\n            AFRelationship = AFRelationship.Data\n        };\n        document.EmbeddedFiles.Add(fileSpec);\n    }\n    // Convert to PDF/A-3B for ZUGFeRD compliance\n    document.Convert(\"log.xml\", PdfFormat.PDF_A_3B, ConvertErrorAction.Delete);\n    document.Save(\"output.pdf\");\n}\n\n// WRONG — Document.AttachZUGFeRD does not exist (CS1061):\n// document.AttachZUGFeRD(\"invoice.xml\");\n\n// WRONG — Aspose.Pdf.Facades.ZUGFeRD class does not exist (CS0246):\n// var zugferd = new ZUGFeRD();\n// zugferd.AttachZUGFeRD(document, \"invoice.xml\");",
+      "errors": [
+        "CS1061: 'Document' does not contain a definition for 'AttachZUGFeRD' and no accessible extension method 'AttachZUGFeRD' accepting a first argument of type 'Document' could be found",
+        "CS0246: The type or namespace name 'ZUGFeRD' could not be found"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "numberingstyle-enum-correct-values": {
+      "note": "The Aspose.Pdf.NumberingStyle enum does NOT contain 'LowerRoman', 'UpperRoman', 'Arabic', or similar short-form names. The correct member names are: NumeralsArabic, NumeralsRomanUppercase, NumeralsRomanLowercase, LettersUppercase, LettersLowercase, None. These are used with PageNumberStamp.NumberingStyle, PageLabel.NumberingStyle, and Heading.Style.",
+      "code": "// CORRECT — use full enum member names:\nPageNumberStamp stamp = new PageNumberStamp();\nstamp.NumberingStyle = NumberingStyle.NumeralsRomanLowercase;  // lowercase roman\nstamp.NumberingStyle = NumberingStyle.NumeralsRomanUppercase;  // uppercase roman\nstamp.NumberingStyle = NumberingStyle.NumeralsArabic;          // 1, 2, 3\nstamp.NumberingStyle = NumberingStyle.LettersLowercase;        // a, b, c\nstamp.NumberingStyle = NumberingStyle.LettersUppercase;        // A, B, C\n\n// Also valid for PageLabel and Heading.Style:\nPageLabel label = new PageLabel();\nlabel.NumberingStyle = NumberingStyle.NumeralsRomanLowercase;\n\n// WRONG — these enum members do not exist:\n// stamp.NumberingStyle = NumberingStyle.LowerRoman;   // CS0117\n// stamp.NumberingStyle = NumberingStyle.UpperRoman;   // CS0117\n// stamp.NumberingStyle = NumberingStyle.Arabic;       // CS0117\n// stamp.NumberingStyle = NumberingStyle.Roman;        // CS0117",
+      "errors": [
+        "CS0117: 'NumberingStyle' does not contain a definition for 'LowerRoman'",
+        "CS0117: 'NumberingStyle' does not contain a definition for 'UpperRoman'",
+        "CS0117: 'NumberingStyle' does not contain a definition for 'Arabic'",
+        "CS0117: 'NumberingStyle' does not contain a definition for 'Roman'"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
     "no-blocking-calls-no-readline-no-watchers": {
       "note": "Examples run in an automated pipeline with NO interactive stdin. NEVER use Console.ReadLine(), Console.ReadKey(), or any call that waits for user input — the process will hang forever and be killed by timeout. Also NEVER use FileSystemWatcher, event-driven service loops, Thread.Sleep loops that wait indefinitely, or ManualResetEvent.WaitOne() without a timeout. If the task describes a 'service', 'monitor', or 'watcher', rewrite it as a one-shot console app that processes existing files in a directory, demonstrates the core Aspose.PDF operation, and exits. Use Console.WriteLine() for output, never Console.ReadLine() for input.",
       "code": "// CORRECT — one-shot directory processor that exits cleanly:\nusing System;\nusing System.IO;\nusing Aspose.Pdf.Facades;\n\nstring inputDir = \"watch\";\nstring archiveDir = \"archive\";\nDirectory.CreateDirectory(inputDir);\nDirectory.CreateDirectory(archiveDir);\n\n// Create a sample PDF for demonstration\nusing (var doc = new Aspose.Pdf.Document()) { doc.Pages.Add(); doc.Save(Path.Combine(inputDir, \"sample.pdf\")); }\n\nforeach (string pdfFile in Directory.GetFiles(inputDir, \"*.pdf\"))\n{\n    string outName = Path.GetFileNameWithoutExtension(pdfFile) + \"_enc.pdf\";\n    using (PdfFileSecurity security = new PdfFileSecurity())\n    {\n        security.BindPdf(pdfFile);\n        security.EncryptFile(\"user\", \"owner\", DocumentPrivilege.Print, KeySize.x256, Algorithm.AES);\n        security.Save(Path.Combine(archiveDir, outName));\n    }\n    Console.WriteLine($\"Encrypted: {outName}\");\n}\nConsole.WriteLine(\"Done.\");\n\n// WRONG — hangs forever waiting for input:\n// Console.ReadLine(); // blocks indefinitely in automated pipeline\n// Console.ReadKey();  // blocks indefinitely\n\n// WRONG — runs forever, never exits:\n// FileSystemWatcher watcher = new FileSystemWatcher();\n// watcher.EnableRaisingEvents = true;\n// Console.ReadLine(); // program never terminates",
@@ -1660,6 +1690,85 @@
       "code": "// CORRECT — use the format-specific class:\nnew HtmlLoadOptions()    // for .html\nnew SvgLoadOptions()     // for .svg\nnew XpsLoadOptions()     // for .xps\nnew EpubLoadOptions()    // for .epub\nnew MdLoadOptions()      // for .md (Markdown)\nnew MhtLoadOptions()     // for .mht/.mhtml\nnew PclLoadOptions()     // for .pcl\nnew CgmLoadOptions()     // for .cgm\nnew XslFoLoadOptions()   // for .fo (XSL-FO)\nnew TeXLoadOptions()     // for .tex\nnew PsLoadOptions()      // for .ps (PostScript)\nnew OfdLoadOptions()     // for .ofd\n\n// WRONG — abstract class:\n// new LoadOptions()  // CS0144: cannot create instance of abstract class",
       "errors": [
         "CS0144: Cannot create an instance of the abstract type or interface 'LoadOptions'"
+      ]
+    },
+    "signature-is-abstract-use-pkcs7": {
+      "note": "Aspose.Pdf.Forms.Signature is ABSTRACT — never instantiate it directly. Use the concrete PKCS7 class (Aspose.Pdf.Forms.PKCS7) for signing. Use PdfFileSignature from Aspose.Pdf.Facades to bind, sign, and save. SignatureField.Sign() does NOT accept (Signature, Stream, string) — use PdfFileSignature.Sign(pageNumber, isVisible, rect, pkcs7) instead.",
+      "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\nusing Aspose.Pdf.Facades;\n\n// CORRECT: Use PKCS7 (concrete), not Signature (abstract)\nPdfFileSignature pdfSign = new PdfFileSignature();\npdfSign.BindPdf(inputPath);\nPKCS7 signature = new PKCS7(pfxPath, pfxPassword);\nsignature.Reason = \"Approval\";\nsignature.ContactInfo = string.Empty;\nsignature.Location = string.Empty;\nSystem.Drawing.Rectangle rect = new System.Drawing.Rectangle(100, 100, 200, 50);\npdfSign.Sign(1, true, rect, signature);\npdfSign.Save(outputPath);",
+      "errors": [
+        "CS0144: Cannot create an instance of the abstract type or interface 'Signature'",
+        "SignatureField.Sign() does not accept (Signature, FileStream, string)"
+      ]
+    },
+    "javascriptaction-lowercase-s-not-camelcase": {
+      "note": "The correct class name is JavascriptAction (lowercase 's') in namespace Aspose.Pdf.Annotations — NOT JavaScriptAction (camelCase 'S'). Always use: new JavascriptAction(jsCode). Requires 'using Aspose.Pdf.Annotations;'. For document-level JS use doc.OpenAction = new JavascriptAction(...). For page-level JS use page.Actions.OnOpen = new JavascriptAction(...).",
+      "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Annotations;\n\n// CORRECT: JavascriptAction (lowercase 's')\n// WRONG:  JavaScriptAction (uppercase 'S') — does NOT exist\nDocument doc = new Document(inputPath);\nstring js = \"var d = new Date(); var expiry = new Date('2025-12-31'); if (d > expiry) { this.closeDoc(); }\";\ndoc.OpenAction = new JavascriptAction(js);\ndoc.Save(outputPath);",
+      "errors": [
+        "CS0246: The type or namespace name 'JavaScriptAction' could not be found",
+        "CS0234: The type or namespace name 'JavaScriptAction' does not exist in the namespace 'Aspose.Pdf.Annotations'"
+      ]
+    },
+    "form-no-signatures-property-use-pdffilesignature": {
+      "note": "Document.Form.Signatures does NOT exist. To enumerate or access digital signatures in a PDF, use PdfFileSignature from Aspose.Pdf.Facades. Bind the PDF, then call GetSignatureNames() to list signature names, and VerifySigned(name) to validate. Form.AddSignatureField, Form.GetSignatureField, Form.GetField, Form.FieldNames also do NOT exist — use SignatureField via Document.Form[fieldName] or iterate Document.Form.Fields.",
+      "code": "using Aspose.Pdf.Facades;\n\nPdfFileSignature pdfSign = new PdfFileSignature();\npdfSign.BindPdf(inputPath);\n\n// List all signature names\nIList<string> sigNames = pdfSign.GetSignatureNames();\nforeach (string name in sigNames)\n{\n    bool isValid = pdfSign.VerifySigned(name);\n    Console.WriteLine($\"Signature '{name}' valid: {isValid}\");\n}\n\n// To access a specific signature field from Document:\n// SignatureField sigField = doc.Form[\"Signature1\"] as SignatureField;",
+      "errors": [
+        "CS1061: 'Form' does not contain a definition for 'Signatures'",
+        "CS1061: 'Form' does not contain a definition for 'AddSignatureField'",
+        "CS1061: 'Form' does not contain a definition for 'GetSignatureField'",
+        "CS1061: 'Form' does not contain a definition for 'GetField'",
+        "CS1061: 'Form' does not contain a definition for 'FieldNames'"
+      ]
+    },
+    "no-validationoptions-use-pdffilesignature-verifysigned": {
+      "note": "ValidationOptions, ValidationResult, ValidationMode, and ValidationMethod do NOT exist in Aspose.PDF. To validate a digital signature, use PdfFileSignature.VerifySigned(signatureName) which returns bool. For certificate details, use PdfFileSignature.GetSignature(name) to get the Signature object.",
+      "code": "using Aspose.Pdf.Facades;\n\nPdfFileSignature pdfSign = new PdfFileSignature();\npdfSign.BindPdf(inputPath);\nIList<string> names = pdfSign.GetSignatureNames();\nforeach (string name in names)\n{\n    bool valid = pdfSign.VerifySigned(name);\n    Console.WriteLine($\"Signature '{name}' is valid: {valid}\");\n}",
+      "errors": [
+        "CS0246: The type or namespace name 'ValidationOptions' could not be found",
+        "CS0246: The type or namespace name 'ValidationResult' could not be found",
+        "CS0103: The name 'ValidationMode' does not exist in the current context",
+        "CS0103: The name 'ValidationMethod' does not exist in the current context"
+      ]
+    },
+    "docmdpsignature-use-with-pdffilesignature-certify": {
+      "note": "DocMDPSignature wraps a PKCS7 signature with a certification level. Do NOT pass it to PdfFileSignature.Sign() — use PdfFileSignature.Certify() instead. The correct DocMDPAccessPermissions values are: NoChanges (1), FillingInForms (2), AnnotationModification (3). Values like NoChangesExceptFormFilling, Annotations, AdditionalPages do NOT exist.",
+      "code": "using Aspose.Pdf.Forms;\nusing Aspose.Pdf.Facades;\n\nPdfFileSignature pdfSign = new PdfFileSignature();\npdfSign.BindPdf(inputPath);\n\nPKCS7Detached sig = new PKCS7Detached(pfxPath, password);\nDocMDPSignature docMdp = new DocMDPSignature(sig, DocMDPAccessPermissions.FillingInForms);\nSystem.Drawing.Rectangle rect = new System.Drawing.Rectangle(100, 100, 200, 50);\npdfSign.Certify(1, \"Certified\", \"contact\", \"location\", true, rect, docMdp);\npdfSign.Save(outputPath);",
+      "errors": [
+        "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Forms.DocMDPSignature' to 'Aspose.Pdf.Forms.Signature'",
+        "CS0117: 'DocMDPAccessPermissions' does not contain a definition for 'NoChangesExceptFormFilling'",
+        "CS0117: 'DocMDPAccessPermissions' does not contain a definition for 'Annotations'",
+        "CS0117: 'DocMDPAccessPermissions' does not contain a definition for 'AdditionalPages'"
+      ]
+    },
+    "no-icustomsecurityhandler-use-pdffilesecurity": {
+      "note": "ICustomSecurityHandler and EncryptionParameters do NOT exist in Aspose.PDF. These are hallucinated APIs. For encrypting/securing PDFs, use PdfFileSecurity from Aspose.Pdf.Facades with BindPdf + EncryptFile + Save. For restricting operations, use DocumentPrivilege.",
+      "code": "using Aspose.Pdf.Facades;\n\nPdfFileSecurity security = new PdfFileSecurity();\nsecurity.BindPdf(inputPath);\n\n// Encrypt with user+owner passwords and restrict permissions\nDocumentPrivilege privilege = DocumentPrivilege.ForbidAll;\nprivilege.AllowPrint = true;\nsecurity.EncryptFile(\"userPass\", \"ownerPass\", privilege, KeySize.x256, Algorithm.AESx256);\nsecurity.Save(outputPath);",
+      "errors": [
+        "CS0246: The type or namespace name 'ICustomSecurityHandler' could not be found",
+        "CS0246: The type or namespace name 'EncryptionParameters' could not be found"
+      ]
+    },
+    "no-pkcs7signature-use-pkcs7-or-pkcs7detached": {
+      "note": "PKCS7Signature does NOT exist. The correct classes are PKCS7 and PKCS7Detached in Aspose.Pdf.Forms. Use PKCS7 for attached signatures and PKCS7Detached for detached signatures.",
+      "code": "using Aspose.Pdf.Forms;\n\n// Attached signature:\nPKCS7 sig = new PKCS7(pfxPath, password);\n\n// Detached signature:\nPKCS7Detached detached = new PKCS7Detached(pfxPath, password);",
+      "errors": [
+        "CS0246: The type or namespace name 'PKCS7Signature' could not be found"
+      ]
+    },
+    "form-no-constructor-args-use-document-form": {
+      "note": "Aspose.Pdf.Forms.Form does NOT have a constructor that takes a Document argument. Access the form via Document.Form property directly. Do not create new Form(doc).",
+      "code": "using Aspose.Pdf;\n\nDocument doc = new Document(inputPath);\n// CORRECT: access form via property\nForm form = doc.Form;\n// WRONG: new Form(doc) — does not exist",
+      "errors": [
+        "CS1729: 'Form' does not contain a constructor that takes 1 arguments"
+      ]
+    },
+    "signaturefield-no-reason-location-use-pkcs7-properties": {
+      "note": "SignatureField does NOT have Reason, Location, ContactInfo, or CustomAppearance properties. These properties belong to the PKCS7/PKCS7Detached signature object. Set them on the signature before signing with PdfFileSignature.",
+      "code": "PKCS7 sig = new PKCS7(pfxPath, password);\nsig.Reason = \"Approval\";\nsig.Location = \"New York\";\nsig.ContactInfo = \"signer@example.com\";\n\nSignatureCustomAppearance appearance = new SignatureCustomAppearance();\nsig.CustomAppearance = appearance;",
+      "errors": [
+        "CS1061: 'SignatureField' does not contain a definition for 'Reason'",
+        "CS1061: 'SignatureField' does not contain a definition for 'Location'",
+        "CS1061: 'SignatureField' does not contain a definition for 'ContactInfo'",
+        "CS1061: 'SignatureField' does not contain a definition for 'CustomAppearance'"
       ]
     }
   },

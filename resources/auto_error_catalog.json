@@ -1,464 +1,5 @@
 [
   {
-    "pattern": "PageInfo' does not contain a definition for 'VerticalAlignment'",
-    "error_code": "CS1061",
-    "fix_guidance": "Use the PdfPageEditor.VerticalAlignmentType property (or the correct class that provides VerticalAlignment) instead of accessing a non‑existent VerticalAlignment on PageInfo, and ensure the appropriate Aspose.Pdf namespace is imported.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774961460.52471
-  },
-  {
-    "pattern": "Page' does not contain a definition for 'Transition'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent Page.Transition usage with PdfPageEditor: create a PdfPageEditor bound to the Document, set editor.ProcessPages, editor.TransitionType (or the integer value for the desired transition), and editor.TransitionDuration, then call editor.ApplyChanges() and save the document.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774961631.307447
-  },
-  {
-    "pattern": "PdfFileEditor.*type used in a using statement must implement System.IDisposable",
-    "error_code": "CS1674",
-    "fix_guidance": "Do not wrap PdfFileEditor in a using statement; instantiate it normally and manage its lifetime manually, or use a class that implements IDisposable.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774961757.25727
-  },
-  {
-    "pattern": "PageInfo' does not contain a definition for 'PageSize'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace uses of PageInfo.PageSize with the direct Width, Height, and IsLandscape properties on PageInfo (e.g., page.PageInfo.Width, page.PageInfo.Height, page.PageInfo.IsLandscape).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774961864.848007
-  },
-  {
-    "pattern": "PageInfo' does not contain a definition for 'RotateAngle'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the invalid RotateAngle usage with the proper rotation API (e.g., set PageInfo.Rotate or Page.Rotate using the Rotation enum) and ensure the correct enum/value is referenced.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774962035.7813451
-  },
-  {
-    "pattern": "PageInfo' does not contain a definition for 'Transition'",
-    "error_code": "CS1061",
-    "fix_guidance": "Use Aspose.Pdf's PdfPageEditor (or the appropriate API version) and set its TransitionDuration property instead of accessing a non‑existent Transition member on PageInfo.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774962293.2813041
-  },
-  {
-    "pattern": "does not contain a definition for '[^']+'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent members with the correct Aspose.Pdf API: use Document.Pages.Count or PdfFileEditor.GetPageCount instead of PdfPageEditor.PageCount, set zoom via PdfPageEditor.Zoom and specify pages with ProcessPages, and remove calls to PageInfo.Zoom or PdfPageEditor.SetPageInfo which do not exist.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774962601.9610822
-  },
-  {
-    "pattern": "There is no argument given that corresponds to the required parameter 'height' of 'Page\\.SetPageSize\\(double, double\\)'",
-    "error_code": "CS7036",
-    "fix_guidance": "Provide both width and height arguments when calling SetPageSize, for example: lastPage.SetPageSize(PageSize.A5.Width, PageSize.A5.Height).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774962651.729172
-  },
-  {
-    "pattern": "Rotation' does not contain a definition for 'Rotate90'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent enum member 'Rotate90' with the correct value 'Rotation.On90' (or the appropriate enum member) when setting page rotation.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774962760.682358
-  },
-  {
-    "pattern": "PaperSize' does not contain a definition for 'A4'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the unavailable PaperSize.A4 with a PageSize instance, e.g., `editor.PageSize = new PageSize(595, 842);` or reference the correct namespace if using Aspose.Pdf.Printing.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774962843.044854
-  },
-  {
-    "pattern": "The name 'RotationAngle' does not exist in the current context",
-    "error_code": "CS0103",
-    "fix_guidance": "Add a reference to the Aspose.Pdf namespace (e.g., `using Aspose.Pdf;`) or qualify the enum as `Aspose.Pdf.RotationAngle` so the compiler can locate the identifier.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774963144.87644
-  },
-  {
-    "pattern": "Cannot implicitly convert type 'Aspose\\.Pdf\\.Rectangle' to 'Aspose\\.Pdf\\.PageSize'",
-    "error_code": "CS0029",
-    "fix_guidance": "Assign a PageSize object (e.g., new PageSize(width, height) using float values) to the PageSize property instead of creating a Rectangle.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774963203.690582
-  },
-  {
-    "pattern": "The type or namespace name 'ResizePageContentsParameters' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to Aspose.Pdf.Facades and use the correct class name Aspose.Pdf.Facades.PdfFileEditor.ContentsResizeParameters (or add a using Aspose.Pdf.Facades; directive).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774963823.192151
-  },
-  {
-    "pattern": "No overload for method 'ResizeContents' takes \\d+ arguments",
-    "error_code": "CS1501",
-    "fix_guidance": "Call a ResizeContents overload that matches the provided arguments—e.g., use the three‑parameter version (inputPath, outputPath, resizeParams) or the overload accepting a Document, page numbers array, and ContentsResizeParameters.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774964034.7447639
-  },
-  {
-    "pattern": "Rotation.*does not contain a definition for 'deg90'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent enum member 'deg90' with the correct value 'on90' from Aspose.Pdf.Rotation.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774964147.8344908
-  },
-  {
-    "pattern": "The type or namespace name 'PageSize' does not exist in the namespace 'Aspose\\.Pdf\\.Facades'",
-    "error_code": "CS0234",
-    "fix_guidance": "Use the PageSize enum from the Aspose.Pdf namespace (e.g., Aspose.Pdf.PageSize) or add a using Aspose.Pdf; reference, as PageSize is not defined under Aspose.Pdf.Facades.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774964446.5717702
-  },
-  {
-    "pattern": "PdfPageEditor' does not contain a definition for '(RotatePage|DeletePage)'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace PdfPageEditor calls with Document.Pages methods (e.g., document.Pages[1].Rotate = Rotation.on90; document.Pages.Delete(2)) and remove the Aspose.Pdf.Facades namespace if not needed.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774964500.228528
-  },
-  {
-    "pattern": "Page' does not contain a definition for 'Width'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace direct Page.Width/Height/IsLandscape assignments with Page.PageInfo.Width, Page.PageInfo.Height, and Page.PageInfo.IsLandscape, and ensure the Aspose.Pdf namespace is referenced.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774965060.343332
-  },
-  {
-    "pattern": "Page' does not contain a definition for 'CustomProperties'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace usage of Page.CustomProperties with Document.Info (or Document.CustomProperties) to access PDF metadata, and ensure the appropriate Aspose.Pdf namespace is referenced.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774965257.943359
-  },
-  {
-    "pattern": "PdfPageEditor' does not contain a definition for 'PageNumber'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent PageNumber property with the ProcessPages array (or loop) to specify target pages before setting Zoom.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774970425.5910048
-  },
-  {
-    "pattern": "PdfPageEditor' does not contain a definition for 'EditPage'",
-    "error_code": "CS1061",
-    "fix_guidance": "Remove the call to EditPage and instead set the ProcessPages property (e.g., pageEditor.ProcessPages = new int[] { pageNumber };) before saving the PDF.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774970586.6888819
-  },
-  {
-    "pattern": "PdfPageEditor' does not contain a definition for 'SelectPage'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent SelectPage call with the ProcessPages property (e.g., pageEditor.ProcessPages = new int[] { 3 };) to specify pages for editing.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774970621.330425
-  },
-  {
-    "pattern": "PageInfo' does not contain a definition for 'Rotation'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the obsolete PageInfo.Rotation and PageInfo.PageSize usage with the Page.Rotate property (e.g., page.Rotate = Rotation.on90) and set the size via Page.SetPageSize(width, height) or use the appropriate PageSize enum on the Page object.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774970849.8773088
-  },
-  {
-    "pattern": "PdfFileStamp' does not contain a definition for 'Pages'",
-    "error_code": "CS1061",
-    "fix_guidance": "Use the Facades API (e.g., PdfPageEditor) instead of PdfFileStamp and set the target pages via the ProcessPages property; the Pages property does not exist on PdfFileStamp.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774971060.975994
-  },
-  {
-    "pattern": "The type or namespace name 'Length' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf assembly and include `using Aspose.Pdf;` (or the appropriate namespace) so that Length and LengthUnit types are available.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774971352.3468878
-  },
-  {
-    "pattern": "Rotation' does not contain a definition for 'Rotate0'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent enum member Rotation.Rotate0 with the correct value, such as Rotation.None.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774971646.3715541
-  },
-  {
-    "pattern": "PdfPageEditor' does not contain a definition for 'PageNumbers'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent 'PageNumbers' property with the correct 'ProcessPages' property (e.g., editor.ProcessPages = new int[] {2,3,4}); ensure you reference the appropriate Aspose.Pdf version.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774971880.747457
-  },
-  {
-    "pattern": "PdfPageEditor' does not contain a definition for 'COVER'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent PdfPageEditor.COVER constant with the appropriate value (e.g., use the integer 4 for Cover transition or the correct enum member provided by the library).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774971966.511554
-  },
-  {
-    "pattern": "PageInfo' does not contain a definition for 'Zoom'",
-    "error_code": "CS1061",
-    "fix_guidance": "Use the PdfPageEditor instance (which has a Zoom property) instead of a PageInfo object, or remove the Zoom call if you intended to work with PageInfo.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774972210.0282838
-  },
-  {
-    "pattern": "PdfPageEditor' does not contain a definition for 'ProcessPage'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent ProcessPage method with the ProcessPages property (e.g., editor.ProcessPages = new int[] { 3 };) and ensure you are using a version of Aspose.PDF that supports this property.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774972906.007315
-  },
-  {
-    "pattern": "LinkAnnotation' does not contain a definition for 'Title'",
-    "error_code": "CS1061",
-    "fix_guidance": "Remove the Title assignment; use the Contents property to set tooltip text for a LinkAnnotation.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774972966.290516
-  },
-  {
-    "pattern": "ImageStamp' does not contain a definition for '(SetOrigin|IsBackground)'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace SetOrigin with XIndent/YIndent for positioning and use the ImageStamp.Background property instead of IsBackground.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774973658.162551
-  },
-  {
-    "pattern": "PdfFileEditor\\.ContentsResizeValue' does not contain a constructor that takes 0 arguments",
-    "error_code": "CS1729",
-    "fix_guidance": "Replace the use of the non‑existent ContentsResizeValue with PdfFileEditor.ContentsResizeParameters (e.g., PdfFileEditor.ContentsResizeParameters.Margins(...)) and call the ResizeContents overload that accepts a Document and an int[] of page numbers.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774973844.467297
-  },
-  {
-    "pattern": "PdfFileEditor' does not contain a definition for 'Close'",
-    "error_code": "CS1061",
-    "fix_guidance": "Remove the call to Close; PdfFileEditor does not implement IDisposable—wrap the Document in a using block, perform ResizeContents, and then save the Document.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774974036.1011798
-  },
-  {
-    "pattern": "Rotation' does not contain a definition for 'RotateAngle90'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent enum member RotateAngle90 with the correct Rotation enum value (e.g., Rotation.on90) when setting page rotation.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774974070.534241
-  },
-  {
-    "pattern": "Rotation' does not contain a definition for 'RotateClockwise180'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent enum member with the correct value, e.g., use Rotation.on180 instead of Rotation.RotateClockwise180.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774974141.5185611
-  },
-  {
-    "pattern": "The type or namespace name 'Size' does not exist in the namespace 'Aspose\\.Pdf'",
-    "error_code": "CS0234",
-    "fix_guidance": "Replace Aspose.Pdf.Size with the correct PageSize class (e.g., new PageSize(width, height)) and ensure the appropriate using directive is present.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774974211.86847
-  },
-  {
-    "pattern": "PdfPageEditor' does not contain a definition for '(DeletePage|RotatePage)'",
-    "error_code": "CS1061",
-    "fix_guidance": "Use the Document.Pages collection to delete pages (e.g., document.Pages.Delete(pageNumber)) and rotate pages via the Page.Rotate property instead of non‑existent PdfPageEditor methods.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774974273.21689
-  },
-  {
-    "pattern": "Cannot implicitly convert type 'string' to 'int\\[\\]'",
-    "error_code": "CS0029",
-    "fix_guidance": "Declare the variable as an int[] or convert the string to an int array (e.g., use Enumerable.Range and .ToArray() for page indexes).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774974517.181047
-  },
-  {
-    "pattern": "Page' does not contain a definition for 'CopyTo'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the removed Page.CopyTo call with Pages.Add(sourceDoc.Pages[i]) (or use Document.Pages.Add) to copy a page into another document.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774974618.2895691
-  },
-  {
-    "pattern": "DocumentInfo' does not contain a definition for 'CustomProperties'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent 'CustomProperties' with the correct 'CustomInfo' collection (e.g., doc.Info.CustomInfo) and use the Aspose.Pdf.CustomInfo class for accessing custom metadata.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774974902.7942789
-  },
-  {
-    "pattern": "Cannot implicitly convert type 'int' to 'Aspose\\.Pdf\\.Rotation'",
-    "error_code": "CS0266",
-    "fix_guidance": "Use a Rotation enum value (e.g., Rotation.on90) or cast the integer to Rotation (e.g., (Rotation)90) instead of assigning an int directly.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774975125.285522
-  },
-  {
-    "pattern": "Page' does not contain a definition for 'Scale'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent Scale property with PageInfo adjustments (e.g., modify PageInfo.Width and PageInfo.Height) or use a supported scaling method such as PageInfo.SetPageSize.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774975202.485179
-  },
-  {
-    "pattern": "Literal of type double cannot be implicitly converted to type 'float'",
-    "error_code": "CS0664",
-    "fix_guidance": "Append an 'f' suffix (e.g., 1.3f) or explicitly cast the value to float to match the expected type.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774975349.536601
-  },
-  {
-    "pattern": "PageInfo' does not contain a definition for 'DisplayDuration'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the PageInfo reference with a PdfPageEditor (or appropriate page object) that provides the DisplayDuration property.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774975487.246829
-  },
-  {
-    "pattern": "The type or namespace name 'Margin' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Replace the nonexistent Margin class with the correct Aspose.Pdf class (e.g., MarginInfo) and ensure the appropriate Aspose.Pdf namespace is imported.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774975551.408822
-  },
-  {
-    "pattern": "PdfFileEditor\\.ContentsResizeValue\\.PercentValue' cannot be used in this context because it lacks the get accessor",
-    "error_code": "CS0154",
-    "fix_guidance": "Do not read the PercentValue property; instead use the provided factory methods such as PdfFileEditor.ContentsResizeValue.Percents(...), .Units(...), or .Auto() to create resize values.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774975911.159691
-  },
-  {
-    "pattern": "PdfFileSecurity.*does not contain a definition for 'Encrypt'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the obsolete PdfFileSecurity.Encrypt call with Document.Encrypt (e.g., doc.Encrypt(userPwd, ownerPwd, permissions, CryptoAlgorithm.AESx256)) and remove the Aspose.Pdf.Facades namespace.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774976949.92061
-  },
-  {
-    "pattern": "PdfFileSecurity\\.PdfFileSecurity\\(string, string\\) is obsolete",
-    "error_code": "CS0618",
-    "fix_guidance": "Replace the obsolete PdfFileSecurity(string, string) constructor with the newer API – use the parameter‑less PdfFileSecurity constructor or, preferably, load the PDF with Document and apply permissions via Document.Encrypt.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774977213.8641431
-  },
-  {
-    "pattern": "PdfFileSecurity\\.(PdfFileSecurity\\(string, string\\)|AllowExceptions) is obsolete",
-    "error_code": "CS0618",
-    "fix_guidance": "Replace the obsolete PdfFileSecurity constructor with the parameter‑less one (or use Document.Encrypt) and remove the AllowExceptions property, which is no longer supported.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774977334.475165
-  },
-  {
-    "pattern": "Permissions.*ModifyAnnotations",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent Permissions.ModifyAnnotations with the correct enum member (e.g., Permissions.ModifyContent) and reference it via Aspose.Pdf.Permissions.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774978004.072545
-  },
-  {
     "pattern": "Permissions does not contain a definition for 'ModifyAnnotations'",
     "error_code": "CS0117",
     "fix_guidance": "Replace the unavailable ModifyAnnotations flag with a supported permission (e.g., Permissions.ExtractContent) or upgrade to a newer Aspose.Pdf version that defines ModifyAnnotations.",
@@ -1798,5 +1339,464 @@
     "_confidence": 0.5,
     "_hit_count": 0,
     "_created_at": 1775009711.272607
+  },
+  {
+    "pattern": "The type or namespace name 'PKCS1' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Replace the nonexistent PKCS1 class with PKCS7 (e.g., `PKCS7 signature = new PKCS7(...)`) and add `using Aspose.Pdf.Forms;` to reference the correct namespace.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775011089.627581
+  },
+  {
+    "pattern": "SignatureName' does not contain a definition for 'ManagerSignature'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the invalid enum member with a valid one or use the string overload of VerifySignature, e.g., VerifySignature(\"ManagerSignature\").",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775011194.492516
+  },
+  {
+    "pattern": "PdfFileSignature' does not contain a definition for 'SignatureNames'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent 'SignatureNames' property with the new API method 'GetSignatureNames()' and update any related code (e.g., verification calls) to use the returned SignatureName objects.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775011422.096396
+  },
+  {
+    "pattern": "FormEditor' does not contain a definition for 'AddSignatureField'",
+    "error_code": "CS1061",
+    "fix_guidance": "Use the Form class (or Document.Form) to add a signature field, e.g., `Form form = new Form(document); form.AddSignatureField(...)`, and ensure `using Aspose.Pdf.Forms;` is included.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775011717.25674
+  },
+  {
+    "pattern": "The best overload for 'Sign' does not have a parameter named 'pageNumber'",
+    "error_code": "CS1739",
+    "fix_guidance": "Remove the named 'pageNumber' argument and call the appropriate Sign overload using positional parameters (e.g., Sign(pageNumber, ...)) or use the overload that matches the arguments you need.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775011867.563943
+  },
+  {
+    "pattern": "SignatureField' does not contain a definition for 'SignatureCustomAppearance'",
+    "error_code": "CS1061",
+    "fix_guidance": "Import Aspose.Pdf.Facades and use the Facades SignatureField class (or its SetSignatureCustomAppearance method) instead of Aspose.Pdf.Forms.SignatureField, which lacks the SignatureCustomAppearance property.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775011965.949413
+  },
+  {
+    "pattern": "Argument 7: cannot convert from 'string' to 'Aspose\\.Pdf\\.Forms\\.Signature'",
+    "error_code": "CS1503",
+    "fix_guidance": "Create and configure an Aspose.Pdf.Forms.Signature instance and pass it as the seventh argument instead of a string.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775012071.523936
+  },
+  {
+    "pattern": "Argument \\d+: cannot convert from '.*' to '.*'",
+    "error_code": "CS1503",
+    "fix_guidance": "Pass arguments of the expected types—use the correct overload or convert values (e.g., supply a string where a string is required, a Rectangle where a Rectangle is required, and a bool where a bool is required).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775012359.1464288
+  },
+  {
+    "pattern": "PdfFileSignature\\.VerifySigned\\(.*\\) is obsolete",
+    "error_code": "CS0618",
+    "fix_guidance": "Replace calls to the obsolete VerifySigned method with VerifySignature and check that the signature field exists before invoking it.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775012381.608226
+  },
+  {
+    "pattern": "FormattedText' does not contain a definition for 'WordWrap'",
+    "error_code": "CS1061",
+    "fix_guidance": "Use the FormattedText constructor that accepts text, color, font name, encoding, embed flag, and font size instead of setting WordWrap, FontName, or FontSize properties, which were removed in recent Aspose.Pdf versions.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775012829.100408
+  },
+  {
+    "pattern": "FontStyle' is an ambiguous reference between 'System\\.Drawing\\.FontStyle' and 'Aspose\\.Pdf\\.Facades\\.FontStyle'",
+    "error_code": "CS0104",
+    "fix_guidance": "Disambiguate the type by using its fully qualified name or create an alias (e.g., using DrawingFontStyle = System.Drawing.FontStyle;) and reference the alias.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775012926.246061
+  },
+  {
+    "pattern": "The type or namespace name 'HttpResponse' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Add a reference to the appropriate assembly (e.g., System.Web for classic ASP.NET or Microsoft.AspNetCore.Http for ASP.NET Core) and include the corresponding using directive, or replace HttpResponse with a suitable stub in non‑web contexts.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775013247.3723588
+  },
+  {
+    "pattern": "PdfExtractor' does not contain a definition for 'GetCurrentImagePageNumber'",
+    "error_code": "CS1061",
+    "fix_guidance": "Remove the call to GetCurrentImagePageNumber; instead track the page number yourself (e.g., loop through Document.Pages or set extractor.StartPage/EndPage) and use that value when naming output files.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775013368.9152472
+  },
+  {
+    "pattern": "No overload for method 'Decrypt' takes 1 arguments",
+    "error_code": "CS1501",
+    "fix_guidance": "Call PdfFileSecurity.DecryptFile() with the correct overload (e.g., without parameters or with both owner and user passwords) as defined in the Aspose.Pdf API.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775018204.802588
+  },
+  {
+    "pattern": "The type or namespace name 'PdfFileInfo' does not exist in the namespace 'Aspose\\.Pdf'",
+    "error_code": "CS0234",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Facades assembly and include the `using Aspose.Pdf.Facades;` directive (or use the correct class name such as PdfFileSecurity).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775018501.520415
+  },
+  {
+    "pattern": "Permissions' does not contain a definition for 'CopyContents'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the nonexistent Permissions.CopyContents with a valid Permissions enum member (e.g., Permissions.PrintDocument, Permissions.ExtractContent, Permissions.ModifyContent, etc.).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775018624.842371
+  },
+  {
+    "pattern": "DocumentPrivilege.*does not contain a definition for 'PrintDocument'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the obsolete DocumentPrivilege enum with the Permissions enum (e.g., Permissions.PrintDocument) when setting PDF privileges.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775018662.5729122
+  },
+  {
+    "pattern": "SignatureAppearance' does not exist in the namespace 'Aspose\\.Pdf\\.Facades'",
+    "error_code": "CS0234",
+    "fix_guidance": "Upgrade to a Aspose.Pdf for .NET version that includes the SignatureAppearance member or remove the reference and use the supported visual signature APIs (e.g., PdfFileSignature.SignatureAppearance) provided by your current library version.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775019399.222802
+  },
+  {
+    "pattern": ".*'string' does not contain a definition for 'Culture'.*",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent string.Culture usage with a proper CultureInfo reference (e.g., CultureInfo.CurrentCulture or pass a CultureInfo instance) and ensure System.Globalization is imported.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775019855.6148522
+  },
+  {
+    "pattern": "Rectangle' is an ambiguous reference between 'System\\.Drawing\\.Rectangle' and 'Aspose\\.Pdf\\.Rectangle'",
+    "error_code": "CS0104",
+    "fix_guidance": "Disambiguate the type by using its fully qualified name (e.g., System.Drawing.Rectangle or Aspose.Pdf.Rectangle) or create a namespace alias with a using directive.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775020260.9424388
+  },
+  {
+    "pattern": "The type or namespace name 'SignatureCustomAppearance' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Add a reference to the Aspose.Pdf assembly that contains the SignatureCustomAppearance class and include the appropriate using directive (e.g., `using Aspose.Pdf.Signature;`).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775020957.196171
+  },
+  {
+    "pattern": "PKCS7.*Contact",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent 'Contact' property with the correct 'ContactInfo' property on the PKCS7 object (and ensure Aspose.Pdf.Forms is referenced).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775021292.635146
+  },
+  {
+    "pattern": "PdfFileSignature\\.VerifySigned\\(string\\)",
+    "error_code": "CS0618",
+    "fix_guidance": "Replace any use of PdfFileSignature.VerifySigned(string) with the newer VerifySignature method (e.g., VerifySignature(signName) or VerifySignature(signName, options)).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775021581.6748219
+  },
+  {
+    "pattern": "TextState' does not contain a definition for 'IsWordWrap'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent 'IsWordWrap' property with the correct 'WordWrap' property on TextState (e.g., textState.WordWrap = true) and ensure the appropriate Aspose.Pdf namespace is referenced.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775025266.807938
+  },
+  {
+    "pattern": "PdfFileStamp' does not contain a definition for 'AddText'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace PdfFileStamp with PdfFileMend (or another appropriate class) and call its AddText method, ensuring the Aspose.Pdf.Facades namespace is referenced.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775025379.939265
+  },
+  {
+    "pattern": "Argument 2: cannot convert from 'Aspose\\.Pdf\\.Color' to 'Aspose\\.Pdf\\.Facades\\.FontColor'",
+    "error_code": "CS1503",
+    "fix_guidance": "Pass a System.Drawing.Color (or Aspose.Pdf.Facades.FontColor enum) to the FormattedText constructor and use the Facades overload that expects a FontStyle enum instead of a string.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775025826.6769652
+  },
+  {
+    "pattern": "ComparisonOptions' does not contain a definition for 'ExcludedAreasFirstDocument'",
+    "error_code": "CS1061",
+    "fix_guidance": "Use SideBySideComparisonOptions instead of ComparisonOptions and set its ExcludeAreas1 and ExcludeAreas2 properties (arrays of Rectangle) to specify excluded areas.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775032259.0046132
+  },
+  {
+    "pattern": "Stamp' is an ambiguous reference between 'Aspose\\.Pdf\\.Facades\\.Stamp' and 'Aspose\\.Pdf\\.Stamp'",
+    "error_code": "CS0104",
+    "fix_guidance": "Disambiguate the type by using its fully‑qualified name (e.g., Aspose.Pdf.Facades.Stamp) or create a using alias for the desired Stamp class.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775032647.929893
+  },
+  {
+    "pattern": "Stamp' does not contain a definition for 'SetOrigin'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the abstract Aspose.Pdf.Stamp with Aspose.Pdf.Facades.Stamp and use its BindImage/BindLogo methods; then call SetOrigin, IsBackground, etc., which are defined on the Facades.Stamp class.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775033166.41148
+  },
+  {
+    "pattern": "Argument \\d+: cannot convert from 'System\\.Drawing\\.Color' to 'Aspose\\.Pdf\\.Facades\\.FontColor'",
+    "error_code": "CS1503",
+    "fix_guidance": "Replace System.Drawing types with Aspose.Pdf equivalents (e.g., use Aspose.Pdf.Color.Black for colors, Aspose.Pdf.Text.FontStyle for font styles, and pass a float for font size) when constructing stamps or formatted text.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775033444.3457348
+  },
+  {
+    "pattern": "Argument \\d+: cannot convert from 'Aspose\\.Pdf\\.Color' to 'Aspose\\.Pdf\\.Facades\\.FontColor'|Argument \\d+: cannot convert from 'string' to 'Aspose\\.Pdf\\.Facades\\.FontStyle'|Argument 1: cannot convert from 'Aspose\\.Pdf\\.Facades\\.Stamp' to 'Aspose\\.Pdf\\.Stamp'",
+    "error_code": "CS1503",
+    "fix_guidance": "Use the correct Facades types: replace Color with FontColor, supply a FontStyle enum instead of a string, and create a TextStamp (or use Aspose.Pdf.Stamp) that matches the expected class.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775033580.6043148
+  },
+  {
+    "pattern": "Argument \\d+: cannot convert from 'Aspose\\.Pdf\\.Color' to 'Aspose\\.Pdf\\.Facades\\.FontColor'",
+    "error_code": "CS1503",
+    "fix_guidance": "Use the Facades overloads: pass a System.Drawing.Color (or Aspose.Pdf.Facades.FontColor) and a FontStyle enum value instead of a string.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775033646.210853
+  },
+  {
+    "pattern": "TextStamp' does not contain a definition for 'Margin'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the non‑existent Margin property with the XIndent and YIndent properties (e.g., stamp.XIndent = 10; stamp.YIndent = 10) to set stamp offsets.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775035291.1798642
+  },
+  {
+    "pattern": ".*(ImageStamp|TextStamp) does not contain a definition for 'SetOrigin'.*",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the obsolete SetOrigin call with the XIndent and YIndent properties (e.g., stamp.XIndent = 50; stamp.YIndent = 750) to position ImageStamp or TextStamp.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775035381.715199
+  },
+  {
+    "pattern": "Argument \\d+: cannot convert from 'Aspose\\.Pdf\\.Color' to 'Aspose\\.Pdf\\.Facades\\.FontColor'|Argument \\d+: cannot convert from 'string' to 'Aspose\\.Pdf\\.Facades\\.FontStyle'",
+    "error_code": "CS1503",
+    "fix_guidance": "Pass a System.Drawing.Color (e.g., System.Drawing.Color.Black) and a float font size to FormattedText, and use the FontStyle enum (or appropriate overload) instead of a string.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775035522.5676
+  },
+  {
+    "pattern": "Stamp' does not contain a definition for 'RotateAngle'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the Facades.Stamp with Aspose.Pdf.Text.TextStamp, remove the Aspose.Pdf.Facades using, and set rotation, XIndent, YIndent via TextStamp properties while configuring font, size, and color through its TextState.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775036297.244194
+  },
+  {
+    "pattern": "PdfFileMend\\.PdfFileMend\\(string, string\\) is obsolete",
+    "error_code": "CS0618",
+    "fix_guidance": "Replace the obsolete two‑parameter constructor with the parameter‑less constructor (or the one‑parameter overload) and call BindPdf(string) to load the source PDF before using the object.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775037076.37812
+  },
+  {
+    "pattern": "The type or namespace name 'ImageStamp' does not exist in the namespace 'Aspose\\.Pdf\\.Facades'",
+    "error_code": "CS0234",
+    "fix_guidance": "Add a reference to Aspose.Pdf.Drawing (or the appropriate assembly) and replace Aspose.Pdf.Facades.ImageStamp with Aspose.Pdf.Drawing.ImageStamp.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775037311.098211
+  },
+  {
+    "pattern": "The name 'WordWrapMode' does not exist in the current context",
+    "error_code": "CS0103",
+    "fix_guidance": "Use the WordWrapMode enum via TextFormattingOptions, e.g., paragraph.FormattingOptions = new TextFormattingOptions(TextFormattingOptions.WordWrapMode.ByWords);",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775037650.916776
+  },
+  {
+    "pattern": "DefaultMetadataProperties' does not contain a definition for 'Title'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the reference to Aspose.Pdf.Facades.DefaultMetadataProperties.Title with a string key (e.g., \"Title\") or the appropriate property supported by the current Aspose.Pdf version.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775038566.8117278
+  },
+  {
+    "pattern": "Page' does not contain a constructor that takes 1 arguments",
+    "error_code": "CS1729",
+    "fix_guidance": "Use the Pages.Insert overload that creates a blank page (e.g., document.Pages.Insert(pageNumber)) instead of constructing a Page with a Document, then retrieve the inserted page to set its size.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775038607.10556
+  },
+  {
+    "pattern": "Document' does not contain a definition for 'XmpMetadata'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace usage of the removed XmpMetadata property with the Document.Metadata collection (e.g., copy entries via the indexer) or upgrade to a version of Aspose.PDF that includes XmpMetadata.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775038657.181549
+  },
+  {
+    "pattern": "The type name 'XmpValue' does not exist in the type 'Metadata'",
+    "error_code": "CS0426",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Xmp namespace (e.g., `using Aspose.Pdf.Xmp;`) or fully qualify the class as `Aspose.Pdf.Xmp.XmpValue`.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775038821.1117032
+  },
+  {
+    "pattern": "DocumentInfo' does not contain a definition for 'CreatorTool'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent CreatorTool property with the supported Creator property on DocumentInfo (e.g., doc.Info.Creator = \"MyApp v1.0\").",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775038923.589935
+  },
+  {
+    "pattern": "Document' does not contain a definition for 'Nickname'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent Document.Nickname property with DocumentInfo.Nickname (or another supported metadata property) and ensure you are using a version of Aspose.PDF that includes this property.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775039135.357095
+  },
+  {
+    "pattern": "There is no argument given that corresponds to the required parameter 'pageSize' of 'XfaParserOptions\\.XfaParserOptions\\(SizeF\\)'",
+    "error_code": "CS7036",
+    "fix_guidance": "Pass a SizeF instance (e.g., new SizeF(width, height)) to the XfaParserOptions constructor when creating the object.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775039196.205135
+  },
+  {
+    "pattern": "Document' does not contain a definition for 'Compress'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace Document.Compress with an OptimizationOptions instance and call document.OptimizeResources; add `using Aspose.Pdf.Optimization` to the file.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775039505.664005
+  },
+  {
+    "pattern": "error CS1002: ; expected",
+    "error_code": "CS1002",
+    "fix_guidance": "Add the missing semicolon (or remove stray characters) at the indicated line to complete the statement.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775042265.156887
+  },
+  {
+    "pattern": "PdfActionCollection' does not contain a definition for 'OnShowPage'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent OnShowPage property with the supported OnOpen action (e.g., page.Actions.OnOpen = new JavascriptAction(...)) or use the appropriate annotation action.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775043053.5131211
+  },
+  {
+    "pattern": "Document' does not contain a definition for 'AddJavaScript'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent AddJavaScript call with doc.OpenAction = new JavascriptAction(yourScript); and add a using directive for Aspose.Pdf.Annotations.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775043138.7937331
+  },
+  {
+    "pattern": "Rectangle is an ambiguous reference between 'System.Drawing.Rectangle' and 'Aspose.Pdf.Rectangle'",
+    "error_code": "CS0104",
+    "fix_guidance": "Disambiguate by using the fully qualified name (e.g., Aspose.Pdf.Rectangle) or create an alias with a using directive.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775044625.638655
   }
 ]

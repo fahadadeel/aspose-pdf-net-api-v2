@@ -24,16 +24,67 @@ from knowledge.error_fixes import load_error_fixes, match_error_fixes, format_er
 from knowledge.auto_learner import AutoLearner, load_auto_error_catalog
 
 
-def _format_rules_block(rules: dict) -> str:
-    """Format product rules into text block (replicates MCP server's format_rules_block)."""
-    lines = []
+def _format_rules_block(rules: dict, max_chars: int = 24000) -> str:
+    """Format product rules into readable text block for LLM prompt injection.
+
+    Rules with an ``errors`` key (proactive "DO NOT" rules) are placed first
+    in a compact format (note + errors only, no code blocks) so the LLM sees
+    them without blowing up the context window.  API-doc rules follow,
+    truncated at *max_chars*.
+    """
+
+    # Split into critical (error-prevention) vs reference (API docs)
+    critical = []
+    reference = []
     for key, value in rules.items():
-        if isinstance(value, list):
-            lines.append(f"{key}:")
-            for line in value:
-                lines.append("  " + line)
-        else:
-            lines.append(f"{key}: {value}")
+        if key.startswith("__"):
+            continue
+        if isinstance(value, dict) and value.get("errors"):
+            critical.append((key, value))
+        elif isinstance(value, dict) and (value.get("note") or value.get("code")):
+            reference.append((key, value))
+        elif isinstance(value, (list, str)):
+            reference.append((key, value))
+
+    lines = []
+    if critical:
+        lines.append("=" * 50)
+        lines.append("CRITICAL RULES — MUST FOLLOW")
+        lines.append("=" * 50)
+        for key, value in critical:
+            note = value.get("note", "")
+            errors = value.get("errors", [])
+            lines.append(f"- **{key}**: {note}")
+            for e in errors[:2]:
+                lines.append(f"    ERROR: {e}")
+
+    if reference:
+        lines.append("")
+        lines.append("=" * 50)
+        lines.append("API REFERENCE")
+        lines.append("=" * 50)
+        total = sum(len(l) + 1 for l in lines)
+        for key, value in reference:
+            if isinstance(value, dict):
+                note = value.get("note", "")
+                code = value.get("code", "")
+                block = f"### {key}\n  {note}"
+                if code:
+                    # Truncate code to first 300 chars to keep it concise
+                    code_short = code[:300] + ("..." if len(code) > 300 else "")
+                    block += f"\n  ```csharp\n  {code_short}\n  ```"
+            elif isinstance(value, list):
+                block = f"{key}:\n" + "\n".join("  " + str(l) for l in value)
+            elif isinstance(value, str):
+                block = f"{key}: {value}"
+            else:
+                continue
+            if total + len(block) > max_chars:
+                lines.append(f"\n... (truncated — {len(reference)} API rules total)")
+                break
+            lines.append(block)
+            total += len(block)
+
     return "\n".join(lines)
 
 
