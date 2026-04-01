@@ -1,4 +1,37 @@
 {
+  "no-readline-no-watcher-rewrite-as-one-shot": {
+    "note": "Console.ReadLine()/ReadKey() and FileSystemWatcher block forever in automated pipelines (no stdin). Rewrite as a one-shot console app that processes existing files and exits. Replace FileSystemWatcher + ReadLine with Directory.GetFiles() loop.",
+    "code": "// Process all PDFs in a directory and exit:\nforeach (string pdfFile in Directory.GetFiles(\"watch\", \"*.pdf\"))\n{\n    using (PdfFileSecurity security = new PdfFileSecurity())\n    {\n        security.BindPdf(pdfFile);\n        security.EncryptFile(\"user\", \"owner\", DocumentPrivilege.Print, KeySize.x256, Algorithm.AES);\n        security.Save(Path.Combine(\"archive\", Path.GetFileNameWithoutExtension(pdfFile) + \"_enc.pdf\"));\n    }\n}\nConsole.WriteLine(\"Done.\");",
+    "errors": [
+      "Process killed by timeout — Console.ReadLine() blocks forever with no stdin",
+      "Process killed by timeout — FileSystemWatcher + Console.ReadLine() never exits"
+    ]
+  },
+  "pdffilesecurity-no-allowexceptions-use-bindpdf-save": {
+    "note": "PdfFileSecurity.AllowExceptions throws NotSupportedException at runtime — remove it entirely. Also replace the deprecated PdfFileSecurity(inputFile, outputFile) constructor with parameterless constructor + BindPdf() + Save().",
+    "code": "PdfFileSecurity fileSecurity = new PdfFileSecurity();\nfileSecurity.BindPdf(\"input.pdf\");\nfileSecurity.SetPrivilege(\"user\", \"owner\", DocumentPrivilege.Print);\nfileSecurity.Save(\"output.pdf\");",
+    "errors": [
+      "System.NotSupportedException: The property is deprecated. — at PdfFileSecurity.set_AllowExceptions",
+      "CS0618: 'PdfFileSecurity.AllowExceptions' is obsolete",
+      "CS0618: 'PdfFileSecurity.PdfFileSecurity(string, string)' is obsolete"
+    ]
+  },
+  "pdfpageeditor-no-rotatepage-use-rotation-int-property": {
+    "note": "PdfPageEditor has no RotatePage() method and RotationAngle enum does not exist. Use the Rotation property (int: 0, 90, 180, 270) with ProcessPages to target specific pages, or use PageRotations dictionary for per-page rotation.",
+    "code": "PdfPageEditor editor = new PdfPageEditor();\neditor.BindPdf(pdfStream);\neditor.ProcessPages = new int[] { 1 };\neditor.Rotation = 90;\neditor.Save(outStream);\n\n// Or per-page:\neditor.PageRotations = new Dictionary<int, int> { { 1, 90 }, { 3, 270 } };\neditor.Save(outStream);",
+    "errors": [
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'RotatePage'",
+      "CS0103: The name 'RotationAngle' does not exist in the current context"
+    ]
+  },
+  "evaluation-mode-max-four-collection-elements": {
+    "note": "Aspose.PDF evaluation (unlicensed) mode throws IndexOutOfRangeException when any collection (Pages, Annotations, Bookmarks, Attachments, etc.) exceeds 4 elements. Reduce the loop or item count to 4 maximum. If the task says 'five pages', change to 4 and add a comment about the evaluation limit.",
+    "code": "// Cap at 4 to stay within evaluation-mode limits:\nfor (int i = 1; i <= 4; i++)\n{\n    Page page = doc.Pages.Add();\n    page.SetPageSize(PageSize.A4.Width, PageSize.A4.Height);\n}\nConsole.WriteLine($\"Created {doc.Pages.Count} A4 pages.\");\n// Note: Full license removes the 4-element cap.",
+    "errors": [
+      "System.IndexOutOfRangeException: At most 4 elements (for any collection) can be viewed in evaluation mode.",
+      "IndexOutOfRangeException: At most 4 elements"
+    ]
+  },
   "rotation-enum-uses-on-prefix": {
     "note": "The Aspose.Pdf.Rotation enum values use the 'on' prefix, NOT 'Rotate'. The correct values are: Rotation.None, Rotation.on90, Rotation.on180, Rotation.on270, Rotation.on360. Using 'Rotate90', 'Rotate180', etc. causes CS0117.",
     "code": "// CORRECT — use 'on' prefix:\npage.Rotate = Rotation.on180;\npage.Rotate = Rotation.on90;\npage.Rotate = Rotation.on270;\n\n// WRONG — 'Rotate' prefix does not exist:\n// page.Rotate = Rotation.Rotate180; // CS0117\n// page.Rotate = Rotation.Rotate90;  // CS0117",
@@ -10190,6 +10223,409 @@
     "errors": [
       "CS0234: The type or namespace name 'Saving' does not exist in the namespace 'Aspose.Pdf'",
       "Using ExcelSaveOptions.MemorySaveModePath directly for PDF intermediate storage (unsupported)"
+    ]
+  },
+  "use-customfont-instead-of-font-string": {
+    "note": "Assign a font name via FormFieldFacade.CustomFont; the Font property expects a FontStyle enum, not a string.",
+    "code": "var facade = new FormFieldFacade();\nfacade.CustomFont = \"Arial\"; // set font name\nfacade.Font = FontStyle.Bold; // optional, set style using FontStyle enum",
+    "errors": [
+      "Cannot implicitly convert type 'string' to 'Aspose.Pdf.Facades.FontStyle'",
+      "Invalid assignment of a string to FormFieldFacade.Font"
+    ]
+  },
+  "use-propertyflag-with-formeditor-setfieldattribute": {
+    "note": "Use FormEditor.SetFieldAttribute with a PropertyFlag enum value; custom dictionary entries cannot be set through this method.",
+    "code": "FormEditor editor = new FormEditor(inputPath, outputPath);\nbool result = editor.SetFieldAttribute(\"OrderNumber\", PropertyFlag.NoExport);",
+    "errors": [
+      "CS1061: 'WidgetAnnotation' does not contain a definition for 'AnnotationDictionary' and no accessible extension method 'AnnotationDictionary' accepting a first argument of type 'WidgetAnnotation' could be found",
+      "CS0234: The type or namespace name 'String' does not exist in the namespace 'Aspose.Pdf.Text'"
+    ]
+  },
+  "use-two-arg-setfieldappearance": {
+    "note": "Call FormEditor.SetFieldAppearance with only the field name and an AnnotationFlags value (the three‑argument overload does not exist).",
+    "code": "using Aspose.Pdf.Annotations;\n\nFormEditor editor = new FormEditor(inputPdf, outputPdf);\neditor.SetFieldAppearance(\"TotalAmount\", AnnotationFlags.Print);",
+    "errors": [
+      "CS1501: No overload for method 'SetFieldAppearance' takes 3 arguments"
+    ]
+  },
+  "use-formeditor-with-output-path-and-save-output": {
+    "note": "Instantiate FormEditor with target PDF path and output path (both strings) and call Save(outputPath) instead of the obsolete parameterless Save()",
+    "code": "using Aspose.Pdf.Facades;\n\nFormEditor editor = new FormEditor(targetPdfPath, outputPdfPath);\neditor.CopyOuterField(templatePdfPath, fieldName);\neditor.Save(outputPdfPath);",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Document' to 'string'",
+      "CS0618: 'FormEditor.Save()' is obsolete: 'Use Save(destination) method for saving facade results.'",
+      "CS0103: The name 'targetDoc' does not exist in the current context"
+    ]
+  },
+  "use-formeditor-with-document-and-field-rect": {
+    "note": "Create FormEditor with a Document instance and move fields using each field's Rect property (cast coordinates to float) instead of the obsolete Form.GetFieldRect method.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document(inputPath);\nusing (FormEditor editor = new FormEditor(doc))\n{\n    foreach (var field in doc.Form.Fields)\n    {\n        var r = field.Rect;\n        float llx = (float)r.LLX + 10f;\n        float lly = (float)r.LLY + 15f;\n        float urx = (float)r.URX + 10f;\n        float ury = (float)r.URY + 15f;\n        editor.MoveField(field.Name, llx, lly, urx, ury);\n    }\n    editor.Save(outputPath);\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'GetFieldRect'",
+      "CS0266: Cannot implicitly convert type 'double' to 'float'",
+      "CS0618: 'FormEditor.FormEditor(string, string)' is obsolete"
+    ]
+  },
+  "use-document-form-property": {
+    "note": "Access the PDF form via the Document.Form property instead of trying to instantiate a Form with a constructor.",
+    "code": "using (Document doc = new Document(path))\n{\n    Form form = doc.Form;\n    if (form[\"Comments\"] is TextBoxField commentsField)\n    {\n        commentsField.Multiline = true;\n    }\n}",
+    "errors": [
+      "CS1729: 'Form' does not contain a constructor that takes 1 arguments"
+    ]
+  },
+  "set-field-border-width-via-border-property": {
+    "note": "Set a form field's border thickness by accessing the field's Border.Width property instead of using SetFieldAttribute with \"BorderWidth\".",
+    "code": "SignatureField sigField = (SignatureField)doc.Form[\"Signature\"];\nif (sigField != null)\n{\n    sigField.Border.Width = 2; // thickness in points\n}",
+    "errors": [
+      "CS1729: 'Border' does not contain a constructor that takes 2 arguments",
+      "Using Form.SetFieldAttribute(\"fieldName\", \"BorderWidth\", value) to set border thickness"
+    ]
+  },
+  "use-formfieldfacade-with-systemdrawing-color": {
+    "note": "Use FormFieldFacade and set its BackgroundColor with System.Drawing.Color (e.g., LightGreen) instead of the non‑existent Aspose.Pdf.Facades.FieldAppearance or Aspose.Pdf.Color.",
+    "code": "FormEditor editor = new FormEditor();\neditor.BindPdf(inputPath);\nvar facade = new FormFieldFacade();\nfacade.BackgroundColor = System.Drawing.Color.LightGreen;\neditor.Facade = facade;\neditor.DecorateField(\"Status\");\neditor.Save(outputPath);",
+    "errors": [
+      "CS0234: The type or namespace name 'FieldAppearance' does not exist in the namespace 'Aspose.Pdf.Facades'",
+      "CS0234: The type or namespace name 'Color' does not exist in the namespace 'Aspose.Pdf' when used for FormFieldFacade.BackgroundColor"
+    ]
+  },
+  "use-document-constructor-for-formeditor": {
+    "note": "Instantiate FormEditor with a Document object (using the non‑obsolete constructor) and call Save to write changes, instead of using the obsolete FormEditor(string, string) overload.",
+    "code": "using (Document pdfDoc = new Document(inputPath))\n{\n    using (FormEditor formEditor = new FormEditor(pdfDoc))\n    {\n        formEditor.SetFieldLimit(\"PhoneNumber\", 15);\n        formEditor.Save(outputPath);\n    }\n}",
+    "errors": [
+      "CS0618: 'FormEditor.FormEditor(string, string)' is obsolete",
+      "Runtime FileNotFoundException when FormEditor expects a Document but receives a file path"
+    ]
+  },
+  "use-pushbutton-fieldtype-and-float-rect-coords": {
+    "note": "When adding a push button to a PDF form, use FieldType.PushButton (not FieldType.Button) and pass the rectangle coordinates as float values.",
+    "code": "formEditor.AddField(\n    FieldType.PushButton,\n    \"ResetForm\",\n    pageNumber,\n    (float)rect.LLX,\n    (float)rect.LLY,\n    (float)rect.URX,\n    (float)rect.URY);\n",
+    "errors": [
+      "CS0117: 'FieldType' does not contain a definition for 'Button'",
+      "CS1502/CS1503: No overload for method 'AddField' takes arguments of type 'FieldType', 'string', 'int', 'double', 'double', 'double', 'double' (expects float coordinates)"
+    ]
+  },
+  "use-numberfield-allowedchars-maxlen-for-integer-range": {
+    "note": "For a numeric PDF form field, enforce integer values between 0 and 100 by setting NumberField.AllowedChars to digits and NumberField.MaxLen to 3 instead of using JavaScriptAction.",
+    "code": "NumberField numberField = field as NumberField;\nif (numberField != null)\n{\n    numberField.AllowedChars = \"0123456789\"; // only digits\n    numberField.MaxLen = 3; // allows values 0‑100\n}",
+    "errors": [
+      "CS0234: The type or namespace name 'JavaScriptAction' does not exist in the namespace 'Aspose.Pdf.Annotations'",
+      "Need to restrict a NumberField to integer range without JavaScript validation"
+    ]
+  },
+  "use-field-value-instead-of-widgetannotation": {
+    "note": "When reading or checking a form field's content, use the Field.Value property from Aspose.Pdf.Forms, not WidgetAnnotation.Value.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nDocument doc = new Document(\"input.pdf\");\nField field = doc.Form[\"TempField\"]; // or locate via iteration\nstring value = field?.Value?.ToString() ?? string.Empty;",
+    "errors": [
+      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Value' and no accessible extension method 'Value' accepting a first argument of type 'WidgetAnnotation' could be found"
+    ]
+  },
+  "use-pkcs7-contactinfo": {
+    "note": "When creating a digital signature with Aspose.Pdf, use the PKCS7 class (not PKCS1) and set the contact information via the ContactInfo property.",
+    "code": "PKCS7 pkcs7 = new PKCS7(certificatePath, certificatePassword);\npkcs7.Reason = \"Document approved\";\npkcs7.ContactInfo = \"john.doe@example.com\"; // correct property\npkcs7.Location = \"New York\";",
+    "errors": [
+      "CS1061: 'PKCS1' does not contain a definition for 'Contact' and no accessible extension method 'Contact' accepting a first argument of type 'PKCS1' could be found"
+    ]
+  },
+  "use-doc-form-and-iterate-fields-to-delete-buttons": {
+    "note": "Access the form via `doc.Form`, iterate over `form.Fields` and delete fields of type `ButtonField` by name; do not use the non‑existent `Form.FieldNames` property or cast to `WidgetAnnotation`.",
+    "code": "Form form = doc.Form;\nif (form?.Fields != null)\n{\n    var buttonNames = new List<string>();\n    foreach (Field f in form.Fields)\n        if (f is ButtonField) buttonNames.Add(f.Name);\n    foreach (string n in buttonNames) form.Delete(n);\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'FieldNames'",
+      "CS0266: Cannot implicitly convert type 'Aspose.Pdf.Annotations.WidgetAnnotation' to 'Aspose.Pdf.Forms.Field'"
+    ]
+  },
+  "use-addfieldappearance-to-move-signaturefield": {
+    "note": "When repositioning a signature field, retrieve it as a SignatureField, set its Rect, and call Document.Form.AddFieldAppearance(field, pageNumber, rect) instead of accessing a non‑existent PageNumber property on WidgetAnnotation.",
+    "code": "SignatureField sigField = (SignatureField)doc.Form[\"Signature\"];\nAspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(llx, lly, urx, ury);\nsigField.Rect = rect;\ndoc.Form.AddFieldAppearance(sigField, 5, rect);",
+    "errors": [
+      "CS1061: 'WidgetAnnotation' does not contain a definition for 'PageNumber'",
+      "Attempting to move a form field by modifying a WidgetAnnotation's PageNumber property"
+    ]
+  },
+  "use-formeditor-setfieldscript-for-field-javascript": {
+    "note": "Use Aspose.Pdf.Facades.FormEditor and its SetFieldScript method to attach JavaScript to a form field instead of using JavaScriptAction on Document.",
+    "code": "using Aspose.Pdf.Facades;\n\nFormEditor editor = new FormEditor();\neditor.BindPdf(inputPath);\nstring js = \"this.getField('Date').value = util.printd('dd/MM/yyyy', new Date());\";\neditor.SetFieldScript(\"Date\", js);\neditor.Save(outputPath);\neditor.Close();",
+    "errors": [
+      "CS0234: The type or namespace name 'Actions' does not exist in the namespace 'Aspose.Pdf'"
+    ]
+  },
+  "use-formeditor-with-document": {
+    "note": "Instantiate FormEditor with a Document object (using the overload without file paths) and call Save(outputPath) to write changes, instead of the obsolete FormEditor(string, string) constructor.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\n// Load PDF\nusing (Document pdfDoc = new Document(inputPath))\nusing (FormEditor formEditor = new FormEditor(pdfDoc))\n{\n    // ... perform editing operations ...\n    formEditor.Save(outputPath);\n}",
+    "errors": [
+      "CS0618: 'FormEditor.FormEditor(string, string)' is obsolete",
+      "Runtime FileNotFoundException when the input file path is passed directly to FormEditor"
+    ]
+  },
+  "use-border-and-color-for-listboxfield": {
+    "note": "ListBoxField does not expose BackgroundColor, BorderColor or TextColor; style it by assigning a Border object and using the Color property for border/background appearance.",
+    "code": "foreach (Aspose.Pdf.Forms.ListBoxField listField in document.Form.Fields)\n{\n    // set border width (and optionally other border properties)\n    listField.Border = new Border(listField) { Width = 2 };\n    // set border color\n    listField.Color = Aspose.Pdf.Color.Blue;\n    // set a background‑like color (ListBoxField has no separate background property)\n    listField.Color = Aspose.Pdf.Color.LightGray;\n}",
+    "errors": [
+      "CS1061: 'ListBoxField' does not contain a definition for 'BackgroundColor'",
+      "CS1061: 'ListBoxField' does not contain a definition for 'BorderColor'",
+      "CS1061: 'ListBoxField' does not contain a definition for 'TextColor'"
+    ]
+  },
+  "use-textboxfield-instead-of-form-addtextbox": {
+    "note": "Create a TextBoxField via the page‑based constructor and add it with Document.Form.Add instead of using Form.AddTextBox / Form.SetFieldFlag.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nRectangle rect = new Rectangle(0, 0, 0, 0);\nTextBoxField authField = new TextBoxField(doc.Pages[1], rect);\nauthField.PartialName = \"AuthToken\";\nauthField.Value = authToken;\n// hidden by zero‑size rectangle, no FieldFlag needed\n\ndoc.Form.Add(authField, 1);",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'AddTextBox'",
+      "CS1061: 'Form' does not contain a definition for 'SetFieldFlag'",
+      "CS0103: The name 'FieldFlag' does not exist in the current context"
+    ]
+  },
+  "use-annotations-namespace-for-javascriptaction": {
+    "note": "Import Aspose.Pdf.Annotations and use JavascriptAction from that namespace when adding JavaScript to form fields",
+    "code": "using Aspose.Pdf.Annotations;\n\n// ... create field\nJavascriptAction js = new JavascriptAction(\"your JS code\");\nfield.ExecuteFieldJavaScript(js);",
+    "errors": [
+      "CS0246: The type or namespace name 'JavascriptAction' could not be found (are you missing a using directive or an assembly reference?)"
+    ]
+  },
+  "use-importfromjson-for-form-fields": {
+    "note": "Import form fields (including layout) from a JSON definition using Document.Form.ImportFromJson(Stream) instead of manually constructing field objects.",
+    "code": "using (FileStream jsonStream = new FileStream(jsonPath, FileMode.Open, FileAccess.Read))\n{\n    document.Form.ImportFromJson(jsonStream);\n}",
+    "errors": [
+      "CS1729: 'TextBoxField' does not contain a constructor that takes 3 arguments",
+      "CS1503: Argument 2: cannot convert from 'string' to 'int'",
+      "CS0246: The type or namespace name 'CheckBoxField' could not be found",
+      "CS1729: 'ComboBoxField' does not contain a constructor that takes 3 arguments",
+      "CS1061: 'ComboBoxField' does not contain a definition for 'Choices'"
+    ]
+  },
+  "use-signaturecustomappearance-via-signature-property": {
+    "note": "Assign a custom appearance to a signature field using the Signature property and SignatureCustomAppearance class",
+    "code": "SignatureCustomAppearance custom = new SignatureCustomAppearance();\ncustom.IsForegroundImage = false; // or true for foreground image\nsigField.Signature.CustomAppearance = custom;",
+    "errors": [
+      "CS0246: The type or namespace name 'SignatureAppearance' could not be found",
+      "CS1061: 'SignatureField' does not contain a definition for 'CustomAppearance'",
+      "CS1729: 'Image' does not contain a constructor that takes 1 arguments"
+    ]
+  },
+  "pdffileinfo-dates-string-format-and-producer-readonly": {
+    "note": "Do not assign to the read‑only PdfFileInfo.Producer property, and set CreationDate/ModDate using a PDF‑date formatted string (e.g., \"yyyyMMddHHmmss\") instead of a DateTime value.",
+    "code": "using Aspose.Pdf.Facades;\n\nusing (PdfFileInfo info = new PdfFileInfo(pdfPath))\n{\n    // info.Producer is read‑only; do not set it.\n    DateTime now = DateTime.Now;\n    info.CreationDate = now.ToString(\"yyyyMMddHHmmss\"); // PDF date format\n    info.ModDate = now.ToString(\"yyyyMMddHHmmss\");\n}",
+    "errors": [
+      "Property or indexer 'PdfFileInfo.Producer' cannot be assigned to -- it is read only",
+      "Cannot implicitly convert type 'System.DateTime' to 'string' (for CreationDate)",
+      "Cannot implicitly convert type 'System.DateTime' to 'string' (for ModDate)"
+    ]
+  },
+  "use-document-rotate-for-pdfpageeditor": {
+    "note": "Replace PdfPageEditor.RotatePage with Document.Pages[index].Rotate using the Rotation enum, as PdfPageEditor no longer exposes RotatePage in recent Aspose.PDF versions.",
+    "code": "Document pdf = new Document(inputPath);\npdf.Pages[1].Rotate = Rotation.on90; // rotate first page 90°\npdf.Save(outputPath);",
+    "errors": [
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'RotatePage'"
+    ]
+  },
+  "use-page-rotate-property": {
+    "note": "Set the rotation of a page via the Page.Rotate property using the Rotation enum (e.g., Rotation.on180) instead of the non‑existent PageRotation class or PageRotations collection.",
+    "code": "doc.Pages[pageNumber].Rotate = Rotation.on180; // where pageNumber is a valid 1‑based index",
+    "errors": [
+      "CS0246: The type or namespace name 'PageRotation' could not be found",
+      "CS0246: The type or namespace name 'RotationAngle' could not be found",
+      "CS1061: 'PageCollection' does not contain a definition for 'PageRotations'"
+    ]
+  },
+  "use-page-rotate-property-with-rotation-enum": {
+    "note": "Rotate individual pages by setting the page's Rotate property to a value from the Rotation enum (e.g., Rotation.on180) instead of using the non‑existent Document.PageRotations collection.",
+    "code": "int[] pages = { 3, 5, 7 };\nforeach (int p in pages)\n{\n    if (p > 0 && p <= doc.Pages.Count)\n        doc.Pages[p].Rotate = Rotation.on180;\n}",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'PageRotations'",
+      "CS0103: The name 'RotationAngle' does not exist in the current context"
+    ]
+  },
+  "use-int-array-for-pdfpageeditor-processpages": {
+    "note": "Assign an int[] of page numbers to PdfPageEditor.ProcessPages instead of a Hashtable",
+    "code": "PdfPageEditor editor = new PdfPageEditor();\neditor.BindPdf(inputPath);\neditor.ProcessPages = new int[] { 6 }; // edit only page 6 (1‑based index)",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'System.Collections.Hashtable' to 'int[]'"
+    ]
+  },
+  "use-pdfpageeditor-zoom-for-specific-pages": {
+    "note": "To apply a zoom factor to selected pages, use PdfPageEditor.Zoom together with ProcessPages instead of setting PageInfo.Zoom on Document pages.",
+    "code": "PdfPageEditor editor = new PdfPageEditor();\neditor.BindPdf(inputPath);\neditor.ProcessPages = new int[] { 2, 4, 6 }; // even‑numbered pages\neditor.Zoom = 1.2f;\neditor.Save(outputPath);",
+    "errors": [
+      "CS1061: 'PageInfo' does not contain a definition for 'Zoom' (or 'PageScale')",
+      "Attempting to set zoom on Document.Pages[i].PageInfo results in a compile‑time error"
+    ]
+  },
+  "use-processpages-instead-of-pagenumbers-and-process": {
+    "note": "Use the PdfPageEditor.ProcessPages property to specify page numbers and set HorizontalAlignment directly; the older PageNumbers property and Process method no longer exist.",
+    "code": "using Aspose.Pdf.Facades;\n\nPdfPageEditor editor = new PdfPageEditor();\neditor.BindPdf(inputPath);\neditor.ProcessPages = new int[] { 2 }; // pages to edit (1‑based)\neditor.HorizontalAlignment = Aspose.Pdf.HorizontalAlignment.Left;\neditor.Save(outputPath);",
+    "errors": [
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'PageNumbers'",
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'Process'"
+    ]
+  },
+  "use-processpages-instead-of-apply": {
+    "note": "When aligning specific pages with PdfPageEditor, set the ProcessPages array and use Save/Close; do not call a non‑existent Apply method.",
+    "code": "PdfPageEditor editor = new PdfPageEditor();\neditor.BindPdf(inputPath);\neditor.ProcessPages = new int[] { 3 }; // pages to affect (1‑based)\neditor.VerticalAlignmentType = Aspose.Pdf.VerticalAlignment.Top;\neditor.Save(outputPath);\neditor.Close();",
+    "errors": [
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'Apply'",
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'Process' when targeting a single page"
+    ]
+  },
+  "use-rotate-property-with-rotation-on90": {
+    "note": "Use the Page.Rotate property with the Rotation.on90 enum value to rotate a page by 90 degrees",
+    "code": "doc.Pages[1].Rotate = Rotation.on90;",
+    "errors": [
+      "CS1061: 'Page' does not contain a definition for 'Rotation'",
+      "CS0103: The name 'RotationAngle' does not exist in the current context"
+    ]
+  },
+  "use-page-rotate-and-setpagesize-with-dimensions": {
+    "note": "Use the Page.Rotate property with Rotation.on90 and SetPageSize(width, height) instead of the removed PageInfo.Rotate, RotationAngle, and PageSize.Letter enums.",
+    "code": "Page page = doc.Pages[3];\npage.Rotate = Rotation.on90;\npage.SetPageSize(612, 792);",
+    "errors": [
+      "CS1061: 'PageInfo' does not contain a definition for 'Rotate'",
+      "CS0103: The name 'RotationAngle' does not exist in the current context",
+      "CS0117: 'PageSize' does not contain a definition for 'Letter'"
+    ]
+  },
+  "initialize-contentsresizeparameters-with-length": {
+    "note": "Create a ContentsResizeParameters instance and set each margin using Length values with LengthUnit.Point instead of calling a non‑existent Margins method.",
+    "code": "using Aspose.Pdf;\n\nvar resizeParams = new ContentsResizeParameters\n{\n    LeftMargin   = new Length(5, LengthUnit.Point),\n    RightMargin  = new Length(5, LengthUnit.Point),\n    TopMargin    = new Length(5, LengthUnit.Point),\n    BottomMargin = new Length(5, LengthUnit.Point)\n};",
+    "errors": [
+      "CS0246: The type or namespace name 'ContentsResizeParameters' could not be found (are you missing a using directive or an assembly reference?)",
+      "CS0103: The name 'ContentsResizeParameters' does not exist in the current context"
+    ]
+  },
+  "use-pagesize-not-rectangle-for-getpagesize": {
+    "note": "Use Aspose.Pdf.PageSize (not Aspose.Pdf.Rectangle) to store the result of PdfPageEditor.GetPageSize",
+    "code": "Aspose.Pdf.PageSize pageSize = editor.GetPageSize(pageNumber);\nint width = pageSize.Width;\nint height = pageSize.Height;",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'Aspose.Pdf.PageSize' to 'Aspose.Pdf.Rectangle'"
+    ]
+  },
+  "use-var-or-fully-qualified-page-size": {
+    "note": "When retrieving a page size with PdfPageEditor.GetPageSize, use 'var' (or the fully qualified Aspose.Pdf.PageSize type) instead of the unqualified 'PageSize' identifier.",
+    "code": "var size = editor.GetPageSize(pageNumber); // size.Width, size.Height",
+    "errors": [
+      "CS0246: The type or namespace name 'PageSize' could not be found"
+    ]
+  },
+  "use-pdfpageeditor-verticalalignmenttype": {
+    "note": "Set vertical alignment for specific pages using PdfPageEditor.VerticalAlignmentType together with PdfPageEditor.ProcessPages, not PageInfo.VerticalAlignment.",
+    "code": "int[] pages = { 1, 2, 3 };\nusing (var editor = new PdfPageEditor())\n{\n    editor.BindPdf(inputPath);\n    editor.ProcessPages = pages;               // select pages\n    editor.VerticalAlignmentType = VerticalAlignment.Top; // set vertical alignment\n    editor.Save(outputPath);\n}",
+    "errors": [
+      "CS1061: 'PageInfo' does not contain a definition for 'VerticalAlignment'"
+    ]
+  },
+  "use-integer-transitiontype-with-pdfpageeditor": {
+    "note": "Set PdfPageEditor.TransitionType using the integer value that represents the desired transition (e.g., 4 for Cover) and persist the changes with editor.Save.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document(inputPath);\nusing (PdfPageEditor editor = new PdfPageEditor(doc))\n{\n    editor.ProcessPages = new int[] { 4 }; // page 4 (1‑based)\n    editor.TransitionType = 4; // Cover transition\n    editor.TransitionDuration = 1; // 1 second\n    editor.ApplyChanges();\n    editor.Save(outputPath);\n}",
+    "errors": [
+      "CS1061: 'Page' does not contain a definition for 'Transition' and no accessible extension method 'Transition' accepting a first argument of type 'Page' could be found",
+      "CS0246: The type or namespace name 'Transition' could not be found",
+      "CS0103: The name 'TransitionType' does not exist in the current context"
+    ]
+  },
+  "replace-pageinfo-pagesize-with-width-height-and-use-rotation-on90": {
+    "note": "Use PageInfo.Width, PageInfo.Height and PageInfo.IsLandscape instead of the removed PageInfo.PageSize properties, and use Rotation.on90 for a 90‑degree rotation.",
+    "code": "Page page = document.Pages[1];\ndouble width = page.PageInfo.Width;\ndouble height = page.PageInfo.Height;\npage.PageInfo.IsLandscape = true;\npage.Rotate = Rotation.on90;",
+    "errors": [
+      "CS1061: 'PageInfo' does not contain a definition for 'PageSize'",
+      "CS0117: 'Rotation' does not contain a definition for 'Angle90'"
+    ]
+  },
+  "use-int-array-for-processpages": {
+    "note": "PdfPageEditor.ProcessPages expects an int[]; build a List<int> (or int[]) of page numbers instead of using Hashtable.",
+    "code": "var oddPages = new List<int> { 1, 3, 5 };\neditor.ProcessPages = oddPages.ToArray(); // correct type for ProcessPages",
+    "errors": [
+      "Cannot implicitly convert type 'System.Collections.Hashtable' to 'int[]'"
+    ]
+  },
+  "use-pdfpageeditor-zoom-and-processpages": {
+    "note": "Use PdfPageEditor.Zoom together with PdfPageEditor.ProcessPages to apply a zoom factor to specific pages; obtain page numbers via Document.Pages.Count instead of non‑existent PdfPageEditor members.",
+    "code": "using (var doc = new Document(inputPath))\n{\n    int pageCount = doc.Pages.Count;\n    int[] evenPages = Enumerable.Range(1, pageCount)\n                                .Where(p => p % 2 == 0)\n                                .ToArray();\n}\n\nvar editor = new PdfPageEditor();\neditor.BindPdf(inputPath);\neditor.ProcessPages = evenPages; // array of 1‑based page numbers\neditor.Zoom = 0.8f;\neditor.Save(outputPath);",
+    "errors": [
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'PageCount'",
+      "CS1061: 'PageInfo' does not contain a definition for 'Zoom'",
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'SetPageInfo'"
+    ]
+  },
+  "use-page-size-constructor-instead-of-paper-size-a4": {
+    "note": "When the static PaperSize.A4 member is unavailable, create a PageSize instance with explicit dimensions (e.g., 595x842 points) and assign it to PdfPageEditor.PageSize.",
+    "code": "PdfPageEditor editor = new PdfPageEditor();\neditor.BindPdf(doc);\neditor.PageSize = new PageSize(595, 842); // A4 size in points",
+    "errors": [
+      "CS0117: 'PaperSize' does not contain a definition for 'A4'"
+    ]
+  },
+  "use-pagesize-struct-for-pdfpageeditor-pagesize": {
+    "note": "Assign a PageSize (float width, float height) to PdfPageEditor.PageSize instead of a Rectangle.",
+    "code": "PdfPageEditor editor = new PdfPageEditor(document);\neditor.PageSize = new PageSize(842f, 595f);",
+    "errors": [
+      "Cannot implicitly convert type 'Aspose.Pdf.Rectangle' to 'Aspose.Pdf.PageSize'"
+    ]
+  },
+  "use-pdffileeditor-contentsresizeparameters": {
+    "note": "Use PdfFileEditor.ContentsResizeParameters (not ResizePageContentsParameters) and call ResizeContents with a Document, page numbers array, and the parameters.",
+    "code": "using Aspose.Pdf.Facades;\n\n// ... load Document 'doc' ...\nint[] pages = { 1, 2, 3 }; // 1‑based page numbers\nvar resizeParams = PdfFileEditor.ContentsResizeParameters.Margins(margin, margin, margin, margin);\nvar editor = new PdfFileEditor();\neditor.ResizeContents(doc, pages, resizeParams);",
+    "errors": [
+      "CS0246: The type or namespace name 'ResizePageContentsParameters' could not be found",
+      "CS0246: The type or namespace name 'ResizePageContentsParameters' could not be found (are you missing a using directive or an assembly reference?)"
+    ]
+  },
+  "use-nested-contentsresizeparameters-with-document-overload": {
+    "note": "When resizing PDF contents, reference the nested type PdfFileEditor.ContentsResizeParameters (or its fully‑qualified name) and use the ResizeContents overload that accepts a Document, page numbers array, and the parameters.",
+    "code": "using Aspose.Pdf.Facades;\n\nPdfFileEditor editor = new PdfFileEditor();\nPdfFileEditor.ContentsResizeParameters resize = PdfFileEditor.ContentsResizeParameters.Margins(50, 20, 0, 0);\nint[] pages = { 1, 2, 3 }; // example page numbers\neditor.ResizeContents(document, pages, resize);",
+    "errors": [
+      "CS0246: The type or namespace name 'ContentsResizeParameters' could not be found",
+      "CS0246: The type or namespace name 'ContentsResizeParameters' could not be found (when used with file‑path overload)"
+    ]
+  },
+  "use-resizecontents-with-document-and-pagenumbers": {
+    "note": "When applying custom ContentsResizeParameters, call PdfFileEditor.ResizeContents(Document, int[] pageNumbers, ContentsResizeParameters) instead of the file‑path overload.",
+    "code": "PdfFileEditor editor = new PdfFileEditor();\nvar resizeParams = PdfFileEditor.ContentsResizeParameters.Margins(0, 0, 50, 30);\nint[] pages = { 1, 2, 3 }; // or generate for all pages\neditor.ResizeContents(document, pages, resizeParams);",
+    "errors": [
+      "CS1501: No overload for method 'ResizeContents' takes 6 arguments"
+    ]
+  },
+  "use-rotation-on90-enum": {
+    "note": "Use the correct Rotation enum values (e.g., Rotation.on90) instead of the non‑existent deg90 member.",
+    "code": "page.Rotate = Aspose.Pdf.Rotation.on90;",
+    "errors": [
+      "CS0117: 'Rotation' does not contain a definition for 'deg90'"
+    ]
+  },
+  "use-pdf-pagesize-enum-for-pdfpageeditor": {
+    "note": "Use Aspose.Pdf.PageSize enum (e.g., Aspose.Pdf.PageSize.A4) when setting PdfPageEditor.PageSize; the PageSize type does not exist in Aspose.Pdf.Facades.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nPdfPageEditor editor = new PdfPageEditor();\neditor.BindPdf(inputPath);\neditor.PageSize = Aspose.Pdf.PageSize.A4; // correct usage",
+    "errors": [
+      "CS0234: The type or namespace name 'PageSize' does not exist in the namespace 'Aspose.Pdf.Facades'"
+    ]
+  },
+  "use-int-for-pdfpageeditor-zoom-and-transitionduration": {
+    "note": "Assign integer values (percentage for Zoom and seconds for TransitionDuration) to PdfPageEditor properties; they do not accept float literals.",
+    "code": "PdfPageEditor editor = new PdfPageEditor(document);\neditor.Zoom = 150; // 150% zoom, integer required\neditor.TransitionDuration = 2; // 2 seconds, integer required",
+    "errors": [
+      "CS0266: Cannot implicitly convert type 'float' to 'int' when assigning to PdfPageEditor.Zoom",
+      "CS0266: Cannot implicitly convert type 'float' to 'int' when assigning to PdfPageEditor.TransitionDuration"
+    ]
+  },
+  "use-pageinfo-for-page-dimensions": {
+    "note": "Set custom page size and orientation using the PageInfo properties (Width, Height, IsLandscape) instead of the non‑existent Page.Width/Height/IsLandscape members.",
+    "code": "Page page = doc.Pages[i];\npage.PageInfo.Width = PageSize.A4.Height;   // landscape width in points\npage.PageInfo.Height = PageSize.A4.Width;   // landscape height in points\npage.PageInfo.IsLandscape = true;",
+    "errors": [
+      "CS1061: 'Page' does not contain a definition for 'Width'",
+      "CS1061: 'Page' does not contain a definition for 'Height'",
+      "CS1061: 'Page' does not contain a definition for 'IsLandscape'"
+    ]
+  },
+  "use-setpagesize-with-custom-dimensions": {
+    "note": "Use Page.SetPageSize(width, height) with dimensions expressed in points (1 inch = 72 points) to define a custom page size such as Letter portrait.",
+    "code": "double width = 8.5 * 72; // 612 points\ndouble height = 11.0 * 72; // 792 points\npage.SetPageSize(width, height);",
+    "errors": [
+      "Page size defaults to A4 when custom dimensions are required"
+    ]
+  },
+  "use-document-info-for-custom-metadata": {
+    "note": "Retrieve custom metadata from the Document.Info dictionary instead of the non‑existent Page.CustomProperties property.",
+    "code": "using Aspose.Pdf;\n\nusing (Document doc = new Document(inputPath))\n{\n    // Example: get a custom metadata entry named \"LandscapePages\"\n    string pagesToRotate = doc.Info[\"LandscapePages\"];\n    if (!string.IsNullOrEmpty(pagesToRotate))\n    {\n        // parse and act on the metadata\n    }\n}",
+    "errors": [
+      "CS1061: 'Page' does not contain a definition for 'CustomProperties' and no accessible extension method 'CustomProperties' accepting a first argument of type 'Page' could be found"
     ]
   }
 }
