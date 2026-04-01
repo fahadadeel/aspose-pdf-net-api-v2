@@ -71,6 +71,48 @@ class LLMClient:
             print(f"LLM chat error: {e}")
             return None
 
+    def validate_against_rules(self, code: str, rules_text: str) -> Optional[str]:
+        """Two-pass validation: check generated code against critical rules.
+
+        Asks the LLM to review the code for rule violations and return the
+        fixed version.  Returns fixed code if violations were found, or
+        None if the code is already compliant (or on error).
+        """
+        if not rules_text or not code:
+            return None
+
+        system = (
+            "You are a strict C# code reviewer for Aspose.PDF. "
+            "Check the given code against the CRITICAL RULES below. "
+            "If the code violates ANY rule, fix ALL violations and return "
+            'ONLY a JSON object: {"violations_found": true, "fixed_code": "...the complete fixed C# code..."}\n'
+            "If the code is compliant with all rules, return: "
+            '{"violations_found": false}'
+        )
+        user = f"CRITICAL RULES:\n{rules_text}\n\nCODE TO REVIEW:\n```csharp\n{code}\n```"
+
+        content = self.chat(system, user, temperature=0.0, max_tokens=4000,
+                            timeout=self.config.llm.timeout)
+        if not content:
+            return None
+
+        # Strip markdown fences
+        if content.startswith("```"):
+            content = re.sub(r"^```(?:json)?\s*", "", content)
+            content = re.sub(r"\s*```$", "", content)
+
+        try:
+            data = json.loads(content)
+            if data.get("violations_found") and data.get("fixed_code"):
+                return data["fixed_code"]
+            return None  # compliant or no fixed_code
+        except json.JSONDecodeError:
+            # Try to extract code directly
+            code_match = re.search(r"```csharp\s*(.*?)```", content, re.DOTALL)
+            if code_match:
+                return code_match.group(1).strip()
+            return None
+
     def fix_code(self, task: str, code: str, build_error: str, user_rules: str = "") -> Optional[str]:
         """Ask LLM to fix broken code. Returns fixed code or None."""
         system = (

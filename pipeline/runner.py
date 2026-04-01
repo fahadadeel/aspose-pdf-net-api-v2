@@ -24,24 +24,99 @@ from knowledge.error_fixes import load_error_fixes, match_error_fixes, format_er
 from knowledge.auto_learner import AutoLearner, load_auto_error_catalog
 
 
-def _format_rules_block(rules: dict, max_chars: int = 24000) -> str:
+def _filter_critical_rules(rules: dict, task: str, category: str = "") -> list:
+    """Return only the critical rules relevant to the given task/category.
+
+    Relevance is scored by counting overlapping *domain-specific* keywords
+    between the rule and the task.  Common words (document, page, pdf, file,
+    etc.) are excluded to avoid every rule matching every task.  Rules with
+    score >= 2 are included, plus a small set of universal rules.
+    """
+    import re as _re
+
+    ALWAYS_INCLUDE = {
+        "limit-collections-to-four-elements-evaluation-mode",
+        "no-blocking-calls-no-readline-no-watchers",
+        "no-var-use-explicit-types",
+        "no-external-frameworks-console-app-only",
+        "no-unit-test-frameworks-write-console-app",
+    }
+
+    # Words too common to be useful for filtering
+    STOP_WORDS = {
+        "the", "and", "for", "not", "use", "does", "that", "with", "from",
+        "this", "are", "has", "have", "can", "will", "new", "get", "set",
+        "add", "all", "any", "class", "type", "name", "using", "method",
+        "property", "instead", "never", "always", "must", "should", "correct",
+        "wrong", "error", "could", "found", "missing", "directive", "assembly",
+        "reference", "definition", "accessible", "extension", "accepting",
+        "argument", "first", "does", "contain", "exist", "namespace",
+        # Aspose-generic (appear in nearly every rule)
+        "aspose", "pdf", "document", "page", "pages", "file", "save", "load",
+        "open", "create", "output", "input", "system", "string", "object",
+        "instance", "abstract", "constructor", "parameter", "value",
+    }
+
+    def _extract_keywords(text: str) -> set:
+        # Split on spaces, hyphens, underscores, camelCase boundaries, dots
+        expanded = _re.sub(r"([a-z])([A-Z])", r"\1 \2", text)  # camelCase → two words
+        expanded = _re.sub(r"[-_./]", " ", expanded)             # separators → spaces
+        words = set(_re.findall(r"[a-z][a-z0-9]{2,}", expanded.lower()))
+        return words - STOP_WORDS
+
+    query_kw = _extract_keywords(f"{task} {category}")
+
+    matched = []
+    for key, value in rules.items():
+        if key.startswith("__"):
+            continue
+        if not isinstance(value, dict) or not value.get("errors"):
+            continue
+
+        # Always-include rules
+        if key in ALWAYS_INCLUDE:
+            matched.append((key, value))
+            continue
+
+        # Build keyword set from rule id + note
+        rule_text = f"{key} {value.get('note', '')}"
+        rule_kw = _extract_keywords(rule_text)
+
+        # Require at least 1 overlapping domain-specific keyword.
+        # After stop-word removal, any remaining overlap is meaningful.
+        overlap = query_kw & rule_kw
+        if overlap:
+            matched.append((key, value))
+
+    return matched
+
+
+def _format_rules_block(rules: dict, task: str = "", category: str = "",
+                        max_chars: int = 24000) -> str:
     """Format product rules into readable text block for LLM prompt injection.
 
-    Rules with an ``errors`` key (proactive "DO NOT" rules) are placed first
-    in a compact format (note + errors only, no code blocks) so the LLM sees
-    them without blowing up the context window.  API-doc rules follow,
-    truncated at *max_chars*.
+    Critical (error-prevention) rules are filtered by task relevance and
+    placed first.  API-doc reference rules follow, truncated at *max_chars*.
     """
 
-    # Split into critical (error-prevention) vs reference (API docs)
-    critical = []
+    # Filter critical rules by relevance to this specific task
+    if task:
+        critical = _filter_critical_rules(rules, task, category)
+    else:
+        # Fallback: include all critical rules (e.g. when called without task context)
+        critical = [
+            (k, v) for k, v in rules.items()
+            if not k.startswith("__") and isinstance(v, dict) and v.get("errors")
+        ]
+
+    # Collect API reference rules
     reference = []
     for key, value in rules.items():
         if key.startswith("__"):
             continue
         if isinstance(value, dict) and value.get("errors"):
-            critical.append((key, value))
-        elif isinstance(value, dict) and (value.get("note") or value.get("code")):
+            continue  # already in critical
+        if isinstance(value, dict) and (value.get("note") or value.get("code")):
             reference.append((key, value))
         elif isinstance(value, (list, str)):
             reference.append((key, value))
@@ -49,14 +124,18 @@ def _format_rules_block(rules: dict, max_chars: int = 24000) -> str:
     lines = []
     if critical:
         lines.append("=" * 50)
-        lines.append("CRITICAL RULES — MUST FOLLOW")
+        lines.append(f"CRITICAL RULES — MUST FOLLOW ({len(critical)} matched)")
         lines.append("=" * 50)
         for key, value in critical:
             note = value.get("note", "")
+            code = value.get("code", "")
             errors = value.get("errors", [])
             lines.append(f"- **{key}**: {note}")
             for e in errors[:2]:
                 lines.append(f"    ERROR: {e}")
+            if code:
+                code_short = code[:400] + ("..." if len(code) > 400 else "")
+                lines.append(f"    ```csharp\n    {code_short}\n    ```")
 
     if reference:
         lines.append("")
@@ -70,7 +149,6 @@ def _format_rules_block(rules: dict, max_chars: int = 24000) -> str:
                 code = value.get("code", "")
                 block = f"### {key}\n  {note}"
                 if code:
-                    # Truncate code to first 300 chars to keep it concise
                     code_short = code[:300] + ("..." if len(code) > 300 else "")
                     block += f"\n  ```csharp\n  {code_short}\n  ```"
             elif isinstance(value, list):
@@ -115,7 +193,8 @@ class PipelineRunner:
         self._auto_learner = AutoLearner(config, self.llm) if config.pipeline.auto_learn_on_success else None
 
         # Generation rules (lazy-loaded when use_own_llm is enabled)
-        self._generation_rules = ""
+        self._generation_rules_raw = {}   # raw dict from JSON (for per-task filtering)
+        self._generation_rules = ""       # formatted text (fallback / backward compat)
         self._generation_rules_loaded = False
 
     def _notify(self, stage: str, message: str):
@@ -156,9 +235,16 @@ class PipelineRunner:
         if rules_path.exists():
             try:
                 data = json.loads(rules_path.read_text(encoding="utf-8"))
-                self._generation_rules = _format_rules_block(data.get("rules", {}))
+                self._generation_rules_raw = data.get("rules", {})
             except Exception as e:
                 print(f"Warning: could not load generation rules: {e}")
+
+    def _get_rules_for_task(self, task: str, category: str = "") -> str:
+        """Return generation rules formatted and filtered for a specific task."""
+        self._ensure_generation_rules()
+        if not self._generation_rules_raw:
+            return ""
+        return _format_rules_block(self._generation_rules_raw, task=task, category=category)
 
     def _fire_learning(self, task_input: TaskInput, original_code: str, fixed_code: str, error_log: str, stage: str):
         """Fire-and-forget: extract a reusable rule from a successful fix."""
@@ -187,13 +273,14 @@ class PipelineRunner:
         )
 
         # ── Stage 1: Baseline Generation ──
+        task_rules = ""
         if self.config.pipeline.use_own_llm:
-            self._ensure_generation_rules()
+            task_rules = self._get_rules_for_task(task_input.task, task_input.category)
         self._notify("baseline", f"Stage 1: Generating code for: {task_input.task[:80]}...")
         outcome = stages.run_baseline(
             task_input, self.mcp, self.builder, self._notify,
             llm=self.llm, config=self.config,
-            generation_rules=self._generation_rules,
+            generation_rules=task_rules,
         )
 
         if outcome.success:
@@ -271,7 +358,7 @@ class PipelineRunner:
             rule_engine=self._rule_engine,
             error_catalog=self._error_catalog,
             error_fixes_data=self._error_fixes,
-            generation_rules=self._generation_rules,
+            generation_rules=task_rules,
         )
         if outcome.success:
             result.fixed_code = outcome.code
