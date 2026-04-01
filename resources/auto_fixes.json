@@ -1,1 +1,181 @@
-{}
+{
+  "qualify-afrelationship-enum": {
+    "note": "When assigning the AFRelationship for a FileSpecification, reference the enum via its declaring type (Aspose.Pdf.AFRelationship) rather than through an instance or nested type.",
+    "code": "FileSpecification fileSpec = new FileSpecification(stream, \"invoice.xml\", \"ZUGFeRD Invoice XML\");\nfileSpec.AFRelationship = Aspose.Pdf.AFRelationship.Data;",
+    "errors": [
+      "CS0120: An object reference is required for the non-static field, method, or property 'FileSpecification.AFRelationship'",
+      "CS0176: Member 'AFRelationship.Data' cannot be accessed with an instance reference; qualify it with a type name instead"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775048062.679253,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-filespecification-name-instead-of-filename": {
+    "note": "When accessing the original file name of an embedded file, use the `Name` property of `FileSpecification` instead of the non‑existent `FileName` property.",
+    "code": "FileSpecification fileSpec = embeddedFiles[i];\nstring fileName = fileSpec.Name; // correct way to get the embedded file's name",
+    "errors": [
+      "CS1061: 'FileSpecification' does not contain a definition for 'FileName'",
+      "CS1061: 'FileSpecification' does not contain a definition for 'FileName' (multiple occurrences)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775048262.134639,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-filespec-name-and-contents": {
+    "note": "When accessing an embedded file in Aspose.PDF, use the `Name` property to get the file name and the `Contents` stream to read the data; the older `FileName` property and `GetFileStream()` method are not available.",
+    "code": "FileSpecification fileSpec = pdfDocument.EmbeddedFiles[i];\nstring fileName = fileSpec.Name; // use Name instead of FileName\nusing Stream data = fileSpec.Contents; // use Contents instead of GetFileStream()",
+    "errors": [
+      "CS1061: 'FileSpecification' does not contain a definition for 'FileName'",
+      "CS1061: 'FileSpecification' does not contain a definition for 'GetFileStream'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775048412.798785,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "check-embeddedfile-exists-before-delete": {
+    "note": "Iterate Document.EmbeddedFiles to verify an attachment exists before calling EmbeddedFiles.Delete, preventing an exception when the file is missing",
+    "code": "const string attachmentName = \"invoice.xml\";\nbool attachmentFound = document.EmbeddedFiles.Any(f => string.Equals(f.Name, attachmentName, StringComparison.OrdinalIgnoreCase));\nif (attachmentFound)\n{\n    document.EmbeddedFiles.Delete(attachmentName);\n    Console.WriteLine($\"Attachment '{attachmentName}' removed.\");\n}\nelse\n{\n    Console.WriteLine($\"Attachment '{attachmentName}' not found – no changes made.\");\n}",
+    "errors": [
+      "Aspose.Pdf exception thrown when calling EmbeddedFiles.Delete for a non‑existent attachment"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775048803.587033,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "encrypt-pdf-with-user-and-owner-passwords": {
+    "note": "Use Document.Encrypt(userPassword, ownerPassword, permissions, cryptoAlgorithm) to protect a PDF with both user and owner passwords and specify required permissions.",
+    "code": "Permissions perms = Permissions.PrintDocument | Permissions.ExtractContent;\n\ndocument.Encrypt(\"userPass123\", \"ownerPass123\", perms, CryptoAlgorithm.AESx256);",
+    "errors": [
+      "PDF is not encrypted because Document.Encrypt was not called with an owner password",
+      "Insufficient security when only a user password is supplied or when permissions are not specified"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775049168.67278,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-javascriptaction-set-pagenum": {
+    "note": "Set the document's OpenAction to a JavascriptAction that assigns the zero‑based page index to this.pageNum to open the PDF on a specific page.",
+    "code": "var doc = new Document();\n// Navigate to page 10 (zero‑based index 9) when the PDF is opened\ndoc.OpenAction = new JavascriptAction(\"this.pageNum = 9;\");",
+    "errors": [
+      "PDF opens on the first page instead of the desired page",
+      "Missing or incorrect JavaScript for page navigation in OpenAction"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775049627.0335,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "create-document-if-input-missing": {
+    "note": "Before loading a PDF, check if the file exists; if it does not, instantiate a new Document, add at least one page, and save it so subsequent Aspose.Pdf operations can work.",
+    "code": "string inputPath = \"input.pdf\";\nDocument doc;\nif (!File.Exists(inputPath))\n{\n    doc = new Document();\n    doc.Pages.Add(); // ensure at least one page\n    doc.Save(inputPath);\n}\nelse\n{\n    doc = new Document(inputPath);\n}",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file '.../input.pdf'",
+      "Runtime errors when accessing document.Pages on a non‑existent file"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775049672.4627562,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "process-all-operators-no-limit": {
+    "note": "Iterate over the entire OperatorCollection when replacing text; do not limit processing to four operators because Aspose.PDF evaluation mode only allows up to 4 elements per operation.",
+    "code": "OperatorCollection ops = page.Contents;\nvar updated = new List<Operator>();\nforeach (Operator op in ops)\n{\n    if (op is ShowText st && !string.IsNullOrEmpty(st.Text) && st.Text.Contains(\"Hello\"))\n    {\n        var repl = new ShowText(st.Text.Replace(\"Hello\", \"Hi\")) { Index = st.Index };\n        updated.Add(repl);\n    }\n    else\n    {\n        updated.Add(op);\n    }\n}\nops.Clear();\nforeach (var o in updated) ops.Add(o);",
+    "errors": [
+      "Operator collection processing limited to 4 elements causing incomplete text replacement",
+      "Text replacement fails because only a subset of operators is examined"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775050453.72619,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "remove-graph-position-usage": {
+    "note": "Do not set a Position on a Graph object; instead add the Graph directly to a page's Paragraphs collection to place it.",
+    "code": "Graph graph = new Graph(width, height);\npage.Paragraphs.Add(graph); // Graph is positioned automatically",
+    "errors": [
+      "CS1061: 'Graph' does not contain a definition for 'Position'",
+      "CS0246: The type or namespace name 'Position' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775050986.124737,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-textfragment-for-graph-title": {
+    "note": "Assign a TextFragment instance to Graph.Title instead of a plain string.",
+    "code": "Graph graph = new Graph(width, height);\ngraph.Title = new TextFragment(\"My Graph Title\");",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'string' to 'Aspose.Pdf.Text.TextFragment' when assigning to Graph.Title"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775051221.6344361,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "check-file-exists-before-document-constructor": {
+    "note": "Verify the PDF file exists before passing its path to the Document constructor to avoid FileNotFoundException.",
+    "code": "if (!File.Exists(pdfPath))\n{\n    Console.WriteLine($\"File not found: {Path.GetFullPath(pdfPath)}\");\n    return;\n}\nusing (var document = new Document(pdfPath))\n{\n    // use document\n}",
+    "errors": [
+      "System.IO.FileNotFoundException when Document constructor receives a non‑existent file path"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775051718.0607228,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Basic Operations"
+  },
+  "validate-file-existence-before-xmlloadoptions": {
+    "note": "Resolve XML and XSLT file paths relative to the executable directory using AppDomain.CurrentDomain.BaseDirectory and verify their existence before creating XmlLoadOptions.",
+    "code": "string baseDir = AppDomain.CurrentDomain.BaseDirectory;\nstring xmlPath = Path.Combine(baseDir, \"input.xml\");\nstring xslPath = Path.Combine(baseDir, \"transform.xsl\");\nif (!File.Exists(xmlPath) || !File.Exists(xslPath))\n    return; // handle missing files\nXmlLoadOptions loadOptions = new XmlLoadOptions(xslPath);\nusing (Document pdf = new Document(xmlPath, loadOptions))\n{\n    pdf.Save(\"output.pdf\");\n}",
+    "errors": [
+      "System.IO.FileNotFoundException when XmlLoadOptions is constructed with a relative XSLT path",
+      "Runtime errors due to missing XML or XSLT files"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775052659.1972458,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "use-pageinfo-width-height": {
+    "note": "Set a PDF page's dimensions via the PageInfo object (Width, Height, optional IsLandscape) instead of calling a non‑existent SetPageSize method.",
+    "code": "Page page = document.Pages[1];\npage.PageInfo.Width = desiredWidth;\npage.PageInfo.Height = desiredHeight;\n// optional: page.PageInfo.IsLandscape = desiredWidth > desiredHeight;",
+    "errors": [
+      "CS1061: 'Page' does not contain a definition for 'SetPageSize'",
+      "Runtime: Missing method error when attempting to change page size"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775058136.4099278,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  }
+}

@@ -1770,6 +1770,78 @@
         "CS1061: 'SignatureField' does not contain a definition for 'ContactInfo'",
         "CS1061: 'SignatureField' does not contain a definition for 'CustomAppearance'"
       ]
+    },
+    "filespecification-name-not-filename": {
+      "note": "FileSpecification does NOT have a 'FileName' property. The correct property is 'Name'. Use spec.Name to get/set the embedded file name. Also use spec.Contents (Stream) to read/write the file data.",
+      "code": "using Aspose.Pdf;\n\nstring name = spec.Name;\n// WRONG: spec.FileName — does not exist",
+      "errors": [
+        "CS1061: 'FileSpecification' does not contain a definition for 'FileName'"
+      ]
+    },
+    "pkcs7-no-timestampserverurl-use-timestampsettings": {
+      "note": "PKCS7 does NOT have a 'TimestampServerUrl' property. Create a TimestampSettings object and assign to PKCS7.TimestampSettings. Constructor: new TimestampSettings(serverUrl, userName, password) or new TimestampSettings(serverUrl, string.Empty).",
+      "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nPKCS7 sig = new PKCS7(pfxPath, password);\nsig.TimestampSettings = new TimestampSettings(\"http://timestamp.server/url\", string.Empty);\n// WRONG: sig.TimestampServerUrl = \"...\";",
+      "errors": [
+        "CS1061: 'PKCS7' does not contain a definition for 'TimestampServerUrl'"
+      ]
+    },
+    "pdffilesignature-sign-takes-system-drawing-rectangle": {
+      "note": "PdfFileSignature.Sign() requires System.Drawing.Rectangle, NOT Aspose.Pdf.Rectangle. Always use: new System.Drawing.Rectangle(x, y, width, height).",
+      "code": "using Aspose.Pdf.Facades;\n\nSystem.Drawing.Rectangle rect = new System.Drawing.Rectangle(100, 100, 200, 50);\npdfSign.Sign(1, true, rect, signature);\n// WRONG: Aspose.Pdf.Rectangle — causes CS1503",
+      "errors": [
+        "CS1503: Argument 3: cannot convert from 'Aspose.Pdf.Rectangle' to 'System.Drawing.Rectangle'"
+      ]
+    },
+    "no-field-class-use-textboxfield-or-cast-from-form": {
+      "note": "There is no generic 'Field' class in Aspose.PDF. Use concrete types: TextBoxField, CheckboxField, RadioButtonField, ComboBoxField, ListBoxField, SignatureField. Access existing fields via doc.Form[fieldName] with a cast.",
+      "code": "using Aspose.Pdf.Forms;\n\nTextBoxField field = new TextBoxField(page, rect);\nfield.PartialName = \"total\";\ndoc.Form.Add(field, 1);\n// To access existing: TextBoxField tf = doc.Form[\"name\"] as TextBoxField;\n// WRONG: Field f = new Field(...);",
+      "errors": [
+        "CS0246: The type or namespace name 'Field' could not be found"
+      ]
+    },
+    "self-contained-examples-create-sample-pdf": {
+      "note": "Examples must be self-contained — never assume input.pdf exists. Always create a sample PDF first: Document doc = new Document(); doc.Pages.Add(); doc.Save(\"input.pdf\"); then reopen it.",
+      "code": "Document sampleDoc = new Document();\nPage p = sampleDoc.Pages.Add();\np.Paragraphs.Add(new Aspose.Pdf.Text.TextFragment(\"Sample\"));\nsampleDoc.Save(\"input.pdf\");",
+      "errors": [
+        "System.IO.FileNotFoundException: Could not find file 'input.pdf'"
+      ]
+    },
+    "graph-title-is-textfragment-not-string": {
+      "note": "Graph.Title is of type TextFragment, NOT string. You cannot assign a plain string to it. Use: graph.Title = new TextFragment(\"...\"). Also, Graph constructor takes double parameters, not float — use new Graph(400.0, 300.0) to avoid CS0618 obsolete warning.",
+      "code": "using Aspose.Pdf.Drawing;\nusing Aspose.Pdf.Text;\n\n// CORRECT:\nGraph graph = new Graph(400.0, 300.0);  // double, not float\ngraph.Title = new TextFragment(\"Chart Title\");\n\n// WRONG:\n// Graph graph = new Graph(400, 300);  // CS0618 obsolete\n// graph.Title = \"Chart Title\";  // CS0029 cannot convert string to TextFragment",
+      "errors": [
+        "CS0029: Cannot implicitly convert type 'string' to 'Aspose.Pdf.Text.TextFragment'",
+        "CS0618: 'Graph.Graph(float, float)' is obsolete: 'Please use constructor with double instead'"
+      ]
+    },
+    "drawing-rectangle-takes-float-not-double": {
+      "note": "Aspose.Pdf.Drawing.Rectangle constructor takes float parameters (left, bottom, width, height), NOT double. Cast to float explicitly: new Rectangle((float)x, (float)y, (float)w, (float)h). The Graph constructor takes double, but Drawing.Rectangle takes float.",
+      "code": "// Graph takes double:\nGraph graph = new Graph(400.0, 300.0);\n\n// Drawing.Rectangle takes float:\nAspose.Pdf.Drawing.Rectangle rect = new Aspose.Pdf.Drawing.Rectangle((float)x, (float)y, (float)w, (float)h);\ngraph.Shapes.Add(rect);",
+      "errors": [
+        "CS1503: Argument 1: cannot convert from 'double' to 'float'"
+      ]
+    },
+    "point-is-not-position-use-position-for-text": {
+      "note": "Aspose.Pdf.Point and Aspose.Pdf.Text.Position are NOT interchangeable. TextFragment.Position requires Position, not Point. Use: new Position(x, y). Point is for geometric coordinates in Drawing shapes.",
+      "code": "using Aspose.Pdf.Text;\n\n// CORRECT for TextFragment:\ntextFragment.Position = new Position(100, 700);\n\n// WRONG:\n// textFragment.Position = new Point(100, 700);  // CS0029",
+      "errors": [
+        "CS0029: Cannot implicitly convert type 'Aspose.Pdf.Point' to 'Aspose.Pdf.Text.Position'"
+      ]
+    },
+    "graph-shapes-add-takes-one-argument": {
+      "note": "Graph.Shapes.Add() takes exactly 1 argument (the Shape object). There is no overload that takes 2 arguments. To set position, use the shape's constructor parameters (left, bottom, width, height) — do NOT pass position as a second argument to Add.",
+      "code": "Aspose.Pdf.Drawing.Rectangle bar = new Aspose.Pdf.Drawing.Rectangle(50f, 0f, 60f, 150f);\ngraph.Shapes.Add(bar);  // ONE argument only\n// WRONG: graph.Shapes.Add(bar, index);",
+      "errors": [
+        "CS1501: No overload for method 'Add' takes 2 arguments"
+      ]
+    },
+    "no-xmlloadoptions-use-bindxml": {
+      "note": "XmlLoadOptions does NOT exist in Aspose.PDF. To load XML into a PDF, use Document.BindXml(xmlPath) or Document.BindXml(xmlStream). Do NOT pass XML files to the Document constructor with XmlLoadOptions. For XSL-FO XML specifically, use XslFoLoadOptions. The XML must use the Aspose.Pdf XML template schema with namespace xmlns='Aspose.Pdf'.",
+      "code": "using Aspose.Pdf;\n\n// CORRECT: use BindXml\nDocument doc = new Document();\ndoc.BindXml(xmlPath);\ndoc.Save(\"output.pdf\");\n\n// For XSL-FO:\n// Document doc = new Document(\"input.fo\", new XslFoLoadOptions());\n\n// WRONG — XmlLoadOptions does not exist:\n// XmlLoadOptions opts = new XmlLoadOptions();\n// Document doc = new Document(xmlFile, opts);",
+      "errors": [
+        "Aspose.Pdf.PdfException: Unsupported load format! — caused by using XmlLoadOptions (not a valid class)",
+        "CS0246: The type or namespace name 'XmlLoadOptions' could not be found"
+      ]
     }
   },
   "__section_accessibility_and_tagged_pdfs__": "=== Accessibility and Tagged PDFs ===",
