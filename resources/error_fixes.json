@@ -12485,5 +12485,85 @@
     "errors": [
       "CS1061: 'PdfActionCollection' does not contain a definition for 'OnShowPage' and no accessible extension method 'OnShowPage' accepting a first argument of type 'PdfActionCollection' could be found"
     ]
+  },
+  "use-pdffilesignature-sign-with-rectangle-and-pkcs1-image": {
+    "note": "When signing a PDF with Aspose.PDF, use the PdfFileSignature.Sign overload that takes a page number, metadata, a System.Drawing.Rectangle for the signature location, and a PKCS1 object created from an image stream (instead of using string.Image or the SignatureField.Sign overload).",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\nusing Aspose.Pdf.Forms;\nusing System.Drawing;\nusing System.IO;\n\n// Load PDF\nDocument doc = new Document(\"input.pdf\");\n\n// Create PKCS1 signature with appearance image\nPKCS1 pkcs1;\nusing (FileStream img = File.OpenRead(\"signature.png\"))\n{\n    pkcs1 = new PKCS1(img);\n}\n\n// Bind and sign\nPdfFileSignature signer = new PdfFileSignature();\nsigner.BindPdf(doc);\nRectangle rect = new Rectangle(100, 100, 200, 50); // x, y, width, height\nsigner.Sign(\n    1,                     // page number (1‑based)\n    \"I agree\",            // reason\n    \"contact@example.com\", // contact info\n    \"New York, USA\",      // location\n    true,                  // visible signature flag\n    rect,                  // signature rectangle\n    pkcs1);\n\ndoc.Save(\"signed_output.pdf\");",
+    "errors": [
+      "CS1061: 'string' does not contain a definition for 'Image' (incorrect use of Image property on a string)",
+      "CS1739: The best overload for 'Sign' does not have a parameter named 'pageNumber' (using wrong Sign overload)"
+    ]
+  },
+  "filespecification-filename-use-name-property": {
+    "note": "FileSpecification.FileName does not exist. Use .Name property.",
+    "code": "string name = spec.Name; // NOT spec.FileName",
+    "errors": [
+      "CS1061: 'FileSpecification' does not contain a definition for 'FileName'"
+    ]
+  },
+  "pkcs7-timestampserverurl-use-timestampsettings": {
+    "note": "PKCS7.TimestampServerUrl does not exist. Use PKCS7.TimestampSettings = new TimestampSettings(url, string.Empty).",
+    "code": "sig.TimestampSettings = new TimestampSettings(\"http://timestamp.server/url\", string.Empty);",
+    "errors": [
+      "CS1061: 'PKCS7' does not contain a definition for 'TimestampServerUrl'"
+    ]
+  },
+  "sign-requires-system-drawing-rectangle-not-aspose-rectangle": {
+    "note": "PdfFileSignature.Sign takes System.Drawing.Rectangle, not Aspose.Pdf.Rectangle.",
+    "code": "System.Drawing.Rectangle rect = new System.Drawing.Rectangle(100, 100, 200, 50);\npdfSign.Sign(1, true, rect, signature);",
+    "errors": [
+      "CS1503: cannot convert from 'Aspose.Pdf.Rectangle' to 'System.Drawing.Rectangle'"
+    ]
+  },
+  "field-class-does-not-exist-use-textboxfield": {
+    "note": "No generic 'Field' class. Use TextBoxField, CheckboxField, RadioButtonField, etc.",
+    "code": "TextBoxField field = new TextBoxField(page, rect);\nfield.PartialName = \"total\";\ndoc.Form.Add(field, 1);",
+    "errors": [
+      "CS0246: The type or namespace name 'Field' could not be found"
+    ]
+  },
+  "create-sample-pdf-for-self-contained-example": {
+    "note": "Create input.pdf at start — never assume it exists.",
+    "code": "Document sampleDoc = new Document();\nsampleDoc.Pages.Add();\nsampleDoc.Save(\"input.pdf\");",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file 'input.pdf'"
+    ]
+  },
+  "graph-title-is-textfragment-not-string": {
+    "note": "Graph.Title is TextFragment, not string. Use new TextFragment(\"...\"). Graph constructor takes double.",
+    "code": "Graph graph = new Graph(400.0, 300.0);\ngraph.Title = new TextFragment(\"Chart Title\");",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'string' to 'Aspose.Pdf.Text.TextFragment'",
+      "CS0618: 'Graph.Graph(float, float)' is obsolete"
+    ]
+  },
+  "drawing-rectangle-double-to-float": {
+    "note": "Drawing.Rectangle takes float, not double. Cast with (float).",
+    "code": "new Aspose.Pdf.Drawing.Rectangle((float)x, (float)y, (float)w, (float)h);",
+    "errors": [
+      "CS1503: cannot convert from 'double' to 'float'"
+    ]
+  },
+  "point-to-position-for-textfragment": {
+    "note": "TextFragment.Position is Position, not Point. Use new Position(x, y).",
+    "code": "textFragment.Position = new Position(100, 700);",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'Aspose.Pdf.Point' to 'Aspose.Pdf.Text.Position'"
+    ]
+  },
+  "graph-shapes-add-one-arg-only": {
+    "note": "Graph.Shapes.Add takes exactly 1 argument.",
+    "code": "graph.Shapes.Add(shape);  // one arg only",
+    "errors": [
+      "CS1501: No overload for method 'Add' takes 2 arguments"
+    ]
+  },
+  "no-xmlloadoptions-use-bindxml": {
+    "note": "XmlLoadOptions does not exist. Use Document.BindXml(path) for XML templates, or XslFoLoadOptions for XSL-FO files.",
+    "code": "Document doc = new Document();\ndoc.BindXml(xmlPath);\ndoc.Save(\"output.pdf\");",
+    "errors": [
+      "Aspose.Pdf.PdfException: Unsupported load format!",
+      "CS0246: The type or namespace name 'XmlLoadOptions' could not be found"
+    ]
   }
 }

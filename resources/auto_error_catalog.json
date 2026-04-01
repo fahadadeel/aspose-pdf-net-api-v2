@@ -1,50 +1,5 @@
 [
   {
-    "pattern": "Permissions does not contain a definition for 'ModifyAnnotations'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the unavailable ModifyAnnotations flag with a supported permission (e.g., Permissions.ExtractContent) or upgrade to a newer Aspose.Pdf version that defines ModifyAnnotations.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774978146.36489
-  },
-  {
-    "pattern": "Program does not contain a static 'Main' method suitable for an entry point",
-    "error_code": "CS5001",
-    "fix_guidance": "Add a static Main method to the project or change the project output type to a class library instead of an executable.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774978821.720502
-  },
-  {
-    "pattern": "Document' does not contain a definition for 'Security'",
-    "error_code": "CS1061",
-    "fix_guidance": "Add a reference to Aspose.Pdf.Facades, include `using Aspose.Pdf.Facades;` and use the `PdfSecurity` class to manage encryption instead of the removed `Document.Security` property.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774978946.397346
-  },
-  {
-    "pattern": "The type or namespace name 'SignatureAppearance' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.Forms namespace (e.g., `using Aspose.Pdf.Forms;`) and ensure the Aspose.Pdf assembly is referenced in the project.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774979202.0660648
-  },
-  {
-    "pattern": "The type or namespace name 'SignatureAppearance' does not exist in the namespace 'Aspose\\.Pdf\\.Facades'",
-    "error_code": "CS0234",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.Forms assembly (e.g., `using Aspose.Pdf.Forms;`) and use the classes from that namespace instead of Aspose.Pdf.Facades.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1774979432.088589
-  },
-  {
     "pattern": "SignatureName' does not contain a constructor that takes 1 arguments",
     "error_code": "CS1729",
     "fix_guidance": "Use the RemoveSignature overload that accepts a string name instead of creating a SignatureName instance.",
@@ -1798,5 +1753,50 @@
     "_confidence": 0.5,
     "_hit_count": 0,
     "_created_at": 1775044625.638655
+  },
+  {
+    "pattern": "^'string' does not contain a definition for 'Image'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the invalid string.Image usage with an Aspose.Pdf.Facades.Image instance (e.g., new Image(File.OpenRead(imagePath))) and add the appropriate using Aspose.Pdf.Facades directive.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775046426.4083478
+  },
+  {
+    "pattern": "Member 'AFRelationship.Data' cannot be accessed with an instance reference; qualify it with a type name instead",
+    "error_code": "CS0176",
+    "fix_guidance": "Reference the enum via its type name (e.g., Aspose.Pdf.AFRelationship.Data) rather than through an instance.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775048072.4454021
+  },
+  {
+    "pattern": "The type or namespace name 'TextFragment' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Add a reference to Aspose.Pdf.dll (if not already) and include the namespace with `using Aspose.Pdf.Text;` so the TextFragment class is available.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775048177.604204
+  },
+  {
+    "pattern": "The type or namespace name 'Content' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Replace the nonexistent Content object with the page's Contents property (OperatorCollection) and add operators directly, e.g., use `OperatorCollection operators = page.Contents;` instead of `Content content = page.Contents.Add();`.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775050016.061802
+  },
+  {
+    "pattern": "Graph' does not contain a definition for 'BorderInfo'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent BorderInfo property with GraphInfo, setting its Color and LineWidth to define the border.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1775051138.158732
   }
 ]
