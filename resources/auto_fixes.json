@@ -1,312 +1,2368 @@
 {
-  "use-customfont-instead-of-font-string": {
-    "note": "Assign a font name via FormFieldFacade.CustomFont; the Font property expects a FontStyle enum, not a string.",
-    "code": "var facade = new FormFieldFacade();\nfacade.CustomFont = \"Arial\"; // set font name\nfacade.Font = FontStyle.Bold; // optional, set style using FontStyle enum",
+  "use-processpages-instead-of-pagenumber": {
+    "note": "When applying settings with PdfPageEditor, specify target pages via the ProcessPages array instead of using a non‑existent PageNumber property.",
+    "code": "var editor = new PdfPageEditor();\neditor.BindPdf(inputPath);\neditor.ProcessPages = new int[] { 2, 4, 6 }; // 1‑based page numbers\neditor.Zoom = 1.2f;\neditor.Save(outputPath);",
     "errors": [
-      "Cannot implicitly convert type 'string' to 'Aspose.Pdf.Facades.FontStyle'",
-      "Invalid assignment of a string to FormFieldFacade.Font"
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'PageNumber'"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774934092.330092,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Forms"
-  },
-  "use-propertyflag-with-formeditor-setfieldattribute": {
-    "note": "Use FormEditor.SetFieldAttribute with a PropertyFlag enum value; custom dictionary entries cannot be set through this method.",
-    "code": "FormEditor editor = new FormEditor(inputPath, outputPath);\nbool result = editor.SetFieldAttribute(\"OrderNumber\", PropertyFlag.NoExport);",
-    "errors": [
-      "CS1061: 'WidgetAnnotation' does not contain a definition for 'AnnotationDictionary' and no accessible extension method 'AnnotationDictionary' accepting a first argument of type 'WidgetAnnotation' could be found",
-      "CS0234: The type or namespace name 'String' does not exist in the namespace 'Aspose.Pdf.Text'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774934392.293181,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Forms"
-  },
-  "use-two-arg-setfieldappearance": {
-    "note": "Call FormEditor.SetFieldAppearance with only the field name and an AnnotationFlags value (the three‑argument overload does not exist).",
-    "code": "using Aspose.Pdf.Annotations;\n\nFormEditor editor = new FormEditor(inputPdf, outputPdf);\neditor.SetFieldAppearance(\"TotalAmount\", AnnotationFlags.Print);",
-    "errors": [
-      "CS1501: No overload for method 'SetFieldAppearance' takes 3 arguments"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774935269.747456,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Forms"
-  },
-  "use-formeditor-with-output-path-and-save-output": {
-    "note": "Instantiate FormEditor with target PDF path and output path (both strings) and call Save(outputPath) instead of the obsolete parameterless Save()",
-    "code": "using Aspose.Pdf.Facades;\n\nFormEditor editor = new FormEditor(targetPdfPath, outputPdfPath);\neditor.CopyOuterField(templatePdfPath, fieldName);\neditor.Save(outputPdfPath);",
-    "errors": [
-      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Document' to 'string'",
-      "CS0618: 'FormEditor.Save()' is obsolete: 'Use Save(destination) method for saving facade results.'",
-      "CS0103: The name 'targetDoc' does not exist in the current context"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774935459.317944,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Forms"
-  },
-  "use-formeditor-with-document-and-field-rect": {
-    "note": "Create FormEditor with a Document instance and move fields using each field's Rect property (cast coordinates to float) instead of the obsolete Form.GetFieldRect method.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document(inputPath);\nusing (FormEditor editor = new FormEditor(doc))\n{\n    foreach (var field in doc.Form.Fields)\n    {\n        var r = field.Rect;\n        float llx = (float)r.LLX + 10f;\n        float lly = (float)r.LLY + 15f;\n        float urx = (float)r.URX + 10f;\n        float ury = (float)r.URY + 15f;\n        editor.MoveField(field.Name, llx, lly, urx, ury);\n    }\n    editor.Save(outputPath);\n}",
-    "errors": [
-      "CS1061: 'Form' does not contain a definition for 'GetFieldRect'",
-      "CS0266: Cannot implicitly convert type 'double' to 'float'",
-      "CS0618: 'FormEditor.FormEditor(string, string)' is obsolete"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774935572.986239,
+    "_created_at": 1774970420.782685,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "use-document-form-property": {
-    "note": "Access the PDF form via the Document.Form property instead of trying to instantiate a Form with a constructor.",
-    "code": "using (Document doc = new Document(path))\n{\n    Form form = doc.Form;\n    if (form[\"Comments\"] is TextBoxField commentsField)\n    {\n        commentsField.Multiline = true;\n    }\n}",
+  "processpages-intarray-fade-transition": {
+    "note": "Assign an int[] to PdfPageEditor.ProcessPages and use the integer value 9 for a Fade transition (TransitionType) with the desired duration.",
+    "code": "PdfPageEditor editor = new PdfPageEditor(document);\neditor.ProcessPages = new int[] { 1 }; // first page (1‑based)\neditor.TransitionType = 9; // Fade transition\neditor.TransitionDuration = 2; // seconds",
     "errors": [
-      "CS1729: 'Form' does not contain a constructor that takes 1 arguments"
+      "Cannot implicitly convert type 'System.Collections.Hashtable' to 'int[]' (when assigning to ProcessPages)",
+      "Invalid or missing enum/value for TransitionType (e.g., using undefined PdfPageEditor.DISSOLVE)"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774935641.1950772,
+    "_created_at": 1774970497.7741811,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "set-field-border-width-via-border-property": {
-    "note": "Set a form field's border thickness by accessing the field's Border.Width property instead of using SetFieldAttribute with \"BorderWidth\".",
-    "code": "SignatureField sigField = (SignatureField)doc.Form[\"Signature\"];\nif (sigField != null)\n{\n    sigField.Border.Width = 2; // thickness in points\n}",
+  "use-processpages-instead-of-editpage": {
+    "note": "When applying alignment or other page‑level settings with PdfPageEditor, specify the target pages via the ProcessPages property instead of calling a non‑existent EditPage method.",
+    "code": "PdfPageEditor editor = new PdfPageEditor();\neditor.BindPdf(inputPath);\neditor.ProcessPages = new int[] { 2 }; // 1‑based page numbers\neditor.HorizontalAlignment = HorizontalAlignment.Left;\neditor.Save(outputPath);",
     "errors": [
-      "CS1729: 'Border' does not contain a constructor that takes 2 arguments",
-      "Using Form.SetFieldAttribute(\"fieldName\", \"BorderWidth\", value) to set border thickness"
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'EditPage' and no accessible extension method 'EditPage' accepting a first argument of type 'PdfPageEditor' could be found"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774935864.4105039,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Forms"
-  },
-  "use-formfieldfacade-with-systemdrawing-color": {
-    "note": "Use FormFieldFacade and set its BackgroundColor with System.Drawing.Color (e.g., LightGreen) instead of the non‑existent Aspose.Pdf.Facades.FieldAppearance or Aspose.Pdf.Color.",
-    "code": "FormEditor editor = new FormEditor();\neditor.BindPdf(inputPath);\nvar facade = new FormFieldFacade();\nfacade.BackgroundColor = System.Drawing.Color.LightGreen;\neditor.Facade = facade;\neditor.DecorateField(\"Status\");\neditor.Save(outputPath);",
-    "errors": [
-      "CS0234: The type or namespace name 'FieldAppearance' does not exist in the namespace 'Aspose.Pdf.Facades'",
-      "CS0234: The type or namespace name 'Color' does not exist in the namespace 'Aspose.Pdf' when used for FormFieldFacade.BackgroundColor"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774936049.249332,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Forms"
-  },
-  "use-document-constructor-for-formeditor": {
-    "note": "Instantiate FormEditor with a Document object (using the non‑obsolete constructor) and call Save to write changes, instead of using the obsolete FormEditor(string, string) overload.",
-    "code": "using (Document pdfDoc = new Document(inputPath))\n{\n    using (FormEditor formEditor = new FormEditor(pdfDoc))\n    {\n        formEditor.SetFieldLimit(\"PhoneNumber\", 15);\n        formEditor.Save(outputPath);\n    }\n}",
-    "errors": [
-      "CS0618: 'FormEditor.FormEditor(string, string)' is obsolete",
-      "Runtime FileNotFoundException when FormEditor expects a Document but receives a file path"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774936341.2099872,
+    "_created_at": 1774970582.1703749,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "use-pushbutton-fieldtype-and-float-rect-coords": {
-    "note": "When adding a push button to a PDF form, use FieldType.PushButton (not FieldType.Button) and pass the rectangle coordinates as float values.",
-    "code": "formEditor.AddField(\n    FieldType.PushButton,\n    \"ResetForm\",\n    pageNumber,\n    (float)rect.LLX,\n    (float)rect.LLY,\n    (float)rect.URX,\n    (float)rect.URY);\n",
+  "use-processpages-instead-of-selectpage": {
+    "note": "Replace the removed PdfPageEditor.SelectPage method with the ProcessPages property to specify pages (1‑based indexing) before applying alignment.",
+    "code": "using Aspose.Pdf.Facades;\n\nPdfPageEditor editor = new PdfPageEditor();\neditor.BindPdf(inputPath);\neditor.ProcessPages = new int[] { 3 }; // page to edit\neditor.VerticalAlignmentType = Aspose.Pdf.VerticalAlignment.Top;\neditor.Save(outputPath);",
     "errors": [
-      "CS0117: 'FieldType' does not contain a definition for 'Button'",
-      "CS1502/CS1503: No overload for method 'AddField' takes arguments of type 'FieldType', 'string', 'int', 'double', 'double', 'double', 'double' (expects float coordinates)"
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'SelectPage' and no accessible extension method 'SelectPage' accepting a first argument of type 'PdfPageEditor' could be found"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774936462.0560482,
+    "_created_at": 1774970617.224226,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "use-numberfield-allowedchars-maxlen-for-integer-range": {
-    "note": "For a numeric PDF form field, enforce integer values between 0 and 100 by setting NumberField.AllowedChars to digits and NumberField.MaxLen to 3 instead of using JavaScriptAction.",
-    "code": "NumberField numberField = field as NumberField;\nif (numberField != null)\n{\n    numberField.AllowedChars = \"0123456789\"; // only digits\n    numberField.MaxLen = 3; // allows values 0‑100\n}",
+  "use-pdfpageeditor-for-zoom-on-pages": {
+    "note": "Use PdfPageEditor (not PdfFileStamp/ImageStamp) to apply a common zoom factor to a set of non‑consecutive pages via the ProcessPages and Zoom properties.",
+    "code": "int[] pages = { 1, 3, 5 };\nusing (PdfPageEditor editor = new PdfPageEditor())\n{\n    editor.BindPdf(inputPath);\n    editor.ProcessPages = pages;   // select pages\n    editor.Zoom = 0.8f;            // set zoom factor\n    editor.Save(outputPath);\n}",
     "errors": [
-      "CS0234: The type or namespace name 'JavaScriptAction' does not exist in the namespace 'Aspose.Pdf.Annotations'",
-      "Need to restrict a NumberField to integer range without JavaScript validation"
+      "CS1061: 'PdfFileStamp' does not contain a definition for 'Pages'",
+      "CS1503: cannot convert from 'Aspose.Pdf.ImageStamp' to 'Aspose.Pdf.Facades.Stamp'"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774936767.966702,
+    "_created_at": 1774971052.9467928,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "use-field-value-instead-of-widgetannotation": {
-    "note": "When reading or checking a form field's content, use the Field.Value property from Aspose.Pdf.Forms, not WidgetAnnotation.Value.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nDocument doc = new Document(\"input.pdf\");\nField field = doc.Form[\"TempField\"]; // or locate via iteration\nstring value = field?.Value?.ToString() ?? string.Empty;",
+  "use-integer-points-for-contentsresizeparameters-margins": {
+    "note": "When creating ContentsResizeParameters, pass margin values as plain numeric points (e.g., 5) instead of using Length or LengthUnit types.",
+    "code": "PdfFileEditor.ContentsResizeParameters resizeParams = PdfFileEditor.ContentsResizeParameters.Margins(5, 5, 5, 5);",
     "errors": [
-      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Value' and no accessible extension method 'Value' accepting a first argument of type 'WidgetAnnotation' could be found"
+      "CS0246: The type or namespace name 'Length' could not be found",
+      "CS0103: The name 'LengthUnit' does not exist in the current context"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774936995.054701,
+    "_created_at": 1774971346.94001,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "use-pkcs7-contactinfo": {
-    "note": "When creating a digital signature with Aspose.Pdf, use the PKCS7 class (not PKCS1) and set the contact information via the ContactInfo property.",
-    "code": "PKCS7 pkcs7 = new PKCS7(certificatePath, certificatePassword);\npkcs7.Reason = \"Document approved\";\npkcs7.ContactInfo = \"john.doe@example.com\"; // correct property\npkcs7.Location = \"New York\";",
+  "qualify-contentsresizeparameters-with-pdffileeditor": {
+    "note": "When creating a ContentsResizeParameters object, reference it as PdfFileEditor.ContentsResizeParameters because it is a nested type inside PdfFileEditor.",
+    "code": "PdfFileEditor.ContentsResizeParameters resizeParams =\n    PdfFileEditor.ContentsResizeParameters.MarginsPercent(15, 15, 15, 15);",
     "errors": [
-      "CS1061: 'PKCS1' does not contain a definition for 'Contact' and no accessible extension method 'Contact' accepting a first argument of type 'PKCS1' could be found"
+      "CS0246: The type or namespace name 'ContentsResizeParameters' could not be found",
+      "CS0103: The name 'ContentsResizeParameters' does not exist in the current context"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774937386.856676,
+    "_created_at": 1774971382.3007948,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Pages"
+  },
+  "use-rotation-none-instead-of-rotate0": {
+    "note": "Use Rotation.None to set a page's rotation to 0 degrees; the enum value Rotate0 does not exist.",
+    "code": "document.Pages[6].Rotate = Rotation.None;",
+    "errors": [
+      "CS0117: 'Rotation' does not contain a definition for 'Rotate0'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774971641.986274,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Pages"
+  },
+  "wrap-getpagesize-in-try-catch": {
+    "note": "Wrap PdfPageEditor.GetPageSize calls in a try‑catch and import Aspose.Pdf namespace to safely handle requests for non‑existent page numbers.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\n// ...\nusing (PdfPageEditor editor = new PdfPageEditor())\n{\n    editor.BindPdf(pdfPath);\n    try\n    {\n        PageSize size = editor.GetPageSize(pageNumber);\n        Console.WriteLine($\"Page {pageNumber} size: {size.Width} x {size.Height}\");\n    }\n    catch (Exception ex)\n    {\n        Console.WriteLine($\"Unable to get size for page {pageNumber}: {ex.Message}\");\n    }\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'PageSize' could not be found (missing using Aspose.Pdf)",
+      "Exception thrown by GetPageSize when the requested page number does not exist"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774971803.220203,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Pages"
+  },
+  "use-integer-transitiontype-cover": {
+    "note": "Set PdfPageEditor.TransitionType using the integer value (4) for the Cover transition, because the COVER constant is not defined in the API.",
+    "code": "using (PdfPageEditor editor = new PdfPageEditor(doc))\n{\n    editor.ProcessPages = new int[] { 4 }; // page 4 (1‑based)\n    editor.TransitionType = 4; // Cover transition\n    editor.TransitionDuration = 1; // seconds\n    editor.ApplyChanges();\n    editor.Save(outputPath);\n}",
+    "errors": [
+      "CS0117: 'PdfPageEditor' does not contain a definition for 'COVER'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774971962.1881,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Pages"
+  },
+  "use-pdfpageeditor-zoom": {
+    "note": "Set page zoom using the PdfPageEditor.Zoom property (not PageInfo.Zoom) after specifying ProcessPages.",
+    "code": "using (PdfPageEditor editor = new PdfPageEditor())\n{\n    editor.BindPdf(inputPath);\n    editor.ProcessPages = new int[] { 7 };\n    editor.Zoom = 2.0f; // 200% magnification for the selected pages\n    editor.Save(outputPath);\n}",
+    "errors": [
+      "CS1061: 'PageInfo' does not contain a definition for 'Zoom' and no accessible extension method 'Zoom' accepting a first argument of type 'PageInfo' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774972206.0443652,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Pages"
+  },
+  "processpages-int-array-and-integer-durations": {
+    "note": "Assign PdfPageEditor.ProcessPages a single‑element int[] and set TransitionDuration/DisplayDuration using integer values (seconds) instead of floats.",
+    "code": "PdfPageEditor editor = new PdfPageEditor(doc);\neditor.ProcessPages = new int[] { pageNumber }; // int[] required\neditor.TransitionDuration = 1; // integer seconds\neditor.DisplayDuration = 2;   // integer seconds",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'int' to 'int[]' (ProcessPages expects int[])",
+      "CS0266: Cannot implicitly convert type 'float' to 'int' (TransitionDuration expects int)",
+      "CS0266: Cannot implicitly convert type 'float' to 'int' (DisplayDuration expects int)"
+    ],
+    "_auto": true,
+    "_confidence": 0.6,
+    "_created_at": 1774972518.834056,
+    "_hit_count": 1,
+    "_stage": "llm_fix",
+    "_category": "Facades - Pages"
+  },
+  "use-processpages-property-instead-of-processpage-method": {
+    "note": "Specify pages to edit with the PdfPageEditor.ProcessPages property (int[]), not with a non‑existent ProcessPage method.",
+    "code": "using (PdfPageEditor editor = new PdfPageEditor())\n{\n    editor.BindPdf(inputPath);\n    editor.VerticalAlignmentType = VerticalAlignment.Center;\n    editor.HorizontalAlignment = HorizontalAlignment.Center;\n    editor.ProcessPages = new int[] { 3 }; // page numbers are 1‑based\n    editor.Save(outputPath);\n}",
+    "errors": [
+      "CS1061: 'PdfPageEditor' does not contain a definition for 'ProcessPage' and no accessible extension method 'ProcessPage' accepting a first argument of type 'PdfPageEditor' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774972900.819179,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Pages"
+  },
+  "linkannotation-contents-for-tooltip-and-texthorizontalalignment": {
+    "note": "Do not use the non‑existent Title property on LinkAnnotation; set Contents for tooltip text, and replace the obsolete HorizontalAlignment property with TextHorizontalAlignment.",
+    "code": "LinkAnnotation link = new LinkAnnotation(page, rect);\nlink.Contents = \"tooltip text\"; // tooltip\nlink.TextHorizontalAlignment = HorizontalAlignment.Center; // non‑obsolete alignment",
+    "errors": [
+      "'LinkAnnotation' does not contain a definition for 'Title'",
+      "Annotation.HorizontalAlignment is obsolete: 'Use TextHorizontalAlignment property'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774972961.051678,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Pages"
+  },
+  "use-pageinfo-width-height-for-page-resize": {
+    "note": "Set page dimensions via Page.PageInfo.Width and Height (and optionally IsLandscape) instead of assigning a Rectangle to PdfPageEditor.PageSize.",
+    "code": "foreach (Page page in document.Pages)\n{\n    page.PageInfo.Width = 595f;   // A4 width in points\n    page.PageInfo.Height = 842f;  // A4 height in points\n    page.PageInfo.IsLandscape = false;\n}",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'Aspise.Pdf.Rectangle' to 'Aspose.Pdf.PageSize'",
+      "Misuse of PdfPageEditor.PageSize property for custom page dimensions"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774973306.26864,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Pages"
+  },
+  "use-image-stamp-zoom-and-background": {
+    "note": "Replace Facades.Stamp with Aspose.Pdf.ImageStamp, set precise scaling via the double‑precision Zoom property, position with XIndent/YIndent, and control layering with the Background property (instead of IsBackground/SetOrigin).",
+    "code": "ImageStamp stamp = new ImageStamp(\"stamp.png\");\nstamp.Zoom = 1.23456789; // double‑precision scaling\nstamp.XIndent = 100.0;   // left offset\nstamp.YIndent = 100.0;   // bottom offset\nstamp.Background = false; // foreground (over content)\npage.AddStamp(stamp);",
+    "errors": [
+      "CS1061: 'ImageStamp' does not contain a definition for 'SetOrigin'",
+      "CS1061: 'ImageStamp' does not contain a definition for 'IsBackground'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774973654.180141,
     "_hit_count": 0,
     "_stage": "final_llm",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "use-doc-form-and-iterate-fields-to-delete-buttons": {
-    "note": "Access the form via `doc.Form`, iterate over `form.Fields` and delete fields of type `ButtonField` by name; do not use the non‑existent `Form.FieldNames` property or cast to `WidgetAnnotation`.",
-    "code": "Form form = doc.Form;\nif (form?.Fields != null)\n{\n    var buttonNames = new List<string>();\n    foreach (Field f in form.Fields)\n        if (f is ButtonField) buttonNames.Add(f.Name);\n    foreach (string n in buttonNames) form.Delete(n);\n}",
+  "use-pdffileeditor-contentsresizeparameters-margins": {
+    "note": "Use PdfFileEditor.ContentsResizeParameters.Margins to create resize parameters and call PdfFileEditor.ResizeContents(Document, int[], ContentsResizeParameters) instead of the file‑path overload.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document(inputPath);\nint[] pages = Enumerable.Range(1, doc.Pages.Count).ToArray();\nvar resizeParams = PdfFileEditor.ContentsResizeParameters.Margins(margin, margin, margin, margin);\nnew PdfFileEditor().ResizeContents(doc, pages, resizeParams);",
     "errors": [
-      "CS1061: 'Form' does not contain a definition for 'FieldNames'",
-      "CS0266: Cannot implicitly convert type 'Aspose.Pdf.Annotations.WidgetAnnotation' to 'Aspose.Pdf.Forms.Field'"
+      "CS1729: 'PdfFileEditor.ContentsResizeValue' does not contain a constructor that takes 0 arguments",
+      "CS0200: Property or indexer 'PdfFileEditor.ContentsResizeValue.Value' cannot be assigned to -- it is read only",
+      "CS0117: 'PdfFileEditor.ContentsResizeValue' does not contain a definition for 'Unit'",
+      "CS0117: 'PdfFileEditor' does not contain a definition for 'ContentsResizeUnit'",
+      "CS1503: Argument 2: cannot convert from 'Aspose.Pdf.Document' to 'int[]'"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774938657.571407,
+    "_created_at": 1774973836.92844,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "use-addfieldappearance-to-move-signaturefield": {
-    "note": "When repositioning a signature field, retrieve it as a SignatureField, set its Rect, and call Document.Form.AddFieldAppearance(field, pageNumber, rect) instead of accessing a non‑existent PageNumber property on WidgetAnnotation.",
-    "code": "SignatureField sigField = (SignatureField)doc.Form[\"Signature\"];\nAspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(llx, lly, urx, ury);\nsigField.Rect = rect;\ndoc.Form.AddFieldAppearance(sigField, 5, rect);",
+  "use-pagesize-instead-of-size": {
+    "note": "Use the Aspose.Pdf.PageSize class for setting and retrieving page dimensions instead of the non‑existent Aspose.Pdf.Size type.",
+    "code": "pageEditor.PageSize = new PageSize(595, 842);\nPageSize pageSize = editor.GetPageSize(pageNumber);",
     "errors": [
-      "CS1061: 'WidgetAnnotation' does not contain a definition for 'PageNumber'",
-      "Attempting to move a form field by modifying a WidgetAnnotation's PageNumber property"
+      "CS0234: The type or namespace name 'Size' does not exist in the namespace 'Aspose.Pdf'",
+      "CS0234: The type or namespace name 'Size' does not exist in the namespace 'Aspose.Pdf' (when calling GetPageSize)"
+    ],
+    "_auto": true,
+    "_confidence": 1.0,
+    "_created_at": 1774974206.543254,
+    "_hit_count": 8,
+    "_stage": "llm_fix",
+    "_category": "Facades - Pages"
+  },
+  "use-pages-add-instead-of-page-copyto": {
+    "note": "Replace the removed Page.CopyTo method with Pages.Add to copy a page into another document.",
+    "code": "// Old (invalid in newer Aspose.Pdf versions)\n// sourceDoc.Pages[i].CopyTo(resultDoc.Pages);\n\n// New (correct usage)\nresultDoc.Pages.Add(sourceDoc.Pages[i]);\n\n// When copying a page from another document:\n// resultDoc.Pages.Add(zoomedDoc.Pages[1]);",
+    "errors": [
+      "CS1061: 'Page' does not contain a definition for 'CopyTo' and no accessible extension method 'CopyTo' accepting a first argument of type 'Page' could be found"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774939438.6133351,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Forms"
-  },
-  "use-formeditor-setfieldscript-for-field-javascript": {
-    "note": "Use Aspose.Pdf.Facades.FormEditor and its SetFieldScript method to attach JavaScript to a form field instead of using JavaScriptAction on Document.",
-    "code": "using Aspose.Pdf.Facades;\n\nFormEditor editor = new FormEditor();\neditor.BindPdf(inputPath);\nstring js = \"this.getField('Date').value = util.printd('dd/MM/yyyy', new Date());\";\neditor.SetFieldScript(\"Date\", js);\neditor.Save(outputPath);\neditor.Close();",
-    "errors": [
-      "CS0234: The type or namespace name 'Actions' does not exist in the namespace 'Aspose.Pdf'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774940050.414052,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Forms"
-  },
-  "use-formeditor-with-document": {
-    "note": "Instantiate FormEditor with a Document object (using the overload without file paths) and call Save(outputPath) to write changes, instead of the obsolete FormEditor(string, string) constructor.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\n// Load PDF\nusing (Document pdfDoc = new Document(inputPath))\nusing (FormEditor formEditor = new FormEditor(pdfDoc))\n{\n    // ... perform editing operations ...\n    formEditor.Save(outputPath);\n}",
-    "errors": [
-      "CS0618: 'FormEditor.FormEditor(string, string)' is obsolete",
-      "Runtime FileNotFoundException when the input file path is passed directly to FormEditor"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774940289.045133,
+    "_created_at": 1774974615.3525188,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "use-border-and-color-for-listboxfield": {
-    "note": "ListBoxField does not expose BackgroundColor, BorderColor or TextColor; style it by assigning a Border object and using the Color property for border/background appearance.",
-    "code": "foreach (Aspose.Pdf.Forms.ListBoxField listField in document.Form.Fields)\n{\n    // set border width (and optionally other border properties)\n    listField.Border = new Border(listField) { Width = 2 };\n    // set border color\n    listField.Color = Aspose.Pdf.Color.Blue;\n    // set a background‑like color (ListBoxField has no separate background property)\n    listField.Color = Aspose.Pdf.Color.LightGray;\n}",
+  "guard-docsave-for-missing-gdiplus": {
+    "note": "When saving a PDF on non‑Windows platforms, wrap Document.Save in an OS check and catch TypeInitializationException caused by missing GDI+ (libgdiplus).",
+    "code": "if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    doc.Save(path);\n}\nelse\n{\n    try\n    {\n        doc.Save(path);\n    }\n    catch (TypeInitializationException ex) when (ContainsDllNotFound(ex))\n    {\n        // handle missing libgdiplus, e.g., log a warning\n    }\n}\n\nprivate static bool ContainsDllNotFound(Exception? ex)\n{\n    while (ex != null)\n    {\n        if (ex is DllNotFoundException) return true;\n        ex = ex.InnerException;\n    }\n    return false;\n}",
     "errors": [
-      "CS1061: 'ListBoxField' does not contain a definition for 'BackgroundColor'",
-      "CS1061: 'ListBoxField' does not contain a definition for 'BorderColor'",
-      "CS1061: 'ListBoxField' does not contain a definition for 'TextColor'"
+      "System.TypeInitializationException thrown from Document.Save due to missing gdiplus.dll on macOS/Linux",
+      "DllNotFoundException for libgdiplus when running Aspose.Pdf on non‑Windows platforms"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774940598.3962839,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Forms"
-  },
-  "use-textboxfield-instead-of-form-addtextbox": {
-    "note": "Create a TextBoxField via the page‑based constructor and add it with Document.Form.Add instead of using Form.AddTextBox / Form.SetFieldFlag.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nRectangle rect = new Rectangle(0, 0, 0, 0);\nTextBoxField authField = new TextBoxField(doc.Pages[1], rect);\nauthField.PartialName = \"AuthToken\";\nauthField.Value = authToken;\n// hidden by zero‑size rectangle, no FieldFlag needed\n\ndoc.Form.Add(authField, 1);",
-    "errors": [
-      "CS1061: 'Form' does not contain a definition for 'AddTextBox'",
-      "CS1061: 'Form' does not contain a definition for 'SetFieldFlag'",
-      "CS0103: The name 'FieldFlag' does not exist in the current context"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1774941714.065431,
+    "_created_at": 1774974709.443233,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "use-annotations-namespace-for-javascriptaction": {
-    "note": "Import Aspose.Pdf.Annotations and use JavascriptAction from that namespace when adding JavaScript to form fields",
-    "code": "using Aspose.Pdf.Annotations;\n\n// ... create field\nJavascriptAction js = new JavascriptAction(\"your JS code\");\nfield.ExecuteFieldJavaScript(js);",
+  "use-pageinfo-width-height-for-scaling": {
+    "note": "Resize a page by modifying its PageInfo.Width and PageInfo.Height instead of using a non‑existent Scale property.",
+    "code": "Page page = doc.Pages.Add(sourceDoc.Pages[pageNumber]);\npage.PageInfo.Width  *= 0.9f;\npage.PageInfo.Height *= 0.9f;",
     "errors": [
-      "CS0246: The type or namespace name 'JavascriptAction' could not be found (are you missing a using directive or an assembly reference?)"
+      "CS1061: 'Page' does not contain a definition for 'Scale' and no accessible extension method 'Scale' accepting a first argument of type 'Page' could be found"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774941943.762045,
+    "_created_at": 1774975198.496233,
     "_hit_count": 0,
     "_stage": "llm_fix",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "use-importfromjson-for-form-fields": {
-    "note": "Import form fields (including layout) from a JSON definition using Document.Form.ImportFromJson(Stream) instead of manually constructing field objects.",
-    "code": "using (FileStream jsonStream = new FileStream(jsonPath, FileMode.Open, FileAccess.Read))\n{\n    document.Form.ImportFromJson(jsonStream);\n}",
+  "use-pdfpageeditor-displayduration": {
+    "note": "Set a page's display duration via the PdfPageEditor.DisplayDuration property (not via PageInfo.DisplayDuration).",
+    "code": "using (PdfPageEditor editor = new PdfPageEditor())\n{\n    editor.BindPdf(inputPath);\n    editor.ProcessPages = new int[] { 5 };\n    editor.DisplayDuration = 4; // seconds\n    editor.ApplyChanges();\n    editor.Save(outputPath);\n}",
     "errors": [
-      "CS1729: 'TextBoxField' does not contain a constructor that takes 3 arguments",
-      "CS1503: Argument 2: cannot convert from 'string' to 'int'",
-      "CS0246: The type or namespace name 'CheckBoxField' could not be found",
-      "CS1729: 'ComboBoxField' does not contain a constructor that takes 3 arguments",
-      "CS1061: 'ComboBoxField' does not contain a definition for 'Choices'"
+      "CS1061: 'PageInfo' does not contain a definition for 'DisplayDuration'"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774942466.98473,
+    "_created_at": 1774975481.407757,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Pages"
   },
-  "use-signaturecustomappearance-via-signature-property": {
-    "note": "Assign a custom appearance to a signature field using the Signature property and SignatureCustomAppearance class",
-    "code": "SignatureCustomAppearance custom = new SignatureCustomAppearance();\ncustom.IsForegroundImage = false; // or true for foreground image\nsigField.Signature.CustomAppearance = custom;",
+  "use-margininfo-for-page-margins": {
+    "note": "Use the MarginInfo class (not Margin) to set page margins via PageInfo.Margin.",
+    "code": "page.PageInfo.Margin = new MarginInfo(left, top, right, bottom);",
     "errors": [
-      "CS0246: The type or namespace name 'SignatureAppearance' could not be found",
-      "CS1061: 'SignatureField' does not contain a definition for 'CustomAppearance'",
-      "CS1729: 'Image' does not contain a constructor that takes 1 arguments"
+      "CS0246: The type or namespace name 'Margin' could not be found (are you missing a using directive or an assembly reference?)"
     ],
     "_auto": true,
     "_confidence": 0.5,
-    "_created_at": 1774942684.7122402,
+    "_created_at": 1774975547.990344,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Pages"
+  },
+  "use-graph-for-rectangle-shapes": {
+    "note": "Wrap a Rectangle shape in a Graph object (which accepts double dimensions) and add the Graph to the page; supply float values for the Rectangle constructor.",
+    "code": "Graph graph = new Graph(pageWidth, pageHeight);\nvar rect = new Aspose.Pdf.Drawing.Rectangle(0f, 0f, (float)pageWidth, (float)pageHeight);\nrect.GraphInfo = new GraphInfo { FillColor = bgColor, LineWidth = 0f };\ngraph.Shapes.Add(rect);\npage.Paragraphs.Add(graph);",
+    "errors": [
+      "Argument 3: cannot convert from 'double' to 'float' when constructing Aspose.Pdf.Drawing.Rectangle",
+      "Argument 4: cannot convert from 'double' to 'float' when constructing Aspose.Pdf.Drawing.Rectangle",
+      "Argument 1: cannot convert from 'Aspose.Pdf.Drawing.Rectangle' to 'Aspose.Pdf.BaseParagraph' when adding to page.Paragraphs"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774975696.5594199,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Pages"
+  },
+  "use-contentsresizevalue-factory-methods": {
+    "note": "Create ContentsResizeValue instances with the static factory methods Percents, Units or Auto; do not access the write‑only PercentValue property.",
+    "code": "var left = PdfFileEditor.ContentsResizeValue.Percents(10);\nvar right = PdfFileEditor.ContentsResizeValue.Units(20);\nvar resize = new PdfFileEditor.ContentsResizeParameters(left, PdfFileEditor.ContentsResizeValue.Auto(), right, PdfFileEditor.ContentsResizeValue.Percents(5), PdfFileEditor.ContentsResizeValue.Auto(), PdfFileEditor.ContentsResizeValue.Units(30));",
+    "errors": [
+      "CS0154: The property or indexer 'PdfFileEditor.ContentsResizeValue.PercentValue' cannot be used in this context because it lacks the get accessor"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774975906.484278,
+    "_hit_count": 0,
+    "_stage": "final_llm",
+    "_category": "Facades - Pages"
+  },
+  "use-document-encrypt-for-aes256": {
+    "note": "Use Document.Encrypt (userPassword, ownerPassword, permissions, CryptoAlgorithm) instead of PdfEncryptionOptions and PdfFileSecurity for AES‑256 encryption with custom privileges.",
+    "code": "using Aspose.Pdf;\n\nDocument doc = new Document(inputPath);\nPermissions perms = Permissions.PrintDocument | Permissions.ExtractContent;\n\ndoc.Encrypt(userPassword, ownerPassword, perms, CryptoAlgorithm.AESx256);\n\ndoc.Save(outputPath);",
+    "errors": [
+      "CS0246: The type or namespace name 'PdfEncryptionOptions' could not be found",
+      "CS1061: 'PdfFileSecurity' does not contain a definition for 'Encrypt'",
+      "CS0618: 'PdfFileSecurity.PdfFileSecurity(string, string)' is obsolete"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774976946.0078862,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Secure Documents"
+  },
+  "use-document-encrypt-instead-of-pdffilesecurity": {
+    "note": "Replace the obsolete PdfFileSecurity facade and its AllowExceptions property with Document.Encrypt for PDF encryption.",
+    "code": "using (Document doc = new Document(inputPath))\n{\n    doc.Encrypt(userPassword, ownerPassword, Permissions.PrintDocument, CryptoAlgorithm.AESx256);\n    doc.Save(outputPath);\n}",
+    "errors": [
+      "CS0618: 'PdfFileSecurity.PdfFileSecurity(string, string)' is obsolete",
+      "CS0618: 'PdfFileSecurity.AllowExceptions' is obsolete"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774977328.656785,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Secure Documents"
+  },
+  "use-pathcombine-with-basedirectory": {
+    "note": "Construct file system paths with Path.Combine and AppDomain.CurrentDomain.BaseDirectory instead of hard‑coding absolute paths, to avoid platform‑specific path errors.",
+    "code": "string folderPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, \"PdfFolder\");",
+    "errors": [
+      "System.IO.DirectoryNotFoundException caused by mixing relative and absolute path fragments (e.g., \".../_build/C:\\PdfFolder\")",
+      "Hard‑coded Windows style paths that fail on non‑Windows environments"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774977796.358311,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Secure Documents"
+  },
+  "use-parameterless-pdffilesecurity-constructor": {
+    "note": "Use the parameterless PdfFileSecurity constructor, bind the PDF with BindPdf, then call DecryptFile and Save the result instead of the obsolete PdfFileSecurity(string, string) constructor.",
+    "code": "using Aspose.Pdf.Facades;\n\nusing (PdfFileSecurity security = new PdfFileSecurity())\n{\n    security.BindPdf(inputPath);\n    bool success = security.DecryptFile(ownerPassword);\n    if (success) security.Save(outputPath);\n}",
+    "errors": [
+      "CS0618: 'PdfFileSecurity.PdfFileSecurity(string, string)' is obsolete",
+      "Runtime error when using obsolete constructor that expects destination path"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774978236.0877051,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Secure Documents"
+  },
+  "detect-encryption-with-pdfexception": {
+    "note": "To determine if a PDF is encrypted, attempt to load it with `new Document(path)` and catch `PdfException`; do not use the non‑existent `Document.Security`, `EncryptionAlgorithm`, or `PermissionFlags` members.",
+    "code": "try {\n    using (var doc = new Document(pdfPath)) {\n        // not encrypted\n    }\n} catch (PdfException) {\n    // encrypted PDF\n}",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'Security'",
+      "CS0246: The type or namespace name 'EncryptionAlgorithm' could not be found",
+      "CS0246: The type or namespace name 'PermissionFlags' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774978942.482524,
     "_hit_count": 0,
     "_stage": "regen",
-    "_category": "Facades - Forms"
+    "_category": "Facades - Secure Documents"
+  },
+  "use-nonobsolete-pdffilesecurity-constructor": {
+    "note": "Use the PdfFileSecurity constructor that accepts a Document instance (or no parameters) instead of the obsolete constructor that takes source and destination file paths.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\n// Load the encrypted PDF into a Document\nvar doc = new Document(encryptedPath);\n// Create PdfFileSecurity with the Document (non‑obsolete)\nvar security = new PdfFileSecurity(doc);\n// Attempt decryption with a password\nbool success = security.TryDecryptFile(password);\n",
+    "errors": [
+      "CS0618: 'PdfFileSecurity.PdfFileSecurity(string, string)' is obsolete",
+      "Use of obsolete PdfFileSecurity constructor that requires source and destination paths"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774979047.935777,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Secure Documents"
+  },
+  "add-aspdf-forms-namespace-for-pkcs7-and-signatureappearance": {
+    "note": "Include the Aspose.Pdf.Forms namespace to access PKCS7 (and SignatureAppearance if needed) when signing PDFs with PdfFileSignature",
+    "code": "using Aspose.Pdf.Forms;\n...\nPKCS7 pkcs7 = new PKCS7(certificatePath, certificatePassword);\n// optional visual appearance\n// pdfSignature.SignatureAppearance = \"signature.png\";\npdfSignature.Sign(pageNumber, true, signatureRect, pkcs7);",
+    "errors": [
+      "CS0246: The type or namespace name 'PKCS7' could not be found (are you missing a using directive or an assembly reference?)",
+      "CS0246: The type or namespace name 'SignatureAppearance' could not be found (are you missing a using directive or an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774979197.0501509,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Sign Documents"
+  },
+  "use-forms-namespace-for-signaturecustomappearance-and-pkcs7": {
+    "note": "Import Aspose.Pdf.Forms to access SignatureCustomAppearance and PKCS7 (digital signature) classes for custom signature appearance.",
+    "code": "using Aspose.Pdf.Forms;\n\nSignatureCustomAppearance custom = new SignatureCustomAppearance();\ncustom.BackgroundColor = Aspose.Pdf.Color.LightGray;\ncustom.IsForegroundImage = true;\ncustom.ForegroundColor = Aspose.Pdf.Color.Blue;\n\nPKCS7 pkcs7 = new PKCS7(certPath, certPassword);\npkcs7.CustomAppearance = custom;",
+    "errors": [
+      "CS0234: The type or namespace name 'SignatureAppearance' does not exist in the namespace 'Aspose.Pdf.Facades'",
+      "CS0234: The type or namespace name 'DigitalSignature' does not exist in the namespace 'Aspose.Pdf.Facades'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774979428.3119,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Sign Documents"
+  },
+  "remove-signature-by-name-string-overload": {
+    "note": "Use the PdfFileSignature.RemoveSignature overload that accepts a string name instead of creating a SignatureName instance.",
+    "code": "pdfSign.RemoveSignature(\"ApprovalSignature\");",
+    "errors": [
+      "CS1729: 'SignatureName' does not contain a constructor that takes 1 arguments"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774979751.231175,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Sign Documents"
+  },
+  "use-pkcs7-customappearance-for-signature": {
+    "note": "When creating a visible digital signature, use the PdfFileSignature/PKCS7 API and set the custom appearance via PKCS7.CustomAppearance instead of the obsolete SignatureField.CustomAppearance.",
+    "code": "using Aspose.Pdf.Facades;\nusing Aspose.Pdf.Forms;\n\nPdfFileSignature pdfSignature = new PdfFileSignature();\npdfSignature.BindPdf(inputPath);\nPKCS7 pkcs7 = new PKCS7(pfxPath, pfxPassword);\nSignatureCustomAppearance custom = new SignatureCustomAppearance();\ncustom.DigitalSignedLabel = \"\"; // hide caption\npkcs7.CustomAppearance = custom;\npdfSignature.Sign(pageNumber, true, signatureRect, pkcs7);",
+    "errors": [
+      "CS1729: 'SignatureField' does not contain a constructor that takes 3 arguments",
+      "CS1061: 'SignatureField' does not contain a definition for 'CustomAppearance'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774980115.547395,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Sign Documents"
+  },
+  "use-signaturename-overloads-for-pdffilesignature": {
+    "note": "Replace obsolete GetSignNames(bool) and VerifySignature(string) with GetSignatureNames(bool onlyActive) and VerifySignature(SignatureName) when working with PdfFileSignature.",
+    "code": "using Aspose.Pdf.Facades;\n\nPdfFileSignature pdf = new PdfFileSignature();\npdf.BindPdf(inputPath);\nIList<SignatureName> names = pdf.GetSignatureNames(true);\nforeach (SignatureName name in names)\n{\n    bool isValid = pdf.VerifySignature(name);\n    // process result\n}",
+    "errors": [
+      "CS0618: 'PdfFileSignature.GetSignNames(bool)' is obsolete – use GetSignatureNames(bool onlyActive) instead.",
+      "CS0266: Cannot implicitly convert type 'IList<string>' to 'string[]' when using GetSignNames.",
+      "CS0618: 'PdfFileSignature.VerifySignature(string)' is obsolete – use VerifySignature(SignatureName) instead."
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774980596.649748,
+    "_hit_count": 0,
+    "_stage": "final_llm",
+    "_category": "Facades - Sign Documents"
+  },
+  "use-signaturename-type-for-getsignaturenames": {
+    "note": "When retrieving signature field names, use the returned IList<SignatureName> and pass a SignatureName instance to TryExtractCertificate instead of converting to string.",
+    "code": "var signatureNames = signatureFacade.GetSignatureNames(true); // IList<SignatureName>\nvar firstSignature = signatureNames[0]; // SignatureName\nbool success = signatureFacade.TryExtractCertificate(firstSignature, out X509Certificate2 certificate);",
+    "errors": [
+      "CS0266: Cannot implicitly convert type 'IList<SignatureName>' to 'List<string>'",
+      "CS1503: Argument 1: cannot convert from 'string' to 'SignatureName'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774981266.694313,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Sign Documents"
+  },
+  "use-signaturename-collection-and-extractimage-overload": {
+    "note": "When extracting signature images, use the IList<SignatureName> returned by GetSignatureNames and the ExtractImage(SignatureName) overload instead of the obsolete string‑based API.",
+    "code": "IList<SignatureName> sigNames = pdfSignature.GetSignatureNames(true);\nforeach (SignatureName sig in sigNames)\n{\n    Stream imgStream = pdfSignature.ExtractImage(sig); // non‑obsolete overload\n    string imgFile = sig.Name + \".jpg\"; // use sig.Name for the file name\n}",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'System.Collections.Generic.IList<Aspose.Pdf.Facades.SignatureName>' to 'string[]'",
+      "CS0618: 'PdfFileSignature.ExtractImage(string)' is obsolete: 'Use ExtractImage(SignatureName) method instead.'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774981603.9604821,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Sign Documents"
+  },
+  "use-pdffilesignature-sign-with-rectangle-and-pkcs7": {
+    "note": "Use PdfFileSignature.Sign overload with a visible rectangle and a PKCS7 provider (assign custom appearance to PKCS7) instead of non‑existent SignatureFieldName/SignatureRectangle properties.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nPdfFileSignature signer = new PdfFileSignature();\nsigner.BindPdf(inputPdf);\n\nPKCS7 pkcs7 = new PKCS7(certPath, certPassword);\nSignatureCustomAppearance appearance = new SignatureCustomAppearance();\nappearance.BackgroundColor = Color.FromArgb(128, 255, 255, 0); // 50% transparent yellow\npkcs7.CustomAppearance = appearance;\n\nSystem.Drawing.Rectangle rect = new System.Drawing.Rectangle(100, 100, 200, 50);\nsigner.Sign(1, \"Reason\", \"Location\", \"Contact\", true, rect, pkcs7);\nsigner.Save(outputPdf);",
+    "errors": [
+      "CS0234: The type or namespace name 'SignatureField' does not exist in the namespace 'Aspose.Pdf.Facades'",
+      "Attempting to use non‑existent properties SignatureFieldName or SignatureRectangle on PdfFileSignature"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774981739.4090822,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Sign Documents"
+  },
+  "use-systemdrawing-rectangle-for-pdffilesignature-sign": {
+    "note": "When calling PdfFileSignature.Sign, pass a System.Drawing.Rectangle (not Aspose.Pdf.Rectangle) for the signature location.",
+    "code": "System.Drawing.Rectangle signatureRect = new System.Drawing.Rectangle(x, y, width, height);\npdfSignature.Sign(pageNumber, \"Reason\", \"Contact\", \"Location\", true, signatureRect);",
+    "errors": [
+      "CS1503: Argument cannot convert from 'Aspose.Pdf.Rectangle' to 'System.Drawing.Rectangle'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774981988.81576,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Sign Documents"
+  },
+  "catch-invalidpdffileformatexception": {
+    "note": "Catch Aspose.Pdf.InvalidPdfFileFormatException when loading a PDF to gracefully handle corrupt or non‑PDF files",
+    "code": "try {\n    using (var pdfSignature = new PdfFileSignature()) {\n        pdfSignature.BindPdf(pdfPath);\n        // ... other operations ...\n    }\n} catch (InvalidPdfFileFormatException ex) {\n    // log and continue\n}",
+    "errors": [
+      "Unhandled InvalidPdfFileFormatException at runtime",
+      "Incorrect or missing exception type for invalid PDF files"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774982353.672568,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Sign Documents"
+  },
+  "use-signaturename-instance-for-tryextractcertificate": {
+    "note": "Pass a SignatureName object (obtained via GetSignatureNames or constructed) to TryExtractCertificate instead of a raw string.",
+    "code": "PdfFileSignature pdfSignature = new PdfFileSignature();\npdfSignature.BindPdf(inputPath);\nSignatureName sigName = pdfSignature.GetSignatureNames(false)[0];\nX509Certificate2 cert;\nbool ok = pdfSignature.TryExtractCertificate(sigName, out cert);",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'string' to 'Aspose.Pdf.Facades.SignatureName'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774982444.049676,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Sign Documents"
+  },
+  "use-getsignaturenames-false-for-filled-signatures": {
+    "note": "Call PdfFileSignature.GetSignatureNames(false) to retrieve only non‑empty (filled) signature fields.",
+    "code": "using Aspose.Pdf.Facades;\n\nPdfFileSignature pdfSignature = new PdfFileSignature();\npdfSignature.BindPdf(\"signed.pdf\");\nIList<SignatureName> signatures = pdfSignature.GetSignatureNames(false); // false => only filled signatures",
+    "errors": [
+      "Getting all signature names (including empty placeholders) may return signatures without certificates, leading to extraction failures."
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774982835.176755,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Sign Documents"
+  },
+  "use-facades-formattedtext-with-systemdrawing-color": {
+    "note": "When creating a watermark, instantiate Aspose.Pdf.Facades.FormattedText and pass System.Drawing.Color for the color argument (instead of Aspose.Pdf.Color) and use a float for the font size.",
+    "code": "var formattedText = new Aspose.Pdf.Facades.FormattedText(\"Watermark\", System.Drawing.Color.Red, \"Helvetica\", EncodingType.Winansi, false, 36f);",
+    "errors": [
+      "CS1503: Argument 2: cannot convert from 'Aspose.Pdf.Color' to 'Aspose.Pdf.Facades.FontColor'",
+      "CS1503: Argument 3: cannot convert from 'string' to 'Aspose.Pdf.Facades.FontStyle'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774982936.194561,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Stamps"
+  },
+  "use-rotateangle-for-textstamp-rotation": {
+    "note": "Use the TextStamp.RotateAngle property (not Rotation) to set the rotation angle of a text stamp.",
+    "code": "TextStamp stamp = new TextStamp(\"Sample\");\nstamp.RotateAngle = 45f; // rotates 45 degrees around the stamp's center",
+    "errors": [
+      "CS1061: 'TextStamp' does not contain a definition for 'Rotation' and no accessible extension method 'Rotation' accepting a first argument of type 'TextStamp' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774983094.949306,
+    "_hit_count": 0,
+    "_stage": "final_llm",
+    "_category": "Facades - Stamps"
+  },
+  "use-textstamp-for-text-footer": {
+    "note": "Use Aspose.Pdf.Text.TextStamp (not Aspose.Pdf.Facades.Stamp) for adding text stamps; style the text via the TextState object and use Aspose.Pdf.Color for colors.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Text;\n\n// create a text stamp with the desired content\nTextStamp stamp = new TextStamp(\"MM-dd-yyyy\");\nstamp.TextState.Font = FontRepository.FindFont(\"Helvetica\");\nstamp.TextState.FontSize = 12;\nstamp.TextState.ForegroundColor = Aspose.Pdf.Color.Black; // fully‑qualified color\nstamp.HorizontalAlignment = HorizontalAlignment.Center;\nstamp.VerticalAlignment = VerticalAlignment.Bottom;\nstamp.YIndent = 20f; // distance from bottom edge\n\npage.AddStamp(stamp); // add to the target page",
+    "errors": [
+      "Argument 2: cannot convert from 'Aspose.Pdf.Color' to 'Aspose.Pdf.Facades.FontColor'",
+      "Argument 3: cannot convert from 'string' to 'Aspose.Pdf.Facades.FontStyle'",
+      "'Stamp' does not contain a definition for 'HorizontalAlignment'",
+      "'Stamp' does not contain a definition for 'VerticalAlignment'",
+      "Argument 1: cannot convert from 'Aspose.Pdf.Facades.Stamp' to 'Aspose.Pdf.Stamp'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774983662.7714949,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Stamps"
+  },
+  "use-textstamp-instead-of-facades-stamp": {
+    "note": "Create a TextStamp (Aspose.Pdf.Text) rather than a Facades.Stamp and set its rotation using the RotateAngle property (double) instead of the obsolete Rotation property.",
+    "code": "using Aspose.Pdf.Text;\n...\nTextStamp stamp = new TextStamp(\"My stamp\");\nstamp.TextState.Font = FontRepository.FindFont(\"Helvetica\");\nstamp.TextState.FontSize = 24;\nstamp.TextState.ForegroundColor = Color.Red;\nstamp.RotateAngle = 45; // degrees\npage.AddStamp(stamp);",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Facades.Stamp' to 'Aspose.Pdf.Stamp'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774983724.7127628,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Stamps"
+  },
+  "create-pdf-from-document-to-bytearray": {
+    "note": "Create a minimal PDF in memory by adding a page to a Document, saving it to a MemoryStream, and using the resulting byte array when the source file is unavailable.",
+    "code": "byte[] pdfBytes;\nusing (var doc = new Document())\n{\n    doc.Pages.Add();\n    using (var ms = new MemoryStream())\n    {\n        doc.Save(ms);\n        pdfBytes = ms.ToArray();\n    }\n}",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file 'input.pdf'",
+      "Runtime error when loading PDF bytes from a non‑existent file"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774983985.592232,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Stamps"
+  },
+  "use-background-property-for-textstamp": {
+    "note": "Use the `Background` property of `TextStamp` instead of the non‑existent `IsBackground` property to set the stamp as background.",
+    "code": "TextStamp stamp = new TextStamp(\"APPROVED\");\nstamp.Background = true; // correct way to make the stamp a background stamp",
+    "errors": [
+      "CS1061: 'TextStamp' does not contain a definition for 'IsBackground'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774984093.146672,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Stamps"
+  },
+  "use-facades-formattedtext-for-stamp": {
+    "note": "Instantiate Aspose.Pdf.Facades.FormattedText (instead of Aspose.Pdf.FormattedText) when binding text to a Stamp and pass a System.Drawing.Color.",
+    "code": "using Aspose.Pdf.Facades;\nusing System.Drawing;\n\nvar formattedText = new FormattedText(\n    \"CONFIDENTIAL\",\n    Color.Red,\n    \"Helvetica\",\n    EncodingType.Winansi,\n    false,\n    48);\n\nvar stamp = new Stamp();\nstamp.BindLogo(formattedText);",
+    "errors": [
+      "CS0117: 'FontStyle' does not contain a definition for 'Regular'",
+      "CS1503: Argument 2: cannot convert from 'System.Drawing.Color' to 'Aspose.Pdf.Facades.FontColor'",
+      "CS1061: 'FormattedText' does not contain a definition for 'FontName'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774984411.244328,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Stamps"
+  },
+  "use-facades-stamp-with-formattedtext-for-custom-font": {
+    "note": "When stamping a PDF with a custom TrueType font, create a FormattedText using the font name and bind it to an Aspose.Pdf.Facades.Stamp (not TextStamp) before adding it to PdfFileStamp.",
+    "code": "var font = FontRepository.FindFont(fontPath);\nstring fontName = font.FontName;\nvar formatted = new FormattedText(\"My Brand\", System.Drawing.Color.Blue, fontName, EncodingType.Winansi, false, 36);\nvar stamp = new Aspose.Pdf.Facades.Stamp();\nstamp.BindLogo(formatted);\nvar pdfStamp = new Aspose.Pdf.Facades.PdfFileStamp();\npdfStamp.BindPdf(inputPath);\npdfStamp.AddStamp(stamp);",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.TextStamp' to 'Aspose.Pdf.Facades.Stamp'",
+      "Using TextStamp with PdfFileStamp.AddStamp results in type mismatch"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774984465.954157,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Stamps"
+  },
+  "use-formattedtext-with-addnewline-for-line-spacing": {
+    "note": "Create a TextStamp from Aspose.Pdf.Text.FormattedText and adjust line spacing with AddNewLineText(float spacing)",
+    "code": "using Aspose.Pdf.Text;\n...\nFormattedText ft = new FormattedText(\n    \"CONFIDENTIAL\",\n    System.Drawing.Color.Red,\n    \"Helvetica\",\n    EncodingType.Winansi,\n    false,\n    48);\nft.AddNewLineText(\"DO NOT DISTRIBUTE\", 1.5f);\nTextStamp stamp = new TextStamp(ft);",
+    "errors": [
+      "CS0234: The type or namespace name 'FormattedText' does not exist in the namespace 'Aspose.Pdf.Text'",
+      "CS0103: The name 'FontStyle' does not exist in the current context"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774984920.1949902,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Stamps"
+  },
+  "use-opacity-and-isbackground-for-image-stamp": {
+    "note": "When adding an image stamp, set `Stamp.Opacity` to the desired transparency and `Stamp.IsBackground = true` to place it behind page content, creating a semi‑transparent background stamp.",
+    "code": "var stamp = new Aspose.Pdf.Facades.Stamp();\nstamp.BindImage(\"stamp.png\");\nstamp.Opacity = 0.3f; // 30% opacity\nstamp.IsBackground = true; // place behind page content\npdfFileStamp.AddStamp(stamp);",
+    "errors": [
+      "Background image stamp appears opaque or overlays page content",
+      "Missing opacity or background flag results in incorrect visual appearance"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774985586.783606,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Stamps"
+  },
+  "ensure-pdf-exists-before-pdfmend": {
+    "note": "Create a placeholder PDF (with required pages) when the source file does not exist before calling PdfFileMend.BindPdf.",
+    "code": "private static void EnsureSourcePdfExists(string pdfPath, int requiredPages)\n{\n    if (File.Exists(pdfPath)) return;\n    using (var doc = new Aspose.Pdf.Document())\n    {\n        for (int i = 0; i < requiredPages; i++)\n            doc.Pages.Add();\n        doc.Save(pdfPath);\n    }\n}",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file '<path>/input.pdf'",
+      "Runtime error when PdfFileMend.BindPdf is called on a non‑existent PDF file"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774986650.4577432,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Texts and Images"
+  },
+  "use-memory-stream-with-pdffilemend-save": {
+    "note": "Save the modified PDF to a MemoryStream, reset its position, and copy it to the HTTP response (or any output stream) instead of writing directly to a file.",
+    "code": "using (MemoryStream ms = new MemoryStream())\n{\n    pdfMend.Save(ms);\n    ms.Position = 0;\n    // Example: write to HTTP response\n    HttpResponse response = HttpContext.Current.Response;\n    ms.CopyTo(response.OutputStream);\n}",
+    "errors": [
+      "Attempting to write the PDF directly to a response stream without resetting the MemoryStream position",
+      "Using a file‑based Save when the intention is to stream the PDF to an HTTP response"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774986829.193019,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Texts and Images"
+  },
+  "use-deleteimage-with-int-array": {
+    "note": "When removing images by object ID, use PdfContentEditor.DeleteImage(pageNumber, int[] imageIds) instead of RemoveImage which expects an XImage instance.",
+    "code": "PdfContentEditor editor = new PdfContentEditor();\neditor.BindPdf(inputPath);\neditor.DeleteImage(pageNumber, new int[] { imageObjectId });",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'int' to 'Aspose.Pdf.XImage'",
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.XImage' to 'int'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774987006.963389,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Texts and Images"
+  },
+  "use-textfragmentabsorber-for-text-position": {
+    "note": "Use TextFragmentAbsorber with the target string to retrieve a TextFragment and read its Position (XIndent/YIndent) for exact coordinates.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Text;\n\nDocument doc = new Document(\"input.pdf\");\nTextFragmentAbsorber absorber = new TextFragmentAbsorber(\"search text\");\ndoc.Pages.Accept(absorber);\nif (absorber.TextFragments.Count > 0)\n{\n    TextFragment fragment = absorber.TextFragments[1]; // 1‑based indexing\n    double x = fragment.Position.XIndent;\n    double y = fragment.Position.YIndent;\n}",
+    "errors": [
+      "CS1529: A using clause must precede all other elements defined in the namespace except extern alias declarations"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774987141.156412,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - Texts and Images"
+  },
+  "use-pdfxmpmetadata-facade-for-xmp": {
+    "note": "Create and bind XMP metadata to a PDF using the PdfXmpMetadata facade (Aspose.Pdf.Facades) and save via its Save method.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document();\ndoc.Pages.Add();\nusing (PdfXmpMetadata xmp = new PdfXmpMetadata(doc))\n{\n    xmp.RegisterNamespaceURI(\"my\", \"http://example.com/ns\");\n    xmp.Add(\"xmp:Title\", \"Sample PDF with XMP\");\n    xmp.Add(\"my:Creator\", \"John Doe\");\n    xmp.Save(\"output.pdf\");\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'XmpMetadata' could not be found",
+      "CS1061: 'Metadata' does not contain a definition for 'XmpMetadata'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774987313.2181911,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - XMP metadata"
+  },
+  "use-pdfxmpmetadata-from-facades": {
+    "note": "Use the PdfXmpMetadata class from the Aspose.Pdf.Facades namespace (not Aspose.Pdf.XmpMetadata) to modify and save XMP metadata in a PDF.",
+    "code": "using Aspose.Pdf.Facades;\n\nPdfXmpMetadata xmp = new PdfXmpMetadata();\nxmp.BindPdf(\"input.pdf\");\nxmp.Add(\"dc:title\", \"Sample PDF Title\");\nxmp.Save(\"output.pdf\");\nxmp.Close();",
+    "errors": [
+      "CS0234: The type or namespace name 'XmpMetadata' does not exist in the namespace 'Aspose.Pdf'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774987520.392116,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - XMP metadata"
+  },
+  "use-creator-property-instead-of-creatortool": {
+    "note": "Set PDF creator metadata via the DocumentInfo.Creator property; the DocumentInfo.CreatorTool property does not exist.",
+    "code": "using (Document doc = new Document(inputPath, userPassword))\n{\n    // ... other processing ...\n    doc.Info.Creator = \"MyApplication v1.0\";\n}",
+    "errors": [
+      "CS1061: 'DocumentInfo' does not contain a definition for 'CreatorTool'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774987935.1812859,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - XMP metadata"
+  },
+  "use-uri-for-basepath-escaping": {
+    "note": "Use System.Uri to handle BasePath escaping instead of the missing XfaParserOptions class.",
+    "code": "string rawUrl = \"http://example.com/dir with spaces/and?query=val ue&param=ä\";\nUri uri = new Uri(rawUrl);\nstring escaped = uri.AbsoluteUri; // contains %20, %C3%A4, etc.",
+    "errors": [
+      "CS0246: The type or namespace name 'XfaParserOptions' could not be found",
+      "CS0246: The type or namespace name 'XfaParserOptions' could not be found (are you missing a using directive or an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774988240.859752,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - XMP metadata"
+  },
+  "bind-pdf-bytes-to-pdfxmpmetadata": {
+    "note": "Wrap the PDF byte array in a MemoryStream, reset its position to the start, and pass it to PdfXmpMetadata.BindPdf to bind XMP metadata.",
+    "code": "byte[] pdfBytes = /* your PDF bytes */;\nusing var pdfStream = new MemoryStream(pdfBytes);\npdfStream.Position = 0; // ensure stream is at the beginning\nvar xmpMetadata = new PdfXmpMetadata();\nxmpMetadata.BindPdf(pdfStream);",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file 'input.pdf'",
+      "BindPdf fails when the provided stream is not positioned at the beginning or does not contain valid PDF bytes"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774988362.4570508,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - XMP metadata"
+  },
+  "validate-pdf-file-exists-before-bindpdf": {
+    "note": "Check that the PDF file exists (and is a valid PDF) before calling PdfXmpMetadata.BindPdf to avoid InvalidPdfFileFormatException.",
+    "code": "if (!File.Exists(pdfPath))\n    throw new FileNotFoundException($\"PDF file not found: {pdfPath}\");\nusing (var xmp = new PdfXmpMetadata())\n{\n    xmp.BindPdf(pdfPath);\n    // …process metadata…\n}",
+    "errors": [
+      "Aspose.Pdf.InvalidPdfFileFormatException: Incorrect file header",
+      "Unhandled exception due to missing or invalid PDF file"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774988682.74673,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Facades - XMP metadata"
+  },
+  "use-zugferd-facade-to-attach-xml": {
+    "note": "Attach a ZUGFeRD XML file to a PDF by using the Aspose.Pdf.Facades.ZUGFeRD class (or its stub) instead of a non‑existent Document.AttachZUGFeRD method.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\n// pdfDocument is an Aspose.Pdf.Document instance\nvar zugferd = new ZUGFeRD();\nzugferd.AttachZUGFeRD(pdfDocument, \"invoice.xml\");\n\n// Inside ZUGFeRD.AttachZUGFeRD implementation:\n// var fileSpec = new FileSpecification(xmlPath, \"ZUGFeRD Invoice XML\")\n// {\n//     AFRelationship = Aspose.Pdf.AFRelationship.Data\n// };\n// pdfDocument.EmbeddedFiles.Add(fileSpec);",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'AttachZUGFeRD' and no accessible extension method 'AttachZUGFeRD' accepting a first argument of type 'Document' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774988946.533727,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-linq-firstordefault-on-embeddedfiles": {
+    "note": "Query Document.EmbeddedFiles with LINQ (FirstOrDefault) instead of using Contains or a foreach over EmbeddedFile, and ensure System.Linq is imported.",
+    "code": "var match = document.EmbeddedFiles.FirstOrDefault(ef => ef.Name != null && ef.Name.IndexOf(\"ZUGFeRD\", StringComparison.OrdinalIgnoreCase) >= 0);\nif (match != null)\n{\n    document.EmbeddedFiles.Delete(match.Name);\n}",
+    "errors": [
+      "EmbeddedFileCollection does not contain a definition for 'Contains'",
+      "The type or namespace name 'EmbeddedFile' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774989310.089906,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-javascriptaction-for-document-openaction": {
+    "note": "Assign a document‑level JavaScript action via the OpenAction property using Aspose.Pdf.Annotations.JavascriptAction (note the lowercase 's') and import the Aspose.Pdf.Annotations namespace.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Annotations;\n\nDocument doc = new Document();\nstring js = \"var expiry = new Date('2025-12-31'); if (new Date() > expiry) { app.alert('Expired'); this.closeDoc(); }\";\ndoc.OpenAction = new JavascriptAction(js);",
+    "errors": [
+      "The type or namespace name 'JavaScriptAction' could not be found (incorrect class name)",
+      "Missing Aspose.Pdf.Annotations namespace when assigning a JavaScript action"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774989652.8378549,
+    "_hit_count": 0,
+    "_stage": "final_llm",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-javascriptaction-for-page-open": {
+    "note": "Use Aspose.Pdf.Annotations.JavascriptAction (correct spelling) and assign it to Page.Actions.OnOpen to add page‑level JavaScript.",
+    "code": "using Aspose.Pdf;\nusing Aspise.Pdf.Annotations;\n...\nPage page = document.Pages[pageNumber];\nJavascriptAction js = new JavascriptAction(\"app.alert('You have reached page ' + pageNumber + '.');\");\npage.Actions.OnOpen = js;",
+    "errors": [
+      "CS0234: The type or namespace name 'JavaScriptAction' does not exist in the namespace 'Aspose.Pdf.Annotations'",
+      "Attempting to add JavaScript via an invisible annotation instead of using the page's Actions.OnOpen property"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774989851.688339,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-widgetannotation-actions-oncalculate-for-javascript": {
+    "note": "Reference Aspose.Pdf.Annotations and attach JavaScript to a form field by casting it to WidgetAnnotation and assigning a JavascriptAction to its Actions.OnCalculate property.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Annotations;\nusing Aspose.Pdf.Forms;\n\nDocument doc = new Document(\"input.pdf\");\nForm form = doc.Form;\nWidgetAnnotation totalAnnot = form[\"Total\"] as WidgetAnnotation;\nif (totalAnnot != null)\n{\n    totalAnnot.Actions.OnCalculate = new JavascriptAction(\"var total = 0; /* calculation script */ event.value = total;\");\n}",
+    "errors": [
+      "CS0234: The type or namespace name 'JavaScriptAction' does not exist in the namespace 'Aspose.Pdf.Annotations' (are you missing an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774989999.6094,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-document-javascript-indexer": {
+    "note": "Add document‑level JavaScript by assigning a script string to the Document.JavaScript collection with a key, rather than setting the JavaScript property to a JavaScriptAction object.",
+    "code": "doc.JavaScript[\"AutoSave\"] = \"app.setInterval('this.saveAs({cPath:\\\\\"output.pdf\\\\\"});', 10000);\";",
+    "errors": [
+      "Assigning a JavaScriptAction to Document.JavaScript (e.g., doc.JavaScript = new JavaScriptAction(...))",
+      "Using the JavaScript property instead of the named JavaScript collection prevents the script from being embedded correctly"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774990129.1706061,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-fillstroke-operator": {
+    "note": "Replace non‑existent FillOperator/StrokeOperator with the combined FillStroke operator to fill and stroke a path",
+    "code": "using Aspose.Pdf.Operators;\n\n// after constructing the path\npage.Contents.Add(new FillStroke());",
+    "errors": [
+      "CS0246: The type or namespace name 'FillOperator' could not be found",
+      "CS0246: The type or namespace name 'StrokeOperator' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774990249.312721,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-page-contents-operatorcollection": {
+    "note": "In recent Aspose.PDF versions the page's operator collection is accessed via the `Contents` property, not `Operators`.",
+    "code": "foreach (Page page in doc.Pages)\n{\n    for (int i = 1; i <= page.Contents.Count; i++)\n    {\n        Operator op = page.Contents[i];\n        // use op as needed, e.g. modify SetLineWidth\n    }\n}",
+    "errors": [
+      "CS1061: 'Page' does not contain a definition for 'Operators' and no accessible extension method 'Operators' accepting a first argument of type 'Page' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774990321.604206,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-graph-double-constructor-and-margininfo": {
+    "note": "Instantiate Graph with double parameters and set its margin using MarginInfo instead of the obsolete Margin class",
+    "code": "Graph graph = new Graph(500.0, 400.0);\ngraph.Margin = new MarginInfo(50, 50, 50, 50);",
+    "errors": [
+      "CS0618: 'Graph.Graph(float, float)' is obsolete – use the double constructor instead",
+      "CS0246: The type or namespace name 'Margin' could not be found – use MarginInfo for graph margins"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774990562.724031,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-drawing-rectangle-and-double-graph-dimensions": {
+    "note": "Create rectangle shapes with Aspose.Pdf.Drawing.Rectangle (which exposes GraphInfo) and pass double values to the Graph constructor, since the float overload is obsolete.",
+    "code": "double graphWidth = 250.0;\ndouble graphHeight = 350.0;\nvar graph = new Graph(graphWidth, graphHeight);\nvar rect = new Aspose.Pdf.Drawing.Rectangle(0, 0, 200, 100);\nrect.GraphInfo = new GraphInfo { FillColor = Color.LightGray };\ngraph.Shapes.Add(rect);",
+    "errors": [
+      "'Rectangle' does not contain a definition for 'GraphInfo' and no accessible extension method 'GraphInfo' accepting a first argument of type 'Rectangle' could be found",
+      "Argument 1: cannot convert from 'Aspose.Pdf.Rectangle' to 'Aspose.Pdf.Drawing.Shape'",
+      "Constructor Graph(float, float) is obsolete: 'Constructor is deprecated. Please use constructor with double instead'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774990721.500423,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-file-specification-properties-for-attachments": {
+    "note": "When enumerating PDF attachments, use FileSpecification.Name and FileSpecification.Params.Size (or read the Contents stream) instead of non‑existent File or EmbeddedFile members.",
+    "code": "EmbeddedFileCollection attachments = document.EmbeddedFiles;\nfor (int i = 1; i <= attachments.Count; i++)\n{\n    FileSpecification spec = attachments[i];\n    string name = spec.Name;\n    long size = spec.Params != null ? spec.Params.Size : 0;\n    // or, if Params is null, read spec.Contents stream to determine size\n    Console.WriteLine($\"{name} - {size} bytes\");\n}",
+    "errors": [
+      "CS1061: 'FileSpecification' does not contain a definition for 'File'",
+      "CS1061: 'FileSpecification' does not contain a definition for 'EmbeddedFile'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774991132.0783098,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-getsignaturenames-instead-of-getsignames": {
+    "note": "Use PdfFileSignature.GetSignatureNames(bool onlyActive) which returns IList<SignatureName> and pass the signature's Name (string) to verification methods, instead of the obsolete GetSignNames that returns IList<string>.",
+    "code": "PdfFileSignature pdfSignature = new PdfFileSignature();\npdfSignature.BindPdf(pdfPath);\nIList<SignatureName> signNames = pdfSignature.GetSignatureNames(true);\nstring sigName = signNames[0].Name; // use .Name property\nbool isSigned = pdfSignature.VerifySigned(sigName);\nbool isValid = pdfSignature.VerifySignature(sigName);",
+    "errors": [
+      "CS0266: Cannot implicitly convert type 'System.Collections.Generic.IList<string>' to 'System.Collections.Generic.IList<Aspose.Pdf.Facades.SignatureName>'.",
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Facades.SignatureName' to 'string'.",
+      "CS0618: 'PdfFileSignature.GetSignNames(bool)' is obsolete."
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774991658.131243,
+    "_hit_count": 0,
+    "_stage": "final_llm",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "embed-all-parts-into-html": {
+    "note": "Set HtmlSaveOptions.PartsEmbeddingMode to EmbedAllIntoHtml and disable page splitting to embed images, fonts and CSS as base64 data URIs in a single HTML file.",
+    "code": "HtmlSaveOptions options = new HtmlSaveOptions {\n    PartsEmbeddingMode = HtmlSaveOptions.PartsEmbeddingModes.EmbedAllIntoHtml,\n    SplitIntoPages = false\n};\npdfDocument.Save(\"output.html\", options);",
+    "errors": [
+      "Images, fonts or CSS are saved as external files instead of being embedded in the HTML"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774991720.549812,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-pdffileeditor-concatenate-for-merge": {
+    "note": "Use PdfFileEditor.Concatenate to merge multiple PDFs while preserving bookmarks and outline hierarchy instead of the non‑existent MergeOptions class.",
+    "code": "using Aspose.Pdf.Facades;\n\nPdfFileEditor editor = new PdfFileEditor();\neditor.Concatenate(pdfFilesArray, outputPath);",
+    "errors": [
+      "CS0246: The type or namespace name 'MergeOptions' could not be found (are you missing a using directive or an assembly reference?)",
+      "CS0246: The type or namespace name 'MergeOptions' could not be found (are you missing a using directive or an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774991813.698496,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "importfromjson-accepts-json-string": {
+    "note": "Pass a JSON string to Document.Form.ImportFromJson; read the file content first instead of passing the file path.",
+    "code": "string json = File.ReadAllText(\"data.json\");\ndocument.Form.ImportFromJson(json);",
+    "errors": [
+      "Argument type mismatch when passing a file path to ImportFromJson (expects a JSON string)",
+      "Runtime error or unexpected behavior when ImportFromJson receives an invalid argument"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774991977.505378,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-pdfviewer-printdocumentwithsettings-for-range-and-duplex": {
+    "note": "Use Aspose.Pdf.Printing.PrinterSettings and PageSettings with PdfViewer.PrintDocumentWithSettings to print a specific page range, duplex mode, and custom paper size.",
+    "code": "using Aspose.Pdf.Facades;\nusing Aspose.Pdf.Printing;\nusing Aspose.Pdf.Devices;\n\nPdfViewer viewer = new PdfViewer();\nviewer.BindPdf(\"input.pdf\");\n\nPrinterSettings printerSettings = new PrinterSettings();\nprinterSettings.PrinterUri = new Uri(\"http://printerserver/printername\");\nprinterSettings.FromPage = 2;\nprinterSettings.ToPage = 5;\nprinterSettings.PrintRange = PrintRange.SomePages;\nprinterSettings.Duplex = Duplex.Horizontal;\n\nPageSettings pageSettings = new PageSettings(printerSettings);\npageSettings.PaperSize = new PaperSize(\"A4\", 827, 1169); // hundredths of an inch\npageSettings.Margins = new Margins(0, 0, 0, 0);\n\nviewer.PrintDocumentWithSettings(pageSettings, printerSettings);",
+    "errors": [
+      "CS1501: No overload for method 'PrintDocument' takes 3 arguments"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774992097.9410381,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-javascriptaction-onpressmousebtn": {
+    "note": "Assign JavaScript to a checkbox using the `JavascriptAction` class and the `OnPressMouseBtn` action (instead of the non‑existent `OnMouseUp` and `JavaScriptAction`).",
+    "code": "CheckboxField cb = new CheckboxField(page, rect);\nJavascriptAction js = new JavascriptAction(\"var f = this.getField('TargetField'); if (event.target.value == 'Off') { f.display = display.hidden; } else { f.display = display.visible; }\");\ncb.Actions.OnPressMouseBtn = js;",
+    "errors": [
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnMouseUp'",
+      "CS0234: The type or namespace name 'JavaScriptAction' does not exist in the namespace 'Aspose.Pdf.Annotations'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774992225.263037,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-operator-classes-gsave-grestore-concatenatematrix": {
+    "note": "When inserting low‑level PDF operators, use the Aspose.Pdf.Operators classes (e.g., GSave, GRestore, ConcatenateMatrix) instead of undefined lowercase names like q, Q, cm.",
+    "code": "OperatorCollection oc = page.Contents;\noc.Insert(0, new GSave());               // saves graphics state (\"q\")\noc.Insert(1, new ConcatenateMatrix(a, b, c, d, e, f)); // sets transformation matrix (\"cm\")\noc.Insert(2, new Do(imageName));          // draws the image (\"Do\")\noc.Insert(3, new GRestore());            // restores graphics state (\"Q\")",
+    "errors": [
+      "CS0246: The type or namespace name 'q' could not be found",
+      "CS0246: The type or namespace name 'cm' could not be found",
+      "CS0246: The type or namespace name 'Q' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 1.0,
+    "_created_at": 1774992302.751541,
+    "_hit_count": 7,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-maxresolution-in-imagecompressionoptions": {
+    "note": "When configuring image compression via OptimizationOptions, set the DPI limit using ImageCompressionOptions.MaxResolution (not ImageResolution) and configure other image settings through ImageCompressionOptions.",
+    "code": "var options = new OptimizationOptions();\noptions.ImageCompressionOptions.CompressImages = true;\noptions.ImageCompressionOptions.ImageQuality = 75; // 0‑100\noptions.ImageCompressionOptions.ResizeImages = true;\noptions.ImageCompressionOptions.MaxResolution = 150; // DPI limit",
+    "errors": [
+      "CS1061: 'ImageCompressionOptions' does not contain a definition for 'ImageResolution'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774992553.5979788,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-document-validate-for-pdfa-compliance": {
+    "note": "Validate PDF/A compliance with Document.Validate(string logPath, PdfFormat format) which returns a bool, instead of using PdfSaveOptions.ConformanceLevel, PdfAConformanceLevel, or the non‑existent ValidationResult type.",
+    "code": "using Aspose.Pdf;\n...\nusing (Document doc = new Document(inputPath))\n{\n    // ... modify document ...\n    bool isValid = doc.Validate(\"validation.xml\", PdfFormat.PDF_A_1B);\n    Console.WriteLine(isValid ? \"PDF/A validation succeeded\" : \"PDF/A validation failed\");\n    Console.WriteLine($\"IsPdfaCompliant: {doc.IsPdfaCompliant}\");\n}",
+    "errors": [
+      "'PdfSaveOptions' does not contain a definition for 'ConformanceLevel'",
+      "The name 'PdfAConformanceLevel' does not exist in the current context",
+      "The type or namespace name 'ValidationResult' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774992661.017314,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-reflection-for-embedded-files": {
+    "note": "When accessing embedded files in a PDF, avoid compile‑time dependency on a specific Aspose.Pdf class (e.g., EmbeddedFile) and use reflection to read the Name property and invoke the Save method or fallback to the FileSpecification stream.",
+    "code": "var xmlEmbeddedFile = (object)null;\nforeach (var embedded in pdfDocument.EmbeddedFiles)\n{\n    var nameProp = embedded.GetType().GetProperty(\"Name\");\n    if (nameProp != null)\n    {\n        var name = nameProp.GetValue(embedded) as string;\n        if (!string.IsNullOrEmpty(name) && name.EndsWith(\".xml\", StringComparison.OrdinalIgnoreCase))\n        {\n            xmlEmbeddedFile = embedded;\n            break;\n        }\n    }\n}\n\nvar saveMethod = xmlEmbeddedFile?.GetType().GetMethod(\"Save\", new[] { typeof(string) });\nif (saveMethod != null)\n    saveMethod.Invoke(xmlEmbeddedFile, new object[] { outputXmlPath });\nelse\n{\n    var fileSpec = xmlEmbeddedFile.GetType().GetProperty(\"FileSpecification\")?.GetValue(xmlEmbeddedFile);\n    var contents = fileSpec?.GetType().GetProperty(\"Contents\")?.GetValue(fileSpec) as Stream;\n    using (var outStream = File.Create(outputXmlPath))\n        contents?.CopyTo(outStream);\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'EmbeddedFile' could not be found",
+      "CS0246: The type or namespace name 'EmbeddedFile' could not be found (second occurrence)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774992709.501917,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "guard-pdf-save-on-non-windows": {
+    "note": "Avoid calling Document.Save on platforms without GDI+ (e.g., macOS/Linux) by checking the OS at runtime before saving the PDF.",
+    "code": "using System.Runtime.InteropServices;\n...\nif (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))\n{\n    pdfDoc.Save(\"output.pdf\");\n}\nelse\n{\n    Console.WriteLine(\"PDF saving requires GDI+ on non‑Windows platforms. Skipping save.\");\n}",
+    "errors": [
+      "System.TypeInitializationException: The type initializer for 'System.Drawing.Gdip' threw an exception.",
+      "DllNotFoundException: Unable to load shared library 'gdiplus.dll' on non‑Windows platforms."
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774992851.086587,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-openaction-javascriptaction-instead-of-javascriptcollection-add": {
+    "note": "Assign a JavascriptAction to Document.OpenAction instead of trying to add scripts to the non‑existent JavaScriptCollection.",
+    "code": "document.OpenAction = new JavascriptAction(\"app.hideToolbar(); app.hideMenuBar();\");",
+    "errors": [
+      "CS1061: 'JavaScriptCollection' does not contain a definition for 'Add' and no accessible extension method 'Add' accepting a first argument of type 'JavaScriptCollection' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774993119.473037,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-form-autorecalculate-instead-of-recalculate": {
+    "note": "Enable automatic field recalculation by setting Document.Form.AutoRecalculate = true (there is no Form.Recalculate method).",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\n// after creating the document and adding fields\nDocument doc = new Document();\n// ... add fields to doc.Form ...\n\ndoc.Form.AutoRecalculate = true; // enables automatic JavaScript calculations",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'Recalculate' and no accessible extension method 'Recalculate' accepting a first argument of type 'Form' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774993303.375423,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "enumerate-javascript-actions-via-reflection": {
+    "note": "Access document‑ and page‑level JavaScript actions by reflecting over the properties of DocumentActionCollection/PageActionCollection and read the script via JavascriptAction.Script",
+    "code": "DocumentActionCollection docActions = doc.Actions;\nforeach (var prop in docActions.GetType().GetProperties())\n{\n    if (prop.GetValue(docActions) is JavascriptAction jsAction)\n        Console.WriteLine($\"{prop.Name}: {jsAction.Script}\");\n}",
+    "errors": [
+      "CS1061: 'JavascriptAction' does not contain a definition for 'JavaScript' and no accessible extension method 'JavaScript' accepting a first argument of type 'JavascriptAction' could be found",
+      "CS1061: 'DocumentActionCollection' does not contain a definition for 'OnOpen' (or other specific action properties) and no accessible extension method could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774993419.410678,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-filespecification-embeddedfiles-instead-of-attachment": {
+    "note": "Use FileSpecification and Document.EmbeddedFiles to embed a file (optionally via a stream) instead of the non‑existent Attachment class and Document.Attachments collection.",
+    "code": "var fileSpec = new FileSpecification(filePath, Path.GetFileName(filePath));\nfileSpec.Contents = new MemoryStream(File.ReadAllBytes(filePath));\ndoc.EmbeddedFiles.Add(fileSpec);",
+    "errors": [
+      "CS0246: The type or namespace name 'Attachment' could not be found",
+      "CS1061: 'Document' does not contain a definition for 'Attachments'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774993577.60771,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-textfragment-for-tocinfo-title": {
+    "note": "Assign a TextFragment instance to TocInfo.Title instead of a plain string",
+    "code": "TocInfo tocInfo = new TocInfo {\n    Title = new TextFragment(\"Table of Contents\"),\n    // other properties\n};",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'string' to 'Aspose.Pdf.Text.TextFragment' when assigning to TocInfo.Title"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774994221.159447,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-javascriptaction-openaction": {
+    "note": "Assign a JavascriptAction to Document.OpenAction (and import Aspose.Pdf.Annotations) instead of using a non‑existent JavaScriptCollection.Add method.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Annotations;\n\nDocument doc = new Document(inputPath);\nstring js = \"app.setTimeOut('this.closeDoc();', 5000);\";\ndoc.OpenAction = new JavascriptAction(js);",
+    "errors": [
+      "CS0246: The type or namespace name 'JavaScript' could not be found",
+      "CS1061: 'JavaScriptCollection' does not contain a definition for 'Add'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774994469.9338298,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "move-page-using-insert-delete": {
+    "note": "Since Aspose.Pdf's PageCollection lacks a Move method, reposition a page by inserting it at the target index and then deleting its original occurrence.",
+    "code": "Page pageToMove = document.Pages[sourceIndex];\n// Insert before the target position (1‑based index)\ndocument.Pages.Insert(targetIndex, pageToMove);\n// Delete the page's original position (adjusted after insertion)\nint deleteIndex = sourceIndex >= targetIndex ? sourceIndex + 1 : sourceIndex;\ndocument.Pages.Delete(deleteIndex);",
+    "errors": [
+      "CS1061: 'PageCollection' does not contain a definition for 'Move' and no accessible extension method 'Move' accepting a first argument of type 'PageCollection' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774994615.001055,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Pages"
+  },
+  "use-pages-insert-with-sourcepage-to-duplicate": {
+    "note": "To duplicate a page, use the Document.Pages.Insert overload that takes the target index and the source Page instead of creating an XForm/XFormFragment.",
+    "code": "Page thirdPage = doc.Pages[3]; // 1‑based index\n// Insert a copy of the third page after it (position 4)\ndoc.Pages.Insert(4, thirdPage);",
+    "errors": [
+      "CS0246: The type or namespace name 'XFormFragment' could not be found",
+      "CS0246: The type or namespace name 'XForm' could not be found (when used for page duplication)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774994728.9580832,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Pages"
+  },
+  "use-rotate-property-instead-of-rotation": {
+    "note": "Use the Page.Rotate property with the Rotation enum (e.g., Rotation.on90, Rotation.None) instead of a non‑existent Page.Rotation property.",
+    "code": "Page page = doc.Pages[i];\npage.Rotate = Rotation.on90; // or Rotation.None",
+    "errors": [
+      "CS1061: 'Page' does not contain a definition for 'Rotation' and no accessible extension method 'Rotation' accepting a first argument of type 'Page' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774994794.3395112,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Pages"
+  },
+  "use-imagescalefactor-instead-of-zoom": {
+    "note": "When scaling a WatermarkArtifact, use the ImageScaleFactor property (or set it via reflection for older versions) instead of the non‑existent Zoom property, and include the Aspose.Pdf.Annotations namespace.",
+    "code": "using Aspose.Pdf.Annotations;\n\nWatermarkArtifact artifact = new WatermarkArtifact();\nartifact.SetImage(imagePath);\nartifact.Rotation = 45; // rotate 45°\n// Preferred API (newer versions)\nartifact.ImageScaleFactor = 0.5f; // half‑page size\n// For older versions, set via reflection if ImageScaleFactor is unavailable.\n",
+    "errors": [
+      "CS1061: 'WatermarkArtifact' does not contain a definition for 'Zoom'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774995402.762281,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Pages"
+  },
+  "use-imagestamp-for-watermark-grid": {
+    "note": "Use ImageStamp (with XIndent/YIndent and Background) instead of WatermarkArtifact/Position for placing image watermarks on a page.",
+    "code": "ImageStamp stamp = new ImageStamp(imagePath) {\n    XIndent = x,\n    YIndent = y,\n    Width = 100,   // optional size\n    Height = 100,  // optional size\n    Opacity = 0.3f,\n    Background = true\n};\npage.AddStamp(stamp);",
+    "errors": [
+      "CS0246: The type or namespace name 'Position' could not be found",
+      "Using WatermarkArtifact which does not expose positioning properties in recent Aspose.Pdf versions"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774995457.075152,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Pages"
+  },
+  "set-opacity-on-artifact-not-textstate": {
+    "note": "Do not set Opacity on TextState; use the Artifact's Opacity property to control watermark transparency.",
+    "code": "TextState ts = new TextState();\n// ts.Opacity = 0.3f; // <-- invalid\nWatermarkArtifact wa = new WatermarkArtifact();\nwa.SetTextAndState(\"Watermark\", ts);\nwa.Opacity = 0.3f; // correct way",
+    "errors": [
+      "CS1061: 'TextState' does not contain a definition for 'Opacity'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774995477.473541,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Pages"
+  },
+  "use-pdf-point-for-watermark-position": {
+    "note": "Assign a WatermarkArtifact.Position using Aspose.Pdf.Point, not Aspose.Pdf.Text.Position",
+    "code": "WatermarkArtifact watermark = new WatermarkArtifact();\nwatermark.Position = new Aspose.Pdf.Point(x, y); // correct type",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'Aspose.Pdf.Text.Position' to 'Aspose.Pdf.Point'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774995500.013385,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Pages"
+  },
+  "use-rgb-for-hsl-colors": {
+    "note": "Aspose.Pdf.Color does not provide a FromHsl method; convert HSL to RGB yourself and create the color with Color.FromRgb (values in 0‑1 range).",
+    "code": "double hue = 200.0, saturation = 0.5, luminance = 0.8;\n(int r, int g, int b) = HslToRgb(hue, saturation, luminance);\nAspose.Pdf.Color color = Aspose.Pdf.Color.FromRgb(r / 255.0, g / 255.0, b / 255.0);",
+    "errors": [
+      "CS0117: 'Color' does not contain a definition for 'FromHsl'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774995608.22814,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Pages"
+  },
+  "use-individual-margins-for-pagenumberstamp": {
+    "note": "PageNumberStamp does not expose a combined Margin property; set margins using the LeftMargin, RightMargin, BottomMargin, and TopMargin properties instead.",
+    "code": "PageNumberStamp stamp = new PageNumberStamp(\"#/#\");\nstamp.LeftMargin = 0;\nstamp.RightMargin = 0;\nstamp.BottomMargin = 20; // distance from bottom edge\nstamp.TopMargin = 0;",
+    "errors": [
+      "CS1061: 'PageNumberStamp' does not contain a definition for 'Margin'",
+      "CS0246: The type or namespace name 'Margin' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774995706.0493062,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Pages"
+  },
+  "avoid-textstate-textrise-use-bottommargin": {
+    "note": "Do not use the non‑existent TextState.TextRise property; achieve superscript positioning by adjusting the stamp's BottomMargin (or other vertical offset) instead.",
+    "code": "PageNumberStamp stamp = new PageNumberStamp();\nstamp.BottomMargin = 12; // lower margin raises the text\nstamp.TextState.FontSize = 8; // smaller font for superscript look\n// No TextState.TextRise usage",
+    "errors": [
+      "CS1061: 'TextState' does not contain a definition for 'TextRise' and no accessible extension method 'TextRise' accepting a first argument of type 'TextState' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774995736.580996,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Pages"
+  },
+  "use-page-header-footer-instead-of-headerfootersettings": {
+    "note": "Assign a HeaderFooter object directly to each Page's Header and Footer properties (do not use Document.HeaderFooterSettings or cast to Header/Footer).",
+    "code": "HeaderFooter header = new HeaderFooter();\nheader.Paragraphs.Add(new TextFragment(\"Header\"));\nHeaderFooter footer = new HeaderFooter();\nfooter.Paragraphs.Add(new TextFragment(\"Footer\"));\nforeach (Page page in doc.Pages)\n{\n    page.Header = header;   // replace existing header\n    page.Footer = footer;   // replace existing footer\n}\n// optional: update pagination placeholders\ndoc.Pages.UpdatePagination();",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'Aspose.Pdf.HeaderFooter' to 'Aspose.Pdf.Header'",
+      "CS0029: Cannot implicitly convert type 'Aspose.Pdf.HeaderFooter' to 'Aspose.Pdf.Footer'",
+      "CS1061: 'Document' does not contain a definition for 'HeaderFooterSettings'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774996074.398599,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Pages"
+  },
+  "use-xindent-yindent-instead-of-margin-for-imagestamp": {
+    "note": "ImageStamp does not expose a Margin property; set horizontal and vertical offsets with XIndent and YIndent instead.",
+    "code": "ImageStamp stamp = new ImageStamp(\"logo.png\");\nstamp.XIndent = 10f; // left offset in points\n// stamp.YIndent = 0f; // optional top offset (default is 0)",
+    "errors": [
+      "CS1061: 'ImageStamp' does not contain a definition for 'Margin' and no accessible extension method 'Margin' accepting a first argument of type 'ImageStamp' could be found",
+      "CS0246: The type or namespace name 'Margin' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774996231.80001,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Pages"
+  },
+  "cast-form-indexer-to-field": {
+    "note": "When accessing a form field via Document.Form[\"fieldName\"], cast the returned WidgetAnnotation to Aspose.Pdf.Forms.Field (or a specific subclass) instead of using WidgetAnnotation directly.",
+    "code": "Form form = doc.Form;\nField field = form[\"MyField\"] as Field; // safe cast to Field or subclass",
+    "errors": [
+      "CS0246: The type or namespace name 'WidgetAnnotation' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774996458.8382561,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "use-facade-form-exportxml": {
+    "note": "To export PDF form fields to XML, use Aspose.Pdf.Facades.Form, bind the PDF with BindPdf, and call ExportXml on a writable stream.",
+    "code": "using Aspose.Pdf.Facades;\n\nusing (Form form = new Form())\n{\n    form.BindPdf(\"input.pdf\");\n    using (FileStream fs = new FileStream(\"form_fields.xml\", FileMode.Create, FileAccess.Write))\n    {\n        form.ExportXml(fs);\n    }\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'ExportXml' (when using Aspose.Pdf.Document.Form)",
+      "CS1061: 'Form' does not contain a definition for 'ExportXml' (missing Facade namespace)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774996632.8098938,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Parse PDF"
+  },
+  "use-form-facade-for-exportfdf": {
+    "note": "Use Aspose.Pdf.Facades.Form to export PDF form data to FDF; bind the Document to the Form facade before calling ExportFdf.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nusing (Document doc = new Document(pdfPath))\nusing (FileStream fdfStream = new FileStream(fdfPath, FileMode.Create, FileAccess.Write))\n{\n    Form formFacade = new Form();\n    formFacade.BindPdf(doc);\n    formFacade.ExportFdf(fdfStream);\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'ExportFdf' and no accessible extension method 'ExportFdf' accepting a first argument of type 'Form' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774996665.791743,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "use-form-facade-for-exportxfdf": {
+    "note": "Use Aspose.Pdf.Facades.Form to export AcroForm fields to XFDF; bind the PDF document first and call ExportXfdf on the facade.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument pdf = new Document(\"input.pdf\");\nusing (Form form = new Form())\n{\n    form.BindPdf(pdf);\n    using (FileStream fs = new FileStream(\"fields.xfdf\", FileMode.Create, FileAccess.Write))\n    {\n        form.ExportXfdf(fs);\n    }\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'ExportXfdf' (when called on Document.Form)",
+      "Missing method ExportXfdf on Aspose.Pdf.Forms.Form class"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774996688.754314,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "check-form-fields-collection-before-iteration": {
+    "note": "Before iterating over a PDF's form fields, verify that the Form and its Fields collection are not null and use LINQ Any() (or Count()) because Fields.Count is a method, not a property.",
+    "code": "using System.Linq;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nDocument doc = new Document(pdfPath);\nvar form = doc?.Form;\nif (form?.Fields == null || !form.Fields.Any())\n    return new Dictionary<string, string>(); // no fields\nforeach (Field field in form.Fields)\n{\n    // process field\n}",
+    "errors": [
+      "CS1061: 'FieldCollection' does not contain a definition for 'Count' and no accessible extension method 'Count' accepting a first argument of type 'FieldCollection' could be found (Fields.Count is a method, not a property).",
+      "NullReferenceException when document.Form or document.Form.Fields is null."
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774996933.210885,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "use-exporttojson-instead-of-exportformfieldstojson": {
+    "note": "Use Form.ExportToJson to export PDF form fields to JSON (the older ExportFormFieldsToJson method does not exist)",
+    "code": "using (MemoryStream ms = new MemoryStream())\n{\n    document.Form.ExportToJson(ms);\n}",
+    "errors": [
+      "'Form' does not contain a definition for 'ExportFormFieldsToJson'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774996981.8385339,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "use-form-fields-collection-instead-of-getfieldvalue": {
+    "note": "Access form fields via Document.Form.Fields and read each Field's Value property instead of calling the non‑existent Form.GetFieldValue method.",
+    "code": "Form form = document.Form;\nforeach (Field field in form.Fields)\n{\n    string name = field.Name ?? field.FullName;\n    string value = field.Value?.ToString() ?? string.Empty;\n    Console.WriteLine($\"Field: {name}, Value: {value}\");\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'GetFieldValue' and no accessible extension method 'GetFieldValue' accepting a first argument of type 'Form' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997031.212394,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "iterate-form-fields-using-field-type": {
+    "note": "Use the Aspose.Pdf.Forms namespace and iterate over Document.Form.Fields with the Field class instead of WidgetAnnotation.",
+    "code": "using Aspose.Pdf.Forms;\n...\nForm pdfForm = doc.Form;\nforeach (Field field in pdfForm.Fields)\n{\n    string name = field.FullName ?? field.Name ?? string.Empty;\n    string value = field.Value?.ToString() ?? string.Empty;\n    // process field\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'Form' could not be found",
+      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Value'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997079.75261,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "iterate-form-fields-via-formfields-collection": {
+    "note": "Iterate over Document.Form.Fields (FormField objects) instead of treating the Form as a collection of WidgetAnnotation; include Aspose.Pdf.Forms namespace.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nvar form = doc.Form;\nforeach (var field in form.Fields)\n{\n    string name = field.PartialName;\n    string dotNetType = field.GetType().Name;\n    // process field\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'Form' could not be found (are you missing a using directive or an assembly reference?)",
+      "CS1061: 'WidgetAnnotation' does not contain a definition for 'PartialName' and no accessible extension method 'PartialName' accepting a first argument of type 'WidgetAnnotation' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997114.777441,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "use-form-facade-exportxml": {
+    "note": "Use Aspose.Pdf.Facades.Form to bind a PDF and call ExportXml(stream) for exporting form data as XML.",
+    "code": "using Aspose.Pdf.Facades;\n\nForm form = new Form();\nform.BindPdf(\"input.pdf\");\nusing (MemoryStream xmlStream = new MemoryStream())\n{\n    form.ExportXml(xmlStream);\n    // read from xmlStream as needed\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'ExportXfa' (or 'ExportXml') when accessing Document.Form",
+      "Missing method error when trying to export form data directly from Document.Form"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997168.433882,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Parse PDF"
+  },
+  "use-exportannotationstoxfdf": {
+    "note": "Call Document.ExportAnnotationsToXfdf(stream) directly instead of Document.Form.ExportXfdf, and wrap the FileStream in a using block.",
+    "code": "using (var doc = new Document(inputPdf))\nusing (var stream = new FileStream(xfdfPath, FileMode.Create, FileAccess.Write))\n{\n    doc.ExportAnnotationsToXfdf(stream);\n}",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'ExportXfdf' and no accessible extension method 'ExportXfdf' accepting a first argument of type 'Document' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997255.123915,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Parse PDF"
+  },
+  "count-widget-annotations-for-form-fields": {
+    "note": "Count form fields on a page by iterating over `page.Annotations` and selecting `WidgetAnnotation` instances instead of using the deprecated `Form` class.",
+    "code": "int fieldCount = 0;\nforeach (Annotation annotation in page.Annotations)\n{\n    if (annotation is WidgetAnnotation)\n        fieldCount++;\n}",
+    "errors": [
+      "CS1061: 'Annotation' does not contain a definition for 'PageNumber' (or other members that are not part of the Annotation class)",
+      "Use of `Form` class from Aspose.Pdf.Facades for field counting, which is not compatible with the current API"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997299.4145331,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Parse PDF"
+  },
+  "use-graphicsabsorber-for-subpaths": {
+    "note": "Import Aspose.Pdf.Vector and use the GraphicsAbsorber class (not VectorGraphicsAbsorber) to capture graphic elements on a page.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Vector;\n\n// ...\nPage page = document.Pages[1];\nusing (GraphicsAbsorber absorber = new GraphicsAbsorber())\n{\n    absorber.Visit(page);\n    foreach (GraphicElement element in absorber.Elements)\n    {\n        SubPath subPath = element as SubPath;\n        // process subPath\n    }\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'GraphicsAbsorber' could not be found (are you missing a using directive or an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997421.4038389,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Parse PDF"
+  },
+  "import-aspose-pdf-devices-for-resolution-and-rasterization": {
+    "note": "Add `using Aspose.Pdf.Devices;` and use its `Resolution` class together with an image device (e.g., `PngDevice`) to rasterize a PDF page at a specific DPI.",
+    "code": "using Aspose.Pdf.Devices;\n\nResolution resolution = new Resolution(300);\nPngDevice pngDevice = new PngDevice(resolution);\npngDevice.Process(page, \"output.png\");",
+    "errors": [
+      "CS0246: The type or namespace name 'Resolution' could not be found",
+      "CS0246: The type or namespace name 'PngDevice' could not be found (when not importing Aspose.Pdf.Devices)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997444.584186,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "extract-stamp-annotation-text": {
+    "note": "Iterate over each page's Annotations, filter for StampAnnotation, and read its Title (fallback to Subject) to obtain the stamp's displayed text.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Annotations;\n\nDocument doc = new Document(\"input.pdf\");\nvar stampTexts = new List<string>();\nforeach (Page page in doc.Pages)\n{\n    foreach (Annotation annot in page.Annotations)\n    {\n        if (annot is StampAnnotation stamp)\n        {\n            string text = !string.IsNullOrEmpty(stamp.Title) ? stamp.Title :\n                          !string.IsNullOrEmpty(stamp.Subject) ? stamp.Subject : null;\n            if (!string.IsNullOrEmpty(text))\n                stampTexts.Add(text);\n        }\n    }\n}",
+    "errors": [
+      "Using TextAbsorber to get stamp text returns empty or unrelated content",
+      "Missing extraction of stamp annotation text from PDF"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997602.748807,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "use-absolute-path-with-triesavevectorgraphics": {
+    "note": "Pass a fully qualified file path to Page.TrySaveVectorGraphics (and avoid changing the current directory) to ensure the SVG is saved correctly.",
+    "code": "string svgPath = Path.Combine(outputDir, $\"{baseName}_page{pageIndex}.svg\");\npage.TrySaveVectorGraphics(svgPath);",
+    "errors": [
+      "System.IO.DirectoryNotFoundException when using relative input/output paths",
+      "Page.TrySaveVectorGraphics fails if the current working directory has been changed"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997838.2635572,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "remove-aspdf-saving-namespace-for-svgsaveoptions": {
+    "note": "Do not import Aspose.Pdf.Saving; SvgSaveOptions is defined directly in the Aspose.Pdf namespace.",
+    "code": "using Aspose.Pdf;\n\n// ...\nSvgSaveOptions svgOptions = new SvgSaveOptions {\n    ScaleToPixels = true,\n    IsMultiThreading = true\n};\npdfDocument.Save(\"output.svg\", svgOptions);",
+    "errors": [
+      "CS0234: The type or namespace name 'Saving' does not exist in the namespace 'Aspose.Pdf' (are you missing an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997885.179641,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "use-graphicsabsorber-visit-with-filter": {
+    "note": "Use GraphicsAbsorber.Visit(page) together with a Predicate<GraphicElement> filter and SvgExtractor.Extract to export only graphics whose bounding rectangle area exceeds a threshold.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Vector;\n\n// ...\nGraphicsAbsorber absorber = new GraphicsAbsorber();\nabsorber.Visit(page);\nPredicate<GraphicElement> filter = g => {\n    var r = g.Rectangle;\n    return (r.URX - r.LLX) * (r.URY - r.LLY) > minArea;\n};\nnew SvgExtractor().Extract(absorber, filter, page, outputPath);",
+    "errors": [
+      "CS0246: The type or namespace name 'SvgExtractor' could not be found",
+      "CS0246: The type or namespace name 'GraphicsAbsorber' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997967.44366,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Parse PDF"
+  },
+  "use-graphicsabsorber-visit-instead-of-page-accept": {
+    "note": "When extracting graphics with GraphicsAbsorber, call its Visit(page) method instead of passing it to Page.Accept, which no longer has an overload for GraphicsAbsorber.",
+    "code": "using (GraphicsAbsorber absorber = new GraphicsAbsorber())\n{\n    absorber.Visit(page); // collect graphics from the page\n    var count = absorber.Elements.Count;\n}",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Vector.GraphicsAbsorber' to 'Aspose.Pdf.Annotations.AnnotationSelector'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774997998.390527,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "use-svgrextractor-for-svg-extraction": {
+    "note": "Use Aspose.Pdf.Vector.SvgExtractor to extract SVG content from PDF pages instead of the non‑existent PdfConverter.BeginPage/ConvertToSvg/EndPage methods.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Vector;\n...\nPdfDocument pdf = new PdfDocument(pdfPath);\nSvgExtractor extractor = new SvgExtractor();\nList<string> svgList = extractor.Extract(pdf.Pages[pageNumber]);\nforeach (string svg in svgList) { /* process svg */ }",
+    "errors": [
+      "CS1061: 'PdfConverter' does not contain a definition for 'BeginPage'",
+      "CS1061: 'PdfConverter' does not contain a definition for 'ConvertToSvg'",
+      "CS1955: Non‑invocable member 'PdfConverter.EndPage' cannot be used like a method"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774998099.882655,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Parse PDF"
+  },
+  "use-linq-of-type-graph-for-graphics-count": {
+    "note": "Use LINQ's OfType<Graph>() on Page.Paragraphs to count vector graphic shapes instead of iterating Paragraphs with explicit casting.",
+    "code": "int totalGraphicsCount = page.Paragraphs\n                              .OfType<Graph>()\n                              .Sum(g => g.Shapes.Count);",
+    "errors": [
+      "CS0246: The type or namespace name 'Paragraph' could not be found (are you missing a using directive or an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774998271.791871,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "use-page-resources-fonts-and-document-form-fields": {
+    "note": "Count distinct fonts via each page's Resources.Fonts collection and obtain form field count via Document.Form?.Fields?.Count() instead of the removed Document.Fonts and Form classes.",
+    "code": "var fontNames = new HashSet<string>();\nforeach (var page in document.Pages)\n{\n    if (page.Resources?.Fonts != null)\n    {\n        foreach (var fontObj in page.Resources.Fonts)\n        {\n            string name = (fontObj as dynamic).FontName as string;\n            if (!string.IsNullOrEmpty(name))\n                fontNames.Add(name);\n        }\n    }\n}\nint fontCount = fontNames.Count;\n\nint formFieldCount = document.Form?.Fields?.Count() ?? 0;",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'Fonts'",
+      "CS0246: The type or namespace name 'Form' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774998335.930308,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "use-page-resources-fonts-for-font-validation": {
+    "note": "When checking fonts used in a PDF, iterate over each Page and use Page.Resources.Fonts (FontInfoCollection) to obtain font names, then verify with FontRepository.FindFont.",
+    "code": "var usedFontNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);\nforeach (Page page in doc.Pages)\n{\n    foreach (var fontInfo in page.Resources.Fonts)\n    {\n        usedFontNames.Add(fontInfo.FontName);\n    }\n}\n\nvar missingFonts = new List<string>();\nforeach (string name in usedFontNames)\n{\n    if (FontRepository.FindFont(name) == null)\n        missingFonts.Add(name);\n}",
+    "errors": [
+      "Document does not contain a Resources property (or GetFonts method) – compile error",
+      "Unable to locate fonts using Document.Resources.GetFonts – runtime/API misuse"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774998376.039865,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Parse PDF"
+  },
+  "use-form-getbuttonoptionvalues-for-radio-buttons": {
+    "note": "Use Form.GetButtonOptionValues and Form.GetButtonOptionCurrentValue to read radio button option labels and the selected export value instead of accessing RadioButtonField.SelectedItem or Option.ExportValue.",
+    "code": "Form form = new Form();\nform.BindPdf(pdfPath);\nIDictionary options = form.GetButtonOptionValues(\"RadioGroup1\");\nstring selectedExportValue = form.GetButtonOptionCurrentValue(\"RadioGroup1\");",
+    "errors": [
+      "CS1061: 'RadioButtonField' does not contain a definition for 'SelectedItem'",
+      "CS1061: 'Option' does not contain a definition for 'ExportValue'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774998745.717751,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Parse PDF"
+  },
+  "use-pages-trysavevectorgraphics-instead-of-graphicsabsorber": {
+    "note": "Use Page.TrySaveVectorGraphics to extract vector graphics as SVG instead of the non‑existent GraphicsAbsorber API.",
+    "code": "Page page = doc.Pages[pageNumber];\nstring svgPath = \"output.svg\";\nbool hasVector = page.TrySaveVectorGraphics(svgPath); // returns true if vector graphics were saved",
+    "errors": [
+      "CS0246: The type or namespace name 'GraphicsAbsorber' could not be found",
+      "CS0246: The type or namespace name 'PageGraphics' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774998890.839676,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Parse PDF"
+  },
+  "use-aspdf-forms-namespace-for-signature": {
+    "note": "Import Aspose.Pdf.Forms and use its types (e.g., SignatureField, PKCS1) for PDF signing instead of referencing a non‑existent Aspose.Pdf.Signature namespace.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nDocument doc = new Document(\"input.pdf\");\nSignatureField sigField = new SignatureField(doc, new Rectangle(100, 100, 300, 150));\ndoc.Form.Add(sigField);\nPKCS1 pkcs = new PKCS1();\nsigField.Sign(pkcs, certStream, \"password\");",
+    "errors": [
+      "CS0234: The type or namespace name 'Signature' does not exist in the namespace 'Aspose.Pdf'",
+      "Missing reference to Aspose.Pdf.Forms for signature‑related classes"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774999147.5416179,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "use-facades-namespace-for-pkcs7": {
+    "note": "Use Aspose.Pdf.Facades namespace for PKCS7 digital signature classes instead of Aspose.Pdf.Signature.",
+    "code": "using Aspose.Pdf.Facades;\n...\nPKCS7 pkcs7Signature = new PKCS7(certificatePath, certificatePassword);",
+    "errors": [
+      "CS0234: The type or namespace name 'Signature' does not exist in the namespace 'Aspose.Pdf' (are you missing an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774999229.06618,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Securing and signing PDF"
+  },
+  "use-externalsignature-with-x509certificate2": {
+    "note": "When creating a digital signature for a PDF, instantiate Aspose.Pdf.Facades.ExternalSignature with an X509Certificate2 (smart‑card certificate) instead of using PKCS1.Certificate.",
+    "code": "using Aspose.Pdf.Facades;\nusing System.Security.Cryptography.X509Certificates;\n\nX509Certificate2 cert = /* obtain certificate from store */;\nExternalSignature externalSignature = new ExternalSignature(cert);",
+    "errors": [
+      "CS1061: 'PKCS1' does not contain a definition for 'Certificate' and no accessible extension method 'Certificate' accepting a first argument of type 'PKCS1' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1774999634.183391,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "use-form-fields-with-linq-for-signaturefield": {
+    "note": "Access signature fields via the generic Form.Fields collection and LINQ (OfType<SignatureField>()) instead of the non‑existent Form.SignatureFields property.",
+    "code": "SignatureField signatureField = document?.Form?.Fields?.OfType<SignatureField>()?.FirstOrDefault();",
+    "errors": [
+      "CS0246: The type or namespace name 'SignatureFieldCollection' could not be found",
+      "CS1061: 'Form' does not contain a definition for 'SignatureFields'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775000492.997159,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Securing and signing PDF"
+  },
+  "use-pdffilesignature-with-docmdpsignature-to-lock-pdf": {
+    "note": "Use Aspose.Pdf.Facades.PdfFileSignature together with PKCS7 and DocMDPSignature (DocMDPAccessPermissions.NoChanges) to apply a digital signature that locks the entire PDF in read‑only mode.",
+    "code": "using Aspose.Pdf.Facades;\nusing System.Drawing;\n\n// ...\nPdfFileSignature signer = new PdfFileSignature();\nsigner.BindPdf(inputPdfPath);\nPKCS7 pkcs7 = new PKCS7(certPath, certPassword);\nDocMDPSignature mdpSig = new DocMDPSignature(pkcs7, DocMDPAccessPermissions.NoChanges);\nRectangle rect = new Rectangle(100, 100, 200, 150);\nsigner.Certify(1, \"Reason\", \"Contact\", \"Location\", true, rect, mdpSig);\nsigner.Save(outputPdfPath);",
+    "errors": [
+      "CS0234: The type or namespace name 'PKCS7Signature' does not exist in the namespace 'Aspose.Pdf.Facades'",
+      "CS0234: The type or namespace name 'SignatureAppearance' does not exist in the namespace 'Aspose.Pdf.Facades'",
+      "CS0234: The type or namespace name 'RenderMode' does not exist in the namespace 'Aspose.Pdf.Facades'",
+      "CS0234: The type or namespace name 'DocMDPOptions' does not exist in the namespace 'Aspose.Pdf.Facades'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775001570.2221482,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "use-form-fields-signaturefield-for-digital-signatures": {
+    "note": "Access digital signature information via Form.Fields collection of SignatureField objects instead of a non‑existent Document.Signatures property.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms; // required for SignatureField\nusing System.Linq;\n\nvar signatureFields = doc.Form?.Fields?.OfType<SignatureField>();\nforeach (var field in signatureFields ?? Enumerable.Empty<SignatureField>())\n{\n    var sigInfo = field.Signature;\n    string reason = sigInfo?.Reason ?? \"(none)\";\n    string location = sigInfo?.Location ?? \"(none)\";\n    // use reason and location as needed\n}",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'Signatures'",
+      "CS0246: The type or namespace name 'Signature' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775002326.8495638,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Securing and signing PDF"
+  },
+  "use-pkcs1-for-signaturefield-sign": {
+    "note": "Use Aspose.Pdf.Facades.PKCS1 (not Aspose.Pdf.Signature.PKCS7) when calling SignatureField.Sign, and include the Aspose.Pdf.Facades namespace.",
+    "code": "using Aspose.Pdf.Facades;\n...\nSignatureField sigField = new SignatureField(doc, rect);\nPKCS1 pkcs1 = new PKCS1(certificatePath, certificatePassword);\nsigField.Sign(pkcs1);",
+    "errors": [
+      "CS1501: No overload for method 'Sign' takes 1 arguments"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775002949.4515898,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "use-pdffilesignature-sign-overload-with-correct-parameters": {
+    "note": "When signing a PDF with PdfFileSignature, use the Sign overload that accepts (int pageNumber, string reason, string contactInfo, string location, bool isVisible, System.Drawing.Rectangle rectangle, PKCS1 pkcs1) and avoid non‑existent AppendMode or passing strings for bool/Rectangle parameters.",
+    "code": "using Aspose.Pdf.Facades;\nusing Aspose.Pdf.Forms;\n\nPdfFileSignature pdfSignature = new PdfFileSignature();\npdfSignature.BindPdf(doc);\nPKCS1 pkcs1 = new PKCS1(pfxPath, pfxPassword);\nSystem.Drawing.Rectangle rect = new System.Drawing.Rectangle(100, 100, 200, 50);\npdfSignature.Sign(1, \"I agree\", \"contact@example.com\", \"New York, USA\", true, rect, pkcs1);",
+    "errors": [
+      "CS1061: 'PdfFileSignature' does not contain a definition for 'AppendMode'",
+      "CS1503: Argument 6: cannot convert from 'string' to 'bool'",
+      "CS1503: Argument 7: cannot convert from 'string' to 'System.Drawing.Rectangle'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775003103.8696902,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "use-stream-with-ximage-save": {
+    "note": "When saving an XImage, pass a System.IO.Stream (e.g., FileStream) instead of a file path string.",
+    "code": "using (FileStream fs = new FileStream(\"image.png\", FileMode.Create, FileAccess.Write))\n{\n    xImage.Save(fs);\n}",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'string' to 'System.IO.Stream' (XImage.Save expects a Stream)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775003324.138654,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Securing and signing PDF"
+  },
+  "use-signaturefield-page-rectangle-and-form-add": {
+    "note": "Create a SignatureField with a Page object (not an int) and add it to the document via Form.Add, which expects the page number as the second argument.",
+    "code": "Page page = document.Pages[1];\nSignatureField sigField = new SignatureField(page, new Rectangle(100, 100, 300, 200));\ndocument.Form.Add(sigField, page.Number);",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'int' to 'Aspose.Pdf.Page'",
+      "CS1061: 'SignatureField' does not contain a definition for 'BindPdf'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775003797.536444,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Securing and signing PDF"
+  },
+  "use-signaturefield-from-form-fields": {
+    "note": "Access digital signatures via SignatureField objects from Document.Form.Fields instead of a non‑existent Form.Signatures collection, and use SignatureField.PartialName for the field name.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nDocument doc = new Document(\"signed.pdf\");\nforeach (var field in doc.Form.Fields)\n{\n    if (field is SignatureField sigField && sigField.Signature != null)\n    {\n        var options = new ValidationOptions\n        {\n            CheckCertificateChain = true,\n            ValidationMode = ValidationMode.Strict\n        };\n        ValidationResult result;\n        bool isValid = sigField.Signature.Verify(options, out result);\n        Console.WriteLine($\"Signature field '{sigField.PartialName}' verification result: {isValid}\");\n    }\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'Signatures'",
+      "CS1061: 'Signature' does not contain a definition for 'Name'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775003825.180247,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Securing and signing PDF"
+  },
+  "use-extractimage-stream-not-image": {
+    "note": "When extracting a signature field's appearance, call SignatureField.ExtractImage() and work with the returned Stream instead of the Image class to avoid ambiguous references between System.Drawing.Image and Aspose.Pdf.Image.",
+    "code": "using (Stream imgStream = signatureField.ExtractImage())\n{\n    if (imgStream != null)\n    {\n        using (FileStream fs = new FileStream(outputPath, FileMode.Create, FileAccess.Write))\n        {\n            imgStream.CopyTo(fs);\n        }\n    }\n}",
+    "errors": [
+      "CS0104: 'Image' is an ambiguous reference between 'System.Drawing.Image' and 'Aspose.Pdf.Image'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775004005.1578891,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "use-signaturefield-extractcertificateobject": {
+    "note": "When extracting a certificate from a PDF signature, iterate over form fields, cast to SignatureField, and call ExtractCertificateObject() instead of using a non‑existent SignatureInfo property.",
+    "code": "foreach (Field field in doc.Form.Fields)\n{\n    if (field is SignatureField sigField)\n    {\n        X509Certificate2 cert = sigField.ExtractCertificateObject();\n        // process cert\n    }\n}",
+    "errors": [
+      "CS1061: 'Signature' does not contain a definition for 'SignatureInfo' and no accessible extension method 'SignatureInfo' accepting a first argument of type 'Signature' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775004100.118578,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "implement-icustomsecurityhandler-correct-signatures": {
+    "note": "When creating a custom security handler, import Aspose.Pdf.Security and implement ICustomSecurityHandler members using the exact method signatures required by the API (e.g., EncryptPermissions must return a byte[]).",
+    "code": "using Aspose.Pdf.Security;\n\npublic class MyCustomSecurityHandler : ICustomSecurityHandler {\n    public string Filter => \"StdCF\";\n    public int KeyLength => 128;\n    public int Revision => 4;\n    public string SubFilter => \"adbe.pkcs7.s5\";\n    public int Version => 2;\n\n    public byte[] CalculateEncryptionKey(string userPassword) => new byte[0];\n    public byte[] Decrypt(byte[] data, int offset, int count, byte[] key) { /* copy slice */ }\n    public byte[] Encrypt(byte[] data, int offset, int count, byte[] key) { /* copy slice */ }\n    public byte[] EncryptPermissions(int permissions) => BitConverter.GetBytes(permissions);\n    public byte[] GetOwnerKey(string userPassword, string ownerPassword) => new byte[0];\n    public byte[] GetUserKey(string userPassword) => new byte[0];\n    public void Initialize(EncryptionParameters parameters) { /* optional */ }\n    public bool IsOwnerPassword(string password) => false;\n    public bool IsUserPassword(string password) => false;\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'ICustomSecurityHandler' could not be found",
+      "CS0246: The type or namespace name 'EncryptionParameters' could not be found",
+      "Method signature mismatch for EncryptPermissions (expected byte[] return type)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775004339.39642,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Securing and signing PDF"
+  },
+  "use-pdffilesignature-with-pkcs7-for-digital-signature": {
+    "note": "Use PdfFileSignature together with a PKCS7 object (constructed from a certificate file) and the Sign overload that accepts a rectangle, instead of using LoadCertificateFromFile, SignatureAppearance, or creating a Signature object.",
+    "code": "PdfFileSignature signer = new PdfFileSignature();\nsigner.BindPdf(inputPath);\nPKCS7 pkcs7 = new PKCS7(certPath, certPassword);\n// optional: pkcs7.SignatureAppearance = \"signature.png\";\nsigner.Sign(pageNumber, \"Reason\", \"Contact\", \"Location\", true,\n    new System.Drawing.Rectangle(x, y, width, height), pkcs7);\nsigner.Save(outputPath);",
+    "errors": [
+      "No overload for method 'LoadCertificateFromFile' takes 3 arguments",
+      "The type or namespace name 'SignatureAppearance' could not be found",
+      "Argument 1: cannot convert from 'Aspose.Pdf.Facades.PdfFileSignature' to 'Aspose.Pdf.Forms.Signature'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775004519.7238169,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "use-valid-permissions-enum-members": {
+    "note": "Only use enum members that exist in Aspose.Pdf.Permissions when setting PDF permissions; remove nonexistent members such as ModifyDocument.",
+    "code": "Permissions permissions = Permissions.PrintDocument | Permissions.ExtractContent;",
+    "errors": [
+      "CS0117: 'Permissions' does not contain a definition for 'ModifyDocument'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775004534.6167161,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Securing and signing PDF"
+  },
+  "use-pdffilesignature-with-sha512-digest": {
+    "note": "Use PdfFileSignature together with ExternalSignature specifying DigestHashAlgorithm.Sha512 and a System.Drawing.Rectangle for visible signatures instead of SignatureField/PKCS1 types.",
+    "code": "using Aspose.Pdf.Facades;\nusing Aspose.Pdf;\nusing System.Security.Cryptography.X509Certificates;\nusing System.Drawing;\n\nX509Certificate2 cert = new X509Certificate2(\"certificate.pfx\", \"password\");\nExternalSignature extSig = new ExternalSignature(cert, DigestHashAlgorithm.Sha512);\nPdfFileSignature signer = new PdfFileSignature();\nsigner.BindPdf(\"input.pdf\");\nRectangle rect = new Rectangle(100, 100, 200, 50);\nsigner.Sign(1, \"Reason\", \"Contact\", \"Location\", true, rect, extSig);\nsigner.Save(\"signed_output.pdf\");",
+    "errors": [
+      "The type or namespace name 'SignatureField' could not be found",
+      "The type or namespace name 'PKCS1' could not be found",
+      "The name 'DigestAlgorithm' does not exist in the current context"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775005039.0674508,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "signaturefield-constructor-with-page-rectangle": {
+    "note": "Create a SignatureField using a Page object and a Rectangle, add it to the document's Form collection, and do not set SignatureAlgorithmInfo on PKCS7 (the algorithm is inferred from the certificate).",
+    "code": "SignatureField signatureField = new SignatureField(doc.Pages[1], new Aspose.Pdf.Rectangle(100, 100, 200, 150))\n{\n    PartialName = \"Signature1\"\n};\n\ndoc.Form.Add(signatureField, 1);\n\nPKCS7 pkcs7 = new PKCS7(pfxPath, pfxPassword);\nsignatureField.Sign(pkcs7);",
+    "errors": [
+      "Argument 1: cannot convert from 'Aspose.Pdf.Document' to 'Aspose.Pdf.Page'",
+      "Argument 2: cannot convert from 'int' to 'Aspose.Pdf.Rectangle'",
+      "'PKCS7' does not contain a definition for 'SignatureAlgorithmInfo'",
+      "The type or namespace name 'EcdsaAlgorithmInfo' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775005113.6159492,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Securing and signing PDF"
+  },
+  "load-certificate-with-x509certificateloder-and-use-valid-permissions": {
+    "note": "Load X.509 certificates with X509CertificateLoader (instead of the obsolete X509Certificate2 constructor) and use only permission flags that exist in the current Aspose.Pdf version (e.g., Permissions.ExtractContent rather than Permissions.ModifyAnnotations).",
+    "code": "byte[] certBytes = File.ReadAllBytes(certPath);\nX509Certificate2 cert = X509CertificateLoader.LoadCertificate(certBytes);\nPermissions perms = Permissions.PrintDocument | Permissions.ExtractContent;\ndocument.Encrypt(perms, CryptoAlgorithm.AESx256, new List<X509Certificate2> { cert });",
+    "errors": [
+      "warning SYSLIB0057: 'X509Certificate2.X509Certificate2(string)' is obsolete",
+      "error CS0117: 'Permissions' does not contain a definition for 'ModifyAnnotations'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775005150.174423,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Securing and signing PDF"
+  },
+  "use-document-stream-overload-with-certificateencryptionoptions": {
+    "note": "When decrypting a PDF with a certificate stored on a hardware token, import Aspose.Pdf.Security, create CertificateEncryptionOptions, and open the PDF using the Document(Stream, CertificateEncryptionOptions) constructor.",
+    "code": "using System.IO;\nusing Aspose.Pdf;\nusing Aspose.Pdf.Security;\n\nX509Certificate2 cert = new X509Certificate2(\"public.cer\");\nvar certOpts = new CertificateEncryptionOptions(cert, StoreName.My, StoreLocation.CurrentUser);\nusing (FileStream fs = new FileStream(\"encrypted.pdf\", FileMode.Open, FileAccess.Read))\nusing (Document doc = new Document(fs, certOpts))\n{\n    doc.Decrypt();\n    doc.Save(\"decrypted.pdf\");\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'CertificateEncryptionOptions' could not be found",
+      "CS1503: Argument 1: cannot convert from 'string' to 'System.IO.Stream' when passing certificate options to Document constructor"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775005191.426904,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Securing and signing PDF"
+  },
+  "use-pkcs7-with-open-filestream-for-signature": {
+    "note": "Create a PKCS7 signature using a FileStream opened inside a using block and sign the field while the stream remains open to prevent ObjectDisposedException.",
+    "code": "using (FileStream certStream = File.OpenRead(certPath))\n{\n    PKCS7 pkcs7 = new PKCS7(certStream, password);\n    signatureField.Sign(pkcs7);\n}",
+    "errors": [
+      "System.ObjectDisposedException: Cannot access a closed file.",
+      "ObjectDisposedException when signing a PDF with a certificate stream that has already been closed"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775005320.242303,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "assign-xfa-to-document-form-before-pkcs7-signature": {
+    "note": "Assign XFA XML to the PDF form via Document.Form.AssignXfa before creating a PKCS7 signature; PKCS7 does not expose an XFA property.",
+    "code": "XmlDocument xfa = new XmlDocument();\nxfa.Load(\"xfa_data.xml\");\ndoc.Form.AssignXfa(xfa);\n\nPKCS7 pkcs7 = new PKCS7(pfxPath, pfxPassword);\nsigField.Sign(pkcs7);",
+    "errors": [
+      "'PKCS7' does not contain a definition for 'XFA'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775005607.7506182,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "flatten-form-use-systemdrawing-rectangle": {
+    "note": "Use Document.Form.Flatten() to flatten form fields and pass a System.Drawing.Rectangle (not Aspose.Pdf.Drawing.Rectangle) to PdfFileSignature.Sign.",
+    "code": "document.Form.Flatten();\nvar signatureRect = new System.Drawing.Rectangle(100, 100, 200, 50);\nsigner.Sign(pageNumber, true, signatureRect, pkcs7);",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'FlattenFormFields'",
+      "CS1503: cannot convert from 'Aspose.Pdf.Drawing.Rectangle' to 'System.Drawing.Rectangle'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775005889.501596,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Securing and signing PDF"
+  },
+  "use-stream-for-stampannotation-image": {
+    "note": "Assign a System.IO.Stream (e.g., MemoryStream) to StampAnnotation.Image instead of an Aspose.Pdf.Image object.",
+    "code": "byte[] imgBytes = File.ReadAllBytes(stampImagePath);\nStampAnnotation stamp = new StampAnnotation(page, rect);\nstamp.Image = new MemoryStream(imgBytes);",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'Aspose.Pdf.Image' to 'System.IO.Stream'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775006344.001179,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Stamping"
+  },
+  "use-count-not-size-for-pagelabelcollection": {
+    "note": "When obtaining the number of page labels, use the Count property of PageLabelCollection instead of a non‑existent Size property.",
+    "code": "int labelCount = doc.PageLabels.Count; // correct usage",
+    "errors": [
+      "'PageLabelCollection' does not contain a definition for 'Size' and no accessible extension method 'Size' accepting a first argument of type 'PageLabelCollection' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775006446.6454651,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Stamping"
+  },
+  "use-document-metadata-indexer-for-xmp": {
+    "note": "Access and modify XMP metadata through the Document.Metadata property (RegisterNamespaceUri and indexer) instead of non‑existent XmpMetadata methods.",
+    "code": "using Aspose.Pdf;\n\nDocument pdf = new Document(inputPath);\n// Add custom XMP namespace and property\npdf.Metadata.RegisterNamespaceUri(\"my\", \"http://example.com/custom\");\npdf.Metadata[\"xmp:my:CustomProperty\"] = \"CustomValue\";\n// XMP metadata is automatically preserved on Save\npdf.Save(outputPath);",
+    "errors": [
+      "CS1061: 'Metadata' does not contain a definition for 'GetXmpMetadata'",
+      "CS1061: 'Metadata' does not contain a definition for 'SetXmpMetadata'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775006498.611254,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Stamping"
+  },
+  "avoid-strokecolor-textrenderingmode-on-textstate": {
+    "note": "Do not set StrokeColor or TextRenderingMode on TextState, as these members are not available in the current Aspose.Pdf version; use a bold font to simulate an outlined text effect.",
+    "code": "stamp.TextState.Font = FontRepository.FindFont(\"Helvetica-Bold\");\nstamp.TextState.FontSize = 48;\nstamp.TextState.ForegroundColor = Aspose.Pdf.Color.Red; // fill color",
+    "errors": [
+      "CS1061: 'TextState' does not contain a definition for 'StrokeColor'",
+      "CS1061: 'TextState' does not contain a definition for 'TextRenderingMode'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775006632.920773,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Stamping"
+  },
+  "use-line-spacing-property-for-leading": {
+    "note": "Use the TextState.LineSpacing property to set custom line spacing (leading) for a TextStamp; the TextState.Leading property does not exist.",
+    "code": "stamp.TextState.LineSpacing = 20; // sets leading in points",
+    "errors": [
+      "CS1061: 'TextState' does not contain a definition for 'Leading'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775006705.607413,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Stamping"
+  },
+  "remove-isrighttoleft-and-use-unicode-font": {
+    "note": "Do not set a non‑existent IsRightToLeft property on TextState; instead assign a Unicode font that supports Arabic/Hebrew and Aspose.Pdf will render RTL text automatically.",
+    "code": "TextStamp stamp = new TextStamp(rtlText);\nstamp.TextState.Font = FontRepository.FindFont(\"Arial Unicode MS\");\nstamp.TextState.FontSize = 24;\nstamp.TextState.ForegroundColor = Aspose.Pdf.Color.Blue; // no IsRightToLeft assignment",
+    "errors": [
+      "CS1061: 'TextState' does not contain a definition for 'IsRightToLeft'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775006749.20051,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Stamping"
+  },
+  "use-page-addstamp-loop": {
+    "note": "Document does not have an AddStamp method; apply a stamp to all pages by iterating over Document.Pages and calling Page.AddStamp for each page.",
+    "code": "using (Document doc = new Document(inputPath))\n{\n    TextStamp stamp = new TextStamp(\"CONFIDENTIAL\");\n    foreach (Page page in doc.Pages)\n    {\n        page.AddStamp(stamp);\n    }\n}",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'AddStamp' and no accessible extension method 'AddStamp' accepting a first argument of type 'Document' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775006864.3284202,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Stamping"
+  },
+  "omit-title-on-popupannotation": {
+    "note": "Do not set the Title property on PopupAnnotation because it is defined only on MarkupAnnotation; remove or replace it with appropriate markup annotation.",
+    "code": "PopupAnnotation popup = new PopupAnnotation(page, rect);\n// Title is not available on PopupAnnotation\npopup.Contents = \"Note text\";\npopup.Open = false;",
+    "errors": [
+      "CS1061: 'PopupAnnotation' does not contain a definition for 'Title'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775006936.985913,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Annotations"
+  },
+  "use-systemdrawingcolor-for-defaultappearance-and-settextstyle": {
+    "note": "When creating a FreeTextAnnotation, pass a System.Drawing.Color to DefaultAppearance and SetTextStyle, and use an integer (0) for the style parameter instead of RichTextFontStyles.None.",
+    "code": "DefaultAppearance appearance = new DefaultAppearance(\"Arial\", 12, System.Drawing.Color.Black);\nft.SetTextStyle(0, \"Arial\", 12, System.Drawing.Color.Black);",
+    "errors": [
+      "CS1503: Argument 3: cannot convert from 'Aspose.Pdf.Color' to 'System.Drawing.Color'",
+      "CS0117: 'RichTextFontStyles' does not contain a definition for 'None'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775006966.93238,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Annotations"
+  },
+  "use-highlightannotation-with-rectangle": {
+    "note": "Create a HighlightAnnotation using the page and the fragment's Rectangle (new HighlightAnnotation(page, rect)) instead of passing coordinate doubles.",
+    "code": "Rectangle rect = fragment.Rectangle;\nHighlightAnnotation highlight = new HighlightAnnotation(page, rect);\npage.Annotations.Add(highlight);",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'double' to 'Aspose.Pdf.Point'",
+      "CS1503: Argument 2: cannot convert from 'double' to 'bool'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775007291.3975449,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Annotations"
+  },
+  "use-integer-for-border-width": {
+    "note": "Set the Border.Width property with an integer value (not a float) when configuring annotation borders.",
+    "code": "var border = new Border(annotation) { Width = 2 }; // Width is int",
+    "errors": [
+      "CS0266: Cannot implicitly convert type 'float' to 'int' when assigning to Border.Width"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775007310.7694678,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Annotations"
+  },
+  "avoid-annotation-id-property": {
+    "note": "Do not use a non‑existent Id property on Aspose.Pdf.Annotations.Annotation; instead access supported members such as AnnotationType, Name, etc.",
+    "code": "Annotation annotation = ...;\nvar type = annotation.AnnotationType; // enum indicating the annotation kind\nvar name = annotation.Name ?? string.Empty; // optional name",
+    "errors": [
+      "CS1061: 'Annotation' does not contain a definition for 'Id' and no accessible extension method 'Id' accepting a first argument of type 'Annotation' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775007567.676159,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Annotations"
+  },
+  "use-specific-figure-annotation-type-for-appearance-and-colors": {
+    "note": "When working with figure annotations, cast the base Annotation to its concrete type (e.g., SquareAnnotation or CircleAnnotation) and use the AppearanceDictionary type to access the appearance; then set Color and InteriorColor on the concrete annotation.",
+    "code": "if (annotation is SquareAnnotation square) {\n    AppearanceDictionary appearance = square.Appearance;\n    square.Color = Aspose.Pdf.Color.Red;\n    square.InteriorColor = Aspose.Pdf.Color.Yellow;\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'Appearance' could not be found",
+      "CS1061: 'Annotation' does not contain a definition for 'InteriorColor'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775008026.0260081,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Annotations"
+  },
+  "use-flags-hidden-for-annotation-visibility": {
+    "note": "Use the Flags property with AnnotationFlags.Hidden (via bitwise OR) to hide an annotation, instead of the non‑existent Visibility property and AnnotationVisibility enum.",
+    "code": "annotation.Flags |= AnnotationFlags.Hidden;",
+    "errors": [
+      "CS1061: 'Annotation' does not contain a definition for 'Visibility'",
+      "CS0103: The name 'AnnotationVisibility' does not exist in the current context"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775008591.9924328,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Annotations"
+  },
+  "annotation-id-and-author-extraction": {
+    "note": "In Aspose.Pdf versions where Annotation.Id is not available, use Annotation.Name as the identifier and obtain the author from the Title property of MarkupAnnotation or TextAnnotation.",
+    "code": "Annotation annotation = ...;\nstring id = annotation.Name ?? string.Empty;\nstring author = string.Empty;\nif (annotation is MarkupAnnotation markup)\n    author = markup.Title ?? string.Empty;\nelse if (annotation is TextAnnotation text)\n    author = text.Title ?? string.Empty;",
+    "errors": [
+      "'Annotation' does not contain a definition for 'Id'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775009052.58901,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Annotations"
+  },
+  "remove-invalid-activationevent-mousedown": {
+    "note": "Do not assign RichMediaAnnotation.ActivationEvent.MouseDown because the ActivationEvent enum does not define a MouseDown member; simply omit the setting or use a valid enum value.",
+    "code": "var richMedia = new RichMediaAnnotation(page, rect);\n// Do NOT set richMedia.ActivateOn = RichMediaAnnotation.ActivationEvent.MouseDown;\n// Use default activation or a valid enum value if needed.",
+    "errors": [
+      "CS0117: 'RichMediaAnnotation.ActivationEvent' does not contain a definition for 'MouseDown'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775009192.245148,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Annotations"
+  },
+  "use-supported-pdf3dlightingscheme": {
+    "note": "Use a valid PDF3DLightingScheme enum value (e.g., Headlamp) instead of removed members such as Flat or Simple.",
+    "code": "PDF3DArtwork artwork = new PDF3DArtwork(doc, content, PDF3DLightingScheme.Headlamp, PDF3DRenderMode.Solid);",
+    "errors": [
+      "CS0117: 'PDF3DLightingScheme' does not contain a definition for 'Flat'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775009266.81833,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Annotations"
+  },
+  "check-file-exists-before-artifact-setimage": {
+    "note": "Verify the image file exists before calling BackgroundArtifact.SetImage to prevent FileNotFoundException.",
+    "code": "BackgroundArtifact artifact = new BackgroundArtifact();\nif (File.Exists(imagePath))\n{\n    artifact.SetImage(imagePath);\n}\nelse\n{\n    // handle missing file, e.g., log a warning\n}",
+    "errors": [
+      "System.IO.FileNotFoundException thrown by Artifact.SetImage when the specified image file does not exist"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775009553.224698,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Annotations"
+  },
+  "compare-artifact-subtype-as-string": {
+    "note": "When checking an Artifact's Subtype, use its string representation (and null‑check) instead of the ArtifactSubtype enum to stay compatible with all Aspose.PDF versions.",
+    "code": "if (artifact.Subtype != null &&\n    artifact.Subtype.ToString().Equals(\"Watermark\", StringComparison.OrdinalIgnoreCase))\n{\n    // handle watermark artifact\n}",
+    "errors": [
+      "CS0103: The name 'ArtifactSubtype' does not exist in the current context"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775009598.2522109,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Annotations"
+  },
+  "use-artifactcollection-delete": {
+    "note": "Remove artifacts from a page using ArtifactCollection.Delete instead of non‑existent Remove/RemoveAt methods.",
+    "code": "ArtifactCollection artifacts = page.Artifacts;\nvar toRemove = new List<Artifact>();\nforeach (var a in artifacts)\n    if (a is BackgroundArtifact) toRemove.Add(a);\nforeach (var a in toRemove)\n    artifacts.Delete(a);",
+    "errors": [
+      "CS1061: 'ArtifactCollection' does not contain a definition for 'RemoveAt'",
+      "CS1061: 'ArtifactCollection' does not contain a definition for 'Remove'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775009709.17382,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Annotations"
+  },
+  "use-invisible-rectangle-for-soundannotation": {
+    "note": "Create a SoundAnnotation with a tiny (0,0,1,1) rectangle so the annotation is invisible yet plays the sound when the page is opened.",
+    "code": "Aspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(0, 0, 1, 1);\nSoundAnnotation soundAnn = new SoundAnnotation(page, rect, \"sound.wav\");\npage.Annotations.Add(soundAnn);",
+    "errors": [
+      "Visible annotation icon appears on the page",
+      "Need to trigger sound on page load without showing an annotation"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775009849.7542248,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Annotations"
   }
 }

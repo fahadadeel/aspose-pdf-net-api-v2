@@ -262,6 +262,7 @@ async def api_stream(job_id: str):
 
                 payload = {
                     "status": current["status"],
+                    "paused": current.get("paused", False),
                     "total": current["total"],
                     "processed": current["processed"],
                     "passed_count": current["passed_count"],

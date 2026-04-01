@@ -273,20 +273,23 @@ class CodeCommitter:
 
         try:
             with _git_lock:
-                # Stage all pending files + their index.json sidecars
-                staged_index = set()
+                # Stage all pending files + their index.json and agents.md sidecars
+                staged_sidecars = set()
                 for c in self._pending_commits:
                     subprocess.run(
                         ["git", "add", str(c["path"])],
                         cwd=self.repo_path, check=True, capture_output=True, text=True,
                     )
-                    index_path = c["path"].parent / "index.json"
-                    if index_path.exists() and str(index_path) not in staged_index:
-                        subprocess.run(
-                            ["git", "add", str(index_path)],
-                            cwd=self.repo_path, check=True, capture_output=True, text=True,
-                        )
-                        staged_index.add(str(index_path))
+                    cat_dir = c["path"].parent
+                    for sidecar_name in ("index.json", "agents.md"):
+                        sidecar_path = cat_dir / sidecar_name
+                        sidecar_key = str(sidecar_path)
+                        if sidecar_path.exists() and sidecar_key not in staged_sidecars:
+                            subprocess.run(
+                                ["git", "add", str(sidecar_path)],
+                                cwd=self.repo_path, check=True, capture_output=True, text=True,
+                            )
+                            staged_sidecars.add(sidecar_key)
                 self._notify("git_commit_start", f"Git: Committing {count} file(s)...")
                 subprocess.run(
                     ["git", "commit", "-m", message],

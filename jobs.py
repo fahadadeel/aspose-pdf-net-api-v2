@@ -177,6 +177,53 @@ def _run_rule_learning(job_id, config, failed_results, builder, notify):
     add_log(job_id, f"Rule learning complete: {rules_learned} new rule(s) saved to auto_fixes.json")
 
 
+def _generate_agents_md_for_pending(job_id, config, committer):
+    """Generate per-category agents.md files for all pending commits.
+
+    Writes agents.md into each category folder on disk so that
+    batch_commit_and_push() can stage them as sidecars.
+    """
+    from pathlib import Path as _Path
+    from git_ops.committer import normalize_category
+    from git_ops.repo_docs import generate_cumulative_category_agents_md
+    from git_ops.agents_md import _generate_run_id
+
+    groups = committer.get_pending_by_category()
+    if not groups:
+        return
+
+    run_id = _generate_run_id()
+    count = 0
+
+    for cat_name, commits in groups.items():
+        try:
+            cat_slug = normalize_category(cat_name, config.git.default_category)
+            cat_dir = _Path(config.git.repo_path) / cat_slug
+
+            # Scan actual .cs files on disk for most accurate file list
+            if cat_dir.exists():
+                cs_files = sorted(f.name for f in cat_dir.iterdir() if f.is_file() and f.suffix == ".cs")
+            else:
+                cs_files = sorted(c["path"].name for c in commits)
+
+            agents_content = generate_cumulative_category_agents_md(
+                cat_name, cs_files, run_id,
+                kb_path=config.rules_examples_path,
+                repo_path=config.git.repo_path,
+                tfm=config.build.tfm,
+                nuget_version=config.build.nuget_version,
+            )
+            agents_path = cat_dir / "agents.md"
+            agents_path.parent.mkdir(parents=True, exist_ok=True)
+            agents_path.write_text(agents_content, encoding="utf-8")
+            count += 1
+        except Exception as e:
+            add_log(job_id, f"[{cat_name}] agents.md generation failed: {str(e)[:80]}")
+
+    if count:
+        add_log(job_id, f"Generated agents.md for {count} category(ies)")
+
+
 def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_summary, notify):
     """Commit and create one PR per category.
 
@@ -482,6 +529,7 @@ def run_job(
 
             # Batch commit + PR
             if committer and committer._pending_commits:
+                _generate_agents_md_for_pending(job_id, config, committer)
                 committer.batch_commit_and_push()
             if pr_manager and repo and repo.pr_branch:
                 results_summary = [{"task": prompt[:100], "category": category or "", "status": status_str}]
@@ -489,6 +537,9 @@ def run_job(
                 if pr_url:
                     set_pr_url(job_id, pr_url)
                     add_log(job_id, f"Pull request created: {pr_url}")
+                # Store branch for retry-failed
+                if category:
+                    set_category_branch(job_id, category, repo.pr_branch)
 
             # Report usage
             try:
@@ -692,6 +743,7 @@ def run_job(
                     _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_summary, notify)
                 else:
                     # ── Single PR (original behaviour) ──
+                    _generate_agents_md_for_pending(job_id, config, committer)
                     add_log(job_id, f"Batch committing {pending_count} file(s)...")
                     committer.batch_commit_and_push()
 
@@ -834,6 +886,7 @@ def create_pr(job_id: str, passed_results: list, results_summary: list):
             committed += 1
 
         if committer._pending_commits:
+            _generate_agents_md_for_pending(job_id, config, committer)
             add_log(job_id, f"Batch committing {committed} file(s)...")
             committer.batch_commit_and_push()
         else:
@@ -1163,6 +1216,38 @@ def run_sweep(
         global_idx = 0
         all_pr_urls = []
 
+        # Setup repo, committer, pr_manager ONCE for the whole sweep.
+        # The sweep handles per-category branching itself — we do NOT
+        # need _setup_pr_workflow (which creates a single branch that
+        # collides on the second category).
+        repo, committer, pr_manager = None, None, None
+        if repo_push:
+            repo = RepoManager(
+                repo_path=config.git.repo_path,
+                repo_url=config.git.repo_url,
+                repo_branch=config.git.repo_branch,
+                repo_token=config.git.repo_token,
+                repo_user=config.git.repo_user,
+                notify=notify,
+            )
+            if repo.ensure_ready():
+                llm = LLMClient(config)
+                committer = CodeCommitter(
+                    repo_path=config.git.repo_path,
+                    repo_push=True,
+                    pr_branch=None,  # sweep creates per-category branches
+                    repo_branch=config.git.repo_branch,
+                    default_category=config.git.default_category,
+                    batch_git=True,
+                    notify=notify,
+                    llm_client=llm,
+                )
+                pr_manager = PRManager(config, repo, notify=notify, llm_client=llm)
+                add_log(job_id, "Git repo ready for per-category PRs")
+            else:
+                add_log(job_id, "Git repository not ready - PRs will be skipped")
+                repo = None
+
         for cat_name, tasks in all_category_tasks.items():
             if is_cancelled(job_id):
                 break
@@ -1180,11 +1265,6 @@ def run_sweep(
             add_log(job_id, separator)
             add_log(job_id, f"Category: {cat_name} ({len(tasks)} tasks)")
             add_log(job_id, separator)
-
-            # Setup per-category committer if repo_push
-            repo, committer, pr_manager = None, None, None
-            if repo_push:
-                repo, committer, pr_manager = _setup_pr_workflow(config, job_id, notify)
 
             for task_obj in tasks:
                 if is_cancelled(job_id):
@@ -1258,19 +1338,45 @@ def run_sweep(
 
             # ── Per-category PR ──
             if committer and committer._pending_commits:
+                from git_ops.committer import normalize_category
+                from git_ops.repo_docs import generate_cumulative_category_agents_md
+                from git_ops.agents_md import _generate_run_id as _gen_rid
+
+                cat_slug_dir = normalize_category(cat_name, config.git.default_category)
+                cat_dir = Path(config.git.repo_path) / cat_slug_dir
                 cat_slug = cat_name.lower().replace(" ", "-")[:30]
                 cat_branch = f"examples/{job_id[:8]}-{cat_slug}"
-                add_log(job_id, f"[{cat_name}] Creating PR ({len(committer._pending_commits)} file(s))...")
+                pending_count = len(committer._pending_commits)
+                add_log(job_id, f"[{cat_name}] Creating PR ({pending_count} file(s))...")
                 set_current_task(job_id, f"PR: {cat_name}...")
 
                 try:
+                    # Generate agents.md before staging
+                    cs_files = sorted(f.name for f in cat_dir.iterdir() if f.is_file() and f.suffix == ".cs") if cat_dir.exists() else sorted(c["path"].name for c in committer._pending_commits)
+                    agents_content = generate_cumulative_category_agents_md(
+                        cat_name, cs_files, _gen_rid(),
+                        kb_path=config.rules_examples_path,
+                        repo_path=config.git.repo_path,
+                        tfm=config.build.tfm,
+                        nuget_version=config.build.nuget_version,
+                    )
+                    agents_path = cat_dir / "agents.md"
+                    agents_path.parent.mkdir(parents=True, exist_ok=True)
+                    agents_path.write_text(agents_content, encoding="utf-8")
+
                     with _git_lock:
                         base_branch = config.git.effective_pr_target
                         subprocess.run(["git", "checkout", f"origin/{base_branch}"], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
                         subprocess.run(["git", "checkout", "-b", cat_branch], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
                         for c in committer._pending_commits:
                             subprocess.run(["git", "add", str(c["path"])], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
-                        subprocess.run(["git", "commit", "-m", f"Add {len(committer._pending_commits)} example(s) for {cat_name}"], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+                        # Stage index.json if it exists
+                        index_path = cat_dir / "index.json"
+                        if index_path.exists():
+                            subprocess.run(["git", "add", str(index_path)], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+                        # Stage agents.md
+                        subprocess.run(["git", "add", str(agents_path)], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+                        subprocess.run(["git", "commit", "-m", f"Add {pending_count} example(s) for {cat_name}"], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
                         subprocess.run(["git", "push", "-u", "origin", cat_branch], cwd=config.git.repo_path, check=True, capture_output=True, text=True, timeout=60)
 
                     sweep_results_summary = [
@@ -1278,8 +1384,10 @@ def run_sweep(
                         for c in committer._pending_commits
                     ]
                     repo.pr_branch = cat_branch
-                    pr_url = pr_manager.create_category_pr(cat_name, len(committer._pending_commits),
+                    pr_url = pr_manager.create_category_pr(cat_name, pending_count,
                                                            results_summary=sweep_results_summary)
+                    # Record branch so retry-failed can push to it
+                    set_category_branch(job_id, cat_name, cat_branch)
                     if pr_url:
                         all_pr_urls.append(pr_url)
                         add_log(job_id, f"[{cat_name}] PR created: {pr_url}")
@@ -1746,12 +1854,17 @@ def run_retry_failed(
                 if split_threshold > 0 and pending_count > split_threshold:
                     _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_summary, notify)
                 else:
+                    _generate_agents_md_for_pending(job_id, config, committer)
                     committer.batch_commit_and_push()
                     if pr_manager and repo and repo.pr_branch and results_summary:
                         pr_url = pr_manager.create_pull_request(results_summary)
                         if pr_url:
                             set_pr_url(job_id, pr_url)
                             add_log(job_id, f"Pull request created: {pr_url}")
+                        # Store branch for retry-failed
+                        committed_cats = {r["category"] for r in results_summary if r["status"] == "PASSED" and r.get("category")}
+                        for cat in committed_cats:
+                            set_category_branch(job_id, cat, repo.pr_branch)
 
         # ── Rule learning ──
         if failed_for_learning and not is_cancelled(job_id):

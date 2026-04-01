@@ -4,6 +4,63 @@
   "version": "26.2.0",
   "rules": {
     "__comment_section_1__": "=== GLOBAL RULES — apply across ALL tasks ===",
+    "no-blocking-calls-no-readline-no-watchers": {
+      "note": "Examples run in an automated pipeline with NO interactive stdin. NEVER use Console.ReadLine(), Console.ReadKey(), or any call that waits for user input — the process will hang forever and be killed by timeout. Also NEVER use FileSystemWatcher, event-driven service loops, Thread.Sleep loops that wait indefinitely, or ManualResetEvent.WaitOne() without a timeout. If the task describes a 'service', 'monitor', or 'watcher', rewrite it as a one-shot console app that processes existing files in a directory, demonstrates the core Aspose.PDF operation, and exits. Use Console.WriteLine() for output, never Console.ReadLine() for input.",
+      "code": "// CORRECT — one-shot directory processor that exits cleanly:\nusing System;\nusing System.IO;\nusing Aspose.Pdf.Facades;\n\nstring inputDir = \"watch\";\nstring archiveDir = \"archive\";\nDirectory.CreateDirectory(inputDir);\nDirectory.CreateDirectory(archiveDir);\n\n// Create a sample PDF for demonstration\nusing (var doc = new Aspose.Pdf.Document()) { doc.Pages.Add(); doc.Save(Path.Combine(inputDir, \"sample.pdf\")); }\n\nforeach (string pdfFile in Directory.GetFiles(inputDir, \"*.pdf\"))\n{\n    string outName = Path.GetFileNameWithoutExtension(pdfFile) + \"_enc.pdf\";\n    using (PdfFileSecurity security = new PdfFileSecurity())\n    {\n        security.BindPdf(pdfFile);\n        security.EncryptFile(\"user\", \"owner\", DocumentPrivilege.Print, KeySize.x256, Algorithm.AES);\n        security.Save(Path.Combine(archiveDir, outName));\n    }\n    Console.WriteLine($\"Encrypted: {outName}\");\n}\nConsole.WriteLine(\"Done.\");\n\n// WRONG — hangs forever waiting for input:\n// Console.ReadLine(); // blocks indefinitely in automated pipeline\n// Console.ReadKey();  // blocks indefinitely\n\n// WRONG — runs forever, never exits:\n// FileSystemWatcher watcher = new FileSystemWatcher();\n// watcher.EnableRaisingEvents = true;\n// Console.ReadLine(); // program never terminates",
+      "errors": [
+        "Process killed by timeout — Console.ReadLine() blocks forever with no stdin",
+        "Process killed by timeout — FileSystemWatcher + Console.ReadLine() creates an infinite wait",
+        "Process killed by timeout — Thread.Sleep in infinite loop never exits"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "pdffilesecurity-no-allowexceptions-no-old-constructor": {
+      "note": "PdfFileSecurity: (1) The `AllowExceptions` property is deprecated and throws `NotSupportedException` at runtime — NEVER use it. Exceptions propagate naturally. (2) The constructor `PdfFileSecurity(string inputFile, string outputFile)` is obsolete — use the parameterless constructor `new PdfFileSecurity()`, then `BindPdf(inputPath)` to load, perform operations, and `Save(outputPath)` to write.",
+      "code": "// CORRECT — modern API:\nPdfFileSecurity fileSecurity = new PdfFileSecurity();\nfileSecurity.BindPdf(\"input.pdf\");\nfileSecurity.SetPrivilege(\"user\", \"owner\", DocumentPrivilege.Print);\nfileSecurity.Save(\"output.pdf\");\n\n// WRONG — deprecated constructor throws at runtime:\n// PdfFileSecurity fileSecurity = new PdfFileSecurity(\"input.pdf\", \"output.pdf\"); // CS0618 obsolete\n\n// WRONG — AllowExceptions throws NotSupportedException:\n// fileSecurity.AllowExceptions = false; // NotSupportedException at runtime",
+      "errors": [
+        "System.NotSupportedException: The property is deprecated. — caused by setting AllowExceptions",
+        "CS0618: 'PdfFileSecurity.PdfFileSecurity(string, string)' is obsolete: 'Use constructor without destination.'",
+        "CS0618: 'PdfFileSecurity.AllowExceptions' is obsolete"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "pdfpageeditor-no-rotatepage-use-rotation-property": {
+      "note": "PdfPageEditor does NOT have a `RotatePage()` method, and `RotationAngle` enum does NOT exist. To rotate pages with PdfPageEditor, set the `Rotation` property (an int: 0, 90, 180, 270) and use `ProcessPages` to target specific pages. For per-page rotation, use the `PageRotations` dictionary (Dictionary<int, int>). NEVER fabricate `RotatePage()` or `RotationAngle`.",
+      "code": "// CORRECT — rotate page 1 by 90° using PdfPageEditor:\nusing Aspose.Pdf.Facades;\n\nPdfPageEditor editor = new PdfPageEditor();\neditor.BindPdf(pdfStream);\neditor.ProcessPages = new int[] { 1 };\neditor.Rotation = 90; // int: 0, 90, 180, 270\neditor.Save(outStream);\n\n// CORRECT — per-page rotation via PageRotations dictionary:\neditor.PageRotations = new Dictionary<int, int> { { 1, 90 }, { 2, 180 } };\neditor.Save(outStream);\n\n// WRONG — RotatePage does not exist:\n// editor.RotatePage(1, RotationAngle.Rotate90); // CS1061 + CS0103\n\n// WRONG — RotationAngle enum does not exist:\n// editor.RotatePage(1, RotationAngle.Rotate90); // CS0103",
+      "errors": [
+        "CS1061: 'PdfPageEditor' does not contain a definition for 'RotatePage'",
+        "CS0103: The name 'RotationAngle' does not exist in the current context"
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
+    "limit-collections-to-four-elements-evaluation-mode": {
+      "note": "Aspose.PDF evaluation (trial/unlicensed) mode limits ANY collection to at most 4 elements. Adding a 5th page, annotation, bookmark, attachment, or any other collection item throws IndexOutOfRangeException at runtime. When a task asks to create or add more than 4 items to any collection (e.g. 'add pages one through five', 'create 10 bookmarks'), ALWAYS cap the loop at 4 items maximum. If the task explicitly requires more than 4, add a comment explaining the evaluation limit and demonstrate with 4.",
+      "code": "// CORRECT — cap at 4 elements to avoid evaluation-mode crash:\nfor (int i = 1; i <= 4; i++)\n{\n    Page page = doc.Pages.Add();\n    page.SetPageSize(PageSize.A4.Width, PageSize.A4.Height);\n}\n// Note: Evaluation mode allows max 4 collection elements.\n// With a full license, this loop can go higher.\n\n// WRONG — 5 or more elements throws at runtime:\n// for (int i = 1; i <= 5; i++)\n// {\n//     Page page = doc.Pages.Add(); // 5th call throws IndexOutOfRangeException\n// }",
+      "errors": [
+        "System.IndexOutOfRangeException: At most 4 elements (for any collection) can be viewed in evaluation mode."
+      ],
+      "works_on": [
+        "Windows",
+        "macOS",
+        "Linux"
+      ],
+      "fails_on": []
+    },
     "no-external-frameworks-console-app-only": {
       "note": "Examples MUST be standalone console applications using ONLY Aspose.PDF NuGet package. NEVER use external frameworks or packages that are not in the project: no ASP.NET Core (Microsoft.AspNetCore.*), no Windows Services (System.ServiceProcess.ServiceBase), no SQLite (System.Data.SQLite, Microsoft.Data.Sqlite), no network server listeners (TcpListener, HttpListener as a server). If the task involves these, rewrite it as a simple console app that demonstrates the same Aspose.PDF operation without the external dependency. For example: instead of a REST API endpoint, write a console app that reads a PDF file and extracts text; instead of a Windows service, write a console app that processes a PDF in a directory.",
       "code": "// CORRECT — standalone console app with only Aspose.PDF:\nusing Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nPdfExtractor extractor = new PdfExtractor();\nextractor.BindPdf(\"input.pdf\");\nextractor.ExtractText();\nextractor.GetText(\"output.txt\");\nConsole.WriteLine(\"Text extracted to output.txt\");\n\n// WRONG — requires external NuGet packages not in project:\n// app.MapPost(\"/extract\", ...) // ASP.NET Core — CS0234\n// public class MyService : ServiceBase // Windows Service — CS1069\n// SQLiteConnection conn = new SQLiteConnection(...) // SQLite — CS0246\n// TcpListener listener = new TcpListener(...) // hangs at AcceptTcpClient()",
