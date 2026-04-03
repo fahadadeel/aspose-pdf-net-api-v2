@@ -27,6 +27,72 @@ _RESULTS_DIR = "results"
 _VERSION = 3
 
 
+def versioned_results_dir(base_results_dir: str, nuget_version: str) -> str:
+    """Return results directory nested under the NuGet/release version.
+
+    e.g. results/26.3.0/working_with_images/passed/
+    If nuget_version is empty, returns base_results_dir unchanged.
+    """
+    if not nuget_version:
+        return base_results_dir
+    return str(Path(base_results_dir) / nuget_version)
+
+
+def migrate_flat_results(base_results_dir: str, nuget_version: str):
+    """Move old flat-structure results into a version subfolder.
+
+    Old: results/working_with_images.json
+    New: results/26.3.0/working_with_images.json
+
+    Safe to call multiple times — skips if already migrated or nothing to migrate.
+    """
+    import shutil
+
+    if not nuget_version:
+        return
+
+    base = Path(base_results_dir)
+    target = base / nuget_version
+
+    if not base.exists():
+        return
+
+    # Check if there are flat-structure files (JSON files directly in base)
+    flat_jsons = [f for f in base.iterdir() if f.is_file() and f.suffix == ".json"]
+    flat_dirs = [d for d in base.iterdir() if d.is_dir() and d.name != nuget_version and not d.name.startswith(".")]
+
+    if not flat_jsons and not flat_dirs:
+        return  # Nothing to migrate
+
+    # Don't migrate if it looks like versioned structure already (all dirs are version numbers)
+    if flat_dirs and all(_looks_like_version(d.name) for d in flat_dirs):
+        return
+
+    target.mkdir(parents=True, exist_ok=True)
+
+    migrated = 0
+    for f in flat_jsons:
+        dest = target / f.name
+        if not dest.exists():
+            shutil.move(str(f), str(dest))
+            migrated += 1
+
+    for d in flat_dirs:
+        dest = target / d.name
+        if not dest.exists():
+            shutil.move(str(d), str(dest))
+            migrated += 1
+
+    if migrated:
+        print(f"[persistence] Migrated {migrated} item(s) from {base} → {target}")
+
+
+def _looks_like_version(name: str) -> bool:
+    """Check if a directory name looks like a version number (e.g. 26.3.0)."""
+    import re
+    return bool(re.match(r"^\d+\.\d+(\.\d+)?$", name))
+
+
 def _category_slug(category: str) -> str:
     """Sanitize category name for use as a directory name."""
     slug = category.lower().replace(" ", "_").replace("-", "_") if category else "uncategorized"

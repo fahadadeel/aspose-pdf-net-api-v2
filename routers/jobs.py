@@ -1,13 +1,16 @@
 """
 routers/jobs.py — Job management endpoints + SSE streaming.
 
-POST /api/start
-POST /api/start-tasks
-POST /api/start-sweep
+All task sources feed into run_pipeline() via /api/start or /api/start-tasks.
+
+POST /api/start           — Single prompt or CSV upload
+POST /api/start-tasks     — Task list and/or category sweep (JSON body)
+POST /api/start-sweep     — DEPRECATED: redirects to /api/start-tasks
 POST /api/version-bump
 GET  /api/status/{job_id}
 GET  /api/stream/{job_id}   (SSE)
 POST /api/cancel/{job_id}
+POST /api/retry-failed/{job_id}  — Re-run failed tasks via run_pipeline
 POST /api/retry-pr/{job_id}
 POST /api/update-repo-docs
 GET  /api/repo-categories
@@ -25,7 +28,11 @@ import uuid
 from fastapi import APIRouter, Body, File, Form, UploadFile
 from fastapi.responses import JSONResponse, StreamingResponse
 
-from jobs import run_job, run_sweep, run_version_bump, run_promote_to_main, retry_pr, create_pr, update_repo_docs, run_retry_failed
+from jobs import (
+    run_version_bump, run_promote_to_main,
+    retry_pr, create_pr, update_repo_docs,
+    run_pipeline, _fetch_tasks_for_category,
+)
 from knowledge.auto_fixes import load_auto_fixes, approve_auto_fix, approve_all_auto_fixes, delete_auto_fix
 from state import (
     JOB_CANCEL_FLAGS, JOB_LOCK,
@@ -66,16 +73,20 @@ async def api_start(
         if not prompt:
             return JSONResponse({"error": "Prompt is required"}, status_code=400)
 
+        tasks = [{
+            "prompt": prompt,
+            "category": category,
+            "product": product,
+            "id": "1",
+        }]
         thread = threading.Thread(
-            target=run_job,
-            args=(job_id, mode, prompt),
+            target=run_pipeline,
+            args=(job_id, tasks),
             kwargs={
-                "category": category,
-                "product": product,
                 "repo_push": repo_push_bool,
-                "force": force_bool,
                 "api_url": api_url or None,
                 "pr_target_branch": pr_target_branch.strip() or None,
+                "pr_style": "single",
             },
             daemon=True,
         )
@@ -89,26 +100,25 @@ async def api_start(
     content = await csv.read()
     text = content.decode("utf-8-sig")
     reader = csv_module.DictReader(io.StringIO(text))
-    prompts = []
-    for row in reader:
+    tasks = []
+    for idx, row in enumerate(reader, 1):
         task = row.get("task") or row.get("prompt") or ""
         if task.strip():
-            prompts.append({
+            tasks.append({
                 "prompt": task.strip(),
                 "category": (row.get("category") or "").strip(),
                 "product": (row.get("product") or "aspose.pdf").strip(),
+                "id": row.get("id", str(idx)),
             })
 
-    if not prompts:
-        return JSONResponse({"error": "CSV contains no valid prompts"}, status_code=400)
+    if not tasks:
+        return JSONResponse({"error": "CSV contains no valid tasks"}, status_code=400)
 
     thread = threading.Thread(
-        target=run_job,
-        args=(job_id, "csv"),
+        target=run_pipeline,
+        args=(job_id, tasks),
         kwargs={
-            "prompts": prompts,
             "repo_push": repo_push_bool,
-            "force": force_bool,
             "api_url": api_url or None,
             "pr_target_branch": pr_target_branch.strip() or None,
         },
@@ -120,20 +130,31 @@ async def api_start(
 
 @router.post("/api/start-tasks")
 async def api_start_tasks(data: dict = Body(...)):
-    """Start a job from selected tasks (Task Generator mode)."""
-    tasks = data.get("tasks", [])
-    repo_push = data.get("repo_push", False)
-    force = data.get("force", False)
+    """Start a job from selected tasks or categories.
+
+    Accepts either:
+      - {"tasks": [...]}  — Task Generator mode (list of task dicts or strings)
+      - {"categories": [...]} — Sweep mode (fetch all tasks for each category)
+      - Both — categories are fetched and merged with explicit tasks
+
+    Task dicts: {task, category, product, id}
+    Category entries: strings (category names).
+    """
+    tasks_raw = data.get("tasks", [])
+    categories = data.get("categories", [])
+    repo_push = bool(data.get("repo_push", False))
     api_url = data.get("api_url") or None
     pr_target_branch = (data.get("pr_target_branch") or "").strip() or None
+    pr_style = (data.get("pr_style") or "").strip() or "auto"
 
-    if not tasks:
-        return JSONResponse({"error": "No tasks selected"}, status_code=400)
+    if not tasks_raw and not categories:
+        return JSONResponse({"error": "Provide 'tasks' and/or 'categories'"}, status_code=400)
 
     job_id = str(uuid.uuid4())
 
+    # ── Build task list from explicit tasks ──
     prompts = []
-    for task in tasks:
+    for task in tasks_raw:
         if isinstance(task, str):
             task = {"task": task}
         prompt_text = task.get("task", "").strip()
@@ -145,45 +166,54 @@ async def api_start_tasks(data: dict = Body(...)):
                 "id": task.get("id", ""),
             })
 
+    # ── Fetch tasks for categories (sweep mode) ──
+    if categories:
+        from config import load_config
+        config = load_config()
+        for cat_name in categories:
+            cat_name = (cat_name if isinstance(cat_name, str) else str(cat_name)).strip()
+            if not cat_name:
+                continue
+            cat_tasks = _fetch_tasks_for_category(config, cat_name)
+            for t in cat_tasks:
+                prompts.append({
+                    "prompt": t.get("task", ""),
+                    "category": t.get("category", cat_name),
+                    "product": t.get("product", "aspose.pdf"),
+                    "id": str(t.get("id", "")),
+                })
+        # Default to per-category PR style for sweep-like requests
+        if pr_style == "auto" and not tasks_raw:
+            pr_style = "per-category"
+
     if not prompts:
         return JSONResponse({"error": "No valid tasks found"}, status_code=400)
 
     thread = threading.Thread(
-        target=run_job,
-        args=(job_id, "csv"),
+        target=run_pipeline,
+        args=(job_id, prompts),
         kwargs={
-            "prompts": prompts,
-            "repo_push": bool(repo_push),
-            "force": bool(force),
+            "repo_push": repo_push,
             "api_url": api_url,
             "pr_target_branch": pr_target_branch,
+            "pr_style": pr_style,
         },
         daemon=True,
     )
     thread.start()
-    return {"job_id": job_id}
+    return {"job_id": job_id, "total_tasks": len(prompts)}
 
 
 @router.post("/api/start-sweep")
 async def api_start_sweep(data: dict = Body(...)):
-    """Start a category sweep job — processes all tasks for selected categories."""
-    categories = data.get("categories", [])
-    repo_push = bool(data.get("repo_push", False))
-    api_url = data.get("api_url") or None
-    pr_target_branch = (data.get("pr_target_branch") or "").strip() or None
+    """Start a category sweep job — delegates to /api/start-tasks.
 
-    if not categories:
-        return JSONResponse({"error": "No categories selected"}, status_code=400)
-
-    job_id = str(uuid.uuid4())
-    thread = threading.Thread(
-        target=run_sweep,
-        args=(job_id, categories),
-        kwargs={"repo_push": repo_push, "api_url": api_url, "pr_target_branch": pr_target_branch},
-        daemon=True,
-    )
-    thread.start()
-    return {"job_id": job_id}
+    DEPRECATED: Use /api/start-tasks with {"categories": [...]} instead.
+    This endpoint is kept for backward compatibility.
+    """
+    # Forward to start-tasks with categories field
+    data.setdefault("pr_style", "per-category")
+    return await api_start_tasks(data)
 
 
 @router.post("/api/version-bump")
@@ -422,14 +452,18 @@ async def api_retry_failed(job_id: str, data: dict = Body(None)):
     api_url = (data or {}).get("api_url") or None
     pr_target_branch = ((data or {}).get("pr_target_branch") or "").strip() or None
 
+    # Get category→branch mapping from original job for Option B
+    category_branches = state.get("category_branches", {})
+
     new_job_id = str(uuid.uuid4())
     thread = threading.Thread(
-        target=run_retry_failed,
-        args=(new_job_id, job_id, failed_tasks),
+        target=run_pipeline,
+        args=(new_job_id, failed_tasks),
         kwargs={
             "repo_push": repo_push,
             "api_url": api_url,
             "pr_target_branch": pr_target_branch,
+            "category_branches": category_branches if category_branches else None,
         },
         daemon=True,
     )
