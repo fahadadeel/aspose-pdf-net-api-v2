@@ -54,6 +54,15 @@ class RepoManager:
 
         with _git_lock:
             repo = Path(self.repo_path)
+
+            # Fallback: if configured path's parent doesn't exist (e.g. Mac path
+            # on Windows), clone into ./repo/ inside the app directory instead.
+            if not repo.parent.exists():
+                fallback = Path(__file__).resolve().parent.parent / "repo"
+                self._notify("git_info", f"Git: Configured path unavailable, using fallback: {fallback}")
+                self.repo_path = str(fallback)
+                repo = fallback
+
             if not repo.exists() or not (repo / ".git").exists():
                 if not self.repo_url:
                     self._notify("git_error", "Git: Repo not found, REPO_URL not set")
@@ -72,6 +81,24 @@ class RepoManager:
                 except Exception as e:
                     self._notify("git_error", f"Git: Clone failed - {str(e)[:100]}")
                     return False
+
+                # Checkout target branch after fresh clone
+                if self.repo_branch:
+                    try:
+                        subprocess.run(
+                            ["git", "checkout", self.repo_branch],
+                            cwd=self.repo_path, check=True, capture_output=True, text=True,
+                        )
+                    except Exception:
+                        # Branch might be remote-only, try tracking it
+                        try:
+                            subprocess.run(
+                                ["git", "checkout", "-b", self.repo_branch, f"origin/{self.repo_branch}"],
+                                cwd=self.repo_path, check=True, capture_output=True, text=True,
+                            )
+                        except Exception as e:
+                            self._notify("git_error", f"Git: Failed to checkout {self.repo_branch}")
+                            return False
             else:
                 # Fetch all remote refs first so checkout/pull have latest data
                 try:

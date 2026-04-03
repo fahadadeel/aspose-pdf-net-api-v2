@@ -31,9 +31,9 @@ async def index(request: Request):
         )
 
     return templates.TemplateResponse(
-        "index.html",
-        {
-            "request": request,
+        request=request,
+        name="index.html",
+        context={
             "default_api_url": default_api_url,
             "repo_display": repo_display,
             "repo_branch": repo_branch,

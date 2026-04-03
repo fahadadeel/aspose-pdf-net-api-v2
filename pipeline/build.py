@@ -17,6 +17,21 @@ from pipeline.models import BuildResult
 
 _BUILD_DIR_NAME = "_build"
 
+# Files to preserve when clearing build cache (avoid re-downloading NuGet packages)
+_CACHE_KEEP = {"project.assets.json", "project.nuget.cache"}
+
+
+def _write_and_sync(path: Path, content: str):
+    """Write file content and fsync to ensure dotnet reads the latest version.
+
+    Prevents race conditions where dotnet starts reading before the OS has
+    flushed the write buffer to disk (especially on Windows).
+    """
+    with open(path, "w", encoding="utf-8") as f:
+        f.write(content)
+        f.flush()
+        os.fsync(f.fileno())
+
 
 def _run_with_kill(cmd, cwd, timeout):
     """Run a subprocess with guaranteed kill on timeout.
@@ -89,13 +104,13 @@ class DotnetBuilder:
               </ItemGroup>
             </Project>""")
 
-        self.csproj_path.write_text(content, encoding="utf-8")
+        _write_and_sync(self.csproj_path, content)
         return str(self.csproj_path)
 
     def write_program_cs(self, code: str) -> str:
         """Write Program.cs with guaranteed trailing newline."""
         normalized = code if code.endswith("\n") else code + "\n"
-        self.program_cs_path.write_text(normalized, encoding="utf-8")
+        _write_and_sync(self.program_cs_path, normalized)
         return str(self.program_cs_path)
 
     def build(self) -> BuildResult:
@@ -128,8 +143,27 @@ class DotnetBuilder:
             except OSError:
                 pass
 
+    def _clear_build_cache(self):
+        """Clear obj/ and bin/ directories to force a clean dotnet build.
+
+        Preserves NuGet restore artifacts (project.assets.json, project.nuget.cache)
+        so packages are not re-downloaded.  Prevents false passes caused by dotnet's
+        incremental build reusing stale cached DLLs from a previous task.
+        """
+        for dirname in ("obj", "bin"):
+            cache_dir = self.workspace / dirname
+            if not cache_dir.exists():
+                continue
+            for item in cache_dir.rglob("*"):
+                if item.is_file() and item.name not in _CACHE_KEEP:
+                    try:
+                        item.unlink()
+                    except OSError:
+                        pass  # File may be locked by a previous dotnet process
+
     def build_and_run(self) -> tuple:
         """Build then run. Returns (success: bool, combined_output: str)."""
+        self._clear_build_cache()
         self.clean_output_artifacts()
         build_result = self.build()
         if not build_result.ok:
