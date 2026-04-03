@@ -24,144 +24,112 @@ from knowledge.error_fixes import load_error_fixes, match_error_fixes, format_er
 from knowledge.auto_learner import AutoLearner, load_auto_error_catalog
 
 
-def _filter_critical_rules(rules: dict, task: str, category: str = "") -> list:
-    """Return only the critical rules relevant to the given task/category.
+_ALWAYS_INCLUDE = {
+    "limit-collections-to-four-elements-evaluation-mode",
+    "no-blocking-calls-no-readline-no-watchers",
+    "no-var-use-explicit-types",
+    "no-external-frameworks-console-app-only",
+    "no-unit-test-frameworks-write-console-app",
+    "self-contained-examples-create-sample-pdf",
+    "document-disposal-with-using",
+    "page-indexing-one-based",
+    "collection-indexing-one-based",
+}
 
-    Relevance is scored by counting overlapping *domain-specific* keywords
-    between the rule and the task.  Common words (document, page, pdf, file,
-    etc.) are excluded to avoid every rule matching every task.  Rules with
-    score >= 2 are included, plus a small set of universal rules.
-    """
-    import re as _re
+_STOP_WORDS = {
+    "the", "and", "for", "not", "use", "does", "that", "with", "from",
+    "this", "are", "has", "have", "can", "will", "new", "get", "set",
+    "add", "all", "any", "class", "type", "name", "using", "method",
+    "property", "instead", "never", "always", "must", "should", "correct",
+    "wrong", "error", "could", "found", "missing", "directive", "assembly",
+    "reference", "definition", "accessible", "extension", "accepting",
+    "argument", "first", "does", "contain", "exist", "namespace",
+    "aspose", "pdf", "document", "page", "pages", "file", "save", "load",
+    "open", "create", "output", "input", "system", "string", "object",
+    "instance", "abstract", "constructor", "parameter", "value",
+    "example", "generate", "write", "read", "make", "show", "display",
+}
 
-    ALWAYS_INCLUDE = {
-        "limit-collections-to-four-elements-evaluation-mode",
-        "no-blocking-calls-no-readline-no-watchers",
-        "no-var-use-explicit-types",
-        "no-external-frameworks-console-app-only",
-        "no-unit-test-frameworks-write-console-app",
-    }
 
-    # Words too common to be useful for filtering
-    STOP_WORDS = {
-        "the", "and", "for", "not", "use", "does", "that", "with", "from",
-        "this", "are", "has", "have", "can", "will", "new", "get", "set",
-        "add", "all", "any", "class", "type", "name", "using", "method",
-        "property", "instead", "never", "always", "must", "should", "correct",
-        "wrong", "error", "could", "found", "missing", "directive", "assembly",
-        "reference", "definition", "accessible", "extension", "accepting",
-        "argument", "first", "does", "contain", "exist", "namespace",
-        # Aspose-generic (appear in nearly every rule)
-        "aspose", "pdf", "document", "page", "pages", "file", "save", "load",
-        "open", "create", "output", "input", "system", "string", "object",
-        "instance", "abstract", "constructor", "parameter", "value",
-    }
+def _extract_keywords(text: str) -> set:
+    """Extract domain-specific keywords after CamelCase splitting + stop word removal."""
+    expanded = re.sub(r"([a-z])([A-Z])", r"\1 \2", text)
+    expanded = re.sub(r"[-_./]", " ", expanded)
+    words = set(re.findall(r"[a-z][a-z0-9]{2,}", expanded.lower()))
+    return words - _STOP_WORDS
 
-    def _extract_keywords(text: str) -> set:
-        # Split on spaces, hyphens, underscores, camelCase boundaries, dots
-        expanded = _re.sub(r"([a-z])([A-Z])", r"\1 \2", text)  # camelCase → two words
-        expanded = _re.sub(r"[-_./]", " ", expanded)             # separators → spaces
-        words = set(_re.findall(r"[a-z][a-z0-9]{2,}", expanded.lower()))
-        return words - STOP_WORDS
 
-    query_kw = _extract_keywords(f"{task} {category}")
-
-    matched = []
-    for key, value in rules.items():
-        if key.startswith("__"):
-            continue
-        if not isinstance(value, dict) or not value.get("errors"):
-            continue
-
-        # Always-include rules
-        if key in ALWAYS_INCLUDE:
-            matched.append((key, value))
-            continue
-
-        # Build keyword set from rule id + note
-        rule_text = f"{key} {value.get('note', '')}"
-        rule_kw = _extract_keywords(rule_text)
-
-        # Require at least 1 overlapping domain-specific keyword.
-        # After stop-word removal, any remaining overlap is meaningful.
-        overlap = query_kw & rule_kw
-        if overlap:
-            matched.append((key, value))
-
-    return matched
+def _shorten_note(note: str, max_len: int = 200) -> str:
+    """Truncate a rule note to first 1-2 sentences, capped at max_len."""
+    sentences = re.split(r"(?<=[.!]) ", note)
+    short = sentences[0]
+    if len(sentences) > 1 and len(short) + len(sentences[1]) + 1 < max_len:
+        short = short + " " + sentences[1]
+    return short[:max_len] if len(short) > max_len else short
 
 
 def _format_rules_block(rules: dict, task: str = "", category: str = "",
-                        max_chars: int = 24000) -> str:
-    """Format product rules into readable text block for LLM prompt injection.
+                        max_chars: int = 32000) -> str:
+    """Format rules as compact one-liners: baseline + task-relevant rules.
 
-    Critical (error-prevention) rules are filtered by task relevance and
-    placed first.  API-doc reference rules follow, truncated at *max_chars*.
+    Always includes ~9 universal baseline rules.  Then adds task-specific
+    rules matched by keyword overlap.  Keeps prompt focused for the LLM
+    (typically 10-40 rules instead of 160+).
     """
 
-    # Filter critical rules by relevance to this specific task
-    if task:
-        critical = _filter_critical_rules(rules, task, category)
-    else:
-        # Fallback: include all critical rules (e.g. when called without task context)
-        critical = [
-            (k, v) for k, v in rules.items()
-            if not k.startswith("__") and isinstance(v, dict) and v.get("errors")
-        ]
+    query_kw = _extract_keywords(f"{task} {category}") if task else set()
 
-    # Collect API reference rules
-    reference = []
+    baseline = []
+    matched = []
+    skipped = 0
+
     for key, value in rules.items():
-        if key.startswith("__"):
+        if key.startswith("__") or not isinstance(value, dict):
             continue
-        if isinstance(value, dict) and value.get("errors"):
-            continue  # already in critical
-        if isinstance(value, dict) and (value.get("note") or value.get("code")):
-            reference.append((key, value))
-        elif isinstance(value, (list, str)):
-            reference.append((key, value))
+        note = value.get("note", "")
+        if not note:
+            continue
 
+        # Always-include baseline rules
+        if key in _ALWAYS_INCLUDE:
+            baseline.append((key, note))
+            continue
+
+        # If no task context, include everything (fallback)
+        if not query_kw:
+            matched.append((key, note))
+            continue
+
+        # Keyword match against rule id + note
+        rule_kw = _extract_keywords(f"{key} {note}")
+        if query_kw & rule_kw:
+            matched.append((key, note))
+        else:
+            skipped += 1
+
+    # Build output
     lines = []
-    if critical:
-        lines.append("=" * 50)
-        lines.append(f"CRITICAL RULES — MUST FOLLOW ({len(critical)} matched)")
-        lines.append("=" * 50)
-        for key, value in critical:
-            note = value.get("note", "")
-            code = value.get("code", "")
-            errors = value.get("errors", [])
-            lines.append(f"- **{key}**: {note}")
-            for e in errors[:2]:
-                lines.append(f"    ERROR: {e}")
-            if code:
-                code_short = code[:400] + ("..." if len(code) > 400 else "")
-                lines.append(f"    ```csharp\n    {code_short}\n    ```")
+    total_chars = 0
 
-    if reference:
+    if baseline:
+        lines.append(f"MANDATORY RULES ({len(baseline)})")
+        lines.append("=" * 50)
+        for key, note in baseline:
+            line = f"- {key}: {_shorten_note(note)}"
+            lines.append(line)
+            total_chars += len(line) + 1
+
+    if matched:
         lines.append("")
+        lines.append(f"TASK-SPECIFIC RULES ({len(matched)} matched, {skipped} skipped)")
         lines.append("=" * 50)
-        lines.append("API REFERENCE")
-        lines.append("=" * 50)
-        total = sum(len(l) + 1 for l in lines)
-        for key, value in reference:
-            if isinstance(value, dict):
-                note = value.get("note", "")
-                code = value.get("code", "")
-                block = f"### {key}\n  {note}"
-                if code:
-                    code_short = code[:300] + ("..." if len(code) > 300 else "")
-                    block += f"\n  ```csharp\n  {code_short}\n  ```"
-            elif isinstance(value, list):
-                block = f"{key}:\n" + "\n".join("  " + str(l) for l in value)
-            elif isinstance(value, str):
-                block = f"{key}: {value}"
-            else:
-                continue
-            if total + len(block) > max_chars:
-                lines.append(f"\n... (truncated — {len(reference)} API rules total)")
+        for key, note in matched:
+            line = f"- {key}: {_shorten_note(note)}"
+            if total_chars + len(line) + 1 > max_chars:
+                lines.append(f"... (truncated at {max_chars} chars)")
                 break
-            lines.append(block)
-            total += len(block)
+            lines.append(line)
+            total_chars += len(line) + 1
 
     return "\n".join(lines)
 
@@ -240,11 +208,33 @@ class PipelineRunner:
                 print(f"Warning: could not load generation rules: {e}")
 
     def _get_rules_for_task(self, task: str, category: str = "") -> str:
-        """Return generation rules formatted and filtered for a specific task."""
+        """Return baseline + task-relevant rules as compact one-liners."""
         self._ensure_generation_rules()
         if not self._generation_rules_raw:
             return ""
         return _format_rules_block(self._generation_rules_raw, task=task, category=category)
+
+    def _enrich_metadata(self, result: PipelineResult):
+        """Extract metadata from final compiled code via LLM (post-success).
+
+        Enriches result.metadata with title, filename, description, tags,
+        apis_used, difficulty.  Runs once per passed example.
+        Skips silently if LLM is unavailable or extraction fails.
+        """
+        final_code = result.fixed_code or result.generated_code
+        if not final_code or not self.llm.available:
+            return
+        try:
+            self._notify("metadata", "Extracting metadata from compiled code...")
+            meta = self.llm.extract_metadata(result.task, final_code, result.category)
+            if meta:
+                # Merge — LLM-extracted metadata wins, but don't overwrite existing non-empty values
+                for key, value in meta.items():
+                    if value and not result.metadata.get(key):
+                        result.metadata[key] = value
+                self._notify("metadata", f"Metadata extracted: {meta.get('title', '')[:60]}")
+        except Exception as e:
+            self._notify("metadata", f"Metadata extraction skipped: {str(e)[:80]}")
 
     def _fire_learning(self, task_input: TaskInput, original_code: str, fixed_code: str, error_log: str, stage: str):
         """Fire-and-forget: extract a reusable rule from a successful fix."""
@@ -288,6 +278,7 @@ class PipelineRunner:
             result.metadata = outcome.metadata
             result.status = "SUCCESS"
             result.stage = "baseline"
+            self._enrich_metadata(result)
             return result
 
         if not outcome.code:
@@ -316,6 +307,7 @@ class PipelineRunner:
                 result.rule = rule or ""
                 result.status = "SUCCESS"
                 result.stage = "pattern_fix"
+                self._enrich_metadata(result)
                 self._fire_learning(task_input, outcome.code, fixed, current_error, "pattern_fix")
                 return result
             current_code = fixed
@@ -329,12 +321,14 @@ class PipelineRunner:
                 current_code, current_error, task_input.task,
                 self.llm, self.builder, self._notify,
                 max_attempts=self.config.pipeline.llm_fix_attempts,
+                user_rules=task_rules,
                 error_fixes_data=self._error_fixes,
             )
             if outcome.success:
                 result.fixed_code = outcome.code
                 result.status = "SUCCESS"
                 result.stage = "llm_fix"
+                self._enrich_metadata(result)
                 self._fire_learning(task_input, result.generated_code, outcome.code, current_error, "llm_fix")
                 return result
 
@@ -365,6 +359,7 @@ class PipelineRunner:
             result.rule = outcome.rule
             result.status = "SUCCESS"
             result.stage = "regen"
+            self._enrich_metadata(result)
             self._fire_learning(task_input, result.generated_code, outcome.code, current_error, "regen")
             return result
 
@@ -379,11 +374,13 @@ class PipelineRunner:
                 stage5_code, stage5_error, task_input.task,
                 self.llm, self.builder, self._notify, self.config,
                 error_fixes_data=self._error_fixes,
+                generation_rules=task_rules,
             )
             if outcome.success:
                 result.fixed_code = outcome.code
                 result.status = "SUCCESS"
                 result.stage = "final_llm"
+                self._enrich_metadata(result)
                 self._fire_learning(task_input, result.generated_code, outcome.code, stage5_error, "final_llm")
                 return result
 

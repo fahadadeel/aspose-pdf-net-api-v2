@@ -225,6 +225,51 @@ _KNOWN_FIXES = [
         "regex": False,
         "rule": {"description": "FoLoadOptions does not exist; use XslFoLoadOptions", "pattern": "new XslFoLoadOptions()"},
     },
+
+    # ── DefaultAppearance: Aspose.Pdf.Color → System.Drawing.Color ──
+    {
+        "pattern": r"(?s)error CS1503.*cannot convert from 'Aspose\.Pdf\.Color' to 'System\.Drawing\.Color'",
+        "old": r"new\s+DefaultAppearance\(([^,]+),\s*([^,]+),\s*Aspose\.Pdf\.Color\.(\w+)\)",
+        "new": r"new DefaultAppearance(\1, \2, System.Drawing.Color.\3)",
+        "regex": True,
+        "rule": {"description": "DefaultAppearance constructor takes System.Drawing.Color, not Aspose.Pdf.Color", "pattern": "new DefaultAppearance(font, size, System.Drawing.Color.X)"},
+    },
+
+    # ── CheckBoxField → CheckboxField (lowercase b) ──
+    {
+        "pattern": r"(?s)error CS0246.*'CheckBoxField'",
+        "old": "CheckBoxField",
+        "new": "CheckboxField",
+        "regex": False,
+        "rule": {"description": "CheckBoxField has wrong casing; use CheckboxField (lowercase b)", "pattern": "CheckboxField"},
+    },
+
+    # ── JavaScriptAction → JavascriptAction (lowercase s) ──
+    {
+        "pattern": r"(?s)error CS0246.*'JavaScriptAction'",
+        "old": "JavaScriptAction",
+        "new": "JavascriptAction",
+        "regex": False,
+        "rule": {"description": "JavaScriptAction has wrong casing; use JavascriptAction (lowercase s)", "pattern": "JavascriptAction"},
+    },
+
+    # ── PasswordBoxField → TextBoxField ──
+    {
+        "pattern": r"(?s)error CS1729.*'PasswordBoxField'.*does not contain a constructor",
+        "old": r"new\s+PasswordBoxField\(",
+        "new": "new TextBoxField(",
+        "regex": True,
+        "rule": {"description": "PasswordBoxField has no public constructor; use TextBoxField", "pattern": "new TextBoxField(page, rect)"},
+    },
+
+    # ── DefaultAppearance CS0246 → add using Aspose.Pdf.Annotations ──
+    {
+        "pattern": r"(?s)error CS0246.*'DefaultAppearance'.*could not be found",
+        "old": "using Aspose.Pdf.Forms;",
+        "new": "using Aspose.Pdf.Forms;\nusing Aspose.Pdf.Annotations;",
+        "regex": False,
+        "rule": {"description": "DefaultAppearance is in Aspose.Pdf.Annotations namespace", "pattern": "using Aspose.Pdf.Annotations;"},
+    },
 ]
 
 

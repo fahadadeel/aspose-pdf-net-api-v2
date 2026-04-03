@@ -346,6 +346,7 @@ def run_final_llm_recovery(
     llm: LLMClient, builder: DotnetBuilder, notify: Notify,
     config: AppConfig,
     error_fixes_data: dict = None,
+    generation_rules: str = "",
 ) -> StageOutcome:
     """Stage 5: One last LLM fix attempt using last regen code."""
     if not llm.available or not code:
@@ -356,14 +357,16 @@ def run_final_llm_recovery(
     error_summary = "\n".join(error_lines[:5]) if error_lines else "Build errors detected."
 
     # Match relevant error fixes for this final attempt
-    fixes_text = ""
+    rules_for_llm = generation_rules
     if error_fixes_data:
         parsed = parse_error_codes(error_lines)
         error_codes = list(dict.fromkeys(e.code for e in parsed))
         fixes = match_error_fixes(error_fixes_data, error_log, error_codes)
         fixes_text = format_error_fixes_for_prompt(fixes)
+        if fixes_text:
+            rules_for_llm = f"{generation_rules}\n\n{fixes_text}" if generation_rules else fixes_text
 
-    fixed = llm.fix_code(task, code, error_summary, fixes_text)
+    fixed = llm.fix_code(task, code, error_summary, rules_for_llm)
     if not fixed:
         return StageOutcome(success=False, stage="final_llm")
 

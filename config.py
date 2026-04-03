@@ -152,6 +152,8 @@ class AppConfig:
     git: GitConfig = field(default_factory=GitConfig)
 
     workspace_path: str = "."
+    results_dir: str = "./results"       # Disk-backed task results for crash recovery
+    resume_batch: bool = True            # Resume batch jobs from disk (skip already-passed tasks)
     rules_examples_path: str = "./resources/kb_new.json"
     fix_history_path: str = "./fix_history.json"
     error_catalog_path: str = "./resources/error_catalog.json"
@@ -259,6 +261,8 @@ def load_config() -> AppConfig:
 
     # App-level
     cfg.workspace_path = _env("WORKSPACE_PATH", cfg.workspace_path)
+    cfg.results_dir = _env("RESULTS_DIR", cfg.results_dir)
+    cfg.resume_batch = _env_bool("RESUME_BATCH", cfg.resume_batch)
     cfg.rules_examples_path = _env("RULES_EXAMPLES_PATH", cfg.rules_examples_path)
     cfg.fix_history_path = _env("FIX_HISTORY_PATH", cfg.fix_history_path)
     cfg.error_catalog_path = _env("ERROR_CATALOG_PATH", cfg.error_catalog_path)

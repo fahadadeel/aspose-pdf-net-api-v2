@@ -113,6 +113,70 @@ class LLMClient:
                 return code_match.group(1).strip()
             return None
 
+    def extract_metadata(self, task: str, code: str, category: str = "") -> dict:
+        """Extract metadata from compiled C# code for index.json enrichment.
+
+        Called once per passed example, after the final code compiles.
+        Returns a dict with: title, filename, description, tags, apis_used, difficulty.
+        Returns empty dict on failure (caller falls back to defaults).
+        """
+        prompt = f"""Analyze this C# code example and return a JSON object with metadata.
+
+TASK DESCRIPTION:
+{task}
+
+CATEGORY:
+{category or "uncategorized"}
+
+CODE:
+```csharp
+{code}
+```
+
+Return a JSON object with exactly these keys:
+{{
+  "title": "<concise human-readable title, e.g. 'Add Text Watermark to PDF Pages'>",
+  "filename": "<kebab-case name without .cs, max 60 chars, e.g. 'add-text-watermark-to-pdf-pages'>",
+  "description": "<1-2 sentences describing what this example demonstrates>",
+  "tags": ["<keyword1>", "<keyword2>", "<keyword3>"],
+  "apis_used": ["<Aspose.Pdf.ClassName>", "<Aspose.Pdf.Namespace.MethodName>"],
+  "difficulty": "<beginner|intermediate|advanced>"
+}}
+
+Rules:
+- "title" should be concise and descriptive
+- "filename" must be lowercase kebab-case, max 60 chars
+- "tags" max 5 short keywords relevant to the example
+- "apis_used" list ONLY Aspose.Pdf classes/methods actually used in the code (not System types)
+- "difficulty" based on complexity: simple API calls = beginner, multi-step = intermediate, advanced patterns = advanced
+- Output ONLY the JSON object, no other text"""
+
+        content = self.chat("", prompt, temperature=0.0, max_tokens=1000)
+        if not content:
+            return {}
+
+        # Strip markdown fences if present
+        content = content.strip()
+        if content.startswith("```"):
+            content = re.sub(r"^```(?:json)?\s*", "", content)
+            content = re.sub(r"\s*```$", "", content.strip()).strip()
+
+        try:
+            data = json.loads(content)
+            if isinstance(data, dict):
+                # Ensure expected keys exist
+                return {
+                    "title": data.get("title", ""),
+                    "filename": data.get("filename", ""),
+                    "description": data.get("description", ""),
+                    "tags": data.get("tags", []),
+                    "apis_used": data.get("apis_used", []),
+                    "difficulty": data.get("difficulty", ""),
+                }
+        except (json.JSONDecodeError, ValueError):
+            pass
+        return {}
+
     def fix_code(self, task: str, code: str, build_error: str, user_rules: str = "") -> Optional[str]:
         """Ask LLM to fix broken code. Returns fixed code or None."""
         system = (

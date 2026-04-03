@@ -31,6 +31,7 @@ from state import (
     wait_if_paused, is_paused,
     JOB_CANCEL_FLAGS, JOB_LOCK,
 )
+from persistence import save_result, is_task_passed, load_cached_task, get_resume_stats
 
 
 def _compute_badge(result) -> str:
@@ -587,6 +588,17 @@ def run_job(
             failed_for_learning = []  # Collect failed tasks for post-pipeline rule learning
             max_retries = 3   # Max retry attempts for API_FAILED tasks
 
+            # ── Resume stats: report how many tasks can be skipped ──
+            if config.resume_batch:
+                # Collect unique categories to report resume stats
+                _resume_cats = set(p.get("category", "") for p in prompts)
+                _total_cached = 0
+                for _cat in _resume_cats:
+                    _stats = get_resume_stats(config.results_dir, _cat)
+                    _total_cached += _stats["passed"]
+                if _total_cached:
+                    add_log(job_id, f"Resume: {_total_cached} previously passed task(s) found on disk — will be skipped")
+
             for idx, p in enumerate(prompts, 1):
                 if is_cancelled(job_id):
                     break
@@ -602,6 +614,23 @@ def run_job(
                 task_text = p.get("prompt", p.get("task", ""))
                 task_id = str(p.get("id", idx))
                 task_display = task_text[:100] if task_text else f"Task {idx}"
+
+                # ── Resume check: skip tasks that already passed in a previous run ──
+                if config.resume_batch and is_task_passed(config.results_dir, p.get("category", ""), task_id, task_text):
+                    cached = load_cached_task(config.results_dir, p.get("category", ""), task_id, task_text)
+                    if cached:
+                        cached_code = cached["code"]
+                        cached_badge = cached.get("badge", "CACHED")
+                        cached_metadata = cached.get("metadata", {})
+                        add_passed(job_id, task_id, task_display, f"{cached_badge} (cached)", code=cached_code, category=p.get("category", ""), product=p.get("product", ""), metadata=cached_metadata)
+                        results_summary.append({"task": task_display, "category": p.get("category", ""), "status": "PASSED"})
+                        # Re-commit to git so the code makes it into the PR
+                        if committer:
+                            committer.commit_code(task_text, p.get("category", ""), cached_code, metadata=cached_metadata)
+                        add_log(job_id, f"Task {task_id} restored from cache (code + metadata)")
+                        continue
+                    # Code file missing — fall through to re-run the pipeline
+                    add_log(job_id, f"Task {task_id} was cached but code file missing — re-running")
 
                 separator = "=" * 60
                 add_log(job_id, separator)
@@ -640,11 +669,13 @@ def run_job(
                 if result.status == "SUCCESS":
                     add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""), metadata=result.metadata)
                     add_log(job_id, f"Task {task_id} passed ({badge})")
+                    save_result(config.results_dir, p.get("category", ""), task_id, task_text, "PASSED", stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
                     if committer:
                         committer.commit_code(task_text, p.get("category", ""), final_code, metadata=result.metadata)
                 else:
                     add_failed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                     add_log(job_id, f"Task {task_id} failed ({badge})")
+                    save_result(config.results_dir, p.get("category", ""), task_id, task_text, "FAILED", stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
                     # Store full task dict for retry-failed feature
                     failed_task_dicts.append({
                         "prompt": task_text,
@@ -700,11 +731,13 @@ def run_job(
                     if result.status == "SUCCESS":
                         add_passed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""), metadata=result.metadata)
                         add_log(job_id, f"Task {task_id} passed on retry ({badge})")
+                        save_result(config.results_dir, p.get("category", ""), task_id, task_text, "PASSED", stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
                         if committer:
                             committer.commit_code(task_text, p.get("category", ""), final_code, metadata=result.metadata)
                     else:
                         add_failed(job_id, task_id, task_display, badge, code=final_code, category=p.get("category", ""), product=p.get("product", ""))
                         add_log(job_id, f"Task {task_id} failed after retries ({badge})")
+                        save_result(config.results_dir, p.get("category", ""), task_id, task_text, "FAILED", stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
                         failed_task_dicts.append({
                             "prompt": task_text,
                             "category": p.get("category", ""),
@@ -1277,6 +1310,21 @@ def run_sweep(
 
                 set_current_task(job_id, f"[{cat_name}] Task {global_idx}/{grand_total}")
 
+                # ── Resume check: skip tasks that already passed ──
+                if config.resume_batch and is_task_passed(config.results_dir, cat_name, task_id, task_text):
+                    cached = load_cached_task(config.results_dir, cat_name, task_id, task_text)
+                    if cached:
+                        cached_code = cached["code"]
+                        cached_badge = cached.get("badge", "CACHED")
+                        cached_metadata = cached.get("metadata", {})
+                        add_passed(job_id, task_id, task_display, f"{cached_badge} (cached)", code=cached_code, category=cat_name, product=task_obj.get("product", ""), metadata=cached_metadata)
+                        cat_results.append({"task": task_display, "category": cat_name, "status": "PASSED"})
+                        cat_passed += 1
+                        if committer:
+                            committer.commit_code(task_text, cat_name, cached_code, metadata=cached_metadata)
+                        add_log(job_id, f"Task {task_id} restored from cache (code + metadata)")
+                        continue
+
                 task_input = TaskInput(
                     task=task_text,
                     category=cat_name,
@@ -1302,12 +1350,14 @@ def run_sweep(
                     cat_passed += 1
                     add_passed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""), metadata=result.metadata)
                     add_log(job_id, f"Task {task_id} passed ({badge})")
+                    save_result(config.results_dir, cat_name, task_id, task_text, "PASSED", stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
                     if committer:
                         committer.commit_code(task_text, cat_name, final_code, metadata=result.metadata)
                 else:
                     cat_failed += 1
                     add_failed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
                     add_log(job_id, f"Task {task_id} failed ({badge})")
+                    save_result(config.results_dir, cat_name, task_id, task_text, "FAILED", stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
 
             # ── Retry queue for this category ──
             for task_obj in retry_queue:
@@ -1329,12 +1379,14 @@ def run_sweep(
                     cat_passed += 1
                     add_passed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""), metadata=result.metadata)
                     add_log(job_id, f"Task {task_id} passed on retry ({badge})")
+                    save_result(config.results_dir, cat_name, task_id, task_text, "PASSED", stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
                     if committer:
                         committer.commit_code(task_text, cat_name, final_code, metadata=result.metadata)
                 else:
                     cat_failed += 1
                     add_failed(job_id, task_id, task_display, badge, code=final_code, category=cat_name, product=task_obj.get("product", ""))
                     add_log(job_id, f"Task {task_id} failed after retries ({badge})")
+                    save_result(config.results_dir, cat_name, task_id, task_text, "FAILED", stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
 
             # ── Per-category PR ──
             if committer and committer._pending_commits:
