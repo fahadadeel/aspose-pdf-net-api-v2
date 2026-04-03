@@ -32,6 +32,7 @@ from jobs import (
     run_version_bump, run_promote_to_main,
     retry_pr, create_pr, update_repo_docs,
     run_pipeline, _fetch_tasks_for_category,
+    create_pr_from_results,
 )
 from knowledge.auto_fixes import load_auto_fixes, approve_auto_fix, approve_all_auto_fixes, delete_auto_fix
 from state import (
@@ -474,6 +475,136 @@ async def api_retry_failed(job_id: str, data: dict = Body(None)):
         "retrying": len(failed_tasks),
         "repo_push": repo_push,
     }
+
+
+@router.get("/api/results")
+async def api_results(version: str = ""):
+    """List persisted results from disk — per-category stats and metadata.
+
+    Shows what's available for PR creation without needing a running job.
+    Query params:
+        version: NuGet version subfolder (e.g. "26.3.0"). Empty = config default.
+    """
+    from config import load_config
+    from persistence import scan_disk_results, versioned_results_dir, list_result_versions
+
+    config = load_config()
+    effective_version = version.strip() or config.build.nuget_version
+    results_dir = versioned_results_dir(config.results_dir, effective_version)
+    disk_data = scan_disk_results(results_dir)
+
+    if not disk_data:
+        available_versions = list_result_versions(config.results_dir)
+        return {
+            "version": effective_version,
+            "results_dir": results_dir,
+            "categories": {},
+            "total_passed": 0,
+            "total_failed": 0,
+            "available_versions": available_versions,
+        }
+
+    total_passed = sum(v["passed"] for v in disk_data.values())
+    total_failed = sum(v["failed"] for v in disk_data.values())
+
+    # Build per-category summary (without full example list for GET overview)
+    category_summaries = {}
+    for cat_slug, cat_info in sorted(disk_data.items()):
+        # Collect metadata quality stats
+        examples_with_title = sum(1 for e in cat_info["examples"] if e["metadata"].get("title"))
+        examples_with_desc = sum(1 for e in cat_info["examples"] if e["metadata"].get("description"))
+        examples_with_apis = sum(1 for e in cat_info["examples"] if e["metadata"].get("apis_used"))
+        examples_with_code = sum(1 for e in cat_info["examples"] if e.get("has_code"))
+
+        category_summaries[cat_slug] = {
+            "passed": cat_info["passed"],
+            "failed": cat_info["failed"],
+            "total": cat_info["total"],
+            "examples_with_code": examples_with_code,
+            "metadata_quality": {
+                "has_title": examples_with_title,
+                "has_description": examples_with_desc,
+                "has_apis": examples_with_apis,
+            },
+        }
+
+    available_versions = list_result_versions(config.results_dir)
+
+    return {
+        "version": effective_version,
+        "results_dir": results_dir,
+        "categories": category_summaries,
+        "total_passed": total_passed,
+        "total_failed": total_failed,
+        "total_categories": len(disk_data),
+        "available_versions": available_versions,
+    }
+
+
+@router.get("/api/results/{category}")
+async def api_results_category(category: str, version: str = ""):
+    """Get detailed results for a specific category, including example list."""
+    from config import load_config
+    from persistence import scan_disk_results, versioned_results_dir
+
+    config = load_config()
+    effective_version = version.strip() or config.build.nuget_version
+    results_dir = versioned_results_dir(config.results_dir, effective_version)
+    disk_data = scan_disk_results(results_dir)
+
+    cat_data = disk_data.get(category)
+    if not cat_data:
+        return JSONResponse(
+            {"error": f"Category '{category}' not found", "available": sorted(disk_data.keys())},
+            status_code=404,
+        )
+
+    return {
+        "version": effective_version,
+        "category": category,
+        **cat_data,
+    }
+
+
+@router.post("/api/create-pr-from-results")
+async def api_create_pr_from_results(data: dict = Body(...)):
+    """Create PR(s) from persisted disk results — no running pipeline needed.
+
+    Body:
+        {
+            "categories": ["working-with-images", ...],  // optional — omit for all
+            "version": "26.3.0",                         // optional — default from config
+            "pr_style": "per-category",                  // "per-category" or "single"
+            "pr_target_branch": ""                       // optional override
+        }
+
+    The PR will include:
+    - All passed .cs files from disk results
+    - Rich PR description with example titles, APIs, tags, difficulty stats
+    - Per-category agents.md and index.json
+    """
+    categories = data.get("categories") or None
+    version = (data.get("version") or "").strip()
+    pr_style = (data.get("pr_style") or "per-category").strip()
+    pr_target_branch = (data.get("pr_target_branch") or "").strip() or None
+
+    if pr_style not in ("per-category", "single"):
+        return JSONResponse({"error": "pr_style must be 'per-category' or 'single'"}, status_code=400)
+
+    job_id = str(uuid.uuid4())
+    thread = threading.Thread(
+        target=create_pr_from_results,
+        args=(job_id,),
+        kwargs={
+            "categories": categories,
+            "version": version,
+            "pr_style": pr_style,
+            "pr_target_branch": pr_target_branch,
+        },
+        daemon=True,
+    )
+    thread.start()
+    return {"job_id": job_id, "pr_style": pr_style}
 
 
 @router.post("/api/update-repo-docs")
