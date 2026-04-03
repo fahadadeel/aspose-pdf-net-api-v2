@@ -267,3 +267,147 @@ def get_resume_stats(results_dir: str, category: str) -> dict:
     passed = sum(1 for v in results.values() if v.get("status") == "PASSED")
     failed = sum(1 for v in results.values() if v.get("status") == "FAILED")
     return {"passed": passed, "failed": failed, "total": len(results)}
+
+
+# ── Disk scan for PR creation ──
+
+def list_result_versions(base_results_dir: str) -> list:
+    """List all version directories under results/."""
+    base = Path(base_results_dir)
+    if not base.exists():
+        return []
+    versions = []
+    for d in sorted(base.iterdir()):
+        if d.is_dir() and _looks_like_version(d.name):
+            versions.append(d.name)
+    return versions
+
+
+def scan_disk_results(results_dir: str) -> dict:
+    """Scan persisted results directory and return per-category summary.
+
+    Returns:
+        {
+            "category_name": {
+                "passed": int,
+                "failed": int,
+                "total": int,
+                "examples": [
+                    {
+                        "task_id": str,
+                        "task": str,
+                        "status": str,
+                        "stage": str,
+                        "badge": str,
+                        "cs_file": str,
+                        "has_code": bool,
+                        "metadata": {title, filename, description, tags, apis_used, difficulty},
+                    },
+                    ...
+                ],
+            },
+            ...
+        }
+    """
+    rdir = Path(results_dir)
+    if not rdir.exists():
+        return {}
+
+    # Find all category JSON files
+    categories = {}
+    for json_file in sorted(rdir.glob("*.json")):
+        cat_slug = json_file.stem
+        results = load_results(results_dir, cat_slug)
+        if not results:
+            continue
+
+        examples = []
+        passed = 0
+        failed = 0
+
+        for task_id, entry in results.items():
+            status = entry.get("status", "UNKNOWN")
+            if status == "PASSED":
+                passed += 1
+            elif status == "FAILED":
+                failed += 1
+
+            # Check if code file exists on disk
+            cs_file = entry.get("cs_file", "")
+            has_code = False
+            if cs_file and status == "PASSED":
+                code_path = _code_dir(results_dir, cat_slug, "PASSED") / cs_file
+                has_code = code_path.exists()
+
+            metadata = entry.get("metadata", {})
+            examples.append({
+                "task_id": task_id,
+                "task": entry.get("task", ""),
+                "status": status,
+                "stage": entry.get("stage", ""),
+                "badge": entry.get("badge", ""),
+                "cs_file": cs_file,
+                "has_code": has_code,
+                "metadata": {
+                    "title": metadata.get("title", ""),
+                    "filename": metadata.get("filename", ""),
+                    "description": metadata.get("description", ""),
+                    "tags": metadata.get("tags", []),
+                    "apis_used": metadata.get("apis_used", []),
+                    "difficulty": metadata.get("difficulty", ""),
+                },
+            })
+
+        # Try to recover original category name from first entry or slug
+        original_name = cat_slug.replace("_", " ").title()
+        for ex in examples:
+            # The task text might hint at the category but we don't have it stored
+            # The category slug is reliable enough
+            break
+
+        categories[cat_slug] = {
+            "passed": passed,
+            "failed": failed,
+            "total": len(examples),
+            "examples": examples,
+        }
+
+    return categories
+
+
+def load_passed_examples(results_dir: str, category_slug: str) -> list:
+    """Load all passed examples for a category with their code from disk.
+
+    Returns list of dicts:
+        [{task_id, task, code, stage, badge, metadata}, ...]
+    """
+    results = load_results(results_dir, category_slug)
+    examples = []
+
+    for task_id, entry in results.items():
+        if entry.get("status") != "PASSED":
+            continue
+
+        cs_file = entry.get("cs_file", "")
+        code = ""
+        if cs_file:
+            code_path = _code_dir(results_dir, category_slug, "PASSED") / cs_file
+            if code_path.exists():
+                try:
+                    code = code_path.read_text(encoding="utf-8")
+                except OSError:
+                    continue  # skip if code can't be read
+
+        if not code:
+            continue  # no code = can't create PR for this one
+
+        examples.append({
+            "task_id": task_id,
+            "task": entry.get("task", ""),
+            "code": code,
+            "stage": entry.get("stage", ""),
+            "badge": entry.get("badge", ""),
+            "metadata": entry.get("metadata", {}),
+        })
+
+    return examples
