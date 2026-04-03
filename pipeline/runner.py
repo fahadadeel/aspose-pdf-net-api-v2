@@ -224,6 +224,11 @@ class PipelineRunner:
         final_code = result.fixed_code or result.generated_code
         if not final_code or not self.llm.available:
             return
+        # Skip if metadata is already complete (e.g. own-LLM baseline success)
+        _META_KEYS = ("title", "filename", "description", "tags", "apis_used", "difficulty")
+        if all(result.metadata.get(k) for k in _META_KEYS):
+            self._notify("metadata", "Metadata already complete — skipping extraction")
+            return
         try:
             self._notify("metadata", "Extracting metadata from compiled code...")
             meta = self.llm.extract_metadata(result.task, final_code, result.category)
