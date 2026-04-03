@@ -31,7 +31,10 @@ from state import (
     wait_if_paused, is_paused,
     JOB_CANCEL_FLAGS, JOB_LOCK,
 )
-from persistence import save_result, is_task_passed, load_cached_task, get_resume_stats
+from persistence import (
+    save_result, is_task_passed, load_cached_task, get_resume_stats,
+    versioned_results_dir, migrate_flat_results,
+)
 
 
 def _compute_badge(result) -> str:
@@ -1963,3 +1966,472 @@ def run_retry_failed(
             JOB_CANCEL_FLAGS.pop(job_id, None)
         add_log(job_id, f"Retry job failed: {exc}")
         set_status(job_id, "failed")
+
+
+# ═══════════════════════════════════════════════════════════════
+# UNIFIED PIPELINE — single entry point for all generation flows
+# ═══════════════════════════════════════════════════════════════
+
+
+def run_pipeline(
+    job_id: str,
+    tasks: list,
+    repo_push: bool = False,
+    api_url: str = None,
+    pr_target_branch: str = None,
+    pr_style: str = "auto",
+    category_branches: dict = None,
+):
+    """Unified pipeline: processes a list of tasks through the generation pipeline.
+
+    All task input sources (single prompt, CSV, task generator, sweep,
+    retry-failed) build their task list and call this single function.
+
+    Args:
+        job_id: Unique job identifier.
+        tasks: List of dicts with keys: task/prompt, category, product, id.
+        repo_push: Whether to commit and create PRs.
+        api_url: Override MCP generate URL.
+        pr_target_branch: Override PR target branch.
+        pr_style: "auto" (threshold-based), "single", or "per-category".
+        category_branches: Existing branches to push to (retry-failed Option B).
+    """
+    notify = _make_progress_callback(job_id)
+    config = load_config()
+    usage_tracker = UsageTracker()
+
+    if api_url:
+        config.mcp.generate_url = api_url
+    if pr_target_branch:
+        config.git.pr_target_branch = pr_target_branch
+
+    # Compute versioned results directory
+    results_dir = versioned_results_dir(config.results_dir, config.build.nuget_version)
+    migrate_flat_results(config.results_dir, config.build.nuget_version)
+
+    total = len(tasks)
+    if total == 0:
+        init_build(job_id, total=0)
+        set_status(job_id, "completed")
+        add_log(job_id, "No tasks to process.")
+        return
+
+    try:
+        init_build(job_id, total=total)
+        set_repo_push(job_id, repo_push)
+        add_log(job_id, f"Starting pipeline: {total} task(s)")
+
+        runner = PipelineRunner(config, progress_callback=notify, usage_tracker=usage_tracker)
+
+        # ── Git setup ──
+        repo, committer, pr_manager = None, None, None
+        if repo_push:
+            if category_branches:
+                # Option B: push to existing branches (retry-failed)
+                repo = RepoManager(
+                    repo_path=config.git.repo_path,
+                    repo_url=config.git.repo_url,
+                    repo_branch=config.git.repo_branch,
+                    repo_token=config.git.repo_token,
+                    repo_user=config.git.repo_user,
+                    notify=notify,
+                )
+                if repo.ensure_ready():
+                    llm = LLMClient(config)
+                    committer = CodeCommitter(
+                        repo_path=config.git.repo_path,
+                        repo_push=True,
+                        pr_branch=None,
+                        repo_branch=config.git.repo_branch,
+                        default_category=config.git.default_category,
+                        batch_git=True,
+                        notify=notify,
+                        llm_client=llm,
+                    )
+                    pr_manager = PRManager(config, repo, notify=notify, llm_client=llm)
+                    add_log(job_id, "Git repo ready (pushing to existing branches)")
+                else:
+                    add_log(job_id, "Git repository not ready — commits will be skipped")
+                    repo = None
+            elif pr_style == "per-category":
+                # Sweep-style: repo without a single PR branch; per-category branches created later
+                repo = RepoManager(
+                    repo_path=config.git.repo_path,
+                    repo_url=config.git.repo_url,
+                    repo_branch=config.git.repo_branch,
+                    repo_token=config.git.repo_token,
+                    repo_user=config.git.repo_user,
+                    notify=notify,
+                )
+                if repo.ensure_ready():
+                    llm = LLMClient(config)
+                    committer = CodeCommitter(
+                        repo_path=config.git.repo_path,
+                        repo_push=True,
+                        pr_branch=None,
+                        repo_branch=config.git.repo_branch,
+                        default_category=config.git.default_category,
+                        batch_git=True,
+                        notify=notify,
+                        llm_client=llm,
+                    )
+                    pr_manager = PRManager(config, repo, notify=notify, llm_client=llm)
+                    add_log(job_id, "Git repo ready for per-category PRs")
+                else:
+                    add_log(job_id, "Git repository not ready — PRs will be skipped")
+                    repo = None
+            else:
+                # Single branch for all tasks
+                repo, committer, pr_manager = _setup_pr_workflow(config, job_id, notify)
+                if repo and repo.pr_branch:
+                    set_pr_branch(job_id, repo.pr_branch)
+
+        # ── Resume stats ──
+        if config.resume_batch:
+            _resume_cats = set(t.get("category", "") for t in tasks)
+            _total_cached = 0
+            for _cat in _resume_cats:
+                _stats = get_resume_stats(results_dir, _cat)
+                _total_cached += _stats["passed"]
+            if _total_cached:
+                add_log(job_id, f"Resume: {_total_cached} previously passed task(s) found — will be skipped")
+
+        # ── Main task loop ──
+        results_summary = []
+        retry_queue = []
+        failed_task_dicts = []
+        failed_for_learning = []
+        max_retries = 3
+
+        # Group tasks by category for per-category PR handling
+        _current_category = None
+        _category_start = None
+        _category_tracker = None
+
+        for idx, p in enumerate(tasks, 1):
+            if is_cancelled(job_id):
+                break
+
+            # ── Pause check ──
+            if is_paused(job_id):
+                add_log(job_id, f"⏸ Paused after task {idx - 1}/{total}. Click Resume to continue.")
+                wait_if_paused(job_id)
+                if is_cancelled(job_id):
+                    break
+                add_log(job_id, "▶ Resumed.")
+
+            task_text = p.get("prompt", p.get("task", ""))
+            task_id = str(p.get("id", idx))
+            category = p.get("category", "")
+            task_display = task_text[:100] if task_text else f"Task {idx}"
+
+            # ── Per-category boundary (for sweep-style logging) ──
+            if category != _current_category:
+                # Commit previous category if per-category PR style
+                if pr_style == "per-category" and _current_category and committer and committer._pending_commits:
+                    _commit_category_pr(job_id, config, repo, committer, pr_manager, _current_category, results_summary)
+
+                _current_category = category
+                if category:
+                    separator = "=" * 60
+                    add_log(job_id, separator)
+                    add_log(job_id, f"Category: {category}")
+                    add_log(job_id, separator)
+
+            set_current_task(job_id, f"[{category}] Task {idx}/{total}" if category else f"Task {idx}/{total}")
+
+            # ── Resume check ──
+            if config.resume_batch and is_task_passed(results_dir, category, task_id, task_text):
+                cached = load_cached_task(results_dir, category, task_id, task_text)
+                if cached:
+                    cached_code = cached["code"]
+                    cached_badge = cached.get("badge", "CACHED")
+                    cached_metadata = cached.get("metadata", {})
+                    add_passed(job_id, task_id, task_display, f"{cached_badge} (cached)",
+                               code=cached_code, category=category,
+                               product=p.get("product", ""), metadata=cached_metadata)
+                    results_summary.append({"task": task_display, "category": category, "status": "PASSED"})
+                    if committer:
+                        committer.commit_code(task_text, category, cached_code, metadata=cached_metadata)
+                    add_log(job_id, f"Task {task_id} restored from cache")
+                    continue
+                add_log(job_id, f"Task {task_id} was cached but code missing — re-running")
+
+            # ── Execute pipeline ──
+            task_input = TaskInput(
+                task=task_text,
+                category=category,
+                product=p.get("product", config.git.default_product),
+            )
+            result = runner.execute(task_input)
+            badge = _compute_badge(result)
+            final_code = result.fixed_code or result.generated_code or ""
+            status_str = "PASSED" if result.status == "SUCCESS" else "FAILED"
+
+            # ── Handle API_FAILED (transient error — retry) ──
+            if result.status == "API_FAILED":
+                retry_count = p.get("_retry_count", 0)
+                if retry_count < max_retries:
+                    p["_retry_count"] = retry_count + 1
+                    retry_queue.append(p)
+                    add_log(job_id, f"Task {task_id} API error — queued for retry ({retry_count + 1}/{max_retries})")
+                    continue
+                else:
+                    add_log(job_id, f"Task {task_id} failed after {max_retries} retries (API unreachable)")
+
+            results_summary.append({"task": task_display, "category": category, "status": status_str})
+
+            if result.status == "SUCCESS":
+                add_passed(job_id, task_id, task_display, badge, code=final_code,
+                           category=category, product=p.get("product", ""), metadata=result.metadata)
+                add_log(job_id, f"Task {task_id} passed ({badge})")
+                save_result(results_dir, category, task_id, task_text, "PASSED",
+                            stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
+                if committer:
+                    committer.commit_code(task_text, category, final_code, metadata=result.metadata)
+            else:
+                add_failed(job_id, task_id, task_display, badge, code=final_code,
+                           category=category, product=p.get("product", ""))
+                add_log(job_id, f"Task {task_id} failed ({badge})")
+                save_result(results_dir, category, task_id, task_text, "FAILED",
+                            stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
+                failed_task_dicts.append({
+                    "prompt": task_text, "category": category,
+                    "product": p.get("product", config.git.default_product), "id": task_id,
+                })
+                if result.build_log:
+                    failed_for_learning.append({
+                        "task": task_text, "code": result.generated_code or "",
+                        "build_log": result.build_log,
+                    })
+
+        # ── Process retry queue ──
+        if retry_queue and not is_cancelled(job_id):
+            add_log(job_id, f"Retrying {len(retry_queue)} task(s) with transient API errors...")
+            for p in retry_queue:
+                if is_cancelled(job_id):
+                    break
+
+                task_text = p.get("prompt", p.get("task", ""))
+                task_id = str(p.get("id", ""))
+                category = p.get("category", "")
+                task_display = task_text[:100] if task_text else "Task"
+                retry_num = p.get("_retry_count", 1)
+
+                set_current_task(job_id, f"[{category}] Retrying task #{task_id}..." if category else f"Retrying task #{task_id}...")
+
+                task_input = TaskInput(
+                    task=task_text, category=category,
+                    product=p.get("product", config.git.default_product),
+                )
+                result = runner.execute(task_input)
+                badge = _compute_badge(result)
+                final_code = result.fixed_code or result.generated_code or ""
+                status_str = "PASSED" if result.status == "SUCCESS" else "FAILED"
+
+                if result.status == "API_FAILED" and retry_num < max_retries:
+                    p["_retry_count"] = retry_num + 1
+                    retry_queue.append(p)
+                    add_log(job_id, f"Task {task_id} still failing — queued again ({retry_num + 1}/{max_retries})")
+                    continue
+
+                results_summary.append({"task": task_display, "category": category, "status": status_str})
+
+                if result.status == "SUCCESS":
+                    add_passed(job_id, task_id, task_display, badge, code=final_code,
+                               category=category, product=p.get("product", ""), metadata=result.metadata)
+                    add_log(job_id, f"Task {task_id} passed on retry ({badge})")
+                    save_result(results_dir, category, task_id, task_text, "PASSED",
+                                stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
+                    if committer:
+                        committer.commit_code(task_text, category, final_code, metadata=result.metadata)
+                else:
+                    add_failed(job_id, task_id, task_display, badge, code=final_code,
+                               category=category, product=p.get("product", ""))
+                    add_log(job_id, f"Task {task_id} failed after retries ({badge})")
+                    save_result(results_dir, category, task_id, task_text, "FAILED",
+                                stage=result.stage or "", badge=badge, code=final_code, metadata=result.metadata)
+                    failed_task_dicts.append({
+                        "prompt": task_text, "category": category,
+                        "product": p.get("product", config.git.default_product), "id": task_id,
+                    })
+                    if result.build_log:
+                        failed_for_learning.append({
+                            "task": task_text, "code": result.generated_code or "",
+                            "build_log": result.build_log,
+                        })
+
+        # Persist results for PR retry and retry-failed
+        set_results_summary(job_id, results_summary)
+        set_failed_tasks(job_id, failed_task_dicts)
+
+        # ── Post-pipeline rule learning ──
+        if failed_for_learning and not is_cancelled(job_id):
+            try:
+                _run_rule_learning(job_id, config, failed_for_learning, runner.builder, notify)
+            except Exception as e:
+                add_log(job_id, f"Rule learning error: {e}")
+
+        # ── Commit & PR ──
+        if committer and committer._pending_commits:
+            if category_branches:
+                # Push to existing branches (retry-failed Option B)
+                _push_to_existing_branches(job_id, config, committer, results_summary, category_branches, notify)
+
+            elif pr_style == "per-category":
+                # Commit last category's pending files
+                if _current_category:
+                    _commit_category_pr(job_id, config, repo, committer, pr_manager, _current_category, results_summary)
+
+            else:
+                # Single PR or auto (threshold-based split)
+                pending_count = len(committer._pending_commits)
+                split_threshold = config.git.pr_split_threshold
+
+                if pr_style == "auto" and split_threshold > 0 and pending_count > split_threshold:
+                    add_log(job_id, f"Splitting {pending_count} file(s) into per-category PRs (threshold={split_threshold})...")
+                    _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_summary, notify)
+                else:
+                    _generate_agents_md_for_pending(job_id, config, committer)
+                    add_log(job_id, f"Batch committing {pending_count} file(s)...")
+                    committer.batch_commit_and_push()
+
+                    if pr_manager and repo and repo.pr_branch and results_summary:
+                        add_log(job_id, "Creating pull request...")
+                        set_current_task(job_id, "Creating pull request...")
+                        pr_url = pr_manager.create_pull_request(results_summary)
+                        if pr_url:
+                            set_pr_url(job_id, pr_url)
+                            add_log(job_id, f"Pull request created: {pr_url}")
+                        else:
+                            add_log(job_id, "PR creation failed - changes are on the feature branch")
+
+                    # Store branch under each committed category for retry-failed
+                    if repo and repo.pr_branch:
+                        committed_cats = {r["category"] for r in results_summary if r["status"] == "PASSED" and r.get("category")}
+                        for cat in committed_cats:
+                            set_category_branch(job_id, cat, repo.pr_branch)
+
+        # ── Finalize ──
+        with JOB_LOCK:
+            was_cancelled = JOB_CANCEL_FLAGS.pop(job_id, False)
+
+        # Report usage
+        try:
+            bs = get_build_state(job_id)
+            if bs:
+                r_status = "cancelled" if was_cancelled else (
+                    "success" if bs["failed_count"] == 0 else "partial"
+                )
+                report_job_usage(
+                    config, job_id, total=bs["total"],
+                    passed=bs["passed_count"], failed=bs["failed_count"],
+                    elapsed_seconds=bs["elapsed"],
+                    usage_snapshot=usage_tracker.snapshot(), status=r_status,
+                )
+        except Exception as e:
+            print(f"[reporting] Error: {e}")
+
+        if was_cancelled:
+            set_status(job_id, "cancelled")
+            add_log(job_id, f"Job cancelled after processing.")
+        else:
+            set_status(job_id, "completed")
+            bs = get_build_state(job_id)
+            if bs:
+                add_log(job_id, f"Pipeline complete: {bs['passed_count']} passed, {bs['failed_count']} failed.")
+            else:
+                add_log(job_id, "Pipeline complete.")
+
+    except Exception as exc:
+        with JOB_LOCK:
+            JOB_CANCEL_FLAGS.pop(job_id, None)
+        add_log(job_id, f"Pipeline failed: {exc}")
+        try:
+            bs = get_build_state(job_id)
+            report_job_usage(
+                config, job_id,
+                total=bs["total"] if bs else 0,
+                passed=bs["passed_count"] if bs else 0,
+                failed=bs["failed_count"] if bs else 0,
+                elapsed_seconds=bs["elapsed"] if bs else 0,
+                usage_snapshot=usage_tracker.snapshot(), status="failed",
+            )
+        except Exception:
+            pass
+        set_status(job_id, "failed")
+
+
+def _commit_category_pr(job_id, config, repo, committer, pr_manager, category, results_summary):
+    """Commit pending files for a single category and create a PR.
+
+    Used by run_pipeline when pr_style="per-category".
+    """
+    import subprocess as _sp
+    from git_ops.repo import _git_lock
+    from git_ops.committer import normalize_category
+    from git_ops.repo_docs import generate_cumulative_category_agents_md
+    from git_ops.agents_md import _generate_run_id
+
+    if not committer or not committer._pending_commits:
+        return
+
+    pending_count = len(committer._pending_commits)
+    cat_slug = category.lower().replace(" ", "-")[:30]
+    cat_branch = f"examples/{job_id[:8]}-{cat_slug}"
+    add_log(job_id, f"[{category}] Creating PR ({pending_count} file(s))...")
+    set_current_task(job_id, f"PR: {category}...")
+
+    try:
+        cat_slug_dir = normalize_category(category, config.git.default_category)
+        cat_dir = Path(config.git.repo_path) / cat_slug_dir
+
+        # Generate agents.md
+        cs_files = sorted(f.name for f in cat_dir.iterdir() if f.is_file() and f.suffix == ".cs") if cat_dir.exists() else sorted(c["path"].name for c in committer._pending_commits)
+        agents_content = generate_cumulative_category_agents_md(
+            category, cs_files, _generate_run_id(),
+            kb_path=config.rules_examples_path,
+            repo_path=config.git.repo_path,
+            tfm=config.build.tfm,
+            nuget_version=config.build.nuget_version,
+        )
+        agents_path = cat_dir / "agents.md"
+        agents_path.parent.mkdir(parents=True, exist_ok=True)
+        agents_path.write_text(agents_content, encoding="utf-8")
+
+        with _git_lock:
+            base_branch = config.git.effective_pr_target
+            _sp.run(["git", "checkout", f"origin/{base_branch}"], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+            _sp.run(["git", "checkout", "-b", cat_branch], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+
+            for c in committer._pending_commits:
+                _sp.run(["git", "add", str(c["path"])], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+
+            index_path = cat_dir / "index.json"
+            if index_path.exists():
+                _sp.run(["git", "add", str(index_path)], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+
+            _sp.run(["git", "add", str(agents_path)], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+            _sp.run(["git", "commit", "-m", f"Add {pending_count} example(s) for {category}"], cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+            _sp.run(["git", "push", "-u", "origin", cat_branch], cwd=config.git.repo_path, check=True, capture_output=True, text=True, timeout=60)
+
+        set_category_branch(job_id, category, cat_branch)
+
+        cat_results = [
+            {"task": c["prompt"], "category": category, "status": "PASSED"}
+            for c in committer._pending_commits
+        ]
+        repo.pr_branch = cat_branch
+        pr_url = pr_manager.create_category_pr(category, pending_count, results_summary=cat_results)
+        if pr_url:
+            set_pr_url(job_id, pr_url)
+            add_log(job_id, f"[{category}] PR created: {pr_url}")
+        else:
+            add_log(job_id, f"[{category}] PR creation failed")
+
+    except _sp.TimeoutExpired:
+        add_log(job_id, f"[{category}] Push timed out")
+    except Exception as e:
+        add_log(job_id, f"[{category}] PR error: {str(e)[:100]}")
+
+    committer._pending_commits.clear()
