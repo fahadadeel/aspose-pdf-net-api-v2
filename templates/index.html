@@ -1755,12 +1755,19 @@
     var btn = document.getElementById('start-btn');
     btn.disabled = false;
     btn.innerHTML = '&#9654; Start';
+    // Reset sweep (Batch Generate) button
+    var sweepBtn = document.getElementById('sweep-btn');
+    if (sweepBtn) {
+      sweepBtn.disabled = false;
+      sweepBtn.innerHTML = '&#x26A1; Batch Generate';
+    }
     // Hide job controls, show setup
     document.getElementById('stop-btn').classList.add('hidden');
     document.getElementById('pause-btn').classList.add('hidden');
     document.getElementById('resume-btn').classList.add('hidden');
     document.getElementById('run-again-btn').classList.add('hidden');
     document.getElementById('retry-failed-btn').classList.add('hidden');
+    document.getElementById('create-pr-btn').classList.add('hidden');
     document.getElementById('monitor-panel').classList.add('hidden');
     document.getElementById('setup-panel').classList.remove('hidden');
   };
