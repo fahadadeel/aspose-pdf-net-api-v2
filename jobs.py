@@ -2544,6 +2544,7 @@ def create_pr_from_results(
     version: str = "",
     pr_style: str = "per-category",
     pr_target_branch: str = None,
+    write_mode: str = "replace",
 ):
     """Create PRs from persisted disk results — no running pipeline needed.
 
@@ -2557,6 +2558,7 @@ def create_pr_from_results(
         version: NuGet version subfolder (e.g. "26.3.0"). Empty = use config default.
         pr_style: "per-category" (one PR per category) or "single" (one PR for all).
         pr_target_branch: Override PR target branch.
+        write_mode: "replace" (clean old files, write all) or "incremental" (only add new).
     """
     import subprocess as _sp
     from git_ops.repo import _git_lock
@@ -2641,11 +2643,16 @@ def create_pr_from_results(
                 if not examples:
                     continue
 
-                add_log(job_id, f"[{cat_slug}] Writing {len(examples)} file(s)...")
-                set_current_task(job_id, f"Writing: {cat_slug}")
+                single_cat_name = normalize_category(cat_slug)
+                add_log(job_id, f"[{single_cat_name}] Writing {len(examples)} file(s)...")
+                set_current_task(job_id, f"Writing: {single_cat_name}")
 
-                cat_dir = Path(config.git.repo_path) / normalize_category(cat_slug)
-                _write_examples_to_repo(config, cat_slug, examples, cat_dir, run_id, results_summary)
+                cat_dir = Path(config.git.repo_path) / single_cat_name
+                if write_mode == "replace" and cat_dir.exists():
+                    import shutil
+                    shutil.rmtree(cat_dir)
+                    add_log(job_id, f"[{single_cat_name}] Cleaned old directory")
+                _write_examples_to_repo(config, single_cat_name, examples, cat_dir, run_id, results_summary)
                 total_files += len(examples)
 
             if total_files > 0 and not is_cancelled(job_id):
@@ -2678,45 +2685,67 @@ def create_pr_from_results(
 
                 examples = load_passed_examples(results_dir, cat_slug)
                 if not examples:
-                    add_log(job_id, f"[{cat_slug}] No passed code on disk — skipping")
+                    add_log(job_id, f"[{normalize_category(cat_slug)}] No passed code on disk — skipping")
                     continue
 
                 file_count = len(examples)
-                cat_branch = f"examples/{job_id[:8]}-{cat_slug[:30]}"
-                add_log(job_id, f"[{cat_slug}] Creating PR with {file_count} example(s)...")
-                set_current_task(job_id, f"PR: {cat_slug} ({file_count} files)")
+                repo_root = config.git.repo_path
+                cat_dir_name = normalize_category(cat_slug)
+                cat_dir = Path(repo_root) / cat_dir_name
+                cat_branch = f"examples/{job_id[:8]}-{cat_dir_name[:30]}"
+                add_log(job_id, f"[{cat_dir_name}] Creating PR with {file_count} example(s)...")
+                set_current_task(job_id, f"PR: {cat_dir_name} ({file_count} files)")
 
                 try:
-                    cat_dir = Path(config.git.repo_path) / normalize_category(cat_slug)
-
-                    # Category-level results_summary for this PR
-                    cat_results = []
-                    _write_examples_to_repo(config, cat_slug, examples, cat_dir, run_id, cat_results)
 
                     with _git_lock:
+                        # Clean working directory: reset tracked files + remove untracked
+                        # This prevents files from previous iterations leaking into this PR
+                        _sp.run(["git", "checkout", "."],
+                                cwd=repo_root, check=True, capture_output=True, text=True)
+                        _sp.run(["git", "clean", "-fd"],
+                                cwd=repo_root, check=True, capture_output=True, text=True)
+                        # Create a fresh branch from the base
                         _sp.run(["git", "fetch", "origin", base_branch],
-                                cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+                                cwd=repo_root, check=True, capture_output=True, text=True)
                         _sp.run(["git", "checkout", f"origin/{base_branch}"],
-                                cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+                                cwd=repo_root, check=True, capture_output=True, text=True)
                         _sp.run(["git", "checkout", "-b", cat_branch],
-                                cwd=config.git.repo_path, check=True, capture_output=True, text=True)
-                        _sp.run(["git", "add", "-A"], cwd=config.git.repo_path,
-                                check=True, capture_output=True, text=True)
+                                cwd=repo_root, check=True, capture_output=True, text=True)
+
+                    # Clean old files if replace mode
+                    if write_mode == "replace" and cat_dir.exists():
+                        import shutil
+                        shutil.rmtree(cat_dir)
+                        add_log(job_id, f"[{cat_dir_name}] Cleaned old directory ({write_mode} mode)")
+
+                    # Write files AFTER branch is clean and checked out
+                    cat_results = []
+                    _write_examples_to_repo(config, cat_dir_name, examples, cat_dir, run_id, cat_results)
+
+                    with _git_lock:
+                        # Stage all changes in category dir (additions + deletions)
+                        _sp.run(["git", "add", "-A", "--", str(cat_dir)],
+                                cwd=repo_root, check=True, capture_output=True, text=True)
                         _sp.run(["git", "commit", "-m",
-                                 f"Add {file_count} example(s) for {cat_slug}"],
-                                cwd=config.git.repo_path, check=True, capture_output=True, text=True)
+                                 f"Add {file_count} example(s) for {cat_dir_name}"],
+                                cwd=repo_root, check=True, capture_output=True, text=True)
                         _sp.run(["git", "push", "-u", "origin", cat_branch],
-                                cwd=config.git.repo_path, check=True, capture_output=True, text=True, timeout=90)
+                                cwd=repo_root, check=True, capture_output=True, text=True, timeout=90)
 
                     # Build rich PR description from metadata
-                    pr_title = f"Add {file_count} example(s) for {cat_slug}"
+                    pr_title = f"Add {file_count} example(s) for {cat_dir_name}"
                     pr_body = _build_rich_pr_description(
-                        cat_slug, examples, nuget_version=effective_version,
+                        cat_dir_name, examples, nuget_version=effective_version,
                     )
 
                     # Try LLM-generated title (keep our rich body)
                     if llm and llm.available:
-                        pr_details = llm.generate_pr_details(cat_results)
+                        # Normalize category names in results before passing to LLM
+                        normalized_results = [
+                            {**r, "category": cat_dir_name} for r in cat_results
+                        ]
+                        pr_details = llm.generate_pr_details(normalized_results)
                         if pr_details and pr_details.get("title"):
                             pr_title = pr_details["title"]
 
@@ -2732,17 +2761,17 @@ def create_pr_from_results(
                             if pr_url:
                                 pr_urls.append(pr_url)
                                 set_pr_url(job_id, pr_url)
-                                set_category_branch(job_id, cat_slug, cat_branch)
-                                add_log(job_id, f"[{cat_slug}] PR created: {pr_url}")
+                                set_category_branch(job_id, cat_dir_name, cat_branch)
+                                add_log(job_id, f"[{cat_dir_name}] PR created: {pr_url}")
                             else:
-                                add_log(job_id, f"[{cat_slug}] PR creation failed")
+                                add_log(job_id, f"[{cat_dir_name}] PR creation failed")
 
                     results_summary.extend(cat_results)
 
                 except _sp.TimeoutExpired:
-                    add_log(job_id, f"[{cat_slug}] Push timed out")
+                    add_log(job_id, f"[{cat_dir_name}] Push timed out")
                 except Exception as e:
-                    add_log(job_id, f"[{cat_slug}] Error: {str(e)[:120]}")
+                    add_log(job_id, f"[{cat_dir_name}] Error: {str(e)[:120]}")
 
         # ── Finalize ──
         set_results_summary(job_id, results_summary)
@@ -2777,20 +2806,30 @@ def _write_examples_to_repo(config, cat_slug: str, examples: list, cat_dir, run_
 
     cat_dir.mkdir(parents=True, exist_ok=True)
     cs_filenames = []
+    used_filenames = set()  # Track used filenames to detect duplicates
 
     # ── Write .cs files ──
     for ex in examples:
+        import re as _re
         meta = ex.get("metadata", {})
         # Prefer LLM filename from metadata
         llm_filename = (meta.get("filename") or "").strip()
         if llm_filename:
-            import re as _re
             filename = _re.sub(r"[^a-z0-9._-]", "-", llm_filename.lower())
             filename = _re.sub(r"-+", "-", filename).strip("-")[:100]
             filename = f"{filename}.cs" if filename else f"{slugify(ex['task'], max_len=120)}.cs"
         else:
             filename = f"{slugify(ex['task'], max_len=120)}.cs"
 
+        # De-duplicate: append __v2, __v3, etc. if filename already used
+        if filename in used_filenames:
+            base = filename.replace(".cs", "")
+            counter = 2
+            while f"{base}__v{counter}.cs" in used_filenames:
+                counter += 1
+            filename = f"{base}__v{counter}.cs"
+
+        used_filenames.add(filename)
         filepath = cat_dir / filename
         filepath.write_text(ex["code"], encoding="utf-8")
         cs_filenames.append(filename)
@@ -2844,3 +2883,114 @@ def _write_examples_to_repo(config, cat_slug: str, examples: list, cat_dir, run_
     )
     agents_path = cat_dir / "agents.md"
     agents_path.write_text(agents_content, encoding="utf-8")
+
+
+def regenerate_metadata(
+    job_id: str,
+    categories: list = None,
+    version: str = "",
+):
+    """Regenerate metadata (title, description, apis_used, etc.) for passed examples
+    that are missing metadata. Runs LLM extraction in background.
+
+    Args:
+        job_id: Unique job ID for progress tracking via SSE.
+        categories: List of category slugs to process. None = all categories.
+        version: NuGet version string (determines results dir).
+    """
+    from persistence import update_task_metadata
+
+    try:
+        init_build(job_id)
+        set_status(job_id, "running")
+
+        config = load_config()
+        effective_version = version or config.build.nuget_version
+        results_dir = versioned_results_dir(config.results_dir, effective_version)
+        add_log(job_id, f"Regenerating metadata for version {effective_version}")
+
+        # Determine which categories to process
+        if categories:
+            cats_to_process = categories
+        else:
+            disk = scan_disk_results(results_dir)
+            cats_to_process = list(disk.keys())
+
+        if not cats_to_process:
+            add_log(job_id, "No categories found.")
+            set_status(job_id, "completed")
+            return
+
+        llm = LLMClient(config)
+        if not llm.available:
+            add_log(job_id, "LLM not available — cannot extract metadata.")
+            set_status(job_id, "failed")
+            return
+
+        total_updated = 0
+        total_skipped = 0
+        total_failed = 0
+
+        for cat_slug in cats_to_process:
+            if is_cancelled(job_id):
+                break
+
+            examples = load_passed_examples(results_dir, cat_slug)
+            # Filter to examples missing metadata
+            missing = [
+                ex for ex in examples
+                if not ex.get("metadata") or not ex["metadata"].get("title")
+            ]
+
+            if not missing:
+                add_log(job_id, f"[{cat_slug}] All {len(examples)} examples already have metadata — skipped")
+                total_skipped += len(examples)
+                continue
+
+            add_log(job_id, f"[{cat_slug}] Extracting metadata for {len(missing)}/{len(examples)} examples...")
+            set_current_task(job_id, f"Metadata: {cat_slug}")
+
+            for i, ex in enumerate(missing, 1):
+                if is_cancelled(job_id):
+                    break
+
+                task_id = ex["task_id"]
+                task_text = ex.get("task", "")
+                code = ex.get("code", "")
+
+                if not code:
+                    total_failed += 1
+                    add_log(job_id, f"  [{cat_slug}] Task {task_id}: no code on disk — skipped")
+                    continue
+
+                try:
+                    metadata = llm.extract_metadata(task_text, code, cat_slug)
+                    if metadata and metadata.get("title"):
+                        updated = update_task_metadata(
+                            results_dir, cat_slug, task_id, metadata,
+                        )
+                        if updated:
+                            total_updated += 1
+                            if i % 10 == 0 or i == len(missing):
+                                add_log(job_id, f"  [{cat_slug}] {i}/{len(missing)} done")
+                        else:
+                            total_failed += 1
+                            add_log(job_id, f"  [{cat_slug}] Task {task_id}: failed to save metadata")
+                    else:
+                        total_failed += 1
+                        add_log(job_id, f"  [{cat_slug}] Task {task_id}: LLM returned empty metadata")
+                except Exception as e:
+                    total_failed += 1
+                    add_log(job_id, f"  [{cat_slug}] Task {task_id} error: {str(e)[:120]}")
+
+        with JOB_LOCK:
+            JOB_CANCEL_FLAGS.pop(job_id, None)
+
+        set_status(job_id, "completed")
+        add_log(job_id, f"Done: {total_updated} updated, {total_skipped} already had metadata, {total_failed} failed")
+
+    except Exception as exc:
+        with JOB_LOCK:
+            JOB_CANCEL_FLAGS.pop(job_id, None)
+        add_log(job_id, f"Metadata regeneration failed: {exc}")
+        set_status(job_id, "failed")
