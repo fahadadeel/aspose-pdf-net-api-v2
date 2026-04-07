@@ -249,6 +249,16 @@ All endpoints are served under the root path.
 | `POST /api/retry-pr/{job_id}` | — | Create or retry PR for completed job |
 | `POST /api/update-repo-docs` | JSON body | Generate cumulative repo docs PR |
 
+#### Results Dashboard
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `GET /results` | — | Standalone Results Dashboard UI |
+| `GET /api/results` | — | List persisted disk results with repo sync status |
+| `GET /api/results/{category}` | — | Detailed results for one category |
+| `POST /api/create-pr-from-results` | JSON body | Create PR(s) from disk results (supports write mode) |
+| `POST /api/regenerate-metadata` | JSON body | Regenerate missing metadata via LLM |
+
 #### Learned Rules
 
 | Endpoint | Method | Description |
@@ -280,6 +290,26 @@ All endpoints are served under the root path.
 | `api_url` | form | No | Custom MCP API URL |
 | `pr_target_branch` | form | No | Override PR base branch |
 | `csv` | file | CSV mode | CSV file upload |
+
+#### POST /api/create-pr-from-results — JSON Body
+
+```json
+{
+  "categories": ["working-with-graphs"],
+  "version": "26.3.0",
+  "pr_style": "per-category",
+  "pr_target_branch": "release/26.3.0",
+  "write_mode": "replace"
+}
+```
+
+| Field | Type | Default | Description |
+|-------|------|---------|-------------|
+| `categories` | array | all | Category slugs to include |
+| `version` | string | config | NuGet version subfolder |
+| `pr_style` | string | `per-category` | `per-category` or `single` |
+| `pr_target_branch` | string | config | Override PR base branch |
+| `write_mode` | string | `replace` | `replace` (clean old files first) or `incremental` (add new only) |
 
 #### POST /api/start-tasks — JSON Body
 
@@ -580,6 +610,8 @@ Control how generated C# code is compiled and executed.
 | `BUILD_VERBOSITY` | `minimal` | dotnet build verbosity (`quiet`, `minimal`, `normal`, `detailed`) |
 | `WORKSPACE_PATH` | `.` | Project root (build runs in `_build/` subdirectory) |
 
+> **Note:** The build template uses `ImplicitUsings=enable` and `Nullable=enable` to match modern .NET project defaults. Generated code must use fully qualified type names where ambiguity exists (e.g., `Aspose.Pdf.Drawing.Path` vs `System.IO.Path`).
+
 ### Pipeline Settings
 
 Fine-tune the retry behavior of the 5-stage pipeline.
@@ -877,7 +909,8 @@ aspose-pdf-api-v2/
 ├── cli.py                     # CLI interface (single, csv, sweep, version-bump, promote)
 ├── config.py                  # Typed configuration (dataclasses + env vars)
 ├── state.py                   # Thread-safe in-memory job state
-├── jobs.py                    # Background job runners (run_job, run_sweep, run_version_bump, run_promote_to_main)
+├── jobs.py                    # Background job runners (run_pipeline, create_pr_from_results, regenerate_metadata)
+├── persistence.py             # Versioned disk results (save, load, scan, update metadata)
 ├── reporting.py               # Fire-and-forget usage reporting (remote + local JSONL)
 │
 ├── pipeline/
@@ -912,11 +945,13 @@ aspose-pdf-api-v2/
 ├── routers/
 │   ├── ui.py                  # HTML UI endpoint (serves index.html)
 │   ├── jobs.py                # Job endpoints (start, sweep, version-bump, promote, status, stream)
+│   ├── results.py             # Results Dashboard endpoint (/results)
 │   ├── files.py               # File upload endpoint
 │   └── proxy.py               # Categories/tasks API proxy
 │
 ├── templates/
-│   └── index.html             # Web UI (Jinja2 + SSE + vanilla JS)
+│   ├── index.html             # Build Monitor UI (Jinja2 + SSE + vanilla JS)
+│   └── results.html           # Results Dashboard UI (standalone)
 │
 ├── resources/
 │   ├── kb.json                # Knowledge base rules
@@ -939,6 +974,20 @@ aspose-pdf-api-v2/
 
 ---
 
+## Results Dashboard
+
+The standalone Results Dashboard at `/results` provides a post-run view of persisted disk results across all categories and versions.
+
+**Features:**
+- **Per-category cards** with pass/fail/total counts and metadata quality badges
+- **Repo sync status** — compares disk results with GitHub branch (Synced / Partial / Pending badges)
+- **Create PR from results** — push any category to the repo without re-running the pipeline
+- **Write mode** — `Replace` (clean old files first) or `Incremental` (add new files only)
+- **Regenerate metadata** — backfill missing titles, descriptions, tags, and API surface via LLM
+- **Duplicate filename detection** — auto-appends `__v2`, `__v3` suffixes when multiple tasks produce the same filename
+
+---
+
 ## Troubleshooting
 
 | Issue | Solution |
@@ -952,3 +1001,7 @@ aspose-pdf-api-v2/
 | PRs targeting wrong branch | Check `PR_TARGET_BRANCH` in `.env` and the **PR Target Branch** field in UI Options |
 | Version bump created branch already exists | Safe to re-run — it detects existing branch and skips creation |
 | Promote to Main auto-merge failed | PR is still created — merge manually on GitHub, then re-run promote or tag manually |
+| CS0104 `Path` ambiguous reference | Code uses bare `Path` with `using Aspose.Pdf.Drawing;` — qualify as `Aspose.Pdf.Drawing.Path` or `System.IO.Path` |
+| PR contains files from other categories | Fixed — per-category PRs now use `git checkout . && git clean -fd` between iterations |
+| Duplicate filenames overwriting in PRs | Fixed — `_write_examples_to_repo` deduplicates with `__v2`, `__v3` suffixes |
+| Category names with underscores in PRs | Fixed — `normalize_category()` now converts underscores to hyphens |
