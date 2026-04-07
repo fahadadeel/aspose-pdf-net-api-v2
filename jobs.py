@@ -1009,6 +1009,7 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
         generate_cumulative_agents_md,
         generate_cumulative_category_agents_md,
         generate_index_json,
+        generate_readme,
         update_readme_categories,
     )
     from git_ops.agents_md import _generate_run_id
@@ -1189,7 +1190,7 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
         else:
             add_log(job_id, "Root index.json unchanged — skipping")
 
-        # Optionally update README.md
+        # Update or create README.md
         if update_readme:
             set_current_task(job_id, "Updating README.md...")
             readme_path = Path(repo_path) / "README.md"
@@ -1200,9 +1201,16 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
                     readme_path.write_text(updated, encoding="utf-8")
                     add_log(job_id, "README.md category listing updated")
                 else:
-                    add_log(job_id, "README.md unchanged (category section not found or identical)")
+                    add_log(job_id, "README.md unchanged")
             else:
-                add_log(job_id, "README.md not found — skipping")
+                # Create README.md from scratch
+                readme_content = generate_readme(
+                    scan,
+                    nuget_version=config.build.nuget_version,
+                    tfm=config.build.tfm,
+                )
+                readme_path.write_text(readme_content, encoding="utf-8")
+                add_log(job_id, f"README.md created ({total_files} examples, {len(scan)} categories)")
 
         # Commit and push (only if there are actual changes)
         set_current_task(job_id, "Committing docs...")
