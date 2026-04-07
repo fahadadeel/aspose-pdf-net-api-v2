@@ -95,8 +95,8 @@ class DotnetBuilder:
               <PropertyGroup>
                 <OutputType>Exe</OutputType>
                 <TargetFramework>{tfm}</TargetFramework>
-                <ImplicitUsings>disable</ImplicitUsings>
-                <Nullable>disable</Nullable>
+                <ImplicitUsings>enable</ImplicitUsings>
+                <Nullable>enable</Nullable>
                 <LangVersion>latest</LangVersion>
               </PropertyGroup>
               <ItemGroup>
