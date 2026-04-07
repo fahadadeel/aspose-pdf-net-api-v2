@@ -32,7 +32,7 @@ from jobs import (
     run_version_bump, run_promote_to_main,
     retry_pr, create_pr, update_repo_docs,
     run_pipeline, _fetch_tasks_for_category,
-    create_pr_from_results,
+    create_pr_from_results, regenerate_metadata,
 )
 from knowledge.auto_fixes import load_auto_fixes, approve_auto_fix, approve_all_auto_fixes, delete_auto_fix
 from state import (
@@ -530,6 +530,47 @@ async def api_results(version: str = ""):
 
     available_versions = list_result_versions(config.results_dir)
 
+    # ── Repo sync status: compare disk results with what's on the target branch ──
+    repo_category_status = {}
+    try:
+        from git_ops.github_api import GitHubAPI
+        from git_ops.committer import normalize_category
+        if config.git.repo_token and config.git.repo_url:
+            gh = GitHubAPI(config.git.repo_token)
+            owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
+            target_branch = config.git.pr_target_branch or config.git.repo_branch or "main"
+            if owner and repo_name:
+                repo_category_status = gh.list_branch_category_status(owner, repo_name, target_branch)
+    except Exception as e:
+        print(f"[results] Repo sync check failed: {e}")
+
+    # Enrich category summaries with sync status
+    for cat_slug, summary in category_summaries.items():
+        from git_ops.committer import normalize_category
+        repo_slug = normalize_category(cat_slug)
+        # Check both hyphenated and original slug (handles pre-rename directories)
+        repo_info = repo_category_status.get(repo_slug) or repo_category_status.get(cat_slug, {})
+        repo_count = repo_info.get("cs_count", 0)
+        has_agents_md = repo_info.get("has_agents_md", False)
+        has_index_json = repo_info.get("has_index_json", False)
+        disk_passed = summary.get("examples_with_code", summary["passed"])
+
+        if repo_count == 0:
+            sync_status = "pending"
+        elif repo_count >= disk_passed and has_agents_md and has_index_json:
+            sync_status = "synced"
+        else:
+            sync_status = "partial"
+
+        summary["repo_sync"] = {
+            "status": sync_status,
+            "repo_count": repo_count,
+            "disk_count": disk_passed,
+            "new_count": max(0, disk_passed - repo_count),
+            "has_agents_md": has_agents_md,
+            "has_index_json": has_index_json,
+        }
+
     return {
         "version": effective_version,
         "results_dir": results_dir,
@@ -587,9 +628,12 @@ async def api_create_pr_from_results(data: dict = Body(...)):
     version = (data.get("version") or "").strip()
     pr_style = (data.get("pr_style") or "per-category").strip()
     pr_target_branch = (data.get("pr_target_branch") or "").strip() or None
+    write_mode = (data.get("write_mode") or "replace").strip()
 
     if pr_style not in ("per-category", "single"):
         return JSONResponse({"error": "pr_style must be 'per-category' or 'single'"}, status_code=400)
+    if write_mode not in ("replace", "incremental"):
+        return JSONResponse({"error": "write_mode must be 'replace' or 'incremental'"}, status_code=400)
 
     job_id = str(uuid.uuid4())
     thread = threading.Thread(
@@ -600,11 +644,40 @@ async def api_create_pr_from_results(data: dict = Body(...)):
             "version": version,
             "pr_style": pr_style,
             "pr_target_branch": pr_target_branch,
+            "write_mode": write_mode,
         },
         daemon=True,
     )
     thread.start()
-    return {"job_id": job_id, "pr_style": pr_style}
+    return {"job_id": job_id, "pr_style": pr_style, "write_mode": write_mode}
+
+
+@router.post("/api/regenerate-metadata")
+async def api_regenerate_metadata(data: dict = Body(...)):
+    """Regenerate metadata (title, description, APIs, tags) for passed examples
+    that are missing metadata. Uses LLM to analyze code and extract metadata.
+
+    Body:
+        {
+            "categories": ["working_with_images", ...],  // optional — omit for all
+            "version": "26.3.0"                          // optional — default from config
+        }
+    """
+    categories = data.get("categories") or None
+    version = (data.get("version") or "").strip()
+
+    job_id = str(uuid.uuid4())
+    thread = threading.Thread(
+        target=regenerate_metadata,
+        args=(job_id,),
+        kwargs={
+            "categories": categories,
+            "version": version,
+        },
+        daemon=True,
+    )
+    thread.start()
+    return {"job_id": job_id}
 
 
 @router.post("/api/update-repo-docs")

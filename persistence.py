@@ -375,6 +375,41 @@ def scan_disk_results(results_dir: str) -> dict:
     return categories
 
 
+def update_task_metadata(results_dir: str, category: str,
+                         task_id: str, metadata: dict) -> bool:
+    """Update only the metadata field for an existing task result.
+
+    Returns True if the task was found and updated, False otherwise.
+    """
+    path = _results_path(results_dir, category)
+    if not path.exists():
+        return False
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError):
+        return False
+
+    tasks = data.get("tasks", {})
+    tid = str(task_id)
+    if tid not in tasks:
+        return False
+
+    tasks[tid]["metadata"] = metadata
+
+    tmp_path = path.with_suffix(".json.tmp")
+    try:
+        with open(tmp_path, "w", encoding="utf-8") as f:
+            json.dump(data, f, indent=2)
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(str(tmp_path), str(path))
+        return True
+    except OSError as e:
+        print(f"[persistence] Warning: could not update metadata for {category}/{task_id}: {e}")
+        return False
+
+
 def load_passed_examples(results_dir: str, category_slug: str) -> list:
     """Load all passed examples for a category with their code from disk.
 
