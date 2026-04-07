@@ -999,6 +999,7 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
     Runs in a background thread. Creates a fresh branch, commits all
     generated docs, and opens a PR.
     """
+    import json
     import subprocess
     import uuid as _uuid
     from git_ops.repo import _git_lock
@@ -1020,10 +1021,12 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
         add_log(job_id, "Repo docs: starting...")
         set_current_task(job_id, "Scanning repository...")
 
+        # Use effective_pr_target so we scan the release branch (not main)
+        target_branch = config.git.effective_pr_target
         repo = RepoManager(
             repo_path=config.git.repo_path,
             repo_url=config.git.repo_url,
-            repo_branch=config.git.repo_branch,
+            repo_branch=target_branch,
             repo_token=config.git.repo_token,
             repo_user=config.git.repo_user,
             notify=notify,
@@ -1033,7 +1036,7 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
             set_status(job_id, "failed")
             return
 
-        # Scan repo on main branch
+        add_log(job_id, f"Scanning branch: {target_branch}")
         scan = scan_repo(config.git.repo_path)
         total_files = sum(len(files) for files in scan.values())
         add_log(job_id, f"Found {total_files} .cs file(s) across {len(scan)} categories")
@@ -1091,8 +1094,65 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
 
         add_log(job_id, f"Generated {len(scan)} category agents.md files")
 
-        # Generate index.json (machine-readable manifest)
-        set_current_task(job_id, "Generating index.json...")
+        # Generate per-category index.json for categories missing it
+        # Uses the same format as _write_examples_to_repo() for consistency
+        set_current_task(job_id, "Generating per-category index.json...")
+        cat_index_count = 0
+        for cat_name, files in sorted(scan.items()):
+            cat_index_path = Path(repo_path) / cat_name / "index.json"
+            # Load existing or create new
+            existing_index = {}
+            if cat_index_path.exists():
+                try:
+                    existing_index = json.loads(cat_index_path.read_text(encoding="utf-8"))
+                except Exception:
+                    existing_index = {}
+
+            existing_examples = existing_index.get("examples", {})
+            # Check if all .cs files have entries
+            all_covered = all(
+                f.replace(".cs", "") in existing_examples
+                for f in files if f.endswith(".cs")
+            )
+            if existing_index and all_covered:
+                continue  # Already complete
+
+            # Build index.json in the same format as _write_examples_to_repo
+            from datetime import datetime as _dt, timezone as _tz
+            index_data = {
+                "category": cat_name,
+                "nuget_version": config.build.nuget_version,
+                "last_updated": _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                "examples": {},
+            }
+            # Preserve existing LLM metadata, add stubs for missing files
+            for fname in sorted(files):
+                stem = fname.replace(".cs", "")
+                if stem in existing_examples:
+                    index_data["examples"][stem] = existing_examples[stem]
+                else:
+                    index_data["examples"][stem] = {
+                        "title": stem.replace("-", " ").title(),
+                        "filename": fname,
+                        "description": "",
+                        "tags": [],
+                        "apis_used": [],
+                        "difficulty": "",
+                        "generated_at": _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+                        "status": "verified",
+                    }
+            cat_index_path.parent.mkdir(parents=True, exist_ok=True)
+            cat_index_path.write_text(
+                json.dumps(index_data, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            cat_index_count += 1
+
+        if cat_index_count:
+            add_log(job_id, f"Generated/updated {cat_index_count} per-category index.json file(s)")
+
+        # Generate root index.json (machine-readable manifest)
+        set_current_task(job_id, "Generating root index.json...")
         index_content = generate_index_json(
             scan,
             tfm=config.build.tfm,
@@ -1101,7 +1161,7 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
         )
         index_path = Path(repo_path) / "index.json"
         index_path.write_text(index_content, encoding="utf-8")
-        add_log(job_id, f"index.json: {len(scan)} categories, {total_files} examples")
+        add_log(job_id, f"Root index.json: {len(scan)} categories, {total_files} examples")
 
         # Optionally update README.md
         if update_readme:
@@ -1132,7 +1192,7 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
                 )
                 subprocess.run(
                     ["git", "push", "-u", "origin", branch_name],
-                    cwd=repo_path, check=True, capture_output=True, text=True, timeout=30,
+                    cwd=repo_path, check=True, capture_output=True, text=True, timeout=60,
                 )
         except subprocess.TimeoutExpired:
             add_log(job_id, "Push timed out")
@@ -1144,16 +1204,18 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
         from git_ops.github_api import GitHubAPI
         gh = GitHubAPI(config.git.repo_token)
         owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
-        base = config.git.repo_branch or "main"
+        base = config.git.effective_pr_target
 
-        title = f"Update repo docs ({total_files} examples)"
+        title = f"Update repo docs ({total_files} examples, {len(scan)} categories)"
         body = (
             f"## Repository Documentation Update\n\n"
-            f"Cumulative agents.md generated from repo scan.\n\n"
+            f"Generated from repo scan on `{base}` branch.\n\n"
             f"- **{total_files}** examples across **{len(scan)}** categories\n"
-            f"- Root agents.md updated\n"
-            f"- {len(scan)} category agents.md files updated\n"
-            + (f"- README.md category listing updated\n" if update_readme else "")
+            f"- Root `agents.md` updated\n"
+            f"- Root `index.json` updated\n"
+            f"- {len(scan)} per-category `agents.md` files updated\n"
+            + (f"- {cat_index_count} per-category `index.json` files generated/updated\n" if cat_index_count else "")
+            + (f"- `README.md` category listing updated\n" if update_readme else "")
             + f"\n---\n*Generated by Examples Generator*"
         )
 
