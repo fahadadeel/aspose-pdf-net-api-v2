@@ -19,7 +19,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 load_dotenv()
 
-from routers import categories, files, tasks, health
+from routers import categories, files, tasks, health, results
 from routers import jobs as jobs_router
 from routers import ui
 
@@ -60,6 +60,7 @@ app.add_middleware(
 )
 
 app.include_router(ui.router)
+app.include_router(results.router)
 app.include_router(health.router)
 app.include_router(categories.router)
 app.include_router(jobs_router.router)

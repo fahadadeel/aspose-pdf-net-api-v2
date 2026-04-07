@@ -1,0 +1,1088 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Results Dashboard - Aspose.Pdf Examples</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:        #0d1117;
+      --surface:   #161b22;
+      --surface2:  #1c2333;
+      --border:    #30363d;
+      --text:      #e6edf3;
+      --text-dim:  #8b949e;
+      --green:     #2ea043;
+      --green-bg:  rgba(46,160,67,0.12);
+      --red:       #da3633;
+      --red-bg:    rgba(218,54,51,0.12);
+      --yellow:    #d29922;
+      --yellow-bg: rgba(210,153,34,0.12);
+      --blue:      #58a6ff;
+      --blue-bg:   rgba(88,166,255,0.12);
+      --purple:    #bc8cff;
+      --radius:    8px;
+      --radius-lg: 12px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: var(--bg); }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+
+    /* ── Header ──────────────────────────────────────────────── */
+    .app-header {
+      background: var(--surface);
+      border-bottom: 2px solid transparent;
+      border-image: linear-gradient(90deg, var(--green), var(--blue), var(--green)) 1;
+      padding: 18px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    .header-brand h1 {
+      font-size: 20px;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-brand .subtitle {
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-left: 28px;
+    }
+    .logo-dot {
+      width: 18px; height: 18px;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      border-radius: 50%;
+      display: inline-block;
+    }
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .header-actions a {
+      font-size: 13px;
+      color: var(--blue);
+      text-decoration: none;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      transition: background 0.15s;
+    }
+    .header-actions a:hover { background: var(--surface2); }
+
+    /* ── Container ───────────────────────────────────────────── */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 24px 24px 64px;
+    }
+
+    /* ── Card ────────────────────────────────────────────────── */
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+
+    /* ── Summary bar ─────────────────────────────────────────── */
+    .summary-bar {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .summary-bar .stat {
+      font-size: 14px;
+    }
+    .summary-bar .stat-value {
+      font-weight: 700;
+      font-size: 22px;
+    }
+    .stat-passed .stat-value { color: var(--green); }
+    .stat-failed .stat-value { color: var(--red); }
+    .stat-total .stat-value  { color: var(--blue); }
+
+    .pass-rate-bar-lg {
+      flex: 1;
+      min-width: 120px;
+      height: 10px;
+      background: var(--border);
+      border-radius: 5px;
+      overflow: hidden;
+    }
+    .pass-rate-bar-lg .fill {
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.4s ease;
+    }
+
+    /* ── Toolbar ─────────────────────────────────────────────── */
+    .toolbar {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .toolbar .spacer { flex: 1; }
+
+    .btn {
+      font-size: 13px;
+      padding: 6px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface2);
+      color: var(--text);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .btn:hover { border-color: var(--text-dim); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+    .btn-primary {
+      background: var(--green);
+      border-color: var(--green);
+      color: #fff;
+      font-weight: 600;
+    }
+    .btn-primary:hover { filter: brightness(1.15); }
+
+    .radio-group {
+      display: flex;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--text-dim);
+    }
+    .radio-group label {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      cursor: pointer;
+    }
+    .radio-group input { accent-color: var(--blue); }
+
+    .selection-count {
+      font-size: 13px;
+      color: var(--text-dim);
+      min-width: 80px;
+    }
+
+    .branch-input {
+      background: var(--surface2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 5px 10px;
+      font-size: 13px;
+      width: 200px;
+    }
+    .branch-input:focus { border-color: var(--blue); outline: none; }
+
+    /* ── Category Cards Grid ─────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .cat-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 18px;
+      transition: all 0.15s ease;
+      cursor: default;
+      position: relative;
+    }
+    .cat-card:hover {
+      border-color: var(--text-dim);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+      transform: translateY(-1px);
+    }
+    .cat-card.selected {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 2px rgba(88,166,255,0.25);
+    }
+
+    .cat-card-header {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .cat-card-header input[type="checkbox"] {
+      width: 16px; height: 16px;
+      accent-color: var(--blue);
+      cursor: pointer;
+      flex-shrink: 0;
+    }
+    .cat-card-header .cat-name {
+      font-weight: 600;
+      font-size: 14px;
+      color: var(--text);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      flex: 1;
+    }
+
+    .cat-card-stats {
+      display: flex;
+      gap: 14px;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .cat-card-stats .s-passed { color: var(--green); }
+    .cat-card-stats .s-failed { color: var(--red); }
+
+    .sync-badge {
+      display: inline-block;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 10px;
+      letter-spacing: 0.3px;
+    }
+    .sync-synced   { background: var(--green-bg); color: var(--green); }
+    .sync-partial  { background: var(--yellow-bg); color: var(--yellow); }
+    .sync-pending  { background: var(--blue-bg); color: var(--blue); }
+
+    .pass-rate-bar {
+      height: 6px;
+      background: var(--border);
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 12px;
+    }
+    .pass-rate-bar .fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.3s ease;
+    }
+
+    .meta-quality {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+    .meta-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: var(--text-dim);
+    }
+    .meta-row .meta-label {
+      width: 50px;
+      flex-shrink: 0;
+    }
+    .meta-row .meta-bar {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+    .meta-row .meta-bar .fill {
+      height: 100%;
+      border-radius: 2px;
+    }
+    .meta-row .meta-count {
+      width: 45px;
+      text-align: right;
+      font-size: 11px;
+      flex-shrink: 0;
+    }
+
+    .cat-card-footer {
+      display: flex;
+      justify-content: flex-end;
+    }
+    .btn-details {
+      font-size: 12px;
+      padding: 4px 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .btn-details:hover {
+      color: var(--blue);
+      border-color: var(--blue);
+    }
+
+    /* ── Detail panel ────────────────────────────────────────── */
+    .detail-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .detail-panel.open { display: block; }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+    .detail-header h3 {
+      font-size: 16px;
+      font-weight: 600;
+    }
+    .btn-close-detail {
+      font-size: 12px;
+      padding: 4px 10px;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text-dim);
+      cursor: pointer;
+    }
+    .btn-close-detail:hover { color: var(--red); border-color: var(--red); }
+
+    .examples-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    .examples-table th {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid var(--border);
+      color: var(--text-dim);
+      font-weight: 600;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .examples-table td {
+      padding: 7px 10px;
+      border-bottom: 1px solid rgba(48,54,61,0.4);
+      vertical-align: middle;
+    }
+    .examples-table tr:hover td { background: var(--surface2); }
+    .examples-table .status-icon { font-size: 14px; width: 24px; text-align: center; }
+    .examples-table .difficulty-badge {
+      font-size: 11px;
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .diff-beginner    { background: var(--green-bg); color: var(--green); }
+    .diff-intermediate { background: var(--yellow-bg); color: var(--yellow); }
+    .diff-advanced    { background: var(--red-bg); color: var(--red); }
+
+    /* ── PR Console ──────────────────────────────────────────── */
+    .pr-console {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 20px;
+      display: none;
+    }
+    .pr-console.open { display: block; }
+    .pr-console-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 10px;
+    }
+    .pr-console-header h3 { font-size: 15px; font-weight: 600; }
+    .pr-console-status {
+      font-size: 12px;
+      padding: 3px 10px;
+      border-radius: 10px;
+      font-weight: 500;
+    }
+    .pr-status-running  { background: var(--blue-bg); color: var(--blue); }
+    .pr-status-done     { background: var(--green-bg); color: var(--green); }
+    .pr-status-failed   { background: var(--red-bg); color: var(--red); }
+
+    .pr-log {
+      max-height: 250px;
+      overflow-y: auto;
+      font-family: 'SF Mono', Menlo, Consolas, monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-dim);
+      background: var(--bg);
+      border-radius: var(--radius);
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+    .pr-log .log-line { white-space: pre-wrap; word-break: break-all; }
+    .pr-log .log-line.pr-link { color: var(--green); }
+
+    .pr-links {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .pr-links a {
+      color: var(--blue);
+      font-size: 13px;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .pr-links a:hover { text-decoration: underline; }
+
+    /* ── Empty state ─────────────────────────────────────────── */
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-dim);
+    }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+    .empty-state p { font-size: 14px; }
+
+    /* ── Loading spinner ─────────────────────────────────────── */
+    .spinner {
+      display: inline-block;
+      width: 14px; height: 14px;
+      border: 2px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Responsive ──────────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .cards-grid { grid-template-columns: repeat(2, 1fr); }
+      .container { padding: 16px 12px 64px; }
+      .app-header { padding: 14px 16px; }
+    }
+    @media (max-width: 580px) {
+      .cards-grid { grid-template-columns: 1fr; }
+      .toolbar { gap: 8px; }
+      .branch-input { width: 140px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════ HEADER ═══════════ -->
+<header class="app-header">
+  <div class="header-brand">
+    <h1><span class="logo-dot"></span> Results Dashboard</h1>
+    <span class="subtitle">Manage persisted results &amp; create pull requests</span>
+  </div>
+  <div class="header-actions">
+    <a href="/">&#9664; Build Monitor</a>
+  </div>
+</header>
+
+<div class="container">
+
+  <!-- ═══════════ SUMMARY ═══════════ -->
+  <div class="card">
+    <div class="summary-bar">
+      <div style="display:flex;align-items:center;gap:12px;">
+        <label style="font-size:13px;color:var(--text-dim);">Version:</label>
+        <select id="version-select" onchange="loadResults(this.value)" style="background:var(--surface2);color:var(--text);border:1px solid var(--border);border-radius:var(--radius);padding:6px 12px;font-size:13px;">
+          <option value="">Loading...</option>
+        </select>
+        <button class="btn" onclick="loadResults()" title="Refresh"><span style="font-size:15px;">&#8635;</span></button>
+      </div>
+      <div class="stat stat-total">
+        <div class="stat-value" id="stat-categories">-</div>
+        <div>categories</div>
+      </div>
+      <div class="stat stat-passed">
+        <div class="stat-value" id="stat-passed">-</div>
+        <div>passed</div>
+      </div>
+      <div class="stat stat-failed">
+        <div class="stat-value" id="stat-failed">-</div>
+        <div>failed</div>
+      </div>
+      <div style="flex:1;min-width:100px;">
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px;">Pass Rate: <span id="stat-rate">-</span></div>
+        <div class="pass-rate-bar-lg"><div class="fill" id="stat-rate-bar" style="width:0;background:var(--green);"></div></div>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <span class="sync-badge sync-synced" id="stat-synced" title="Categories fully pushed to repo">-</span>
+        <span class="sync-badge sync-partial" id="stat-partial" title="Categories with new examples to push">-</span>
+        <span class="sync-badge sync-pending" id="stat-pending" title="Categories not yet pushed">-</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════ TOOLBAR ═══════════ -->
+  <div class="toolbar">
+    <button class="btn" onclick="selectAll(true)">Select All</button>
+    <button class="btn" onclick="selectAll(false)">Deselect All</button>
+    <span class="selection-count" id="selection-count">0 selected</span>
+    <div class="spacer"></div>
+    <div class="radio-group">
+      <label><input type="radio" name="pr-style" value="per-category" checked /> Per-Category PRs</label>
+      <label><input type="radio" name="pr-style" value="single" /> Single PR</label>
+    </div>
+    <div class="radio-group" style="border-left:1px solid var(--border);padding-left:10px;">
+      <label title="Remove old files, write all examples fresh"><input type="radio" name="write-mode" value="replace" checked /> Replace</label>
+      <label title="Only add new files, keep existing ones"><input type="radio" name="write-mode" value="incremental" /> Incremental</label>
+    </div>
+    <input type="text" class="branch-input" id="pr-target-branch" placeholder="PR target branch (optional)" />
+    <button class="btn btn-primary" id="create-pr-btn" onclick="createPR()" disabled>Create PR for Selected</button>
+    <button class="btn" id="regen-meta-btn" onclick="regenerateMetadata()" style="background:var(--yellow);color:#000;font-weight:600;">&#x1F504; Regenerate Metadata</button>
+  </div>
+
+  <!-- ═══════════ CATEGORY CARDS ═══════════ -->
+  <div class="cards-grid" id="cards-grid">
+    <div class="empty-state" style="grid-column:1/-1;">
+      <div class="icon">&#128202;</div>
+      <p>Loading results...</p>
+    </div>
+  </div>
+
+  <!-- ═══════════ DETAIL PANEL ═══════════ -->
+  <div class="detail-panel" id="detail-panel">
+    <div class="detail-header">
+      <h3 id="detail-title">Category</h3>
+      <button class="btn-close-detail" onclick="closeDetail()">Close</button>
+    </div>
+    <div id="detail-body"></div>
+  </div>
+
+  <!-- ═══════════ PR CONSOLE ═══════════ -->
+  <div class="pr-console" id="pr-console">
+    <div class="pr-console-header">
+      <h3>PR Creation Progress</h3>
+      <span class="pr-console-status pr-status-running" id="pr-status">running</span>
+    </div>
+    <div class="pr-log" id="pr-log"></div>
+    <div class="pr-links" id="pr-links"></div>
+  </div>
+
+</div>
+
+<script>
+(function() {
+  'use strict';
+
+  var _data = {};           // category slug -> {passed, failed, total, ...}
+  var _selected = {};       // category slug -> boolean
+  var _detailOpen = null;   // currently expanded category slug
+  var _prPollTimer = null;
+  var _prJobId = null;
+  var _prLogCount = 0;
+
+  // ── Helpers ──────────────────────────────────────────────────
+  function barColor(pct) {
+    if (pct >= 90) return 'var(--green)';
+    if (pct >= 70) return 'var(--yellow)';
+    return 'var(--red)';
+  }
+
+  function metaColor(count, total) {
+    if (total === 0) return 'var(--border)';
+    var pct = (count / total) * 100;
+    if (pct >= 90) return 'var(--green)';
+    if (pct >= 60) return 'var(--yellow)';
+    return 'var(--red)';
+  }
+
+  function diffClass(d) {
+    if (!d) return '';
+    var dl = d.toLowerCase();
+    if (dl === 'beginner') return 'diff-beginner';
+    if (dl === 'intermediate') return 'diff-intermediate';
+    if (dl === 'advanced') return 'diff-advanced';
+    return '';
+  }
+
+  function updateSelectionCount() {
+    var count = Object.values(_selected).filter(Boolean).length;
+    document.getElementById('selection-count').textContent = count + ' selected';
+    document.getElementById('create-pr-btn').disabled = (count === 0);
+  }
+
+  // ── Load Results ─────────────────────────────────────────────
+  window.loadResults = function(version) {
+    var sel = document.getElementById('version-select');
+    version = version || sel.value || '';
+    var url = '/api/results' + (version ? '?version=' + encodeURIComponent(version) : '');
+
+    document.getElementById('cards-grid').innerHTML =
+      '<div class="empty-state" style="grid-column:1/-1;"><div class="spinner"></div><p style="margin-top:8px;">Loading results...</p></div>';
+
+    fetch(url)
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        // Populate version dropdown
+        var versions = resp.available_versions || [];
+        var currentVer = resp.version || '';
+        if (versions.length > 0) {
+          var opts = '';
+          for (var i = 0; i < versions.length; i++) {
+            var v = versions[i];
+            opts += '<option value="' + v + '"' + (v === currentVer ? ' selected' : '') + '>' + v + '</option>';
+          }
+          sel.innerHTML = opts;
+        } else {
+          sel.innerHTML = '<option value="">' + (currentVer || 'default') + '</option>';
+        }
+
+        // Stats
+        var cats = resp.categories || {};
+        var catKeys = Object.keys(cats).sort();
+        var totalPassed = resp.total_passed || 0;
+        var totalFailed = resp.total_failed || 0;
+        var totalAll = totalPassed + totalFailed;
+        var rate = totalAll > 0 ? Math.round((totalPassed / totalAll) * 100) : 0;
+
+        document.getElementById('stat-categories').textContent = catKeys.length;
+        document.getElementById('stat-passed').textContent = totalPassed;
+        document.getElementById('stat-failed').textContent = totalFailed;
+        document.getElementById('stat-rate').textContent = rate + '%';
+        var rateBar = document.getElementById('stat-rate-bar');
+        rateBar.style.width = rate + '%';
+        rateBar.style.background = barColor(rate);
+
+        // Sync stats
+        var syncCounts = { synced: 0, partial: 0, pending: 0 };
+        for (var si = 0; si < catKeys.length; si++) {
+          var ss = (cats[catKeys[si]].repo_sync || {}).status || 'pending';
+          syncCounts[ss] = (syncCounts[ss] || 0) + 1;
+        }
+        document.getElementById('stat-synced').textContent = '✓ ' + syncCounts.synced + ' synced';
+        document.getElementById('stat-partial').textContent = '▲ ' + syncCounts.partial + ' partial';
+        document.getElementById('stat-pending').textContent = '● ' + syncCounts.pending + ' pending';
+
+        _data = cats;
+        _selected = {};
+
+        if (catKeys.length === 0) {
+          document.getElementById('cards-grid').innerHTML =
+            '<div class="empty-state" style="grid-column:1/-1;"><div class="icon">&#128230;</div><p>No results found for version ' + (currentVer || 'default') + '</p></div>';
+          return;
+        }
+
+        renderCards(catKeys, cats);
+      })
+      .catch(function(err) {
+        document.getElementById('cards-grid').innerHTML =
+          '<div class="empty-state" style="grid-column:1/-1;"><div class="icon">&#9888;</div><p>Failed to load: ' + err + '</p></div>';
+      });
+  };
+
+  // ── Render Cards ─────────────────────────────────────────────
+  function renderCards(catKeys, cats) {
+    var html = '';
+    for (var i = 0; i < catKeys.length; i++) {
+      var slug = catKeys[i];
+      var c = cats[slug];
+      var passed = c.passed || 0;
+      var failed = c.failed || 0;
+      var total = c.total || (passed + failed);
+      var passedOnly = c.examples_with_code || passed;
+      var rate = total > 0 ? Math.round((passed / total) * 100) : 0;
+      var mq = c.metadata_quality || {};
+      var mTitle = mq.has_title || 0;
+      var mDesc = mq.has_description || 0;
+      var mApis = mq.has_apis || 0;
+      var sync = c.repo_sync || {};
+      var syncStatus = sync.status || 'pending';
+      var repoCount = sync.repo_count || 0;
+      var newCount = sync.new_count || 0;
+      var hasAgents = sync.has_agents_md || false;
+      var hasIndex = sync.has_index_json || false;
+
+      html += '<div class="cat-card" id="card-' + slug + '" onclick="toggleCard(\'' + slug + '\', event)">';
+      html += '  <div class="cat-card-header">';
+      html += '    <input type="checkbox" id="cb-' + slug + '" ' + (_selected[slug] ? 'checked' : '') + ' onclick="event.stopPropagation(); toggleCard(\'' + slug + '\')" />';
+      html += '    <span class="cat-name">' + slug + '</span>';
+      if (syncStatus === 'synced') {
+        html += '    <span class="sync-badge sync-synced">&#10003; Synced (' + repoCount + ')</span>';
+      } else if (syncStatus === 'partial') {
+        var partialDetails = [];
+        if (newCount > 0) partialDetails.push('+' + newCount + ' new');
+        if (!hasAgents) partialDetails.push('no agents.md');
+        if (!hasIndex) partialDetails.push('no index.json');
+        html += '    <span class="sync-badge sync-partial" title="' + partialDetails.join(', ') + '">&#9650; ' + partialDetails[0] + '</span>';
+      } else {
+        html += '    <span class="sync-badge sync-pending">&#9679; Pending</span>';
+      }
+      html += '    <span style="font-size:12px;color:var(--text-dim);">' + total + '</span>';
+      html += '  </div>';
+      html += '  <div class="cat-card-stats">';
+      html += '    <span class="s-passed">&#10003; ' + passed + ' passed</span>';
+      if (failed > 0) html += '    <span class="s-failed">&#10007; ' + failed + ' failed</span>';
+      if (repoCount > 0) html += '    <span style="color:var(--text-dim);font-size:12px;">&#128230; ' + repoCount + ' in repo</span>';
+      html += '  </div>';
+      html += '  <div class="pass-rate-bar"><div class="fill" style="width:' + rate + '%;background:' + barColor(rate) + ';"></div></div>';
+      html += '  <div class="meta-quality">';
+      html += '    ' + metaRow('Titles', mTitle, passed);
+      html += '    ' + metaRow('Descrip.', mDesc, passed);
+      html += '    ' + metaRow('APIs', mApis, passed);
+      html += '  </div>';
+      var metaMissing = passed > 0 && (mTitle < passed || mDesc < passed || mApis < passed);
+      html += '  <div class="cat-card-footer">';
+      if (metaMissing) {
+        html += '    <button class="btn-details" style="color:var(--yellow);" onclick="event.stopPropagation(); regenerateMetadata([\'' + slug + '\'])" title="Extract metadata via LLM">&#x1F504; Regen Meta</button>';
+      }
+      html += '    <button class="btn-details" onclick="event.stopPropagation(); viewDetails(\'' + slug + '\')">&#9660; View Examples</button>';
+      html += '  </div>';
+      html += '</div>';
+    }
+    document.getElementById('cards-grid').innerHTML = html;
+  }
+
+  function metaRow(label, count, total) {
+    var pct = total > 0 ? Math.round((count / total) * 100) : 0;
+    return '<div class="meta-row">'
+      + '<span class="meta-label">' + label + '</span>'
+      + '<div class="meta-bar"><div class="fill" style="width:' + pct + '%;background:' + metaColor(count, total) + ';"></div></div>'
+      + '<span class="meta-count">' + count + '/' + total + '</span>'
+      + '</div>';
+  }
+
+  // ── Card Selection ───────────────────────────────────────────
+  window.toggleCard = function(slug, evt) {
+    if (evt && evt.target.tagName === 'BUTTON') return;
+    var cb = document.getElementById('cb-' + slug);
+    if (evt && evt.target !== cb) cb.checked = !cb.checked;
+    _selected[slug] = cb.checked;
+    var card = document.getElementById('card-' + slug);
+    if (cb.checked) card.classList.add('selected');
+    else card.classList.remove('selected');
+    updateSelectionCount();
+  };
+
+  window.selectAll = function(checked) {
+    var slugs = Object.keys(_data);
+    for (var i = 0; i < slugs.length; i++) {
+      var slug = slugs[i];
+      _selected[slug] = checked;
+      var cb = document.getElementById('cb-' + slug);
+      if (cb) cb.checked = checked;
+      var card = document.getElementById('card-' + slug);
+      if (card) {
+        if (checked) card.classList.add('selected');
+        else card.classList.remove('selected');
+      }
+    }
+    updateSelectionCount();
+  };
+
+  // ── View Details ─────────────────────────────────────────────
+  window.viewDetails = function(slug) {
+    var panel = document.getElementById('detail-panel');
+    var body = document.getElementById('detail-body');
+
+    if (_detailOpen === slug) {
+      closeDetail();
+      return;
+    }
+    _detailOpen = slug;
+
+    document.getElementById('detail-title').textContent = slug;
+    body.innerHTML = '<div style="text-align:center;padding:20px;"><span class="spinner"></span> Loading...</div>';
+    panel.classList.add('open');
+
+    var ver = document.getElementById('version-select').value;
+    fetch('/api/results/' + slug + (ver ? '?version=' + encodeURIComponent(ver) : ''))
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        if (resp.error) {
+          body.innerHTML = '<p style="color:var(--red);">' + resp.error + '</p>';
+          return;
+        }
+
+        var examples = resp.examples || [];
+        var passed = examples.filter(function(e) { return e.status === 'PASSED'; });
+        var failed = examples.filter(function(e) { return e.status !== 'PASSED'; });
+
+        document.getElementById('detail-title').textContent = slug + ' (' + examples.length + ' examples)';
+
+        var html = '<table class="examples-table"><thead><tr>';
+        html += '<th></th><th>Filename</th><th>Difficulty</th><th>Stage</th><th>APIs</th>';
+        html += '</tr></thead><tbody>';
+
+        // Passed first, then failed
+        var all = passed.concat(failed);
+        for (var i = 0; i < all.length; i++) {
+          var ex = all[i];
+          var isPassed = ex.status === 'PASSED';
+          var meta = ex.metadata || {};
+          var fname = meta.filename || ex.cs_file || ex.task_id || '—';
+          var diff = meta.difficulty || '';
+          var apis = (meta.apis_used || []).length;
+          var stage = ex.stage || '—';
+
+          html += '<tr>';
+          html += '<td class="status-icon">' + (isPassed ? '<span style="color:var(--green);">&#10003;</span>' : '<span style="color:var(--red);">&#10007;</span>') + '</td>';
+          html += '<td style="font-size:13px;' + (isPassed ? '' : 'color:var(--text-dim);') + '" title="' + (ex.task || '').replace(/"/g, '&quot;').substring(0, 200) + '">' + fname + '</td>';
+          html += '<td>' + (diff ? '<span class="difficulty-badge ' + diffClass(diff) + '">' + diff + '</span>' : '<span style="color:var(--text-dim);">—</span>') + '</td>';
+          html += '<td style="font-size:12px;color:var(--text-dim);">' + stage + '</td>';
+          html += '<td style="font-size:12px;color:var(--text-dim);">' + (apis > 0 ? apis : '—') + '</td>';
+          html += '</tr>';
+        }
+
+        html += '</tbody></table>';
+        body.innerHTML = html;
+
+        // Scroll detail into view
+        panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      })
+      .catch(function(err) {
+        body.innerHTML = '<p style="color:var(--red);">Failed: ' + err + '</p>';
+      });
+  };
+
+  window.closeDetail = function() {
+    _detailOpen = null;
+    document.getElementById('detail-panel').classList.remove('open');
+  };
+
+  // ── Create PR ────────────────────────────────────────────────
+  window.createPR = function() {
+    var cats = Object.keys(_selected).filter(function(k) { return _selected[k]; });
+    if (cats.length === 0) { alert('Select at least one category.'); return; }
+
+    var prStyle = document.querySelector('input[name="pr-style"]:checked').value;
+    var writeMode = document.querySelector('input[name="write-mode"]:checked').value;
+    var branch = document.getElementById('pr-target-branch').value.trim();
+    var version = document.getElementById('version-select').value;
+
+    var modeLabel = writeMode === 'replace' ? ' (REPLACE — old files will be removed)' : ' (INCREMENTAL — only new files added)';
+    var msg = 'Create ' + (prStyle === 'single' ? '1 PR' : cats.length + ' PR(s)') +
+              ' for ' + cats.length + ' category(ies)?' + modeLabel + '\n\n' + cats.join('\n');
+    if (!confirm(msg)) return;
+
+    var btn = document.getElementById('create-pr-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Creating...';
+
+    var payload = {
+      categories: cats,
+      version: version || undefined,
+      pr_style: prStyle,
+      pr_target_branch: branch || undefined,
+      write_mode: writeMode,
+    };
+
+    fetch('/api/create-pr-from-results', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        if (resp.error) {
+          alert('Error: ' + resp.error);
+          btn.disabled = false;
+          btn.textContent = 'Create PR for Selected';
+          return;
+        }
+        _prJobId = resp.job_id;
+        _prLogCount = 0;
+        showPRConsole('running');
+        startPRPoll();
+      })
+      .catch(function(err) {
+        alert('Request failed: ' + err);
+        btn.disabled = false;
+        btn.textContent = 'Create PR for Selected';
+      });
+  };
+
+  // ── Regenerate Metadata ──────────────────────────────────────
+  window.regenerateMetadata = function(catList) {
+    var cats = catList || Object.keys(_selected).filter(function(k) { return _selected[k]; });
+    if (cats.length === 0) {
+      // No selection — regenerate for ALL categories with missing metadata
+      cats = Object.keys(_data).filter(function(slug) {
+        var c = _data[slug];
+        var mq = c.metadata_quality || {};
+        var passed = c.passed || 0;
+        return passed > 0 && ((mq.has_title || 0) < passed || (mq.has_description || 0) < passed);
+      });
+      if (cats.length === 0) { alert('All categories already have complete metadata.'); return; }
+    }
+
+    var version = document.getElementById('version-select').value;
+    var msg = 'Regenerate metadata for ' + cats.length + ' category(ies)?\n\n' + cats.join('\n') +
+              '\n\nThis will use the LLM to extract titles, descriptions, APIs, and tags for examples missing metadata.';
+    if (!confirm(msg)) return;
+
+    var btn = document.getElementById('regen-meta-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> Extracting...';
+
+    fetch('/api/regenerate-metadata', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ categories: cats, version: version || undefined }),
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        if (resp.error) {
+          alert('Error: ' + resp.error);
+          btn.disabled = false;
+          btn.innerHTML = '&#x1F504; Regenerate Metadata';
+          return;
+        }
+        _prJobId = resp.job_id;
+        _prLogCount = 0;
+        showPRConsole('running');
+        startMetaPoll();
+      })
+      .catch(function(err) {
+        alert('Request failed: ' + err);
+        btn.disabled = false;
+        btn.innerHTML = '&#x1F504; Regenerate Metadata';
+      });
+  };
+
+  function startMetaPoll() {
+    if (_prPollTimer) clearInterval(_prPollTimer);
+    _prPollTimer = setInterval(pollMetaStatus, 2000);
+    pollMetaStatus();
+  }
+
+  function pollMetaStatus() {
+    if (!_prJobId) return;
+    fetch('/api/status/' + _prJobId)
+      .then(function(r) { return r.json(); })
+      .then(function(state) {
+        if (state.error) return;
+
+        var logs = state.logs || [];
+        var logEl = document.getElementById('pr-log');
+        for (var i = _prLogCount; i < logs.length; i++) {
+          var line = document.createElement('div');
+          line.className = 'log-line';
+          line.textContent = logs[i];
+          logEl.appendChild(line);
+        }
+        if (logs.length > _prLogCount) logEl.scrollTop = logEl.scrollHeight;
+        _prLogCount = logs.length;
+
+        var finished = ['completed', 'failed', 'cancelled'];
+        if (finished.indexOf(state.status) !== -1) {
+          clearInterval(_prPollTimer);
+          _prPollTimer = null;
+          setPRStatus(state.status);
+          var btn = document.getElementById('regen-meta-btn');
+          btn.disabled = false;
+          btn.innerHTML = '&#x1F504; Regenerate Metadata';
+          // Reload results to reflect updated metadata
+          if (state.status === 'completed') {
+            setTimeout(function() { loadResults(); }, 500);
+          }
+        }
+      })
+      .catch(function() {});
+  }
+
+  function showPRConsole(status) {
+    var console = document.getElementById('pr-console');
+    console.classList.add('open');
+    document.getElementById('pr-log').innerHTML = '';
+    document.getElementById('pr-links').innerHTML = '';
+    setPRStatus(status);
+    console.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  function setPRStatus(status) {
+    var el = document.getElementById('pr-status');
+    el.textContent = status;
+    el.className = 'pr-console-status';
+    if (status === 'running') el.classList.add('pr-status-running');
+    else if (status === 'completed') el.classList.add('pr-status-done');
+    else el.classList.add('pr-status-failed');
+  }
+
+  function startPRPoll() {
+    if (_prPollTimer) clearInterval(_prPollTimer);
+    _prPollTimer = setInterval(pollPRStatus, 2000);
+    pollPRStatus();
+  }
+
+  function pollPRStatus() {
+    if (!_prJobId) return;
+    fetch('/api/status/' + _prJobId)
+      .then(function(r) { return r.json(); })
+      .then(function(state) {
+        if (state.error) return;
+
+        // Append new logs
+        var logs = state.logs || [];
+        var logEl = document.getElementById('pr-log');
+        for (var i = _prLogCount; i < logs.length; i++) {
+          var line = document.createElement('div');
+          line.className = 'log-line';
+          var text = logs[i];
+          // Highlight PR links
+          if (text.indexOf('PR created:') !== -1 || text.indexOf('github.com') !== -1) {
+            line.classList.add('pr-link');
+          }
+          line.textContent = text;
+          logEl.appendChild(line);
+        }
+        if (logs.length > _prLogCount) {
+          logEl.scrollTop = logEl.scrollHeight;
+        }
+        _prLogCount = logs.length;
+
+        // Check for PR URLs
+        var prUrl = state.pr_url;
+        if (prUrl) {
+          var linksEl = document.getElementById('pr-links');
+          // Only add if not already shown
+          if (linksEl.innerHTML.indexOf(prUrl) === -1) {
+            linksEl.innerHTML += '<a href="' + prUrl + '" target="_blank">&#128279; ' + prUrl + '</a>';
+          }
+        }
+
+        // Check completion
+        var finished = ['completed', 'failed', 'cancelled'];
+        if (finished.indexOf(state.status) !== -1) {
+          clearInterval(_prPollTimer);
+          _prPollTimer = null;
+          setPRStatus(state.status);
+          var btn = document.getElementById('create-pr-btn');
+          btn.disabled = false;
+          btn.textContent = 'Create PR for Selected';
+        }
+      })
+      .catch(function() {});
+  }
+
+  // ── Init ─────────────────────────────────────────────────────
+  loadResults();
+
+})();
+</script>
+</body>
+</html>
