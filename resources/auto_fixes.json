@@ -1,1236 +1,4 @@
 {
-  "use-normalized-rgb-values-for-color": {
-    "note": "When setting colors with Aspose.Pdf.Color.FromRgb, provide component values as doubles in the range 0.0‑1.0 (e.g., divide 0‑255 ints by 255).",
-    "code": "cell.BackgroundColor = Aspose.Pdf.Color.FromRgb(255.0/255.0, 200.0/255.0, 200.0/255.0); // values normalized to 0..1",
-    "errors": [
-      "Aspose.Pdf.PdfException: Invalid input data: color element is out of range [0..1]",
-      "Runtime error when using Color.FromRgb with integer values > 1"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775118871.366267,
-    "_hit_count": 0,
-    "_stage": "final_llm",
-    "_category": "Working with Tables"
-  },
-  "use-imagefragment-for-illustration": {
-    "note": "To embed an external image in a tagged PDF cell, create an ImageFragment with the image file path and pass it to IllustrationElement.SetImage; ensure the Aspose.Pdf.Tagged namespace is referenced for the tagged‑PDF classes.",
-    "code": "string imagePath = \"sample.jpg\";\nImageFragment imgFragment = new ImageFragment(imagePath);\nillustration.SetImage(imgFragment);",
-    "errors": [
-      "CS0246: The type or namespace name 'TaggedContent' could not be found (are you missing a using directive or an assembly reference?)",
-      "CS0246: The type or namespace name 'TableTRowElement' could not be found (are you missing a using directive or an assembly reference?)"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775118982.213774,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-imagestream-property-for-image-in-table-cell": {
-    "note": "Assign a MemoryStream containing the image bytes to Image.ImageStream and add the Image to the cell's Paragraphs.",
-    "code": "using (var ms = new MemoryStream(imageBytes))\n{\n    var img = new Image { ImageStream = ms };\n    cell.Paragraphs.Add(img);\n}",
-    "errors": [
-      "Need to insert an image from a memory stream into a table cell (cannot use file path)."
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775119091.394557,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Tables"
-  },
-  "use-iwarningcallback-for-xmlloadoptions": {
-    "note": "Implement IWarningCallback and assign an instance to XmlLoadOptions.WarningHandler to handle XML parsing warnings.",
-    "code": "public class MyWarningHandler : IWarningCallback\n{\n    public ReturnAction Warning(WarningInfo warningInfo)\n    {\n        Console.WriteLine(\"Parsing warning: \" + warningInfo.WarningMessage);\n        return ReturnAction.Continue;\n    }\n}\n\nXmlLoadOptions loadOptions = new XmlLoadOptions();\nloadOptions.WarningHandler = new MyWarningHandler();",
-    "errors": [
-      "Cannot assign lambda or delegate to XmlLoadOptions.WarningHandler; it expects an IWarningCallback implementation",
-      "WarningInfo does not contain a definition for 'Message'; use 'WarningMessage' property"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775119339.907826,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with XML"
-  },
-  "align-table-horizontalcenter": {
-    "note": "Set Table.HorizontalAlignment to HorizontalAlignment.Center (preferably via object initializer) to center the whole table on the page.",
-    "code": "Table table = new Table {\n    HorizontalAlignment = HorizontalAlignment.Center,\n    ColumnWidths = \"100 100 100\"\n};",
-    "errors": [
-      "Table not centered because HorizontalAlignment was not set or set incorrectly",
-      "Using fully‑qualified Aspose.Pdf.HorizontalAlignment may cause confusion; prefer the enum directly"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775119428.876069,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "set-table-margin-left": {
-    "note": "Assign a value to Table.Margin.Left to offset the table from the left page margin.",
-    "code": "Table table = new Table();\nvar margin = new MarginInfo();\nmargin.Left = 50; // offset in points\ntable.Margin = margin;",
-    "errors": [
-      "Table aligns to the left edge by default, causing layout issues when an offset is required"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775119474.213104,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "enable-table-splitting": {
-    "note": "Set Table.IsBroken = true to allow the table to split across pages when it exceeds the page height.",
-    "code": "Table table = new Table();\n// configure columns, etc.\n\ntable.IsBroken = true; // enable splitting across pages",
-    "errors": [
-      "Table rows are truncated at the bottom of a page and do not continue on the next page",
-      "Table does not split across pages even when it exceeds page height"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775119506.6991239,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "disable-table-auto-split": {
-    "note": "Set Table.IsBroken = false to keep the entire table on a single page and prevent automatic splitting across pages.",
-    "code": "Table table = new Table();\n// Disable automatic table splitting\ntable.IsBroken = false;",
-    "errors": [
-      "Table rows split across pages automatically",
-      "Unexpected page breaks in table layout"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775119542.840169,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-ury-lly-instead-of-bottom": {
-    "note": "When working with Aspose.Pdf.Rectangle, use the URY (upper‑right Y) and LLY (lower‑left Y) properties to obtain vertical coordinates instead of the non‑existent Bottom/Top properties.",
-    "code": "Aspose.Pdf.Rectangle rect = page.CalculateContentBBox();\ndouble contentHeight = rect.URY - rect.LLY; // height of the content\n// Example positioning using URY\ndouble tableTopFromPageTop = page.PageInfo.PureHeight - rect.URY;",
-    "errors": [
-      "CS1061: 'Rectangle' does not contain a definition for 'Bottom'",
-      "CS1061: 'Rectangle' does not contain a definition for 'Top'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775119632.20457,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-columwidths-percentage-for-table-width": {
-    "note": "Set a table's width as a percentage of the page by assigning a percentage string to Table.ColumnWidths (e.g., \"80%\")",
-    "code": "Table table = new Table { ColumnWidths = \"80%\" };",
-    "errors": [
-      "Compilation error when trying to set Table.Width (property does not exist)",
-      "Unable to control table width using absolute dimensions when a relative size is required"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775119755.294064,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "validate-and-use-full-paths-for-xmlloadoptions-and-document": {
-    "note": "Before creating XmlLoadOptions or a Document, verify that the configuration file and the referenced XML/XSLT files exist and pass their absolute paths to the Aspose.PDF constructors.",
-    "code": "string configPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, \"config.json\");\nif (!File.Exists(configPath)) return;\nvar cfg = JsonSerializer.Deserialize<Config>(File.ReadAllText(configPath), new JsonSerializerOptions { PropertyNameCaseInsensitive = true });\nstring xmlPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, cfg.XmlFile));\nstring xsltPath = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, cfg.XsltFile));\nif (!File.Exists(xmlPath) || !File.Exists(xsltPath)) return;\nXmlLoadOptions loadOpts = new XmlLoadOptions(xsltPath);\nusing var pdf = new Document(xmlPath, loadOpts);\npdf.Save(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, cfg.OutputPdf ?? \"output.pdf\"));",
-    "errors": [
-      "System.IO.FileNotFoundException when the configuration file (config.json) is missing",
-      "Runtime errors caused by passing relative or non‑existent file paths to XmlLoadOptions or Document constructors"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775119962.292403,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with XML"
-  },
-  "use-normalized-rgb-values": {
-    "note": "When setting colors with Color.FromRgb, provide component values in the 0..1 range (e.g., divide 0‑255 values by 255).",
-    "code": "row.BackgroundColor = Aspose.Pdf.Color.FromRgb(220.0 / 255, 220.0 / 255, 220.0 / 255);",
-    "errors": [
-      "Aspose.Pdf.PdfException: Invalid input data: color element is out of range [0..1]",
-      "Color.FromRgb expects double values between 0 and 1, not 0‑255 integers"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775120350.52354,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-absolute-path-for-xslfo-template": {
-    "note": "When loading an XML file with an XSL‑FO template via XmlLoadOptions, supply a fully‑qualified path to the template (e.g., combine the executing assembly's directory with the file name) and verify the file exists.",
-    "code": "string baseDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location);\nstring xslFoPath = Path.Combine(baseDir, \"template.xslfo\");\nXmlLoadOptions loadOptions = new XmlLoadOptions(xslFoPath);",
-    "errors": [
-      "System.IO.DirectoryNotFoundException: Could not find a part of the path ...template.xslfo",
-      "File not found errors when XmlLoadOptions is given a relative or incorrect template path"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775120526.866132,
-    "_hit_count": 0,
-    "_stage": "final_llm",
-    "_category": "Working with XML"
-  },
-  "use-textfragment-hyperlink-in-table-cell": {
-    "note": "Embed a hyperlink directly in a table cell by adding a TextFragment with its Hyperlink property set, instead of creating a separate LinkAnnotation.",
-    "code": "Cell cell = row.Cells.Add();\nTextFragment tf = new TextFragment(\"Click here\") {\n    Hyperlink = new WebHyperlink(\"https://example.com\")\n};\ncell.Paragraphs.Add(tf);",
-    "errors": [
-      "System.TypeInitializationException: The type initializer for 'System.Drawing.Gdip' threw an exception.",
-      "DllNotFoundException: Unable to load shared library 'gdiplus.dll' (or libgdiplus) when using LinkAnnotation on non‑Windows platforms."
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775120938.313293,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "concatenate-absorbedcell-textfragments": {
-    "note": "AbsorbedCell does not expose a direct Text property; retrieve its content by concatenating all TextFragments.",
-    "code": "StringBuilder sb = new StringBuilder();\nforeach (TextFragment fragment in cell.TextFragments)\n{\n    sb.Append(fragment.Text);\n}\nstring cellText = sb.ToString();",
-    "errors": [
-      "CS1061: 'AbsorbedCell' does not contain a definition for 'Text'",
-      "Unable to read cell content directly from AbsorbedCell"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775122443.554105,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-columwidths-for-table-autofit": {
-    "note": "When Table.AutoFitBehavior is unavailable, set Table.ColumnWidths based on the page width to stretch the table across the page.",
-    "code": "float pageWidth = (float)doc.Pages[1].PageInfo.Width;\n// Example for two equal columns\ntable.ColumnWidths = $\"{pageWidth / 2} {pageWidth / 2}\";",
-    "errors": [
-      "CS1061: 'Table' does not contain a definition for 'AutoFitBehavior'",
-      "CS0103: The name 'AutoFitBehavior' does not exist in the current context"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775125212.923313,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-row-instead-of-tablerow": {
-    "note": "When adding rows to an Aspose.Pdf.Table, use Aspose.Pdf.Row (or simply Row) instead of the non‑existent TableRow type.",
-    "code": "Aspose.Pdf.Table table = new Aspose.Pdf.Table();\nAspose.Pdf.Row row = table.Rows.Add(); // correct\n// row.Cells.Add(...);",
-    "errors": [
-      "CS0246: The type or namespace name 'TableRow' could not be found",
-      "CS0246: The type or namespace name 'TableRow' could not be found (duplicate usage)"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775125354.7721841,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "copy-tablelist-before-removal": {
-    "note": "When removing multiple tables with TableAbsorber, enumerate over a copy of TableList (e.g., ToList()) because absorber.Remove modifies the original collection.",
-    "code": "TableAbsorber absorber = new TableAbsorber();\nabsorber.Visit(doc);\nvar tables = absorber.TableList.ToList(); // copy\nforeach (var table in tables)\n{\n    absorber.Remove(table);\n}",
-    "errors": [
-      "InvalidOperationException: Collection was modified; enumeration operation may not execute.",
-      "Runtime logic error: tables not removed when iterating directly over absorber.TableList"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775125504.8589242,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-repeatingrowscount-instead-of-isheader": {
-    "note": "Do not set Row.IsHeader (removed in recent Aspose.PDF versions); instead configure the table to repeat its header rows by setting Table.RepeatingRowsCount (and optionally RepeatingRowsStyle).",
-    "code": "Table table = new Table {\n    ColumnWidths = \"100 150 200\",\n    RepeatingRowsCount = 1, // repeats the first row as header\n    RepeatingRowsStyle = new TextState { FontSize = 12, Font = FontRepository.FindFont(\"Helvetica\"), ForegroundColor = Aspose.Pdf.Color.Black }\n};\n// create header row without IsHeader\nRow header = new Row { BackgroundColor = Aspose.Pdf.Color.LightGray };\nheader.Cells.Add(new Cell { Paragraphs = { new TextFragment(\"Column 1\") } });\n// ... add other cells ...\ntable.Rows.Add(header);",
-    "errors": [
-      "CS0117: 'Row' does not contain a definition for 'IsHeader'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775125807.9006221,
-    "_hit_count": 0,
-    "_stage": "final_llm",
-    "_category": "Working with Tables"
-  },
-  "embed-formfield-in-table-cell": {
-    "note": "Add a form field (e.g., CheckboxField) to a Table Cell's Paragraphs collection instead of the document's Form collection to render it inside the cell.",
-    "code": "Cell cell = row.Cells.Add();\nCheckboxField checkbox = new CheckboxField(page, new Rectangle(120f, 750f, 140f, 770f))\n{\n    Name = \"AcceptTerms\",\n    Checked = false,\n    ExportValue = \"Yes\"\n};\ncell.Paragraphs.Add(checkbox);",
-    "errors": [
-      "Form field appears outside the table cell when added to doc.Form",
-      "Unable to position a form field inside a table cell"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775125894.781007,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "replace-cell-content-with-textfragment": {
-    "note": "To replace the content of an AbsorbedCell, clear its TextFragments collection and add a new TextFragment; do not use the non‑existent IsOverrideByFragment property.",
-    "code": "cell.TextFragments.Clear();\ncell.TextFragments.Add(new TextFragment(replacement));",
-    "errors": [
-      "CS1061: 'AbsorbedCell' does not contain a definition for 'IsOverrideByFragment'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775126290.809199,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-absorbedtable-rowlist-and-absorbedrow-celllist": {
-    "note": "When working with tables extracted via TableAbsorber, iterate over AbsorbedTable.RowList and AbsorbedRow.CellList instead of non‑existent Rows and Cells collections.",
-    "code": "TableAbsorber absorber = new TableAbsorber();\nabsorber.Visit(doc.Pages[1]);\nAbsorbedTable table = absorber.TableList[0];\nforeach (AbsorbedRow row in table.RowList)\n{\n    foreach (var cell in row.CellList)\n    {\n        // process cell\n    }\n}",
-    "errors": [
-      "CS1061: 'AbsorbedTable' does not contain a definition for 'Rows' and no accessible extension method 'Rows' accepting a first argument of type 'AbsorbedTable' could be found",
-      "CS1061: 'AbsorbedRow' does not contain a definition for 'Cells' and no accessible extension method 'Cells' accepting a first argument of type 'AbsorbedRow' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775126413.786643,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Tables"
-  },
-  "use-tableabsorber-visit-instead-of-absorb": {
-    "note": "When extracting tables, call TableAbsorber.Visit(page) (or .Visit(document)) instead of the non‑existent Absorb method, and work with AbsorbedTable.RowList and Cell.TextFragments for content.",
-    "code": "TableAbsorber absorber = new TableAbsorber();\nabsorber.Visit(page); // or absorber.Visit(document)\nforeach (AbsorbedTable table in absorber.TableList)\n{\n    foreach (AbsorbedRow row in table.RowList)\n    {\n        foreach (Cell cell in row.CellList)\n        {\n            // access cell text via cell.TextFragments\n        }\n    }\n}",
-    "errors": [
-      "CS1061: 'TableAbsorber' does not contain a definition for 'Absorb'",
-      "CS1061: 'AbsorbedTable' does not contain a definition for 'Page'",
-      "CS1061: 'AbsorbedTable' does not contain a definition for 'Rows'",
-      "CS1061: 'Cell' does not contain a definition for 'BorderInfo'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775126585.394002,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Tables"
-  },
-  "convert-numeric-to-string-for-defaultcolumnwidth": {
-    "note": "When setting Table.DefaultColumnWidth, pass a string value; convert numeric widths using ToString with InvariantCulture.",
-    "code": "double minWidth = 50.0;\nTable table = new Table {\n    DefaultColumnWidth = minWidth.ToString(System.Globalization.CultureInfo.InvariantCulture)\n};",
-    "errors": [
-      "CS1503: Argument 1: cannot convert from 'double' to 'string' when assigning to Table.DefaultColumnWidth",
-      "Incorrect column width format causing runtime errors if a non‑string is supplied"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775126681.993257,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-iswordwrapped-instead-of-wordwrap": {
-    "note": "Use the Cell.IsWordWrapped property to enable word‑wrap for table cells; the non‑existent Cell.WordWrap property has been removed.",
-    "code": "cell.IsWordWrapped = true;",
-    "errors": [
-      "CS1061: 'Cell' does not contain a definition for 'WordWrap' and no accessible extension method 'WordWrap' accepting a first argument of type 'Cell' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775126736.0655842,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-color-fromargb-for-opacity": {
-    "note": "Use Color.FromArgb(alpha, red, green, blue) to specify a color with opacity; Aspose.Pdf.Color does not provide a FromRgba method.",
-    "code": "BackgroundColor = Color.FromArgb(128, 0, 0, 255); // 50% opaque blue",
-    "errors": [
-      "CS0117: 'Color' does not contain a definition for 'FromRgba'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775126936.348926,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-row-and-cell-types": {
-    "note": "Iterate table rows and cells using Aspose.Pdf.Row and Aspose.Pdf.Cell (the correct Aspose.Pdf types) instead of non‑existent TableRow/TableCell types.",
-    "code": "foreach (Row row in table.Rows)\n{\n    foreach (Cell cell in row.Cells)\n    {\n        // process cell\n    }\n}",
-    "errors": [
-      "CS0246: The type or namespace name 'TableRow' could not be found",
-      "CS0246: The type or namespace name 'TableCell' could not be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775127816.9015942,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-dynamic-for-absorbedcell-span": {
-    "note": "When using TableAbsorber in older Aspose.Pdf versions, access RowSpan and ColumnSpan via dynamic dispatch because AbsorbedCell does not expose these properties at compile time.",
-    "code": "foreach (var absorbedCell in absorbedRow.CellList)\n{\n    dynamic cell = absorbedCell;\n    int rowSpan = 1, colSpan = 1;\n    try { rowSpan = (int)cell.RowSpan; } catch { }\n    try { colSpan = (int)cell.ColumnSpan; } catch { }\n    // use rowSpan and colSpan here\n}",
-    "errors": [
-      "CS1061: 'AbsorbedCell' does not contain a definition for 'RowSpan' (or 'ColumnSpan')"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775128172.4619,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-table-row-cell-classes-instead-of-structureelement-api": {
-    "note": "Create tables using Aspose.Pdf.Table, Row, and Cell classes (and attach footnotes via TextFragment.FootNote) instead of the low‑level StructureElement, TableElement, TableRowElement, and TableCellElement APIs.",
-    "code": "Table table = new Table();\nRow row = table.Rows.Add();\nCell cell = row.Cells.Add();\nTextFragment tf = new TextFragment(\"Value\\u00B9\");\ntf.FootNote = new Note(\"Footnote text\");\ncell.Paragraphs.Add(tf);",
-    "errors": [
-      "CS0246: The type or namespace name 'StructureElement' could not be found",
-      "CS0246: The type or namespace name 'TableElement' could not be found",
-      "CS0246: The type or namespace name 'TableRowElement' could not be found",
-      "CS0246: The type or namespace name 'TableCellElement' could not be found",
-      "CS1061: 'ITaggedContent' does not contain a definition for 'CreateTableRowElement'"
-    ],
-    "_auto": true,
-    "_confidence": 0.7999999999999999,
-    "_created_at": 1775128428.241766,
-    "_hit_count": 3,
-    "_stage": "regen",
-    "_category": "Working with Tables"
-  },
-  "use-fixedrowheight-instead-of-height": {
-    "note": "To set a custom row height in Aspose.PDF tables, assign the desired height (in points) to the Row.FixedRowHeight property instead of a non‑existent Height property.",
-    "code": "Row row = table.Rows.Add();\nrow.FixedRowHeight = 80; // height in points",
-    "errors": [
-      "CS1061: 'Row' does not contain a definition for 'Height' and no accessible extension method 'Height' accepting a first argument of type 'Row' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775129133.878448,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Tables"
-  },
-  "use-string-for-columwidths": {
-    "note": "Assign a space‑separated string to Table.ColumnWidths instead of a float array",
-    "code": "Table table = new Table {\n    ColumnWidths = \"100 200 100\",\n    Border = new BorderInfo(BorderSide.All, 0.5f),\n    DefaultCellPadding = new MarginInfo(5, 5, 5, 5)\n};",
-    "errors": [
-      "CS0029: Cannot implicitly convert type 'float[]' to 'string' for Table.ColumnWidths",
-      "Argument type mismatch when assigning a float array to Table.ColumnWidths"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775129718.41945,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Tables"
-  },
-  "use-horizontalalignment-on-textfragment": {
-    "note": "Set the horizontal alignment of a TextFragment (or any BaseParagraph) using the HorizontalAlignment property instead of a non‑existent Alignment property.",
-    "code": "TextFragment tf = new TextFragment(\"Centered Text\");\n tf.HorizontalAlignment = HorizontalAlignment.Center;",
-    "errors": [
-      "CS1061: 'TextFragment' does not contain a definition for 'Alignment' and no accessible extension method 'Alignment' accepting a first argument of type 'TextFragment' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775129856.9370549,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Tables"
-  },
-  "use-rotationmatrix-for-page-rotation": {
-    "note": "Set a custom rotation matrix on the page via page.RotationMatrix to rotate all subsequently added content (e.g., a table) by 90 degrees.",
-    "code": "double pageHeight = page.GetPageRect(false).Height;\nMatrix m = page.RotationMatrix;\nm.A = 0;   // a\nm.B = 1;   // b\nm.C = -1;  // c\nm.D = 0;   // d\nm.E = pageHeight; // e (translate X after rotation)\nm.F = 0;   // f (translate Y)\npage.Paragraphs.Add(table);",
-    "errors": [
-      "Content not rotated when using page.Rotate property",
-      "Need to rotate an entire table without changing the page orientation"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775130918.965367,
-    "_hit_count": 0,
-    "_stage": "final_llm",
-    "_category": "Working with Tables"
-  },
-  "use-page-constructor-for-radiobuttonfield": {
-    "note": "Create a RadioButtonField using the constructor that receives a Page (not a Document) and supply Rectangle coordinates as lower‑left and upper‑right points (llx, lly, urx, ury) to avoid NullReferenceException and incorrect sizing.",
-    "code": "Page page = doc.Pages.Add();\nRadioButtonField genderField = new RadioButtonField(page) { Name = \"Gender\" };\nAspose.Pdf.Rectangle maleRect = new Aspose.Pdf.Rectangle(100, 700, 120, 720); // llx,lly,urx,ury\ngenderField.AddOption(\"Male\", maleRect);",
-    "errors": [
-      "System.NullReferenceException at Aspose.Pdf.Annotations.Annotation.Initialize because RadioButtonField was constructed with a Document instead of a Page.",
-      "Incorrect Rectangle constructor usage (width/height) leading to malformed annotation bounds."
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775132026.391378,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "access-form-fields-with-index-and-adjust-listbox-selected": {
-    "note": "Document.Form behaves like a dictionary but does not expose ContainsKey; retrieve a field by name using the indexer and cast, and remember that ListBoxField.Selected is zero‑based, so subtract 1 from the desired 1‑based index.",
-    "code": "if (doc.Form[\"MyListBox\"] is ListBoxField listBox)\n{\n    // desiredIndex is 1‑based\n    if (desiredIndex >= 1 && desiredIndex <= listBox.Options.Count)\n        listBox.Selected = desiredIndex - 1; // zero‑based selection\n}",
-    "errors": [
-      "CS1061: 'Form' does not contain a definition for 'ContainsKey'",
-      "CS0165: Use of unassigned local variable 'listBox'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775132374.712939,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-addfield-for-form-fields": {
-    "note": "Create AcroForm fields with FormEditor.AddField (specifying FieldType) instead of using the removed Aspose.Pdf.Forms field classes such as CheckBoxField or TextBoxField.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nusing (Document doc = new Document(inputPath))\n{\n    using (FormEditor editor = new FormEditor(doc))\n    {\n        // pageNumber is 1‑based\n        editor.AddField(FieldType.CheckBox, \"MyCheckBox\", pageNumber, 100, 200, 120, 220);\n        editor.Save(outputPath);\n    }\n}",
-    "errors": [
-      "CS0234: The type or namespace name 'CheckBoxField' does not exist in the namespace 'Aspose.Pdf.Forms'",
-      "CS0234: The type or namespace name 'TextBoxField' does not exist in the namespace 'Aspose.Pdf.Forms'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775132732.879651,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-widgetannotation-for-form-field-border": {
-    "note": "When styling a form field's border, retrieve it as a WidgetAnnotation, set the width via a Border object, and set the colour using the annotation's Color property (Border has no Color member).",
-    "code": "WidgetAnnotation widget = doc.Form[\"myField\"] as WidgetAnnotation;\nwidget.Border = new Border(widget) { Width = 2 };\nwidget.Color = Aspose.Pdf.Color.Blue;",
-    "errors": [
-      "CS0266: Cannot implicitly convert type 'Aspose.Pdf.Annotations.WidgetAnnotation' to 'Aspose.Pdf.Forms.Field'",
-      "CS0117: 'Border' does not contain a definition for 'Color'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775132773.540511,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "remove-defaultappearance-usage": {
-    "note": "Do not use the non‑existent DefaultAppearance property on form fields; remove that line or use alternative styling methods",
-    "code": "Field? field = doc.Form[\"PhoneNumber\"] as Field;\nif (field != null)\n{\n    field.AlternateName = \"Enter phone number in format: (123) 456‑7890\"; // tooltip\n}",
-    "errors": [
-      "CS0234: The type or namespace name 'DefaultAppearance' does not exist in the namespace 'Aspose.Pdf'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775133008.428156,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-document-save-for-incremental-updates": {
-    "note": "Save a PDF with incremental updates by calling Document.Save(filePath) (or the parameterless Save) instead of trying to set SaveOptions.AppendMode, which does not exist.",
-    "code": "using (Document doc = new Document(inputPath))\n{\n    // modify the document as needed\n    doc.Save(outputPath); // writes changes as an incremental update\n}",
-    "errors": [
-      "CS1061: 'SaveOptions' does not contain a definition for 'AppendMode' and no accessible extension method 'AppendMode' accepting a first argument of type 'SaveOptions' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775133104.9650319,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-base-directory-and-pathcombine-for-relative-folders": {
-    "note": "Use AppDomain.CurrentDomain.BaseDirectory with Path.Combine to build input/output folder paths instead of hard‑coded absolute Windows paths, and verify the source folder exists.",
-    "code": "string baseDir = AppDomain.CurrentDomain.BaseDirectory;\nstring sourceFolder = Path.Combine(baseDir, \"InputFiles\");\nstring outputFolder = Path.Combine(baseDir, \"OutputFiles\");\nDirectory.CreateDirectory(outputFolder);\nif (!Directory.Exists(sourceFolder))\n{\n    Console.Error.WriteLine($\"Source folder '{sourceFolder}' does not exist.\");\n    return;\n}",
-    "errors": [
-      "System.IO.DirectoryNotFoundException: Could not find a part of the path ...C:\\InputFiles",
-      "Incorrect path construction mixing base directory with absolute Windows path"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775133154.963626,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-field-collection-for-form-fields": {
-    "note": "Iterate over Document.Form.Fields using Aspose.Pdf.Forms.Field instead of WidgetAnnotation to access Value and PartialName properties.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\n// doc is an instance of Aspose.Pdf.Document\nforeach (Field field in doc.Form?.Fields ?? System.Linq.Enumerable.Empty<Field>())\n{\n    string value = field.Value?.ToString();\n    string name = field.PartialName;\n    // ... validation logic ...\n}",
-    "errors": [
-      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Value'",
-      "CS1061: 'WidgetAnnotation' does not contain a definition for 'PartialName'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775133241.6288052,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "fallback-page-margins-and-omit-defaultappearance": {
-    "note": "When the Aspose.Pdf version does not expose PageInfo.MarginInfo or the Form.DefaultAppearance class, retrieve margins via reflection (defaulting to 0) and omit setting DefaultAppearance.",
-    "code": "double leftMargin = 0, bottomMargin = 0;\ntry\n{\n    var marginInfo = page.PageInfo.GetType().GetProperty(\"MarginInfo\")?.GetValue(page.PageInfo);\n    if (marginInfo != null)\n    {\n        leftMargin   = (double)marginInfo.GetType().GetProperty(\"Left\").GetValue(marginInfo);\n        bottomMargin = (double)marginInfo.GetType().GetProperty(\"Bottom\").GetValue(marginInfo);\n    }\n}\ncatch { }\n// Optional: set default appearance only if the class exists\n// doc.Form.DefaultAppearance = new DefaultAppearance(\"Helvetica\", 12, Aspose.Pdf.Color.Black);",
-    "errors": [
-      "CS1061: 'PageInfo' does not contain a definition for 'MarginInfo'",
-      "CS0246: The type or namespace name 'DefaultAppearance' could not be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775133411.7309482,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-field-or-specific-field-types-instead-of-widgetannotation": {
-    "note": "When working with form fields, cast the WidgetAnnotation returned by Document.Form[...] to Field (or a concrete subclass) before accessing Value or Checked properties.",
-    "code": "Field field = doc.Form[\"FieldName\"] as Field;\nif (field is TextBoxField txt) {\n    txt.Value = \"Some text\";\n} else if (field is CheckboxField cb) {\n    cb.Checked = true;\n} else if (field != null) {\n    field.Value = \"Fallback\";\n}",
-    "errors": [
-      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Value'",
-      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Checked'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775133801.538667,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-form-fillimagefield-for-button-background": {
-    "note": "Use Aspose.Pdf.Facades.Form.FillImageField to set a background image on a button form field instead of accessing XFA via Document.Form.Xfa.",
-    "code": "using Aspose.Pdf.Facades;\n\nusing (Form form = new Form(\"input.pdf\"))\n{\n    form.FillImageField(\"FieldName\", \"image.png\");\n    form.Save(\"output.pdf\");\n}",
-    "errors": [
-      "CS0246: The type or namespace name 'XfaForm' could not be found",
-      "CS0246: The type or namespace name 'XfaForm' could not be found (are you missing a using directive or an assembly reference?)"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775135339.284845,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-horizontalalignment-from-aspose-pdf-namespace": {
-    "note": "Use the HorizontalAlignment enum from the Aspose.Pdf namespace (or fully qualify it) instead of Aspose.Pdf.Text.HorizontalAlignment.",
-    "code": "field.TextHorizontalAlignment = HorizontalAlignment.Right; // with using Aspose.Pdf;",
-    "errors": [
-      "CS0234: The type or namespace name 'HorizontalAlignment' does not exist in the namespace 'Aspose.Pdf.Text'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775135683.5866702,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-form-add-with-index-instead-of-insert": {
-    "note": "Aspose.Pdf.Form does not provide an Insert method; to place a form field at a specific position in the collection, use the Add overload that accepts the field and the zero‑based index.",
-    "code": "doc.Form.Add(textBoxField, insertIndex);",
-    "errors": [
-      "CS1061: 'Form' does not contain a definition for 'Insert' and no accessible extension method 'Insert' accepting a first argument of type 'Form' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775135896.924202,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-facades-form-importxml": {
-    "note": "Use Aspose.Pdf.Facades.Form and its ImportXml method to import XML form data into a PDF, instead of treating a Form as a Document or calling Document.AssignXfa.",
-    "code": "using Aspose.Pdf.Facades;\n\nusing (Form form = new Form(inputPdfPath, outputPdfPath))\n{\n    form.ImportXml(xmlStream); // xmlStream is a MemoryStream containing the decrypted XML\n    form.Save();\n}",
-    "errors": [
-      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Forms.Form' to 'Aspose.Pdf.Document'",
-      "CS1061: 'Document' does not contain a definition for 'AssignXfa'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775136167.8507001,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-formattedvalue-for-richtextboxfield": {
-    "note": "Set HTML‑styled content for a RichTextBoxField via its FormattedValue property (not a non‑existent RichText property) and add the field to the document's form collection.",
-    "code": "RichTextBoxField richField = new RichTextBoxField(page, rect) {\n    FormattedValue = \"<b>Bold</b> <i>Italic</i> <u>Underlined</u> <font color='red'>Red</font>\"\n};\n\ndoc.Form.Add(richField);",
-    "errors": [
-      "CS1061: 'RichTextBoxField' does not contain a definition for 'RichText' and no accessible extension method 'RichText' accepting a first argument of type 'RichTextBoxField' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775136256.283315,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-form-fields-and-fullname-for-export": {
-    "note": "Iterate over Document.Form.Fields (type Field) and use Field.FullName (or Name) and Field.Value when exporting form data; do not use WidgetAnnotation.FullyQualifiedName or WidgetAnnotation.Value.",
-    "code": "Form form = pdfDoc.Form;\nforeach (Field field in form.Fields)\n{\n    string name = field.FullName ?? field.Name;\n    string value = field.Value?.ToString() ?? string.Empty;\n    // use name/value as needed\n}",
-    "errors": [
-      "CS1061: 'WidgetAnnotation' does not contain a definition for 'FullyQualifiedName'",
-      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Value'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775136421.982208,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "remove-form-recalculate-use-autorecalculate": {
-    "note": "Do not call Form.Recalculate (the method does not exist); enable Form.AutoRecalculate so the PDF automatically updates calculated fields.",
-    "code": "var doc = new Document();\n// add fields to doc.Form\n\ndoc.Form.AutoRecalculate = true; // no doc.Form.Recalculate();",
-    "errors": [
-      "'Form' does not contain a definition for 'Recalculate'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775136446.958545,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-bindpdf-with-path": {
-    "note": "When using FormEditor, bind the PDF via a file path (or stream) with BindPdf(string) instead of trying to access a non‑existent Form property or passing a Document instance.",
-    "code": "using Aspose.Pdf.Facades;\n\nusing (FormEditor editor = new FormEditor())\n{\n    editor.BindPdf(\"input.pdf\");\n    // modify fields, e.g., editor.AddField(FieldType.Text, \"MyField\", 1, 100f, 500f, 300f, 520f);\n    editor.Save(\"output.pdf\");\n}",
-    "errors": [
-      "CS1061: 'FormEditor' does not contain a definition for 'Form' and no accessible extension method 'Form' accepting a first argument of type 'FormEditor' could be found",
-      "CS0266: Cannot implicitly convert type 'Aspose.Pdf.Annotations.WidgetAnnotation' to 'Aspise.Pdf.Forms.Field'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775136607.0094879,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-form-getfieldlimit-by-name": {
-    "note": "Use the Form facade (Aspose.Pdf.Facades.Form) and its GetFieldLimit(string fieldName) method instead of FormEditor.GetFieldLimit(Field) which requires a Field object.",
-    "code": "using Aspose.Pdf.Facades;\n\nusing (Form form = new Form(\"input.pdf\"))\n{\n    int limit = form.GetFieldLimit(\"Address\");\n    Console.WriteLine(limit);\n}",
-    "errors": [
-      "CS0266: Cannot implicitly convert type 'Aspose.Pdf.Annotations.WidgetAnnotation' to 'Aspose.Pdf.Forms.Field'. An explicit conversion exists",
-      "CS1061: 'TextBoxField' does not contain a definition for 'MaxLength' and no accessible extension method 'MaxLength' accepting a first argument of type 'TextBoxField' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775136678.619916,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-pageindex-for-field-page-filter": {
-    "note": "Use the PageIndex property (zero‑based) of a form field to identify its page instead of the non‑existent Page property.",
-    "code": "var fieldsOnPage5 = doc.Form.Fields.Where(f => f.PageIndex == 4).ToList();",
-    "errors": [
-      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Page' and no accessible extension method 'Page' accepting a first argument of type 'WidgetAnnotation' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775136971.9477172,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-form-facade-importxml": {
-    "note": "To import AcroForm data from an XML (XFDF) file, use the Aspose.Pdf.Facades.Form class: bind the PDF with BindPdf, call ImportXml with a stream, then save the document.",
-    "code": "using (Form form = new Form())\n{\n    form.BindPdf(inputPdf);\n    using (FileStream xmlStream = new FileStream(xmlPath, FileMode.Open, FileAccess.Read))\n    {\n        form.ImportXml(xmlStream);\n    }\n    form.Save(outputPdf);\n}",
-    "errors": [
-      "CS1061: 'Form' does not contain a definition for 'ImportData' and no accessible extension method 'ImportData' accepting a first argument of type 'Form' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775137076.1064801,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-addsubmitbtn-for-submit-button": {
-    "note": "Use FormEditor.AddSubmitBtn to create a submit button that posts form data to a URL instead of manually creating a ButtonField and assigning actions.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\n// doc is an existing Aspose.Pdf.Document\nusing (FormEditor formEditor = new FormEditor(doc))\n{\n    formEditor.AddSubmitBtn(\n        fieldName: \"SubmitForm\",\n        page: 1,\n        label: \"Submit\",\n        url: \"https://api.example.com/submit\",\n        llx: 100f,\n        lly: 700f,\n        urx: 200f,\n        ury: 750f);\n    formEditor.Save(\"output.pdf\");\n}",
-    "errors": [
-      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'MouseUp' (or similar missing action members when assigning button actions)",
-      "Missing or incorrect usage of ButtonField and SubmitFormAction for creating a submit button"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775137158.390497,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-setsubmiturl": {
-    "note": "Assign a URL to a PDF submit button by using FormEditor.SetSubmitUrl (and optionally SetSubmitFlag) instead of creating a SubmitFormAction with a FileSpecification.",
-    "code": "using Aspose.Pdf.Facades;\n\nusing (FormEditor editor = new FormEditor())\n{\n    editor.BindPdf(\"input.pdf\");\n    editor.SetSubmitUrl(\"btnSubmit\", \"https://example.com/submit\");\n    editor.SetSubmitFlag(\"btnSubmit\", SubmitFormFlag.Html); // optional\n    editor.Save(\"output.pdf\");\n}",
-    "errors": [
-      "CS0029: Cannot implicitly convert type 'string' to 'Aspose.Pdf.FileSpecification'",
-      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'Add'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775137240.564203,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-annotations-namespace-for-border": {
-    "note": "Import Aspose.Pdf.Annotations and assign Border after the TextBoxField is instantiated, then add the field to the document's Form collection.",
-    "code": "using Aspose.Pdf.Annotations; // required for Border\n...\nTextBoxField txtField = new TextBoxField(page, rect);\ntxtField.Border = new Border(txtField) { Width = 1 };\ndoc.Form.Add(txtField);",
-    "errors": [
-      "CS0246: The type or namespace name 'Border' could not be found (are you missing a using directive or an assembly reference?)",
-      "CS0165: Use of unassigned local variable 'txtField' (caused by initializing Border in an object initializer before the field is constructed)"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775137285.41771,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-for-pushbutton-with-javascript": {
-    "note": "Create push‑button fields and attach JavaScript using FormEditor.AddField and FormEditor.AddFieldScript instead of instantiating ButtonField directly.",
-    "code": "using (Document doc = new Document(inputPdf))\n{\n    using (FormEditor editor = new FormEditor(doc))\n    {\n        editor.AddField(FieldType.PushButton, \"calcBtn\", 1, llx, lly, urx, ury);\n        editor.AddFieldScript(\"calcBtn\", js);\n        editor.Save(outputPdf);\n    }\n}",
-    "errors": [
-      "System.NullReferenceException at ButtonField.set_NormalCaption",
-      "System.NullReferenceException when assigning JavascriptAction to ButtonField.OnActivated"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775190676.523204,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-pdfjavascriptstripper-to-remove-js": {
-    "note": "Use Aspose.Pdf.Facades.PdfJavaScriptStripper.Strip to remove all JavaScript (including form‑field scripts) from a PDF instead of accessing non‑existent AnnotationActionCollection members.",
-    "code": "using Aspose.Pdf.Facades;\n\nvar stripper = new PdfJavaScriptStripper();\nstripper.Strip(inputPdfPath, outputPdfPath);",
-    "errors": [
-      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnKeyDown'",
-      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnKeyUp'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775190820.186412,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "set-tooltip-using-alternatename": {
-    "note": "Set a form field's tooltip by assigning the AlternateName property on the field instance (e.g., TextBoxField) and add the field to the document form.",
-    "code": "TextBoxField emailField = new TextBoxField(doc, new Rectangle(100, 500, 300, 530))\n{\n    PartialName = \"Email\",\n    AlternateName = \"Enter email in format user@example.com\"\n};\n\ndoc.Form.Add(emailField, 1);",
-    "errors": [
-      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.BorderInfo' to 'Aspose.Pdf.Annotations.Annotation'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775191418.8873332,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "correct-aspdf-form-field-setup": {
-    "note": "When creating a form field, use Aspose.Pdf.Rectangle for the field rectangle, assign AnnotationFlags enum values directly (no int cast), and use the JavascriptAction class for JavaScript actions.",
-    "code": "NumberField totalField = new NumberField(doc, new Aspose.Pdf.Rectangle(0, 0, 0, 0));\ntotalField.Flags = AnnotationFlags.Hidden;\ntotalField.Actions.OnCalculate = new JavascriptAction(js);",
-    "errors": [
-      "CS0266: Cannot implicitly convert type 'int' to 'Aspose.Pdf.Annotations.AnnotationFlags' (use enum, not int)",
-      "CS0246: The type or namespace name 'JavaScriptAction' could not be found (use correct class name 'JavascriptAction')",
-      "Ambiguous or missing Rectangle type when constructing form fields (qualify with Aspose.Pdf.Rectangle)"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775191540.744989,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "export-selected-form-fields-xml-via-form-facade": {
-    "note": "Use Aspose.Pdf.Facades.Form.ExportXml to export the PDF form data to an XML stream, then filter the XML for the required field names, because ExportDataOptions and Document.ExportData are not part of the Aspose.Pdf API.",
-    "code": "using Aspose.Pdf.Facades;\nusing System.Xml.Linq;\n\nvar fieldsToExport = new List<string> { \"FirstName\", \"LastName\", \"Email\" };\n\nusing var form = new Form();\nform.BindPdf(inputPdf);\nusing var xmlStream = new MemoryStream();\nform.ExportXml(xmlStream);\nxmlStream.Position = 0;\nvar xmlDoc = XDocument.Load(xmlStream);\n\nvar selectedFields = xmlDoc.Descendants(\"field\")\n    .Where(f => fieldsToExport.Contains((string)f.Attribute(\"name\")))\n    .ToList();\n\nvar fieldsParent = xmlDoc.Descendants(\"fields\").FirstOrDefault();\nif (fieldsParent != null)\n{\n    fieldsParent.RemoveAll();\n    foreach (var field in selectedFields)\n        fieldsParent.Add(field);\n}\n\nxmlDoc.Save(outputXml);",
-    "errors": [
-      "CS0246: The type or namespace name 'ExportDataOptions' could not be found",
-      "CS1061: 'Document' does not contain a definition for 'ExportData'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775191720.251617,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-setfieldlimit-for-maxlen": {
-    "note": "Use FormEditor.SetFieldLimit to set the maximum character length of a form field (including PasswordBoxField) instead of constructing or modifying the field directly.",
-    "code": "using (Document doc = new Document(inputPath))\n{\n    FormEditor editor = new FormEditor(doc);\n    editor.SetFieldLimit(\"PasswordField\", 20);\n    editor.Save(outputPath);\n}",
-    "errors": [
-      "CS1729: 'PasswordBoxField' does not contain a constructor that takes 3 arguments"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775191868.681521,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "cast-form-field-to-field-before-setting-value": {
-    "note": "Access PDF form fields via the Form indexer, cast the returned object to Field (or a specific field type), check for null, and then assign to its Value property; the Form collection has no ContainsKey method and WidgetAnnotation does not expose Value.",
-    "code": "Field field = pdfDoc.Form[fieldName] as Field;\nif (field != null)\n{\n    field.Value = \"your value\";\n}",
-    "errors": [
-      "CS1061: 'Form' does not contain a definition for 'ContainsKey'",
-      "CS1061: 'WidgetAnnotation' does not contain a definition for 'Value'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775192031.684397,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-addfield-instead-of-defaultappearance": {
-    "note": "Use Aspose.Pdf.Facades.FormEditor.AddField (with FieldType) to add form fields instead of creating a TextBoxField and setting DefaultAppearance, which is not part of the API.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades; // FormEditor, FieldType\n\nDocument doc = new Document();\nFormEditor editor = new FormEditor(doc);\neditor.AddField(FieldType.Text, \"TextField_1\", 1, 100f, 500f, 300f, 520f);\neditor.Save(\"output.pdf\");",
-    "errors": [
-      "CS0234: The type or namespace name 'DefaultAppearance' does not exist in the namespace 'Aspose.Pdf.Forms'",
-      "Missing reference to Aspose.Pdf.Facades for form field creation"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775192538.653197,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-submit-button-html-flag": {
-    "note": "Create a submit button with HTTP POST and URL‑encoded data by using FormEditor.AddSubmitBtn and setting SubmitFormFlag.Html via FormEditor.SetSubmitFlag.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document(inputPdf);\nusing (FormEditor editor = new FormEditor(doc))\n{\n    editor.AddSubmitBtn(\"myBtn\", 1, \"Submit\", submitUrl, 100, 500, 200, 550);\n    editor.SetSubmitFlag(\"myBtn\", SubmitFormFlag.Html); // POST with URL‑encoded format\n    editor.SetSubmitUrl(\"myBtn\", submitUrl);\n}\n\ndoc.Save(outputPdf);",
-    "errors": [
-      "CS0103: The name 'SubmitFormActionFlags' does not exist in the current context",
-      "CS1729: 'SubmitFormAction' does not contain a constructor that takes 2 arguments",
-      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'Add'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775192971.223413,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-annotationflags-hidden-instead-of-hideaction": {
-    "note": "Set the Hidden flag on a form field (WidgetAnnotation) via the Flags property instead of using a non‑existent Hide action.",
-    "code": "using Aspose.Pdf.Annotations; // for AnnotationFlags\n...\nTextBoxField hiddenField = new TextBoxField(page, rect) { PartialName = \"TrackingId\", Value = Guid.NewGuid().ToString() };\nhiddenField.Flags = AnnotationFlags.Hidden; // hide the field\n...",
-    "errors": [
-      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'Hide'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775193701.434193,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "set-opening-zoom-with-go-to-action": {
-    "note": "Use an XYZExplicitDestination with a GoToAction and assign it to Document.OpenAction to define the initial zoom level when the PDF is opened.",
-    "code": "Document doc = formEditor.Document;\nPage firstPage = doc.Pages[1];\nXYZExplicitDestination zoomDest = new XYZExplicitDestination(firstPage, 0, 0, 1.5); // 150% zoom\nGoToAction openAction = new GoToAction(firstPage) { Destination = zoomDest };\ndoc.OpenAction = openAction;",
-    "errors": [
-      "Missing initial zoom setting (document opens at default zoom)",
-      "Need to programmatically set opening view parameters for a PDF"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775193858.753998,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-addfieldscript-instead-of-caption-onmouseup": {
-    "note": "When adding JavaScript actions to form fields, use FormEditor.AddFieldScript (and FormEditor.AddField for creation) instead of accessing ButtonField.Caption or AnnotationActionCollection.OnMouseUp, which are not part of the Aspose.PDF API.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nusing (Document doc = new Document())\n{\n    doc.Pages.Add();\n    using (FormEditor editor = new FormEditor(doc))\n    {\n        editor.AddField(FieldType.PushButton, \"AddItemBtn\", 1, 260, 600, 360, 630);\n        string js = \"app.alert('Clicked');\";\n        editor.AddFieldScript(\"AddItemBtn\", js);\n    }\n    doc.Save(\"output.pdf\");\n}",
-    "errors": [
-      "CS0117: 'ButtonField' does not contain a definition for 'Caption'",
-      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnMouseUp'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775194990.070097,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-facade-backgroundcolor": {
-    "note": "Use FormEditor with a FormFieldFacade to set a form field's background color, instead of trying to set BackColor on TextBoxField.",
-    "code": "using Aspose.Pdf.Facades;\nusing System.Drawing;\n\nvar formEditor = new FormEditor();\nformEditor.BindPdf(\"input.pdf\");\nformEditor.Facade = new FormFieldFacade();\nformEditor.Facade.BackgroundColor = Color.LightGray; // set desired background\nformEditor.DecorateField(\"MyTextField\"); // or FieldType.Text for all fields\nformEditor.Save(\"output.pdf\");",
-    "errors": [
-      "CS1061: 'TextBoxField' does not contain a definition for 'BackColor' (or 'BackgroundColor')",
-      "CS1061: 'TextBoxField' does not contain a definition for 'BackgroundColor'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775195092.584221,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-form-importxml-for-pdf-form-population": {
-    "note": "Use Aspose.Pdf.Facades.Form.ImportXml(Stream) to import XML data directly into PDF form fields instead of manually parsing XML and assigning string values to numeric fields.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document(\"template.pdf\");\nusing (Form form = new Form(doc))\n{\n    using (FileStream xmlStream = File.OpenRead(\"taxrates.xml\"))\n    {\n        form.ImportXml(xmlStream);\n    }\n}\n\ndoc.Save(\"output.pdf\");",
-    "errors": [
-      "CS0029: Cannot implicitly convert type 'string' to 'int'",
-      "Manual XML parsing and field assignment causing type mismatches"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775195550.000083,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-setfieldattribute-required": {
-    "note": "Mark a PDF form field as required (red border on empty submission) by using FormEditor.SetFieldAttribute with PropertyFlag.Required instead of accessing non‑existent BorderColor/BorderWidth members on Field.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\nusing Aspose.Pdf.Annotations;\n\nDocument doc = new Document(\"input.pdf\");\nFormEditor editor = new FormEditor(doc);\neditor.SetFieldAttribute(\"MyTextField\", PropertyFlag.Required);\n// Save the document after setting the attribute\n doc.Save(\"output.pdf\");",
-    "errors": [
-      "CS1061: 'Field' does not contain a definition for 'BorderColor' and no accessible extension method 'BorderColor' ...",
-      "CS1061: 'Field' does not contain a definition for 'BorderWidth' and no accessible extension method 'BorderWidth' ..."
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775196596.891948,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-addfield-for-qr-code": {
-    "note": "Create QR code form fields with FormEditor.AddField(FieldType.Barcode, ...) instead of using the BarcodeField constructor and setting Symbology.",
-    "code": "using (FormEditor editor = new FormEditor(doc))\n{\n    // Add a QR Code barcode field on page 1 at the desired rectangle\n    editor.AddField(FieldType.Barcode, \"QRCodeField\", 1, llx, lly, urx, ury);\n    editor.Save(templatePath);\n}\n\nusing (Form form = new Form(templatePath))\n{\n    form.FillBarcodeField(\"QRCodeField\", userData);\n    form.Save(filledPath);\n}",
-    "errors": [
-      "CS1729: 'BarcodeField' does not contain a constructor that takes 3 arguments",
-      "CS0200: Property or indexer 'BarcodeField.Symbology' cannot be assigned to -- it is read only",
-      "CS0234: The type or namespace name 'BarcodeSymbology' does not exist in the namespace 'Aspose.Pdf'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775196827.964638,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "require-signature-field-and-lock-document": {
-    "note": "Mark a signature field as required and lock the PDF after signing by using DocMDPSignature with NoChanges via PdfFileSignature.Certify; fully qualify Rectangle types to avoid ambiguity.",
-    "code": "SignatureField sigField = new SignatureField(doc.Pages[1], new Aspose.Pdf.Rectangle(100, 100, 300, 150));\nsigField.Required = true;\ndoc.Form.Add(sigField);\n\nusing (PdfFileSignature pdfSignature = new PdfFileSignature(doc))\n{\n    pdfSignature.SetCertificate(pfxPath, pfxPass);\n    PKCS1 pkcs1 = new PKCS1(pfxPath, pfxPass);\n    DocMDPSignature mdpSignature = new DocMDPSignature(pkcs1, DocMDPAccessPermissions.NoChanges);\n    System.Drawing.Rectangle visibleRect = new System.Drawing.Rectangle(100, 100, 200, 50);\n    pdfSignature.Certify(\n        page: 1,\n        SigReason: \"Document approved\",\n        SigContact: \"contact@example.com\",\n        SigLocation: \"New York, USA\",\n        visible: true,\n        annotRect: visibleRect,\n        docMdpSignature: mdpSignature);\n    pdfSignature.Save(outputPdf);\n}",
-    "errors": [
-      "PdfFileSignature does not contain a definition for 'GetDocument'",
-      "PdfFileSignature does not contain a definition for 'AddSignature'",
-      "Rectangle is an ambiguous reference between 'System.Drawing.Rectangle' and 'Aspose.Pdf.Rectangle'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775197680.752587,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-passwordboxfield-value-instead-of-setfieldpassword": {
-    "note": "PasswordBoxField passwords are set by assigning the field's Value property; FormEditor does not provide a SetFieldPassword method.",
-    "code": "if (doc.Form[\"PasswordField\"] is PasswordBoxField pwdField)\n{\n    pwdField.Value = \"Secret123\"; // set password\n    // optional: make read‑only\n    using (var editor = new FormEditor(doc))\n    {\n        editor.SetFieldAttribute(\"PasswordField\", PropertyFlag.ReadOnly);\n        editor.Save();\n    }\n    doc.Save(\"output.pdf\");\n}",
-    "errors": [
-      "CS1061: 'FormEditor' does not contain a definition for 'SetFieldPassword'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775198574.965634,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-form-facade-importjson": {
-    "note": "Use Aspose.Pdf.Facades.Form.ImportJson to import field appearance settings from JSON instead of referencing non‑existent Aspose.Pdf.Forms.DefaultAppearance types.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nusing (Document doc = new Document(inputPdfPath))\nusing (Form form = new Form(doc))\nusing (FileStream json = new FileStream(jsonPath, FileMode.Open, FileAccess.Read))\n{\n    form.ImportJson(json);\n}\n\ndoc.Save(outputPdfPath);",
-    "errors": [
-      "CS0234: The type or namespace name 'DefaultAppearance' does not exist in the namespace 'Aspose.Pdf.Forms'",
-      "Missing assembly reference for Aspose.Pdf.Forms.DefaultAppearance"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775199300.2348611,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "hide-textboxfield-using-javascript": {
-    "note": "Do not use the non‑existent `Display` property on `TextBoxField`; hide or show the field via JavaScript actions (e.g., document OpenAction and checkbox OnActivated).",
-    "code": "TextBoxField section = new TextBoxField(page, rect) { PartialName = \"section\", Contents = \"...\" };\n\ndoc.Form.Add(section);\n// hide initially\ndoc.OpenAction = new JavascriptAction(\"var f = this.getField('section'); f.display = display.hidden;\");\n// toggle visibility from a checkbox\nchkField.OnActivated = new JavascriptAction(@\"var f = this.getField('section'); if (event.target.checked) { f.display = display.visible; } else { f.display = display.hidden; }\");",
-    "errors": [
-      "CS0117: 'TextBoxField' does not contain a definition for 'Display'",
-      "CS0103: The name 'Display' does not exist in the current context"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775199376.01231,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-ienumerable-outlineitemcollection-for-recursion": {
-    "note": "When recursively processing PDF outlines, accept an IEnumerable<OutlineItemCollection> (or OutlineCollection) instead of a single OutlineItemCollection to avoid type‑mismatch errors.",
-    "code": "static void CollapseAll(IEnumerable<OutlineItemCollection> collection)\n{\n    foreach (var item in collection)\n    {\n        item.Open = false;\n        if (item.Count > 0)\n            CollapseAll(item);\n    }\n}",
-    "errors": [
-      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.OutlineCollection' to 'Aspose.Pdf.OutlineItemCollection'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775199402.837701,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "avoid-cell-columns-span-using-placeholder": {
-    "note": "Do not use the non‑existent Cell.ColumnSpan property; insert empty placeholder cells to occupy the extra columns when you need a span in an Aspose.Pdf table.",
-    "code": "Row totalRow = table.Rows.Add();\ntotalRow.Cells.Add(\"TOTAL\");   // first column\ntotalRow.Cells.Add(\"\");        // placeholder for the spanned column\n// add remaining cells as needed",
-    "errors": [
-      "CS1061: 'Cell' does not contain a definition for 'ColumnSpan' and no accessible extension method 'ColumnSpan' accepting a first argument of type 'Cell' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775199614.150697,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-fileicon-enum-for-attachment-icon": {
-    "note": "Set the Icon property of FileAttachmentAnnotation using the FileIcon enum (e.g., FileIcon.Paperclip) instead of a non‑existent FileAttachmentAnnotation.FileAttachmentIcon member.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Annotations;\n\nFileAttachmentAnnotation attachment = new FileAttachmentAnnotation(page, rect, fileSpec)\n{\n    Icon = FileIcon.Paperclip,\n    // other optional settings\n};",
-    "errors": [
-      "CS0117: 'FileAttachmentAnnotation' does not contain a definition for 'FileAttachmentIcon'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775199972.450057,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-pdfcontenteditor-adddocumentadditionalaction-for-javascript": {
-    "note": "Add JavaScript to a PDF using PdfContentEditor.AddDocumentAdditionalAction instead of creating form fields and JavaScriptAction annotations.",
-    "code": "PdfContentEditor editor = new PdfContentEditor();\neditor.BindPdf(inputPath);\neditor.AddDocumentAdditionalAction(PdfContentEditor.DocumentOpen, jsCode);\neditor.Save(outputPath);",
-    "errors": [
-      "'ButtonField' does not contain a definition for 'Text' and no accessible extension method 'Text' accepting a first argument of type 'ButtonField' could be found",
-      "'AnnotationActionCollection' does not contain a definition for 'OnMouseUp' and no accessible extension method 'OnMouseUp' accepting a first argument of type 'AnnotationActionCollection' could be found",
-      "The type or namespace name 'JavaScriptAction' does not exist in the namespace 'Aspose.Pdf.Annotations'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775200333.456786,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-facade-instead-of-interactivefeatures": {
-    "note": "Use Aspose.Pdf.Facades.FormEditor to add submit buttons and attach JavaScript instead of referencing the non‑existent Aspose.Pdf.InteractiveFeatures namespace.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nusing (Document doc = new Document(\"input.pdf\"))\n{\n    using (FormEditor editor = new FormEditor(doc))\n    {\n        editor.AddSubmitBtn(\"submitBtn\", 1, \"Submit\", \"https://example.com/submit\", 100, 100, 200, 130);\n        editor.AddFieldScript(\"submitBtn\", \"// JavaScript validation code\");\n        editor.Save(\"output.pdf\");\n    }\n}",
-    "errors": [
-      "CS0234: The type or namespace name 'InteractiveFeatures' does not exist in the namespace 'Aspose.Pdf' (are you missing an assembly reference?)"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775200559.092812,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "qualify-color-namespace-aspdf": {
-    "note": "When using Aspose.Pdf APIs, fully qualify the Color type (Aspose.Pdf.Color) to avoid ambiguity with System.Drawing.Color.",
-    "code": "var appearance = new DefaultAppearance(\"Helvetica\", 12, Aspose.Pdf.Color.Gray);",
-    "errors": [
-      "'Color' is an ambiguous reference between 'System.Drawing.Color' and 'Aspose.Pdf.Color'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775200724.0794501,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-formeditor-addsubmitbtn-and-setsubmitflag": {
-    "note": "Use FormEditor.AddSubmitBtn together with FormEditor.SetSubmitFlag(SubmitFormFlag.Xfdf) to create a submit button that exports form data as XFDF, instead of manually constructing SubmitFormAction and adding it to annotations.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument pdfDoc = new Document(inputPdfPath);\nFormEditor formEditor = new FormEditor();\nformEditor.BindPdf(pdfDoc);\nformEditor.AddSubmitBtn(\"SubmitBtn\", 1, \"Submit\", \"https://example.com/handler\", 100, 500, 200, 550);\nformEditor.SetSubmitFlag(\"SubmitBtn\", SubmitFormFlag.Xfdf);\nformEditor.Save(outputPdfPath);",
-    "errors": [
-      "Cannot implicitly convert type 'string' to 'Aspose.Pdf.FileSpecification'",
-      "The name 'SubmitFormActionFlags' does not exist in the current context",
-      "'AnnotationActionCollection' does not contain a definition for 'Add'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775200911.228266,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-javascript-action-for-field-visibility": {
-    "note": "When the Display property is unavailable on a form field (e.g., TextBoxField), control its visibility with a JavaScript action instead of using the missing property.",
-    "code": "page.Actions.OnOpen = new JavascriptAction(\"this.getField('details').display = display.hidden;\");",
-    "errors": [
-      "CS1061: 'TextBoxField' does not contain a definition for 'Display'",
-      "CS0103: The name 'Display' does not exist in the current context"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775201144.679258,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-pdfannotationeditor-exportannotations-to-xfdf": {
-    "note": "Use PdfAnnotationEditor.ExportAnnotationsToXfdf to export annotation visibility state to XFDF (XML) instead of accessing a non‑existent Document.Tagged property.",
-    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nusing (Document doc = new Document(\"input.pdf\"))\n{\n    var editor = new PdfAnnotationEditor();\n    editor.BindPdf(doc);\n    using (FileStream fs = new FileStream(\"output.xfdf\", FileMode.Create, FileAccess.Write))\n    {\n        editor.ExportAnnotationsToXfdf(fs);\n    }\n}",
-    "errors": [
-      "CS1061: 'Document' does not contain a definition for 'Tagged' and no accessible extension method 'Tagged' accepting a first argument of type 'Document' could be found"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775201272.0159209,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
-  "use-widgetannotation-to-set-visibility": {
-    "note": "When hiding a form field, retrieve it as a WidgetAnnotation (the visual annotation) and set its Flags, instead of using the Field object.",
-    "code": "WidgetAnnotation widget = doc.Form[\"myTextField\"] as WidgetAnnotation;\nif (widget != null)\n{\n    widget.Flags |= AnnotationFlags.Hidden;\n}",
-    "errors": [
-      "CS0266: Cannot implicitly convert type 'Aspose.Pdf.Annotations.WidgetAnnotation' to 'Aspose.Pdf.Forms.Field'",
-      "CS1061: 'Field' does not contain a definition for 'Annotation'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775201988.757691,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-widgetannotation-and-clear-print-flag": {
-    "note": "Retrieve form fields as WidgetAnnotation and clear the Print flag (AnnotationFlags.Print) to make them non‑printable, because AnnotationFlags.NoPrint was removed.",
-    "code": "WidgetAnnotation widget = doc.Form[\"MyField\"] as WidgetAnnotation;\nif (widget != null)\n{\n    widget.Flags &= ~AnnotationFlags.Print; // make field non‑printable\n}",
-    "errors": [
-      "Cannot implicitly convert type 'Aspose.Pdf.Annotations.WidgetAnnotation' to 'Aspose.Pdf.Forms.Field'",
-      "'AnnotationFlags' does not contain a definition for 'NoPrint'"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775202024.1806028,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Working with Forms"
-  },
-  "use-form-importxml-with-memorystream": {
-    "note": "When importing form data from an XML string, convert the string to a MemoryStream and use Aspose.Pdf.Facades.Form.ImportXml instead of Document.Form.AssignXfa.",
-    "code": "using (MemoryStream xmlStream = new MemoryStream(System.Text.Encoding.UTF8.GetBytes(xmlString)))\n{\n    using (Form form = new Form())\n    {\n        form.BindPdf(pdfPath);\n        form.ImportXml(xmlStream);\n        form.Save(outputPdfPath);\n    }\n}",
-    "errors": [
-      "CS1002: ; expected (caused by unescaped XML literals)",
-      "CS1056: Unexpected character '\\' (due to raw XML in code)",
-      "CS1010: Newline in constant (raw multi‑line XML string)",
-      "Using Document.Form.AssignXfa with XmlDocument when only XML string is available"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1775202120.9622421,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Working with Forms"
-  },
   "avoid-fieldserializationresult-properties": {
     "note": "Do not access IsSuccessful, FieldName, or ErrorMessage on FieldSerializationResult returned by Form.ImportFromJson; use its ToString() output or ignore the result.",
     "code": "var results = pdfDoc.Form.ImportFromJson(gzipStream);\nforeach (var r in results)\n{\n    Console.WriteLine(r?.ToString());\n}",
@@ -1743,9 +511,9 @@
       "Argument 4: cannot convert from 'double' to 'int' when calling Color.FromArgb"
     ],
     "_auto": true,
-    "_confidence": 0.6,
+    "_confidence": 0.9999999999999999,
     "_created_at": 1775216318.507526,
-    "_hit_count": 1,
+    "_hit_count": 5,
     "_stage": "llm_fix",
     "_category": "Working with Graphs"
   },
@@ -1813,9 +581,9 @@
       "Attempting to read Color.R / Color.G / Color.B properties on Aspose.Pdf.Color"
     ],
     "_auto": true,
-    "_confidence": 0.6,
+    "_confidence": 0.8999999999999999,
     "_created_at": 1775217392.6022599,
-    "_hit_count": 1,
+    "_hit_count": 4,
     "_stage": "llm_fix",
     "_category": "Working with Graphs"
   },
@@ -2430,9 +1198,9 @@
       "CS1061: 'Position' does not contain a definition for 'Y' and no accessible extension method 'Y' ..."
     ],
     "_auto": true,
-    "_confidence": 0.5,
+    "_confidence": 0.6,
     "_created_at": 1775232380.7582176,
-    "_hit_count": 0,
+    "_hit_count": 1,
     "_stage": "llm_fix",
     "_category": "Working With Text"
   },
@@ -2774,5 +1542,1233 @@
     "_hit_count": 0,
     "_stage": "llm_fix",
     "_category": "Working with Attachments"
+  },
+  "border-corner-radius-not-supported": {
+    "note": "The Aspose.Pdf.Border class does not have a CornerRadius property; use a regular Border and create rounded‑corner visuals via a custom appearance stream if needed.",
+    "code": "annotation.Border = new Border(annotation)\n{\n    Width = 1,\n    Style = BorderStyle.Solid\n    // CornerRadius property does not exist – omitted.\n};",
+    "errors": [
+      "'Border' does not contain a definition for 'CornerRadius'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775472688.9142616,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Annotations"
+  },
+  "use-color-patterncolorspace-for-gradient-fill": {
+    "note": "Assign a GradientShading (e.g., GradientRadialShading) to a Color object's PatternColorSpace and use that Color for FillColor, instead of trying to instantiate PatternColorSpace directly.",
+    "code": "GradientRadialShading radial = new GradientRadialShading(Color.Red, Color.Blue);\nColor gradientColor = new Color { PatternColorSpace = radial };\nshape.GraphInfo = new GraphInfo { FillColor = gradientColor };",
+    "errors": [
+      "CS0144: Cannot create an instance of the abstract type or interface 'PatternColorSpace'",
+      "Invalid assignment of GradientShading to FillColor (FillColor expects a Color object)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775474479.6355996,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Graphs"
+  },
+  "use-patterncolorspace-for-gradient-fill": {
+    "note": "To apply a gradient fill to a shape, create a GradientAxialShading (or other shading), assign it to a Color via its PatternColorSpace property, and set that Color to GraphInfo.FillColor; do not use non‑existent GraphInfo properties like FillColor2, FillMode, or GradientAngle.",
+    "code": "var axial = new GradientAxialShading(Aspose.Pdf.Color.Red, Aspose.Pdf.Color.Blue);\naxial.Start = new Point(0, 0);\naxial.End   = new Point(200, 0);\nvar gradientColor = new Aspose.Pdf.Color { PatternColorSpace = axial };\nellipse.GraphInfo = new GraphInfo { FillColor = gradientColor };",
+    "errors": [
+      "CS0117: 'GraphInfo' does not contain a definition for 'FillColor2'",
+      "CS0117: 'GraphInfo' does not contain a definition for 'FillMode'",
+      "CS0103: The name 'FillMode' does not exist in the current context",
+      "CS0117: 'GraphInfo' does not contain a definition for 'GradientAngle'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775474655.0283592,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Graphs"
+  },
+  "use-patterncolorspace-with-gradientshading": {
+    "note": "Assign a GradientRadialShading (or other shading) to the Color.PatternColorSpace property instead of using the non‑existent ShadingPatternColorSpace type.",
+    "code": "GradientRadialShading radial = new GradientRadialShading(Color.LightGray, Color.White);\nColor fillColor = new Color { PatternColorSpace = radial };\nellipse.GraphInfo.FillColor = fillColor;",
+    "errors": [
+      "CS0246: The type or namespace name 'ShadingPatternColorSpace' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775476417.659641,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Graphs"
+  },
+  "use-patterncolorspace-for-fill": {
+    "note": "Assign a PatternColorSpace (e.g., GradientRadialShading) to a shape's fill by setting Color.PatternColorSpace, not by using a non‑existent ShadingPattern class.",
+    "code": "GradientRadialShading radialPattern = new GradientRadialShading(Color.Yellow, Color.Blue);\nellipse.GraphInfo = new GraphInfo\n{\n    FillColor = new Color { PatternColorSpace = radialPattern },\n    Color = Color.Black,\n    LineWidth = 1\n};",
+    "errors": [
+      "CS0234: The type or namespace name 'ShadingPattern' does not exist in the namespace 'Aspose.Pdf.Drawing'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775476986.968559,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Graphs"
+  },
+  "use-boundscheckmode-throwexceptionifdoesnotfit": {
+    "note": "Enable bounds checking on a page's Graphics with BoundsCheckMode.ThrowExceptionIfDoesNotFit and assert that adding a rectangle larger than the page throws BoundsOutOfRangeException",
+    "code": "page.Graphics.UpdateBoundsCheckMode(BoundsCheckMode.ThrowExceptionIfDoesNotFit, page.PageInfo.Width, page.PageInfo.Height);\nAssert.Throws<BoundsOutOfRangeException>(() => page.Graphics.Add(new Rectangle(0, 0, 200, 200)));",
+    "errors": [
+      "The type or namespace name 'Aspose.Pdf.Generator' could not be found",
+      "The type or namespace name 'BoundsOutOfRangeException' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775477347.3481262,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Graphs"
+  },
+  "use-graphinfo-scalingrate-for-graph-scaling": {
+    "note": "Set Graph.GraphInfo.ScalingRateX and ScalingRateY to scale all shapes in a Graph instead of using a non‑existent Transform/Matrix property.",
+    "code": "Graph graph = new Graph(width, height);\ngraph.GraphInfo = new GraphInfo {\n    ScalingRateX = 1.5f, // 150 % on X axis\n    ScalingRateY = 1.5f  // 150 % on Y axis\n};",
+    "errors": [
+      "CS1061: 'Graph' does not contain a definition for 'Matrix' or 'Transform'",
+      "CS1503: cannot convert from 'double' to 'float' when providing scaling factors"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775478042.5193596,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Graphs"
+  },
+  "use-facade-form-exportxml-for-posting": {
+    "note": "Instead of the non‑existent Form.PostData method, use Aspose.Pdf.Facades.Form to export the PDF form data as XML and send it with HttpClient.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\nusing System.Net.Http;\nusing System.IO;\n\n// doc is an Aspose.Pdf.Document that may have field values set\nusing (var pdfStream = new MemoryStream())\n{\n    doc.Save(pdfStream);\n    pdfStream.Position = 0;\n\n    var facadeForm = new Aspose.Pdf.Facades.Form();\n    facadeForm.BindPdf(pdfStream);\n    using var xmlStream = new MemoryStream();\n    facadeForm.ExportXml(xmlStream);\n    xmlStream.Position = 0;\n\n    using var client = new HttpClient();\n    var content = new StreamContent(xmlStream);\n    content.Headers.ContentType = new System.Net.Http.Headers.MediaTypeHeaderValue(\"application/xml\");\n    HttpResponseMessage response = client.PostAsync(endpoint, content).Result;\n    // handle response ...\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'PostData' and no accessible extension method 'PostData' accepting a first argument of type 'Form' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775537983.2162573,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-textboxfield-page-rectangle-constructor": {
+    "note": "Create a TextBoxField using the (Page, Rectangle) constructor and assign its name via the PartialName property instead of the removed 6‑parameter constructor.",
+    "code": "var rect = new Aspose.Pdf.Rectangle(llx, lly, urx, ury);\nTextBoxField txtField = new TextBoxField(page, rect);\ntxtField.PartialName = \"FieldName\";",
+    "errors": [
+      "CS1729: 'TextBoxField' does not contain a constructor that takes 6 arguments"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775538687.0775068,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "export-form-to-json-pretty-print": {
+    "note": "Use ExportFieldsToJsonOptions with WriteIndented = true when calling Document.Form.ExportToJson to generate indented (pretty‑printed) JSON.",
+    "code": "ExportFieldsToJsonOptions opts = new ExportFieldsToJsonOptions { WriteIndented = true };\nusing (FileStream fs = new FileStream(\"form_data.json\", FileMode.Create, FileAccess.Write))\n{\n    doc.Form.ExportToJson(fs, opts);\n}",
+    "errors": [
+      "ExportToJson produces compact JSON without indentation",
+      "Missing pretty‑printing option when exporting form fields to JSON"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775538928.6209185,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-formeditor-addfield-with-setfieldscript-for-reset": {
+    "note": "Add a PDF reset button by using FormEditor.AddField with FieldType.PushButton and attach a JavaScript reset script via FormEditor.SetFieldScript, instead of using ResetFormAction which requires the missing Aspose.Pdf.Actions namespace.",
+    "code": "using Aspose.Pdf.Facades;\n\nusing (FormEditor editor = new FormEditor())\n{\n    editor.BindPdf(inputPath);\n    editor.AddField(FieldType.PushButton, \"ResetBtn\", 1, 50f, 750f, 150f, 800f);\n    editor.SetFieldScript(\"ResetBtn\", \"this.resetForm();\");\n    editor.Save(outputPath);\n}",
+    "errors": [
+      "CS0234: The type or namespace name 'Actions' does not exist in the namespace 'Aspose.Pdf' (are you missing an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775539420.928092,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-borderinfo-borderwidth-bordercolor": {
+    "note": "Replace deprecated BorderInfo.Width and BorderInfo.Color with BorderInfo.BorderWidth and BorderInfo.BorderColor",
+    "code": "var border = new BorderInfo { BorderWidth = 1.0f, BorderColor = Color.Black };",
+    "errors": [
+      "CS0117: 'BorderInfo' does not contain a definition for 'Width'",
+      "CS0117: 'BorderInfo' does not contain a definition for 'Color'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775540386.9429805,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "load-or-create-pdf-document": {
+    "note": "Check for the PDF file before calling the Document(string) constructor; if the file does not exist, instantiate a blank Document and add a page.",
+    "code": "string pdfPath = \"template.pdf\";\nDocument pdfDoc;\nif (File.Exists(pdfPath))\n    pdfDoc = new Document(pdfPath);\nelse\n{\n    pdfDoc = new Document();\n    pdfDoc.Pages.Add();\n}",
+    "errors": [
+      "System.IO.FileNotFoundException: Could not find file '...template.pdf'",
+      "Runtime crash when loading a non‑existent PDF template"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775541139.7444448,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-form-exportxml-for-http-response": {
+    "note": "Use Aspose.Pdf.Facades.Form.ExportXml to stream XFDF (XML) form data directly to the HTTP response output stream.",
+    "code": "using Aspose.Pdf.Facades;\n\nstring pdfPath = HttpContext.Current.Server.MapPath(\"~/App_Data/form.pdf\");\nusing (Form form = new Form(pdfPath))\n{\n    HttpResponse response = HttpContext.Current.Response;\n    response.Clear();\n    response.ContentType = \"application/xml\";\n    response.AddHeader(\"Content-Disposition\", \"attachment; filename=FormData.xml\");\n    form.ExportXml(response.OutputStream);\n    response.Flush();\n    response.End();\n}",
+    "errors": [
+      "The name 'HttpContext' does not exist in the current context",
+      "The type or namespace name 'HttpResponse' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775541584.648801,
+    "_hit_count": 0,
+    "_stage": "final_llm",
+    "_category": "Working with Forms"
+  },
+  "use-form-facade-importxml-for-xfa": {
+    "note": "Use Aspose.Pdf.Facades.Form.ImportXml (with the Form facade) to import XML/XFA data into a PDF, instead of non‑existent Form.ImportXfaData or Document.Form.AssignXfa.",
+    "code": "using Aspose.Pdf.Facades;\n\nusing (Form form = new Form(inputPdfPath, outputPdfPath))\n{\n    form.ImportXml(xmlStream);\n    form.Save();\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'ImportXfaData'",
+      "CS1061: 'Form' does not contain a definition for 'AssignXfa' (when using Document.Form)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775541760.113733,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-document-info-for-metadata-fallback": {
+    "note": "When the Aspose.Pdf.Xmp namespace is unavailable, set standard PDF metadata via Document.Info properties and provide fallback values if they are missing or empty.",
+    "code": "using Aspose.Pdf;\n\nvar defaults = new Dictionary<string, string>\n{\n    { \"Creator\", \"Unknown Creator\" },\n    { \"Title\", \"Untitled Document\" },\n    { \"Description\", \"No description provided.\" }\n};\n\nif (string.IsNullOrWhiteSpace(pdf.Info.Author))\n    pdf.Info.Author = defaults[\"Creator\"];\nif (string.IsNullOrWhiteSpace(pdf.Info.Title))\n    pdf.Info.Title = defaults[\"Title\"];\nif (string.IsNullOrWhiteSpace(pdf.Info.Subject))\n    pdf.Info.Subject = defaults[\"Description\"];",
+    "errors": [
+      "CS0234: The type or namespace name 'Xmp' does not exist in the namespace 'Aspose.Pdf' (are you missing an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775541858.5815117,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "add-forms-namespace-for-form-fields": {
+    "note": "Include the Aspose.Pdf.Forms namespace when working with form field classes such as TextBoxField, CheckBoxField, etc.",
+    "code": "using Aspose.Pdf.Forms; // required for TextBoxField and other form field types",
+    "errors": [
+      "CS0246: The type or namespace name 'TextBoxField' could not be found",
+      "CS0246: The type or namespace name 'CheckBoxField' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775542149.4763863,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-formeditor-setfieldalignment-for-textfield-alignment": {
+    "note": "Use FormEditor.SetFieldAlignment with FormFieldFacade.AlignCenter to center-align a text form field instead of accessing TextBoxField.TextState.",
+    "code": "using Aspose.Pdf.Facades;\n\nusing (FormEditor editor = new FormEditor())\n{\n    editor.BindPdf(inputPdf);\n    bool success = editor.SetFieldAlignment(fieldName, FormFieldFacade.AlignCenter);\n    // handle success/failure\n    editor.Save(outputPdf);\n}",
+    "errors": [
+      "CS1061: 'TextBoxField' does not contain a definition for 'TextState'",
+      "CS1061: 'TextBoxField' does not contain a definition for 'TextState' (multiple occurrences)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775542421.569177,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-bindxml-with-memory-stream": {
+    "note": "Import form data into a PDF by calling Document.BindXml on a MemoryStream that contains the XML bytes (e.g., after decryption).",
+    "code": "using (var pdfDoc = new Document(pdfPath))\nusing (var xmlStream = new MemoryStream(xmlBytes))\n{\n    pdfDoc.BindXml(xmlStream);\n    pdfDoc.Save(outputPdfPath);\n}",
+    "errors": [
+      "BindXml throws an exception or imports no data when the XML source is not a valid open stream",
+      "Form fields are not populated because the XML was supplied as a file path or closed stream instead of a MemoryStream"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775542803.48265,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "manual-xml-construction-for-custom-root": {
+    "note": "When XmlSaveOptions does not expose a RootElementName property, build the XML manually with System.Xml.Linq and write it to file.",
+    "code": "using System.Xml.Linq;\n\n// Create root element with custom name\nXElement root = new XElement(customRootName);\n\n// Add form fields (example)\nforeach (var field in pdfDocument.Form.Fields)\n{\n    root.Add(new XElement(\"field\",\n        new XAttribute(\"name\", field?.FullName ?? \"\"),\n        new XAttribute(\"value\", field?.Value?.ToString() ?? \"\")));\n}\n\n// Save XML\nnew XDocument(new XDeclaration(\"1.0\", \"utf-8\", \"yes\"), root).Save(outputXmlPath);",
+    "errors": [
+      "CS1061: 'XmlSaveOptions' does not contain a definition for 'RootElementName'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775543180.406832,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-barcodefield-for-form-barcode": {
+    "note": "Create barcode form fields with Aspose.Pdf.Forms.BarcodeField, set its properties, and add it to Document.Form instead of using non‑existent FormEditor or FillBarcodeField APIs.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\n// ... inside method\nPage page = doc.Pages.Add();\nvar rect = new Rectangle(100, 500, 300, 550);\nvar barcode = new BarcodeField(page, rect);\nbarcode.PartialName = \"ProductBarcode\"; // field name\nbarcode.AddBarcode(\"987654321012\"); // data (Code128 by default)\n\ndoc.Form.Add(barcode);",
+    "errors": [
+      "CS0246: The type or namespace name 'FormEditor' could not be found",
+      "CS0103: The name 'FieldType' does not exist in the current context",
+      "CS1061: 'Form' does not contain a definition for 'FillBarcodeField'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775543580.312907,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "iterate-form-collection-with-field": {
+    "note": "Iterate over Document.Form using the base type Field (or its derived types) instead of WidgetAnnotation, because Form implements IEnumerable<Field>.",
+    "code": "Form pdfForm = doc.Form;\nforeach (Field field in pdfForm)\n{\n    // process the field, e.g., if (field is TextBoxField tb) { tb.Value = \"...\"; }\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'WidgetAnnotation' could not be found (are you missing a using directive or an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775544007.6951063,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "add-page-then-set-margins": {
+    "note": "Create a page with doc.Pages.Add() and assign margins via page.PageInfo.Margin instead of adding a PageInfo object to the Pages collection.",
+    "code": "MarginInfo margins = new MarginInfo { Top = 50, Bottom = 50, Left = 50, Right = 50 };\nPage page = doc.Pages.Add();\npage.PageInfo.Margin = margins;",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.PageInfo' to 'Aspose.Pdf.Page'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775544092.2106938,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-form-getfieldlimit-instead-of-formeditor": {
+    "note": "Call GetFieldLimit on a Form object (Aspose.Pdf.Facades.Form) rather than on FormEditor, because FormEditor does not expose this method.",
+    "code": "using Aspose.Pdf.Facades;\nForm form = new Form(pdfPath);\nint limit = form.GetFieldLimit(\"Address\");",
+    "errors": [
+      "CS1061: 'FormEditor' does not contain a definition for 'GetFieldLimit' and no accessible extension method 'GetFieldLimit' accepting a first argument of type 'FormEditor' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775544428.554051,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-subtype-instead-of-type-for-xform": {
+    "note": "Do not access a non‑existent XForm.Type property; filter XForm objects by their Subtype string (e.g., \"Form\") when removing Typewriter form XObjects.",
+    "code": "XForm form = fragment.Form;\nif (form != null && form.Subtype == \"Form\")\n{\n    page.Resources.Forms.Remove(form);\n}",
+    "errors": [
+      "CS1061: 'XForm' does not contain a definition for 'Type' and no accessible extension method 'Type' accepting a first argument of type 'XForm' could be found",
+      "CS0103: The name 'FormType' does not exist in the current context"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775545144.1223037,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-pageindex-and-delete-by-name": {
+    "note": "Use Field.PageIndex (zero‑based) instead of the non‑existent PageNumber property, and delete form fields by their name with Form.Delete(string) rather than passing Field objects.",
+    "code": "var fieldsToDelete = new List<string>();\nforeach (var field in doc.Form.Fields)\n{\n    if (field.PageIndex == 4) // page 5 (zero‑based index)\n        fieldsToDelete.Add(field.Name);\n}\nforeach (var name in fieldsToDelete)\n    doc.Form.Delete(name);",
+    "errors": [
+      "CS1061: 'Field' does not contain a definition for 'PageNumber'",
+      "CS1061: No overload for method 'Delete' takes a 'Field' argument"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775545373.478488,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-form-exportxml-for-acroform-data": {
+    "note": "Use the Aspose.Pdf.Facades.Form class and its ExportXml method (with a stream) to export AcroForm data to XML, instead of the non‑existent FormEditor.ExportData.",
+    "code": "using (Form form = new Form())\n{\n    form.BindPdf(inputPdf);\n    using (FileStream fs = new FileStream(outputXml, FileMode.Create, FileAccess.Write))\n    {\n        form.ExportXml(fs);\n    }\n}",
+    "errors": [
+      "CS1061: 'FormEditor' does not contain a definition for 'ExportData'",
+      "Missing method ExportData on FormEditor when attempting to export AcroForm data"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775545412.2713354,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "avoid-nonexistent-annotationflags-and-submitformflag-members": {
+    "note": "Do not reference enum members that are not present in the current Aspose.PDF API (e.g., AnnotationFlags.NoPrint or SubmitFormFlag.IncludeFormFields); use only members that exist in the version you target.",
+    "code": "editor.SetFieldAppearance(\"MyField\", AnnotationFlags.Print); // use a valid AnnotationFlags value\neditor.SetSubmitFlag(\"MySubmit\", SubmitFormFlag.IncludeAnnotations); // use a valid SubmitFormFlag value",
+    "errors": [
+      "CS0117: 'AnnotationFlags' does not contain a definition for 'NoPrint'",
+      "CS0117: 'SubmitFormFlag' does not contain a definition for 'IncludeFormFields'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775546732.7695515,
+    "_hit_count": 0,
+    "_stage": "final_llm",
+    "_category": "Working with Forms"
+  },
+  "use-form-facade-importxml-instead-of-xfa-setdata": {
+    "note": "Import XML form data into a PDF using Aspose.Pdf.Facades.Form.ImportXml rather than XFA.SetData, which is not available in the API.",
+    "code": "using Aspose.Pdf.Facades;\n\nusing (Form form = new Form())\n{\n    form.BindPdf(pdfPath);\n    using (FileStream xmlStream = File.OpenRead(xmlPath))\n    {\n        form.ImportXml(xmlStream);\n    }\n    form.Save(outputPdfPath);\n}",
+    "errors": [
+      "CS1061: 'XFA' does not contain a definition for 'SetData' and no accessible extension method 'SetData' accepting a first argument of type 'XFA' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775546897.833298,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-form-fillfield-for-radio-button": {
+    "note": "Use Aspose.Pdf.Facades.Form.FillField to set the selected value of a radio button group instead of accessing RadioButtonField options.",
+    "code": "using Aspose.Pdf.Facades;\n...\nusing (Form form = new Form(inputPath))\n{\n    form.FillField(\"PaymentMethod\", \"Credit\");\n    form.Save(outputPath);\n}",
+    "errors": [
+      "CS0246: The type or namespace name 'RadioButtonOption' could not be found",
+      "CS0246: The type or namespace name 'RadioButtonOption' could not be found (are you missing a using directive or an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775547204.4218967,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-autorecalculate-instead-of-recalculate": {
+    "note": "Do not call Form.Recalculate(); control form field recalculation by toggling Form.AutoRecalculate instead.",
+    "code": "doc.Form.AutoRecalculate = false; // disable automatic recalculation while filling fields\n// ... set field values ...\ndoc.Form.AutoRecalculate = true; // re‑enable automatic recalculation (no Recalculate call needed)",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'Recalculate'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775547359.455477,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-copyouterfield-instead-of-deepclone": {
+    "note": "When copying form fields from one PDF to another, enumerate the source form's FieldNames and call FormEditor.CopyOuterField(sourcePdfPath, fieldName) instead of trying to DeepClone a Field object.",
+    "code": "using (Form srcForm = new Form(sourcePdfPath))\nusing (FormEditor editor = new FormEditor())\n{\n    editor.BindPdf(destinationPdfPath);\n    foreach (string name in srcForm.FieldNames)\n    {\n        editor.CopyOuterField(sourcePdfPath, name);\n    }\n    editor.Save(outputPdfPath);\n}",
+    "errors": [
+      "CS1061: 'Field' does not contain a definition for 'DeepClone' and no accessible extension method 'DeepClone' accepting a first argument of type 'Field' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775547742.0558634,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-comboboxfield-selected-instead-of-setfieldvalue": {
+    "note": "When working with FormEditor, set the default selected item of a combo box by casting the field to ComboBoxField and assigning its Selected property (1‑based index) rather than calling a non‑existent Form.SetFieldValue method.",
+    "code": "using Aspose.Pdf.Facades;\nusing Aspose.Pdf.Forms;\n\nusing (FormEditor editor = new FormEditor())\n{\n    editor.BindPdf(inputPdf);\n    var country = editor.Document.Form[\"Country\"] as ComboBoxField;\n    if (country != null)\n    {\n        // Example: select the first option (index is 1‑based)\n        country.Selected = 1;\n    }\n    editor.Save(outputPdf);\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'SetFieldValue' and no accessible extension method 'SetFieldValue' accepting a first argument of type 'Form' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775547917.2705925,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-textboxfield-for-numeric-input": {
+    "note": "Use TextBoxField instead of NumberField for numeric fields and validate the value manually, because NumberField is not available and AllowedChars was removed in recent Aspose.Pdf versions.",
+    "code": "TextBoxField ageField = new TextBoxField(page, rect);\nageField.PartialName = \"Age\";\n\n// Helper to assign only numeric values\nstatic void SetNumericValue(TextBoxField field, string value)\n{\n    foreach (char c in value)\n        if (!char.IsDigit(c))\n            throw new InvalidValueFormatException($\"Value '{value}' is not numeric.\");\n    field.Value = value;\n}",
+    "errors": [
+      "System.InvalidCastException: Unable to cast object of type 'Aspose.Pdf.Forms.TextBoxField' to type 'Aspose.Pdf.Forms.NumberField'",
+      "Property 'AllowedChars' is missing on NumberField in newer Aspose.Pdf versions"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775548103.6945572,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-formeditor-addfield-for-pushbutton": {
+    "note": "Create push‑button form fields with FormEditor.AddField(FieldType.PushButton) and assign JavaScript via FormEditor.SetFieldScript instead of instantiating ButtonField directly.",
+    "code": "using (FormEditor editor = new FormEditor())\n{\n    editor.BindPdf(doc);\n    editor.AddField(FieldType.PushButton, \"CalcButton\", 1, llx, lly, urx, ury);\n    editor.SetFieldScript(\"CalcButton\", \"// JavaScript code here\");\n}",
+    "errors": [
+      "System.NullReferenceException at Aspose.Pdf.Forms.ButtonField.set_NormalCaption",
+      "NullReferenceException when constructing ButtonField with page and rectangle"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775548312.1179323,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-correct-javascript-action-properties": {
+    "note": "Use the JavaScript action property names defined in Aspose.Pdf.Annotations.AnnotationActionCollection (e.g., OnEnter, OnExit, OnPressMouseBtn, etc.) instead of non‑existent ones like OnFocus or OnBlur.",
+    "code": "if (field.Actions != null)\n{\n    field.Actions.OnEnter = null;\n    field.Actions.OnExit = null;\n    field.Actions.OnPressMouseBtn = null;\n    field.Actions.OnReleaseMouseBtn = null;\n    field.Actions.OnReceiveFocus = null;\n    field.Actions.OnLostFocus = null;\n    // ... other supported action properties as needed\n}",
+    "errors": [
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnFocus'",
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnBlur'",
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnMouseEnter'",
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnMouseExit'",
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnKeyStroke'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775548364.0001566,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "export-field-appearance-using-exporttojson": {
+    "note": "Use the Field.ExportToJson method (from Aspose.Pdf.Forms) to export a form field's appearance streams instead of accessing AppearanceDictionary.Normal/Rollover/Down properties.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nDocument doc = new Document(\"input.pdf\");\nforeach (Field field in doc.Form.Fields)\n{\n    using (FileStream fs = new FileStream($\"{field.PartialName}_appearance.json\", FileMode.Create, FileAccess.Write))\n    {\n        field.ExportToJson(fs);\n    }\n}",
+    "errors": [
+      "CS1061: 'AppearanceDictionary' does not contain a definition for 'NormalAppearance'",
+      "CS1061: 'AppearanceDictionary' does not contain a definition for 'RolloverAppearance'",
+      "CS1061: 'AppearanceDictionary' does not contain a definition for 'DownAppearance'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775548541.096113,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-field-color-not-border-color": {
+    "note": "Set the border (and background) color of a form field via the field's Color property; Border class does not have a Color property and resides in Aspose.Pdf.Annotations namespace.",
+    "code": "using Aspose.Pdf.Annotations; // required for Border\n\n// Ensure a Border object exists (optional width setting)\nfield.Border = new Border(field) { Width = 1 };\n// Set the visual color of the field (border/background)\nfield.Color = Aspose.Pdf.Color.Red;",
+    "errors": [
+      "CS1061: 'Border' does not contain a definition for 'Color'",
+      "CS0246: The type or namespace name 'Border' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775549047.804267,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-form-facade-exportxml-instead-of-document-form-exportdata": {
+    "note": "Use Aspose.Pdf.Facades.Form to bind a PDF and call ExportXml (or ExportData) instead of Document.Form.ExportData, which is not part of the API.",
+    "code": "using Aspose.Pdf.Facades;\n...\nusing (Form form = new Form())\n{\n    form.BindPdf(inputPdf);\n    using (MemoryStream ms = new MemoryStream())\n    {\n        form.ExportXml(ms); // exports full form data to XML\n        // optional: filter the XML for selected fields\n    }\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'ExportData' and no accessible extension method 'ExportData' accepting a first argument of type 'Form' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775549381.9631796,
+    "_hit_count": 0,
+    "_stage": "final_llm",
+    "_category": "Working with Forms"
+  },
+  "use-textboxfield-for-password-with-maxlen": {
+    "note": "Use a TextBoxField (not PasswordBoxField) to represent a password field, set its MaxLen property, and add it to the document's Form collection.",
+    "code": "TextBoxField pwdField = new TextBoxField(page, rect) {\n    PartialName = \"Password\",\n    MaxLen = 20\n};\n\ndoc.Form.Add(pwdField);",
+    "errors": [
+      "CS0266: Cannot implicitly convert type 'Aspose.Pdf.Forms.TextBoxField' to 'Aspose.Pdf.Forms.PasswordBoxField'",
+      "Adding a form field to page.Annotations instead of doc.Form"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775549514.4819086,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "cast-widgetannotation-to-field-and-use-correct-action-properties": {
+    "note": "When retrieving a form field via Document.Form[index], cast the returned WidgetAnnotation to Aspose.Pdf.Forms.Field and use the appropriate Actions properties (e.g., OnCalculate for value changes, OnOpenPage for page open) instead of non‑existent OnValueChanged/OnPageOpen.",
+    "code": "Field field = doc.Form[\"FieldName\"] as Field;\nfield.Actions.OnCalculate = new JavascriptAction(js);\nfield.Actions.OnOpenPage = new HideAction(\"FieldName\", false);",
+    "errors": [
+      "CS0266: Cannot implicitly convert type 'Aspose.Pdf.Annotations.WidgetAnnotation' to 'Aspose.Pdf.Forms.Field'.",
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnValueChanged'.",
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnPageOpen'."
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775549775.8271208,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-formeditor-addfield-for-multi-page-fields": {
+    "note": "Use FormEditor.AddField to add new form fields to each page with unique names instead of cloning an existing field instance via doc.Form.Add.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document();\nFormEditor editor = new FormEditor(doc);\n// Add a text field to page 1\neditor.AddField(FieldType.Text, \"TextField_Page1\", 1, 100f, 600f, 300f, 630f);\n// Add a checkbox to page 2\neditor.AddField(FieldType.CheckBox, \"CheckBox_Page2\", 2, 100f, 550f, 120f, 570f);\n// ...repeat for other pages as needed\n",
+    "errors": [
+      "System.NullReferenceException: Object reference not set to an instance of an object. (occurs when cloning a field with doc.Form.Add(originalField, ...))",
+      "Runtime errors caused by reusing the same field instance across multiple pages"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775549969.2937691,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-formeditor-addsubmitbtn": {
+    "note": "Create form fields and a submit button using Aspose.Pdf.Facades.FormEditor (AddField, AddSubmitBtn) instead of low‑level annotation classes and SubmitFormAction.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document();\nusing (FormEditor editor = new FormEditor(doc))\n{\n    editor.AddField(FieldType.Text, \"Name\", 1, 50, 700, 250, 730);\n    editor.AddSubmitBtn(\"SubmitBtn\", 1, \"Submit\", \"https://example.com/api/submit\", 300, 700, 380, 730);\n    editor.SetSubmitFlag(\"SubmitBtn\", SubmitFormFlag.Pdf);\n    editor.Save(\"output.pdf\");\n}",
+    "errors": [
+      "CS0029: Cannot implicitly convert type 'string' to 'Aspose.Pdf.Annotations.DefaultAppearance'",
+      "CS0117: 'SubmitFormAction' does not contain a definition for 'File'",
+      "CS1061: 'ButtonField' does not contain a definition for 'Action'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775550180.236144,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-formeditor-setsubmitflag-html": {
+    "note": "Configure a submit button to POST URL‑encoded data by adding it with FormEditor.AddSubmitBtn and setting SubmitFormFlag.Html via FormEditor.SetSubmitFlag, instead of assigning SubmitFormAction.ExportFormat in an object initializer.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\n// after loading Document doc\nusing (FormEditor formEditor = new FormEditor(doc))\n{\n    formEditor.AddSubmitBtn(\"btnSubmit\", 1, \"Submit\", \"https://example.com/submit\", 100, 200, 200, 250);\n    formEditor.SetSubmitFlag(\"btnSubmit\", SubmitFormFlag.Html); // POST with URL‑encoded data\n    formEditor.Save(\"output.pdf\");\n}",
+    "errors": [
+      "CS1914: Static field or property 'SubmitFormAction.ExportFormat' cannot be assigned in an object initializer",
+      "CS0103: The name 'SubmitFormActionExportFormat' does not exist in the current context"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775550330.2033997,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-onpressmousebtn-for-button-action": {
+    "note": "Use the OnPressMouseBtn property of ButtonField.Actions with a JavascriptAction to assign JavaScript for button clicks",
+    "code": "resetButton.Actions.OnPressMouseBtn = new JavascriptAction(\"this.resetForm();\");",
+    "errors": [
+      "'AnnotationActionCollection' does not contain a definition for 'OnMouseUp'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775550463.8121166,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-page-constructors-for-form-fields": {
+    "note": "Instantiate form fields with a Page object (and Rectangle when supported) instead of passing the Document and page number; for RadioButtonField set the Rect property after construction.",
+    "code": "Page page = doc.Pages[pageNumber];\nRectangle rect = new Rectangle(llx, lly, urx, ury);\nvar txt  = new TextBoxField(page, rect);\nvar chk  = new CheckboxField(page, rect);\nvar lst  = new ListBoxField(page, rect);\nvar cmb  = new ComboBoxField(page, rect);\nvar rad  = new RadioButtonField(page) { Rect = rect };",
+    "errors": [
+      "CS1729: 'TextBoxField' does not contain a constructor that takes 3 arguments",
+      "CS1729: 'CheckboxField' does not contain a constructor that takes 3 arguments",
+      "CS1729: 'RadioButtonField' does not contain a constructor that takes 3 arguments",
+      "CS1729: 'ListBoxField' does not contain a constructor that takes 3 arguments",
+      "CS1729: 'ComboBoxField' does not contain a constructor that takes 3 arguments"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775551003.9667478,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-color-property-for-form-field-background": {
+    "note": "Set a form field's background/fill color via the field's `Color` property instead of using a non‑existent `TextState` member.",
+    "code": "TextBoxField txtField = doc.Form[\"MyTextField\"] as TextBoxField;\n// Correct way to set background color\ntxtField.Color = Aspose.Pdf.Color.LightGray;",
+    "errors": [
+      "CS1061: 'TextBoxField' does not contain a definition for 'TextState'",
+      "CS1061: 'TextBoxField' does not contain a definition for 'TextState' when trying to set BackgroundColor"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775551121.4324634,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-oncalculate-for-calculated-fields": {
+    "note": "Assign JavaScript to a calculated form field using the field's Actions.OnCalculate property (OnValueChanged does not exist).",
+    "code": "NumberField taxAmount = new NumberField(page, rect);\n// ... configure field ...\nstring js = \"...\";\ntaxAmount.Actions.OnCalculate = new JavascriptAction(js);",
+    "errors": [
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnValueChanged'",
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnValueChanged' (duplicate)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775551350.1873593,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "fallback-font-with-substitution": {
+    "note": "When loading a custom TrueType font, verify the file exists and catch PdfException; if loading fails, add a SimpleFontSubstitution (e.g., to Arial) via FontRepository.Substitutions and use a system font as fallback.",
+    "code": "Font customFont;\nif (File.Exists(customFontPath))\n{\n    try\n    {\n        customFont = FontRepository.OpenFont(customFontPath);\n    }\n    catch (Aspose.Pdf.PdfException)\n    {\n        Console.WriteLine($\"Warning: Unable to load font at '{customFontPath}'. Falling back to Arial.\");\n        customFont = FontRepository.FindFont(\"Arial\");\n    }\n}\nelse\n{\n    Console.WriteLine($\"Warning: Font file not found at '{customFontPath}'. Falling back to Arial.\");\n    customFont = FontRepository.FindFont(\"Arial\");\n}\n// Ensure missing fonts are substituted with Arial.\nFontRepository.Substitutions.Add(new SimpleFontSubstitution(\"*\", \"Arial\"));",
+    "errors": [
+      "FileNotFoundException or missing font file when calling FontRepository.OpenFont",
+      "Aspose.Pdf.PdfException thrown while opening a font file"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775552143.2878046,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-facade-form-exportxml-and-transform-with-textwriter": {
+    "note": "Use Aspose.Pdf.Facades.Form.ExportXml with a stream to export PDF form data, and use XslCompiledTransform.Transform overload that accepts an input file path and a TextWriter instead of the stream overload.",
+    "code": "using (Form form = new Form())\n{\n    form.BindPdf(pdfPath);\n    using (FileStream fs = new FileStream(xmlPath, FileMode.Create, FileAccess.Write))\n    {\n        form.ExportXml(fs);\n    }\n}\n\nXslCompiledTransform transformer = new XslCompiledTransform();\ntransformer.Load(xsltPath);\nusing (StreamWriter writer = new StreamWriter(reportPath))\n{\n    transformer.Transform(xmlPath, null, writer);\n}",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'ExportData' (missing ExportData method)",
+      "CS1503: cannot convert from 'System.IO.FileStream' to 'string' (incorrect overload used for XslCompiledTransform.Transform)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775552482.48503,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-selecteditems-to-limit-multiselect-listbox": {
+    "note": "ListBoxField does not have a MaxSelect property; enable multi‑selection with MultiSelect = true and limit the number of selectable items by assigning the desired indices to the SelectedItems array.",
+    "code": "ListBoxField listBox = new ListBoxField(page, rect) {\n    MultiSelect = true,\n    PartialName = \"MyListBox\"\n};\nlistBox.SelectedItems = new int[] { 1, 2, 3 }; // limits selection to three items",
+    "errors": [
+      "CS0117: 'ListBoxField' does not contain a definition for 'MaxSelect'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775552645.360897,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-correct-form-field-properties": {
+    "note": "Replace nonexistent TextBoxField.FontSize and BorderInfo.BorderType with the proper Aspose.PDF properties (DefaultAppearance.FontSize and BorderInfo.Border).",
+    "code": "TextBoxField tb = new TextBoxField(page, rect);\n// Set font size via DefaultAppearance\ntb.DefaultAppearance = new DefaultAppearance { FontSize = 12 };\n// Set border style via BorderInfo.Border\ntb.BorderInfo = new BorderInfo { Border = BorderStyle.Solid, Width = 1 };",
+    "errors": [
+      "CS0117: 'TextBoxField' does not contain a definition for 'FontSize'",
+      "CS0117: 'BorderInfo' does not contain a definition for 'BorderType'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775552792.6289587,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-pdffilesignature-certify-with-mdpsignature": {
+    "note": "To lock a PDF after signing, use PdfFileSignature.Certify with a DocMDPSignature instead of accessing a non‑existent Signature property.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\nusing Aspose.Pdf.Forms;\n\n// doc is an Aspose.Pdf.Document that already contains a required signature field\nPdfFileSignature pdfSign = new PdfFileSignature(doc);\nPKCS7 pkcs7 = new PKCS7(pfxPath, pfxPassword);\nDocMDPSignature mdp = new DocMDPSignature(pkcs7, DocMDPAccessPermissions.NoChanges);\npdfSign.Certify(\"Signature1\", mdp); // \"Signature1\" is the field name\npdfSign.Save(outputPdf);",
+    "errors": [
+      "CS1061: 'PdfFileSignature' does not contain a definition for 'Signature' and no accessible extension method 'Signature' accepting a first argument of type 'PdfFileSignature' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775553232.1086254,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-form-facade-getfield-instead-of-textboxproperties": {
+    "note": "When reading a form field value, use the Aspose.Pdf.Facades.Form class and its GetField method instead of accessing non‑existent TextBoxField.TextBoxProperties.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document(pdfPath, password);\nForm form = new Form(doc);\nstring fieldValue = form.GetField(\"FieldName\");",
+    "errors": [
+      "CS1061: 'TextBoxField' does not contain a definition for 'TextBoxProperties' and no accessible extension method 'TextBoxProperties' accepting a first argument of type 'TextBoxField' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775553898.1971693,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-systemdrawing-color-in-defaultappearance": {
+    "note": "When constructing DefaultAppearance, pass a System.Drawing.Color (or convert) instead of Aspose.Pdf.Color",
+    "code": "var appearance = new DefaultAppearance(\"Helvetica\", 12, System.Drawing.Color.Black);",
+    "errors": [
+      "Argument X: cannot convert from 'Aspose.Pdf.Color' to 'System.Drawing.Color'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775554002.617388,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "cast-form-field-and-use-openaction-for-javascript": {
+    "note": "When retrieving a form field via doc.Form[name] cast the result to Field (e.g., using 'as Field') and add document‑level JavaScript with Document.OpenAction instead of Document.JavaScript.Add.",
+    "code": "Field field = doc.Form[\"MyField\"] as Field;\nfield.Actions.OnValidate = new JavascriptAction(\"myFunction();\");\n\ndoc.OpenAction = new JavascriptAction(\n    \"function myFunction() { app.alert('Field value changed!'); }\"\n);",
+    "errors": [
+      "Cannot implicitly convert type 'Aspose.Pdf.Annotations.WidgetAnnotation' to 'Aspose.Pdf.Forms.Field'",
+      "'JavaScriptCollection' does not contain a definition for 'Add'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775554066.1342459,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-textstate-for-appearance": {
+    "note": "Set font, size, and color of a TextFragment via its TextState properties instead of using the non‑existent DefaultAppearance class.",
+    "code": "TextFragment tf = new TextFragment(text);\n tf.TextState.Font = FontRepository.FindFont(\"Helvetica\");\n tf.TextState.FontSize = 12;\n tf.TextState.ForegroundColor = Color.Black;",
+    "errors": [
+      "CS0246: The type or namespace name 'DefaultAppearance' could not be found",
+      "CS0246: The type or namespace name 'DefaultAppearance' could not be found (are you missing a using directive or an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775554322.6407022,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-concrete-choicefield-and-correct-action": {
+    "note": "Instantiate a concrete choice field type (e.g., ComboBoxField) and use its AddOption method; attach JavaScript via Actions.OnCalculate (or another specific action) instead of the non‑existent Actions.JavaScript property.",
+    "code": "ComboBoxField langField = new ComboBoxField(page, rect) { PartialName = \"LanguageSelect\" };\nlangField.AddOption(\"en-US\"); // add option directly\nlangField.Actions.OnCalculate = new JavascriptAction(js); // attach script",
+    "errors": [
+      "CS0144: Cannot create an instance of the abstract type or interface 'ChoiceField'",
+      "CS1061: 'OptionCollection' does not contain a definition for 'AddOption'",
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'JavaScript'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775554954.73003,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-formeditor-addsubmitbtn-instead-of-buttonfield": {
+    "note": "Add a submit button to an existing PDF using FormEditor.AddSubmitBtn rather than constructing a ButtonField manually, which can cause NullReferenceException when the page context is missing.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nusing (Document doc = new Document(\"input.pdf\"))\n{\n    FormEditor formEditor = new FormEditor(doc);\n    formEditor.AddSubmitBtn(\n        \"SubmitBtn\",   // button name\n        1,              // page number (1‑based)\n        \"Submit\",      // caption\n        \"https://example.com/submit\", // URL\n        100f, 50f, 200f, 80f); // llx, lly, urx, ury\n}\n",
+    "errors": [
+      "System.NullReferenceException at Aspose.Pdf.Forms.ButtonField.set_AlternateCaption",
+      "NullReferenceException when creating ButtonField with a page that has not been added to the document"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775555288.1371038,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-form-facade-exportxml-for-interaction-log": {
+    "note": "Use the Aspose.Pdf.Facades.Form class and its ExportXml method to export form interaction data to XFDF/XML instead of the non‑existent SubmitFormAction API.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n...\nusing (Document pdfDoc = new Document(inputPdfPath))\n{\n    using (Form form = new Form(pdfDoc))\n    {\n        using (FileStream xmlStream = new FileStream(outputXmlPath, FileMode.Create, FileAccess.Write))\n        {\n            form.ExportXml(xmlStream);\n        }\n    }\n}",
+    "errors": [
+      "CS0234: The type or namespace name 'SubmitFormAction' does not exist in the namespace 'Aspose.Pdf.Forms'",
+      "CS0103: The name 'SubmitFormActionFlags' does not exist in the current context"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775555396.865632,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-javascriptaction-and-onopenpage-for-form-field": {
+    "note": "Use Aspose.Pdf.Forms.JavascriptAction (correct class name) and assign it to a supported action property such as OnOpenPage, not OnFocus, which does not exist on AnnotationActionCollection.",
+    "code": "JavascriptAction js = new JavascriptAction(\"event.target.value = util.printd('dd/MM/yyyy HH:mm:ss', new Date());\");\ndateField.Actions.OnOpenPage = js;",
+    "errors": [
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnFocus'",
+      "CS1061: 'JavaScriptAction' not found (incorrect class name casing)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775555456.3758383,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-aspose-pdf-rectangle-and-text-namespace": {
+    "note": "Import Aspose.Pdf.Text and use Aspose.Pdf.Rectangle for form field coordinates; TextFragment and Position are defined in Aspose.Pdf.Text.",
+    "code": "using Aspose.Pdf.Text; // required for TextFragment and Position\n\n// Use fully‑qualified Aspose.Pdf.Rectangle for field bounds\nAspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(50, 750, 70, 770);\n\n// Example of creating a text fragment with a position\nTextFragment tf = new TextFragment(\"Sample\");\ntf.Position = new Position(50, 770);",
+    "errors": [
+      "CS0246: The type or namespace name 'TextFragment' could not be found",
+      "CS0246: The type or namespace name 'Position' could not be found",
+      "CS0246: The type or namespace name 'Rectangle' could not be found (or ambiguous reference)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775555570.2195823,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
+  },
+  "use-xfdfreader-readfields-for-visibility-import": {
+    "note": "Import form field values (including visibility flags) from an XFDF (XML) file into a PDF using XfdfReader.ReadFields instead of manual XML parsing or unsupported annotation properties.",
+    "code": "using (Document pdf = new Document(pdfPath))\n{\n    using (FileStream xfdf = File.OpenRead(xfdfPath))\n    {\n        XfdfReader.ReadFields(xfdf, pdf);\n    }\n    pdf.Save(outputPath);\n}",
+    "errors": [
+      "CS1061: 'PDF3DAnnotation' does not contain a definition for 'ThreeDView' and no accessible extension method 'ThreeDView' accepting a first argument of type 'PDF3DAnnotation' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775555682.679472,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-executefieldjavascript-instead-of-actions-onkeyup": {
+    "note": "Attach JavaScript to a form field using ExecuteFieldJavaScript instead of the non‑existent Actions.OnKeyUp property.",
+    "code": "sourceField.ExecuteFieldJavaScript(new Aspose.Pdf.Annotations.JavascriptAction(\"var bc = this.getField('barcodeField'); bc.value = event.value;\"));",
+    "errors": [
+      "CS1061: 'AnnotationActionCollection' does not contain a definition for 'OnKeyUp' and no accessible extension method 'OnKeyUp' accepting a first argument of type 'AnnotationActionCollection' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775555908.218178,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "use-page-layers-collection-for-optional-content": {
+    "note": "Add PDF layers through the Page.Layers collection using Aspose.Pdf.Operators.Layer; Document and Graph do not expose a Layers property.",
+    "code": "using Aspose.Pdf.Operators;\n\n// create a layer\nLayer layer = new Layer(\"layer1\", \"SampleLayer\");\n// add drawing operators to the layer\nlayer.Contents.Add(new SetRGBColorStroke(1f, 0f, 0f));\nlayer.Contents.Add(new MoveTo(100, 100));\nlayer.Contents.Add(new LineTo(400, 250));\nlayer.Contents.Add(new Stroke());\n// attach the layer to the page\npage.Layers.Add(layer);",
+    "errors": [
+      "CS1061: 'Document' does not contain a definition for 'Layers'",
+      "CS0117: 'Graph' does not contain a definition for 'Layer'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775556059.5951164,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Graphs"
+  },
+  "use-table-columnadjustment-for-auto-fit": {
+    "note": "Set Table.ColumnAdjustment to ColumnAdjustment.AutoFitToContent instead of calling a non‑existent AutoFitColumns method.",
+    "code": "table.ColumnAdjustment = ColumnAdjustment.AutoFitToContent;",
+    "errors": [
+      "CS1061: 'Table' does not contain a definition for 'AutoFitColumns' and no accessible extension method 'AutoFitColumns' accepting a first argument of type 'Table' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775557257.86338,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Tables"
+  },
+  "no-shadowinfo-on-table": {
+    "note": "Aspose.Pdf.Table does not expose a ShadowInfo/ShadowEffect property; use other PDF elements (e.g., a rectangle with ShadowInfo via the Facades API) to simulate a shadow instead of assigning Table.ShadowInfo.",
+    "code": "Table table = new Table();\n// Table.ShadowInfo does not exist – to add a shadow create a separate shape (e.g., Rectangle) with ShadowInfo and place it behind the table using the Facades API.\n",
+    "errors": [
+      "CS1061: 'Table' does not contain a definition for 'ShadowInfo' and no accessible extension method 'ShadowInfo' accepting a first argument of type 'Table' could be found",
+      "CS0246: The type or namespace name 'ShadowInfo' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775557714.4278398,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Tables"
+  },
+  "use-textfragment-with-bullet-for-list-in-cell": {
+    "note": "To create a list inside a Table cell, add TextFragment paragraphs prefixed with a bullet character instead of using the non‑existent Aspose.Pdf.ListItem class.",
+    "code": "string[] items = { \"First item\", \"Second item\", \"Third item\" };\nforeach (var item in items)\n{\n    var tf = new TextFragment(\"• \" + item);\n    tf.TextState.Font = FontRepository.FindFont(\"Helvetica\");\n    tf.TextState.FontSize = 12;\n    cell.Paragraphs.Add(tf);\n}",
+    "errors": [
+      "CS0234: The type or namespace name 'ListItem' does not exist in the namespace 'Aspose.Pdf' (are you missing an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775557937.802052,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Tables"
+  },
+  "use-buttonfield-with-hideaction-for-floating-box": {
+    "note": "Create a hidden TextAnnotation and use a ButtonField (Aspose.Pdf.Forms) with HideAction assigned to OnEnter/OnExit to show or hide the annotation on mouse hover.",
+    "code": "var floatingBox = new TextAnnotation(page, new Rectangle(100, 600, 300, 700)) {\n    Contents = \"Floating information\",\n    Color = Color.LightGray,\n    Flags = AnnotationFlags.Hidden\n};\npage.Annotations.Add(floatingBox);\n\nvar button = new ButtonField(page, new Rectangle(100, 500, 200, 530)) {\n    NormalCaption = \"Show Box\"\n};\nbutton.Actions.OnEnter = new HideAction(floatingBox, false);\nbutton.Actions.OnExit  = new HideAction(floatingBox, true);\n\ndoc.Form.Add(button);",
+    "errors": [
+      "CS0234: The type or namespace name 'PushButtonField' does not exist in the namespace 'Aspose.Pdf.Forms'",
+      "CS0117: 'TextAnnotation' does not contain a definition for 'FillColor'",
+      "CS0117: 'BorderInfo' does not contain a definition for 'BorderStyle'",
+      "CS0117: 'TextAnnotation' does not contain a definition for 'Hidden'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775558974.0928156,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working With Text"
+  },
+  "use-characterspacing-instead-of-kerning": {
+    "note": "TextFragmentState does not expose a Kerning property; use the CharacterSpacing property to control inter‑character spacing.",
+    "code": "TextFragment fragment = new TextFragment(\"Sample text\");\nfragment.TextState.CharacterSpacing = 0.5f; // positive or negative value simulates kerning",
+    "errors": [
+      "CS1061: 'TextFragmentState' does not contain a definition for 'Kerning' and no accessible extension method 'Kerning' accepting a first argument of type 'TextFragmentState' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775559182.159603,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working With Text"
+  },
+  "use-textfragment-for-xml-instead-of-xmlloadoptions": {
+    "note": "Do not load plain XML with XmlLoadOptions; create a new Document and add the XML as a TextFragment.",
+    "code": "string xml = \"<root><message>Hello</message></root>\";\nDocument pdf = new Document();\nPage page = pdf.Pages.Add();\npage.Paragraphs.Add(new TextFragment(xml));\npdf.Save(\"output.pdf\");",
+    "errors": [
+      "Aspose.Pdf.PdfException: Unsupported load format! (when using DocumentFactory.CreateDocument or new Document(stream, new XmlLoadOptions()) with plain XML)",
+      "Unsupported load format error when attempting to load XML via XmlLoadOptions"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775559566.9932847,
+    "_hit_count": 0,
+    "_stage": "final_llm",
+    "_category": "Working with XML"
+  },
+  "use-margininfo-top-bottom-left-right": {
+    "note": "Set page margins by assigning numeric values to MarginInfo.Top, Bottom, Left, and Right instead of using non‑existent TopMarginIfAny, BottomMarginIfAny, etc., or the MarginPartStyle type.",
+    "code": "MarginInfo marginInfo = new MarginInfo {\n    Top = topValue,\n    Bottom = bottomValue,\n    Left = leftValue,\n    Right = rightValue\n};\npage.PageInfo.Margin = marginInfo;",
+    "errors": [
+      "CS0117: 'MarginInfo' does not contain a definition for 'TopMarginIfAny' (or BottomMarginIfAny, LeftMarginIfAny, RightMarginIfAny)",
+      "CS0246: The type or namespace name 'MarginPartStyle' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775559713.9914644,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "use-pdffilestamp-addpagenumber-instead-of-paginationartifact": {
+    "note": "Use PdfFileStamp.AddPageNumber (with optional StartingNumber) to add automatic page numbers instead of the non‑existent PaginationArtifact/PageNumberArtifact classes.",
+    "code": "using Aspose.Pdf.Facades;\n\nPdfFileStamp stamp = new PdfFileStamp();\nstamp.BindPdf(\"input.pdf\");\nstamp.StartingNumber = 1; // optional, defaults to 1\nstamp.AddPageNumber(\"Page #\");\nstamp.Save(\"output.pdf\");\nstamp.Close();",
+    "errors": [
+      "CS0234: The type or namespace name 'PageNumberArtifact' does not exist in the namespace 'Aspose.Pdf.Facades'",
+      "CS0234: The type or namespace name 'PaginationArtifact' does not exist in the namespace 'Aspose.Pdf.Facades'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775559881.5463445,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with XML"
+  },
+  "validate-xsl-path-before-xmlloadoptions": {
+    "note": "Ensure the XSL stylesheet file exists and use a correct absolute path before constructing XmlLoadOptions",
+    "code": "string xslPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, \"Data\", \"style.xsl\");\nif (!File.Exists(xslPath))\n    throw new FileNotFoundException($\"XSL file not found: {xslPath}\");\nXmlLoadOptions loadOptions = new XmlLoadOptions(xslPath);",
+    "errors": [
+      "System.IO.DirectoryNotFoundException: Could not find a part of the path ... at Aspose.Pdf.XmlLoadOptions..ctor"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775560118.1154163,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "modify-textstate-properties-instead-of-reassigning": {
+    "note": "Do not assign a new TextState object to TextFragment.TextState; instead modify the existing TextState's properties.",
+    "code": "TextFragment tf = new TextFragment(\"Header\");\n// modify the existing TextState (read‑only property)\ntf.TextState.FontSize = 12;\ntf.TextState.Font = FontRepository.FindFont(\"Helvetica\");\ntf.TextState.ForegroundColor = Aspose.Pdf.Color.DarkGray;",
+    "errors": [
+      "CS0200: Property or indexer 'TextFragment.TextState' cannot be assigned to -- it is read only"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775560362.3663855,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "remove-startpage-endpage-from-textabsorber": {
+    "note": "Do not set StartPage/EndPage on TextAbsorber; instantiate it without those properties and call Accept on the desired page to extract text.",
+    "code": "TextAbsorber absorber = new TextAbsorber();\npage.Accept(absorber); // where 'page' is the specific Page object\nstring pageText = absorber.Text;",
+    "errors": [
+      "CS0117: 'TextAbsorber' does not contain a definition for 'StartPage'",
+      "CS0117: 'TextAbsorber' does not contain a definition for 'EndPage'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775560573.8379638,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "use-pdfbookmarkeditor-createbookmarks-instead-of-outlinecollection-add": {
+    "note": "Create hierarchical PDF outlines by building Bookmark objects and adding them with PdfBookmarkEditor.CreateBookmarks, not by calling OutlineCollection.Add with multiple arguments.",
+    "code": "PdfBookmarkEditor editor = new PdfBookmarkEditor();\neditor.BindPdf(pdfPath);\nBookmark bm = new Bookmark { Title = \"Chapter 1\", Action = \"GoTo\", PageNumber = 1 };\neditor.CreateBookmarks(bm);\neditor.Save(outputPath);",
+    "errors": [
+      "CS1501: No overload for method 'Add' takes 3 arguments"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775560843.8579779,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with XML"
+  },
+  "use-aspdf-annotations-namespace-for-gotoaction": {
+    "note": "Add the Aspose.Pdf.Annotations namespace when using the GoToAction class for PDF navigation.",
+    "code": "using Aspose.Pdf.Annotations;\n...\nOutlineItemCollection item = new OutlineItemCollection(pdfDoc.Outlines) {\n    Title = \"Section Title\",\n    Action = new GoToAction(pdfDoc.Pages[1])\n};",
+    "errors": [
+      "CS0246: The type or namespace name 'GoToAction' could not be found (are you missing a using directive or an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775560942.2639134,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "use-pdfbookmarkeditor-createbookmarks": {
+    "note": "Use Aspose.Pdf.Facades.PdfBookmarkEditor and its CreateBookmarks method with a Bookmark object to add PDF outlines, instead of passing a string to OutlineCollection.",
+    "code": "PdfBookmarkEditor editor = new PdfBookmarkEditor();\neditor.BindPdf(\"input.pdf\");\nBookmark bm = new Bookmark { Title = \"Chapter 1\", PageNumber = 1, Action = \"GoTo\" };\neditor.CreateBookmarks(bm);\neditor.Save(\"output.pdf\");",
+    "errors": [
+      "Argument 1: cannot convert from 'string' to 'Aspose.Pdf.OutlineCollection'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775561166.2301788,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with XML"
+  },
+  "use-pdfpageeditor-for-page-transitions": {
+    "note": "Apply page transition effects via PdfPageEditor (TransitionType and TransitionDuration) instead of the non‑existent Page.Transition property.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\nDocument doc = new Document(pdfPath);\nusing (PdfPageEditor editor = new PdfPageEditor(doc))\n{\n    editor.ProcessPages = new int[] { 1, 2, 3 }; // or all pages\n    editor.TransitionType = 11; // Fade (enum value)\n    editor.TransitionDuration = 2; // seconds\n    editor.Save(outputPath);\n}",
+    "errors": [
+      "CS1061: 'Page' does not contain a definition for 'Transition'",
+      "CS0246: The type or namespace name 'Transition' could not be found",
+      "CS0103: The name 'Transition' does not exist in the current context"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775561251.5124884,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "use-pdffilesignature-facade-for-digital-signing": {
+    "note": "Use Aspose.Pdf.Facades.PdfFileSignature (with SetCertificate) to digitally sign PDFs instead of the non‑existent PKCS7/PKCS1 classes.",
+    "code": "using Aspose.Pdf.Facades;\n\nPdfFileSignature signer = new PdfFileSignature(pdfDocument);\nsigner.SetCertificate(\"certificate.pfx\", \"password\");\nsigner.Sign(page: 1, SigReason: \"Reason\", SigContact: \"Contact\", SigLocation: \"Location\", visible: true, annotRect: new System.Drawing.Rectangle(100, 100, 200, 100));\nsigner.Save(\"signed_output.pdf\");",
+    "errors": [
+      "CS0246: The type or namespace name 'PKCS1' could not be found",
+      "CS0246: The type or namespace name 'PKCS7Detached' could not be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775561667.6434622,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with XML"
+  },
+  "remove-type-from-using-directive": {
+    "note": "Do not add a using directive for a type; import the containing namespace (Aspose.Pdf) and reference SvgLoadOptions directly.",
+    "code": "using Aspose.Pdf;\n// ...\nvar doc = new Document(stream, new SvgLoadOptions());",
+    "errors": [
+      "CS0138: A 'using namespace' directive can only be applied to namespaces; 'SvgLoadOptions' is a type not a namespace."
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775561896.783249,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "add-system-linq-for-oftype": {
+    "note": "Import the System.Linq namespace to enable LINQ extension methods (e.g., OfType) on IEnumerable collections.",
+    "code": "using System.Linq;\n\n// Example usage\nIEnumerable<XNode> nodes = xDoc.DescendantNodes();\nvar cdataNodes = nodes.OfType<XCData>();",
+    "errors": [
+      "CS1061: 'IEnumerable<XNode>' does not contain a definition for 'OfType' and no accessible extension method 'OfType' accepting a first argument of type 'IEnumerable<XNode>' could be found"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775561949.415581,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "use-facades-for-javascript-actions": {
+    "note": "Add JavaScript to PDFs using PdfContentEditor and FormEditor from the Aspose.Pdf.Facades namespace instead of the non‑existent Aspose.Pdf.InteractiveFeatures namespace.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\n\n// Document‑level JavaScript\nusing (var editor = new PdfContentEditor())\n{\n    editor.BindPdf(\"input.pdf\");\n    editor.AddDocumentAdditionalAction(PdfContentEditor.DocumentOpen, \"app.alert('Opened');\");\n    editor.Save(\"output.pdf\");\n}\n\n// Field‑level JavaScript\nusing (var form = new FormEditor())\n{\n    form.BindPdf(\"output.pdf\");\n    form.AddFieldScript(\"MyButton\", \"app.alert('Clicked');\");\n    form.Save(\"final.pdf\");\n}",
+    "errors": [
+      "CS0234: The type or namespace name 'InteractiveFeatures' does not exist in the namespace 'Aspose.Pdf' (are you missing an assembly reference?)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775562803.9794216,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with XML"
+  },
+  "use-constructor-with-formattingmode-for-textextractionoptions": {
+    "note": "Instantiate TextExtractionOptions using its constructor that accepts a TextFormattingMode enum value instead of trying to set a non‑existent TextFormattingMode property.",
+    "code": "var extractionOpts = new TextExtractionOptions(TextExtractionOptions.TextFormattingMode.Pure);",
+    "errors": [
+      "CS7036: No argument given for required parameter 'formattingMode' of TextExtractionOptions.TextExtractionOptions(TextExtractionOptions.TextFormattingMode)",
+      "CS0572: 'TextFormattingMode': cannot reference a type through an expression; try 'TextExtractionOptions.TextFormattingMode' instead",
+      "CS1913: Member 'TextFormattingMode' cannot be initialized. It is not a field or property."
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775562905.8754733,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "avoid-using-thumbnaildevice": {
+    "note": "Do not wrap Aspose.Pdf.Devices.ThumbnailDevice in a using statement because it does not implement IDisposable; instantiate it normally and dispose only streams or documents.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Devices;\nusing System.IO;\n\n// ... load Document pdfDoc ...\nThumbnailDevice thumbDevice = new ThumbnailDevice();\nusing (FileStream outStream = new FileStream(thumbnailPath, FileMode.Create, FileAccess.Write))\n{\n    thumbDevice.Process(pdfDoc.Pages[1], outStream);\n}",
+    "errors": [
+      "CS1674: 'ThumbnailDevice': type used in a using statement must implement 'System.IDisposable'."
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775563009.2936344,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "use-iwarningcallback-implementation-for-warninghandler": {
+    "note": "Assign an instance of a class that implements IWarningCallback to XmlLoadOptions.WarningHandler; the property expects an interface, not a delegate.",
+    "code": "XmlLoadOptions loadOptions = new XmlLoadOptions\n{\n    WarningHandler = new MyWarningHandler()\n};\n\nclass MyWarningHandler : IWarningCallback\n{\n    public ReturnAction Warning(WarningInfo warningInfo)\n    {\n        // handle the warning (e.g., log and abort)\n        return ReturnAction.Abort;\n    }\n}",
+    "errors": [
+      "CS1660: Cannot convert lambda expression to type 'IWarningCallback' because it is not a delegate type"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775563567.1704128,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with XML"
+  },
+  "use-form-isrequiredfield-instead-of-widgetannotation": {
+    "note": "When checking required form fields, use Form.IsRequiredField (Facade API) instead of accessing an IsRequired property on WidgetAnnotation or Field objects.",
+    "code": "using Aspose.Pdf.Facades;\n\nusing (Form form = new Form(pdfPath))\n{\n    foreach (string fieldName in form.FieldNames)\n    {\n        if (form.IsRequiredField(fieldName))\n        {\n            var value = form.GetField(fieldName);\n            // evaluate value (null / whitespace) as needed\n        }\n    }\n}",
+    "errors": [
+      "CS1061: 'Field' does not contain a definition for 'IsRequired' and no accessible extension method 'IsRequired' accepting a first argument of type 'Field' could be found",
+      "Attempting to use a non‑existent IsRequired property on form field objects (WidgetAnnotation/Field)"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775564397.1246808,
+    "_hit_count": 0,
+    "_stage": "regen",
+    "_category": "Working with Forms"
+  },
+  "initialize-border-after-checkboxfield-instantiation": {
+    "note": "Import Aspose.Pdf.Annotations and assign the Border property after the CheckboxField object has been created (cannot use object initializer referencing the variable).",
+    "code": "using Aspose.Pdf.Annotations;\n...\nCheckboxField checkbox = new CheckboxField(doc, rect);\ncheckbox.Border = new Border(checkbox) { Width = 1 };",
+    "errors": [
+      "CS0246: The type or namespace name 'Border' could not be found",
+      "CS0165: Use of unassigned local variable 'checkbox'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1775564449.839979,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Working with Forms"
   }
 }
