@@ -74,6 +74,30 @@ class GitHubAPI:
                 result[cat_slug] = cs_files
         return result
 
+    def list_branch_category_status(self, owner: str, repo: str, branch: str) -> dict:
+        """List all categories on a branch with .cs file count and sidecar presence.
+
+        Returns {category_slug: {"cs_count": int, "has_agents_md": bool, "has_index_json": bool}}
+        """
+        result = {}
+        root_entries = self.list_directory(owner, repo, "", branch)
+        for entry in root_entries:
+            if entry.get("type") != "dir":
+                continue
+            cat_slug = entry["name"]
+            if cat_slug.startswith(".") or cat_slug in ("docs", ".github"):
+                continue
+            files = self.list_directory(owner, repo, cat_slug, branch)
+            file_names = [f.get("name", "") for f in files]
+            cs_count = sum(1 for n in file_names if n.endswith(".cs"))
+            if cs_count > 0 or "agents.md" in file_names or "index.json" in file_names:
+                result[cat_slug] = {
+                    "cs_count": cs_count,
+                    "has_agents_md": "agents.md" in file_names,
+                    "has_index_json": "index.json" in file_names,
+                }
+        return result
+
     def create_or_update_file(
         self, owner: str, repo: str, path: str,
         content: str, message: str, branch: str,
