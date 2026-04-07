@@ -993,8 +993,8 @@ def retry_pr(job_id: str, old_pr_branch: str, results_summary: list):
         add_log(job_id, f"PR retry failed: {exc}")
 
 
-def update_repo_docs(job_id: str, update_readme: bool = False):
-    """Scan the repo and create a PR with cumulative agents.md (+ optional README update).
+def update_repo_docs(job_id: str, update_readme: bool = True):
+    """Scan the repo and create a PR with cumulative agents.md + README update.
 
     Runs in a background thread. Creates a fresh branch, commits all
     generated docs, and opens a PR.
@@ -1010,7 +1010,6 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
         generate_cumulative_category_agents_md,
         generate_index_json,
         generate_readme,
-        update_readme_categories,
     )
     from git_ops.agents_md import _generate_run_id
 
@@ -1190,27 +1189,19 @@ def update_repo_docs(job_id: str, update_readme: bool = False):
         else:
             add_log(job_id, "Root index.json unchanged — skipping")
 
-        # Update or create README.md
+        # Update or create README.md (always regenerate fully for link consistency)
         if update_readme:
             set_current_task(job_id, "Updating README.md...")
             readme_path = Path(repo_path) / "README.md"
-            if readme_path.exists():
-                readme_content = readme_path.read_text(encoding="utf-8")
-                updated = update_readme_categories(readme_content, scan)
-                if updated != readme_content:
-                    readme_path.write_text(updated, encoding="utf-8")
-                    add_log(job_id, "README.md category listing updated")
-                else:
-                    add_log(job_id, "README.md unchanged")
+            readme_content = generate_readme(
+                scan,
+                nuget_version=config.build.nuget_version,
+                tfm=config.build.tfm,
+            )
+            if _write_if_changed(readme_path, readme_content):
+                add_log(job_id, f"README.md updated ({total_files} examples, {len(scan)} categories)")
             else:
-                # Create README.md from scratch
-                readme_content = generate_readme(
-                    scan,
-                    nuget_version=config.build.nuget_version,
-                    tfm=config.build.tfm,
-                )
-                readme_path.write_text(readme_content, encoding="utf-8")
-                add_log(job_id, f"README.md created ({total_files} examples, {len(scan)} categories)")
+                add_log(job_id, "README.md unchanged")
 
         # Commit and push (only if there are actual changes)
         set_current_task(job_id, "Committing docs...")

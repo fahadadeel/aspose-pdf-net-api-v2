@@ -555,6 +555,7 @@
     <button class="btn btn-primary" id="create-pr-btn" onclick="createPR()" disabled>Create PR for Selected</button>
     <button class="btn" id="regen-meta-btn" onclick="regenerateMetadata()" style="background:var(--yellow);color:#000;font-weight:600;">&#x1F504; Regenerate Metadata</button>
     <button class="btn" id="update-docs-btn" onclick="updateRepoDocs()" style="background:var(--accent);color:#fff;font-weight:600;">&#x1F4DA; Update Repo Docs</button>
+    <button class="btn" id="promote-btn" onclick="promoteToMain()" style="background:#e74c3c;color:#fff;font-weight:600;">&#x1F500; Merge to Main</button>
   </div>
 
   <!-- ═══════════ CATEGORY CARDS ═══════════ -->
@@ -596,6 +597,8 @@
   var _prPollTimer = null;
   var _prJobId = null;
   var _prLogCount = 0;
+  var _prTargetBranch = '{{ pr_target_branch }}';
+  var _nugetVersion = '{{ nuget_version }}';
 
   // ── Helpers ──────────────────────────────────────────────────
   function barColor(pct) {
@@ -1162,6 +1165,79 @@
       })
       .catch(function() {});
   }
+
+  // ── Merge to Main ───────────────────────────────────────────
+  window.promoteToMain = function() {
+    var stagingBranch = _prTargetBranch;
+    var newVersion = _nugetVersion;
+
+    if (!stagingBranch) {
+      alert('No staging branch configured (PR_TARGET_BRANCH is empty).\nRun "New Release" from the Build Monitor first.');
+      return;
+    }
+
+    if (!confirm(
+      'Merge to Main: ' + stagingBranch + ' → main\n\n' +
+      'This will:\n' +
+      '1. Create PR: ' + stagingBranch + ' → main\n' +
+      '2. Auto-merge the PR\n' +
+      '3. Tag main as v' + newVersion + ' + create GitHub Release\n' +
+      '4. Reset .env: REPO_BRANCH=main, PR_TARGET_BRANCH=(cleared)\n' +
+      '5. Delete staging branch ' + stagingBranch + '\n\n' +
+      '⚠ Only do this when ALL category sweeps are done and merged!\n\n' +
+      'Continue?'
+    )) return;
+
+    var btn = document.getElementById('promote-btn');
+    btn.disabled = true;
+    btn.innerHTML = '<span style="display:inline-block;width:14px;height:14px;border:2px solid #fff;border-top-color:transparent;border-radius:50%;animation:spin .6s linear infinite;vertical-align:middle;margin-right:6px;"></span> Promoting...';
+
+    fetch('/api/promote-to-main', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ staging_branch: stagingBranch, new_version: newVersion })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.error) {
+        alert('Error: ' + data.error);
+        btn.disabled = false;
+        btn.innerHTML = '&#x1F500; Merge to Main';
+        return;
+      }
+      // Poll for completion
+      _prJobId = data.job_id;
+      _prLogCount = 0;
+      if (_prPollTimer) clearInterval(_prPollTimer);
+      _prPollTimer = setInterval(function() {
+        fetch('/api/status/' + _prJobId)
+          .then(function(r) { return r.json(); })
+          .then(function(state) {
+            if (state.status === 'completed' || state.status === 'failed') {
+              clearInterval(_prPollTimer);
+              _prPollTimer = null;
+              btn.disabled = false;
+              btn.innerHTML = '&#x1F500; Merge to Main';
+              if (state.status === 'failed') {
+                alert('Merge to Main failed.\n\n' + (state.logs || []).slice(-3).join('\n'));
+              } else {
+                var msg = 'Merge to Main completed!';
+                if (state.pr_url) msg += '\n\nPR: ' + state.pr_url;
+                alert(msg);
+                // Reload to reflect new state
+                location.reload();
+              }
+            }
+          })
+          .catch(function() {});
+      }, 2000);
+    })
+    .catch(function(err) {
+      alert('Failed: ' + err);
+      btn.disabled = false;
+      btn.innerHTML = '&#x1F500; Merge to Main';
+    });
+  };
 
   // ── Init ─────────────────────────────────────────────────────
   loadResults();

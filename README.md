@@ -148,9 +148,8 @@ The UI has three modes:
 | **Task Generator** | Browse categories and select tasks from the external task API |
 
 **Header Buttons:**
-- **Update Repo Docs** — Scan repo and generate cumulative `agents.md` files (creates a separate docs PR)
-- **Version Bump** — Tag current version on main, create empty `release/{version}` staging branch, update `.env`
-- **Promote to Main** — Merge staging branch into main, tag release, reset `.env` (visible only when `PR_TARGET_BRANCH` is set)
+- **Results** — Navigate to Results Dashboard (`/results`)
+- **New Release** — Tag current version on main, create empty `release/{version}` staging branch, update `.env`
 
 **Options:**
 - **Create Pull Request** — Commit passed results to GitHub and create a PR
@@ -984,6 +983,8 @@ The standalone Results Dashboard at `/results` provides a post-run view of persi
 - **Create PR from results** — push any category to the repo without re-running the pipeline
 - **Write mode** — `Replace` (clean old files first) or `Incremental` (add new files only)
 - **Regenerate metadata** — backfill missing titles, descriptions, tags, and API surface via LLM
+- **Update Repo Docs** — regenerate root + per-category `agents.md`, `index.json`, and `README.md` (only writes when content meaningfully changes)
+- **Merge to Main** — promote staging branch to main: create PR, auto-merge, tag release, reset `.env`, delete staging branch
 - **Duplicate filename detection** — auto-appends `__v2`, `__v3` suffixes when multiple tasks produce the same filename
 
 ---
