@@ -88,7 +88,7 @@
 
     /* ── Container ───────────────────────────────────────────── */
     .container {
-      max-width: 1200px;
+      max-width: 1800px;
       margin: 0 auto;
       padding: 24px 24px 64px;
     }
@@ -199,7 +199,7 @@
     /* ── Category Cards Grid ─────────────────────────────────── */
     .cards-grid {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
       gap: 16px;
       margin-bottom: 20px;
     }
@@ -554,6 +554,7 @@
     <input type="text" class="branch-input" id="pr-target-branch" placeholder="PR target branch (optional)" />
     <button class="btn btn-primary" id="create-pr-btn" onclick="createPR()" disabled>Create PR for Selected</button>
     <button class="btn" id="regen-meta-btn" onclick="regenerateMetadata()" style="background:var(--yellow);color:#000;font-weight:600;">&#x1F504; Regenerate Metadata</button>
+    <button class="btn" id="update-docs-btn" onclick="updateRepoDocs()" style="background:var(--accent);color:#fff;font-weight:600;">&#x1F4DA; Update Repo Docs</button>
   </div>
 
   <!-- ═══════════ CATEGORY CARDS ═══════════ -->
@@ -963,6 +964,89 @@
         btn.innerHTML = '&#x1F504; Regenerate Metadata';
       });
   };
+
+  // ── Update Repo Docs ──────────────────────────────────────
+  window.updateRepoDocs = function() {
+    var msg = 'Update Repo Docs?\n\nThis will scan the repo branch and:\n'
+            + '• Regenerate root agents.md\n'
+            + '• Regenerate root index.json\n'
+            + '• Fill missing per-category agents.md & index.json\n'
+            + '• Update README.md category listing\n'
+            + '\nA single PR will be created with all changes.';
+    if (!confirm(msg)) return;
+
+    var btn = document.getElementById('update-docs-btn');
+    btn.disabled = true;
+    btn.innerHTML = '&#x23F3; Updating...';
+    showPRConsole('running');
+    _prLogCount = 0;
+
+    fetch('/api/update-repo-docs', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({ update_readme: true })
+    })
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        if (resp.error) {
+          alert('Error: ' + resp.error);
+          btn.disabled = false;
+          btn.innerHTML = '&#x1F4DA; Update Repo Docs';
+          return;
+        }
+        _prJobId = resp.job_id;
+        startDocsPoll();
+      })
+      .catch(function(err) {
+        alert('Request failed: ' + err);
+        btn.disabled = false;
+        btn.innerHTML = '&#x1F4DA; Update Repo Docs';
+      });
+  };
+
+  function startDocsPoll() {
+    if (_prPollTimer) clearInterval(_prPollTimer);
+    _prPollTimer = setInterval(pollDocsStatus, 2000);
+    pollDocsStatus();
+  }
+
+  function pollDocsStatus() {
+    if (!_prJobId) return;
+    fetch('/api/status/' + _prJobId)
+      .then(function(r) { return r.json(); })
+      .then(function(state) {
+        if (state.error) return;
+
+        var logs = state.logs || [];
+        var logEl = document.getElementById('pr-log');
+        for (var i = _prLogCount; i < logs.length; i++) {
+          var line = document.createElement('div');
+          line.className = 'log-line';
+          line.textContent = logs[i];
+          logEl.appendChild(line);
+        }
+        if (logs.length > _prLogCount) logEl.scrollTop = logEl.scrollHeight;
+        _prLogCount = logs.length;
+
+        var finished = ['completed', 'failed', 'cancelled'];
+        if (finished.indexOf(state.status) !== -1) {
+          clearInterval(_prPollTimer);
+          _prPollTimer = null;
+          setPRStatus(state.status);
+          var btn = document.getElementById('update-docs-btn');
+          btn.disabled = false;
+          btn.innerHTML = '&#x1F4DA; Update Repo Docs';
+          if (state.pr_url) {
+            var link = document.getElementById('pr-url');
+            if (link) { link.href = state.pr_url; link.textContent = state.pr_url; }
+          }
+          if (state.status === 'completed') {
+            setTimeout(function() { loadResults(); }, 500);
+          }
+        }
+      })
+      .catch(function() {});
+  }
 
   function startMetaPoll() {
     if (_prPollTimer) clearInterval(_prPollTimer);
