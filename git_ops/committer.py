@@ -39,7 +39,7 @@ def normalize_category(category: Optional[str], default: str = "uncategorized") 
     category = (category or "").strip() or default
     safe = re.sub(r'[<>:"/\\|?*\x00-\x1f]', "", category)
     safe = safe.strip(". ")
-    safe = safe.lower().replace(" ", "-")
+    safe = safe.lower().replace(" ", "-").replace("_", "-")
     safe = re.sub(r"-+", "-", safe).strip("-")
     return safe[:60] if safe else slugify(category, max_len=60)
 
