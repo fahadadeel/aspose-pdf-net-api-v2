@@ -20,8 +20,8 @@ from pipeline.mcp_client import MCPClient
 from pipeline.llm_client import LLMClient
 from pipeline.error_parser import extract_errors, parse_error_codes, detect_and_fix_known_patterns
 from pipeline.prompt_builder import (
-    build_enriched_prompt, build_retry_instruction,
-    format_rules_for_prompt,
+    build_enriched_prompt, build_namespace_restriction,
+    build_retry_instruction, format_rules_for_prompt,
 )
 from knowledge.error_catalog import match_error_catalog
 from knowledge.error_fixes import match_error_fixes, format_error_fixes_for_prompt
@@ -65,12 +65,19 @@ def _sanitize_code(code: str) -> str:
 def run_baseline(
     task_input: TaskInput, mcp: MCPClient, builder: DotnetBuilder, notify: Notify,
     llm: LLMClient = None, config: AppConfig = None, generation_rules: str = "",
+    namespace_restriction: str = "",
 ) -> StageOutcome:
     """Stage 1: Generate code and build/run.
 
     When use_own_llm is enabled, retrieves chunks via MCP and generates code
     with the user's own LLM key instead of letting MCP server generate.
     """
+    # Prepend namespace restriction to generation rules for own-LLM path
+    if namespace_restriction and generation_rules:
+        generation_rules = f"{namespace_restriction}\n\n{generation_rules}"
+    elif namespace_restriction:
+        generation_rules = namespace_restriction
+
     use_own_llm = config and config.pipeline.use_own_llm and llm and llm.available
 
     metadata: dict = {}
@@ -117,6 +124,7 @@ def run_llm_fix_loop(
     llm: LLMClient, builder: DotnetBuilder, notify: Notify,
     max_attempts: int = 3, user_rules: str = "",
     error_fixes_data: dict = None,
+    namespace_restriction: str = "",
 ) -> StageOutcome:
     """Stage 2: Loop LLM fix attempts."""
     if not llm.available:
@@ -124,6 +132,10 @@ def run_llm_fix_loop(
 
     last_err = error_log
     current_code = code
+
+    # Prepend namespace restriction to user rules so LLM avoids forbidden namespaces
+    if namespace_restriction:
+        user_rules = f"{namespace_restriction}\n\n{user_rules}" if user_rules else namespace_restriction
 
     for attempt in range(1, max_attempts + 1):
         notify("llm_fix", f"LLM fix attempt {attempt}/{max_attempts}...")
@@ -226,6 +238,7 @@ def run_regen_loop(
     error_catalog: list = None,
     error_fixes_data: dict = None,
     generation_rules: str = "",
+    namespace_restriction: str = "",
 ) -> StageOutcome:
     """Stage 4: Regeneration with enriched context and KB rules."""
     max_attempts = config.pipeline.regen_attempts
@@ -283,6 +296,10 @@ def run_regen_loop(
                 retry_instruction=retry_inst,
                 rules_text=rules_text,
             )
+
+        # Inject namespace restriction into the prompt for this attempt
+        if namespace_restriction:
+            prompt = f"{namespace_restriction}\n\n{prompt}"
 
         notify("regen", f"MCP regen attempt {attempt}/{max_attempts}...")
         use_own_llm = config.pipeline.use_own_llm and llm and llm.available
@@ -347,6 +364,7 @@ def run_final_llm_recovery(
     config: AppConfig,
     error_fixes_data: dict = None,
     generation_rules: str = "",
+    namespace_restriction: str = "",
 ) -> StageOutcome:
     """Stage 5: One last LLM fix attempt using last regen code."""
     if not llm.available or not code:
@@ -355,6 +373,10 @@ def run_final_llm_recovery(
     notify("final_llm", "Final LLM recovery attempt...")
     error_lines = extract_errors(error_log, limit=10)
     error_summary = "\n".join(error_lines[:5]) if error_lines else "Build errors detected."
+
+    # Prepend namespace restriction to rules so LLM avoids forbidden namespaces
+    if namespace_restriction:
+        generation_rules = f"{namespace_restriction}\n\n{generation_rules}" if generation_rules else namespace_restriction
 
     # Match relevant error fixes for this final attempt
     rules_for_llm = generation_rules

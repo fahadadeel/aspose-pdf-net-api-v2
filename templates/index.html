@@ -908,7 +908,7 @@
     <span class="subtitle">Automated Code Generation &amp; Testing Pipeline</span>
   </div>
   <div class="header-actions">
-    <a href="/results" class="btn-docs" style="text-decoration:none;">&#128202; Results</a>
+    <a href="/results-v2" class="btn-docs" style="text-decoration:none;">&#128202; Results</a>
     <button class="btn-release" id="version-bump-btn" onclick="startVersionBump()">&#x1F3F7;&#xFE0F; New Release</button>
     <span class="repo-badge">{{ repo_display }} : {{ repo_branch }}{% if pr_target_branch %} &rarr; {{ pr_target_branch }}{% endif %}</span>
     <button class="btn hidden" id="run-again-btn" onclick="runAgain()">&#9654; Run Again</button>
@@ -2320,6 +2320,123 @@
       .then(function() { loadAutoFixes(); })
       .catch(function(err) { alert('Error: ' + err); });
   };
+
+  /* ── Retry Failed from Results Dashboard ──────────────────── */
+  // When redirected from /results with ?sweep_categories=["Category Name"],
+  // auto-switch to Task Generator tab, load categories, select the target, and show sweep button.
+  (function checkSweepParams() {
+    var params = new URLSearchParams(window.location.search);
+    var sweepJson = params.get('sweep_categories');
+    if (!sweepJson) return;
+
+    var categories;
+    try { categories = JSON.parse(sweepJson); } catch(e) { return; }
+    if (!categories || categories.length === 0) return;
+
+    // Switch to Task Generator tab
+    switchTab('taskgen');
+
+    // Wait for categories to load, then select the target ones
+    var listEl = document.getElementById('category-list');
+    listEl.innerHTML = '<div class="task-placeholder"><span class="loading-spinner"></span>Loading categories...</div>';
+
+    fetch('/api/categories')
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        categoriesLoaded = true;
+        var allCats = data.categories || data || [];
+        if (!Array.isArray(allCats)) allCats = [];
+        listEl.innerHTML = '';
+
+        allCats.forEach(function(cat) {
+          var catName = (typeof cat === 'string') ? cat : (cat.name || cat.title || cat.category || JSON.stringify(cat));
+          var item = document.createElement('div');
+          item.className = 'category-item';
+          item.textContent = catName;
+          item.setAttribute('data-category', catName);
+
+          // Highlight if this is a target category
+          if (categories.indexOf(catName) !== -1) {
+            item.classList.add('active');
+            loadTasksForCategory(catName);
+          }
+
+          item.onclick = function(e) {
+            if (e.shiftKey) {
+              item.classList.toggle('active');
+              if (item.classList.contains('active')) {
+                loadTasksForCategory(catName);
+              } else {
+                removeTasksForCategory(catName);
+              }
+            } else {
+              var wasActive = item.classList.contains('active');
+              document.querySelectorAll('.category-item.active').forEach(function(c) {
+                var cn = c.getAttribute('data-category');
+                c.classList.remove('active');
+                if (cn !== catName) delete _categoryTasks[cn];
+              });
+              if (!wasActive) {
+                item.classList.add('active');
+                _categoryTasks = {};
+                loadTasksForCategory(catName);
+              } else {
+                _categoryTasks = {};
+                rerenderAllTasks();
+              }
+            }
+          };
+          listEl.appendChild(item);
+        });
+
+        // Show sweep button
+        document.getElementById('sweep-btn').style.display = '';
+      })
+      .catch(function(err) {
+        listEl.innerHTML = '<div class="task-placeholder">Failed to load categories</div>';
+      });
+
+    // Clean URL without reloading
+    window.history.replaceState({}, '', '/');
+  })();
+
+  // When redirected from /results with ?retry_category=X&retry_tasks=[...],
+  // auto-switch to Task Generator tab, inject failed tasks, and select all.
+  (function checkRetryParams() {
+    var params = new URLSearchParams(window.location.search);
+    var retryCat = params.get('retry_category');
+    var retryTasksJson = params.get('retry_tasks');
+    if (!retryCat || !retryTasksJson) return;
+
+    var tasks;
+    try { tasks = JSON.parse(retryTasksJson); } catch(e) { return; }
+    if (!tasks || tasks.length === 0) return;
+
+    // Switch to Task Generator tab
+    switchTab('taskgen');
+
+    // Inject failed tasks directly (skip category API fetch)
+    _categoryTasks[retryCat] = tasks;
+    categoriesLoaded = true;
+
+    // Render the category list with just this category highlighted
+    var listEl = document.getElementById('category-list');
+    listEl.innerHTML = '';
+    var item = document.createElement('div');
+    item.className = 'category-item active';
+    item.textContent = retryCat + ' (' + tasks.length + ' failed)';
+    item.setAttribute('data-category', retryCat);
+    listEl.appendChild(item);
+
+    // Render tasks and pre-select all
+    rerenderAllTasks();
+    setTimeout(function() {
+      selectAllTasks(true);
+    }, 50);
+
+    // Clean URL without reloading
+    window.history.replaceState({}, '', '/');
+  })();
 
 })();
 </script>

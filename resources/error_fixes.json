@@ -1,4 +1,14 @@
 {
+  "borderinfo-no-color-width-properties": {
+    "note": "BorderInfo does not have settable .Color or .Width properties. Use the constructor instead: new BorderInfo(BorderSide.All, (float)width, color). Pass BorderSide, width as float, and Aspose.Pdf.Color through the constructor.",
+    "code": "// WRONG:\n// BorderInfo b = new BorderInfo();\n// b.Color = Aspose.Pdf.Color.Blue;  // CS1061\n// b.Width = 1.5;                    // CS1061\n\n// CORRECT:\nAspose.Pdf.Color borderColor = Aspose.Pdf.Color.Blue;\nfloat borderWidth = 1.5f;\ncell.Border = new BorderInfo(BorderSide.All, borderWidth, borderColor);\n\n// Width-only variant:\ncell.Border = new BorderInfo(BorderSide.All, 1f);\n\n// Cast from double if needed:\ncell.Border = new BorderInfo(BorderSide.All, (float)someDoubleWidth, Aspose.Pdf.Color.Green);",
+    "errors": [
+      "CS1061: 'BorderInfo' does not contain a definition for 'Color' and no accessible extension method 'Color' accepting a first argument of type 'BorderInfo' could be found",
+      "CS1061: 'BorderInfo' does not contain a definition for 'Width' and no accessible extension method 'Width' accepting a first argument of type 'BorderInfo' could be found",
+      "'BorderInfo' does not contain a definition for 'Color'",
+      "'BorderInfo' does not contain a definition for 'Width'"
+    ]
+  },
   "numberingstyle-enum-correct-values": {
     "note": "NumberingStyle enum uses full descriptive names: NumeralsRomanLowercase, NumeralsRomanUppercase, NumeralsArabic, LettersLowercase, LettersUppercase, None. Short-form names like LowerRoman, UpperRoman, Arabic, Roman do not exist.",
     "code": "PageNumberStamp stamp = new PageNumberStamp();\nstamp.NumberingStyle = NumberingStyle.NumeralsRomanLowercase; // was: NumberingStyle.LowerRoman\n// Other valid values:\n// NumberingStyle.NumeralsRomanUppercase\n// NumberingStyle.NumeralsArabic\n// NumberingStyle.LettersLowercase\n// NumberingStyle.LettersUppercase\n// NumberingStyle.None",
@@ -12010,13 +12020,11 @@
     ]
   },
   "docmdpsignature-use-certify-not-sign": {
-    "note": "DocMDPSignature cannot be passed to PdfFileSignature.Sign() — use Certify() instead. Correct DocMDPAccessPermissions: NoChanges, FillingInForms, AnnotationModification.",
-    "code": "using Aspose.Pdf.Forms;\nusing Aspose.Pdf.Facades;\n\nPdfFileSignature pdfSign = new PdfFileSignature();\npdfSign.BindPdf(inputPath);\nPKCS7Detached sig = new PKCS7Detached(pfxPath, password);\nDocMDPSignature docMdp = new DocMDPSignature(sig, DocMDPAccessPermissions.FillingInForms);\nSystem.Drawing.Rectangle rect = new System.Drawing.Rectangle(100, 100, 200, 50);\npdfSign.Certify(1, \"Certified\", \"contact\", \"location\", true, rect, docMdp);\npdfSign.Save(outputPath);",
+    "note": "DocMDPSignature cannot be passed to SignatureField.Sign() — Sign() expects a Signature (PKCS7/PKCS1), not DocMDPSignature. To apply a DocMDP certification, use PdfFileSignature.Certify() from Aspose.Pdf.Facades. Certify() accepts a DocMDPSignature and applies certification-level restrictions.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Facades;\nusing Aspose.Pdf.Forms;\n\n// Create the signature and DocMDP wrapper\nPKCS7 pkcs7 = new PKCS7(\"certificate.pfx\", \"password\");\npkcs7.Reason = \"Document certified\";\nDocMDPSignature mdp = new DocMDPSignature(pkcs7, DocMDPAccessPermissions.AnnotationModification);\n\n// Use PdfFileSignature.Certify() — NOT sigField.Sign(mdp)\nPdfFileSignature signer = new PdfFileSignature();\nsigner.BindPdf(\"input.pdf\");\nSystem.Drawing.Rectangle rect = new System.Drawing.Rectangle(100, 100, 200, 100);\nsigner.Certify(1, \"Certified\", \"contact@example.com\", \"Location\", true, rect, mdp);\nsigner.Save(\"certified.pdf\");\nsigner.Close();\n\n// WRONG:\n// sigField.Sign(docMdpSignature); // CS1503: cannot convert DocMDPSignature to Signature",
     "errors": [
       "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Forms.DocMDPSignature' to 'Aspose.Pdf.Forms.Signature'",
-      "CS0117: 'DocMDPAccessPermissions' does not contain a definition for 'NoChangesExceptFormFilling'",
-      "CS0117: 'DocMDPAccessPermissions' does not contain a definition for 'Annotations'",
-      "CS0117: 'DocMDPAccessPermissions' does not contain a definition for 'AdditionalPages'"
+      "CS1503: cannot convert from 'DocMDPSignature' to 'Signature'"
     ]
   },
   "icustomsecurityhandler-does-not-exist-use-pdffilesecurity": {
@@ -13153,6 +13161,128 @@
     "code": "// Before fix (WRONG):\nfragment.TextState.Direction = TextDirection.RightToLeft;  // CS1061\n\n// After fix (CORRECT):\nvar builder = new Aspose.Pdf.Text.TextBuilder(page);\nvar paragraph = new Aspose.Pdf.Text.TextParagraph();\nparagraph.FormattingOptions = new Aspose.Pdf.Text.TextFormattingOptions() { WrapMode = Aspose.Pdf.Text.TextFormattingOptions.WordWrapMode.ByWords };\nvar fragment = new Aspose.Pdf.Text.TextFragment(\"مرحبا\");\nfragment.TextState.Font = Aspose.Pdf.Text.FontRepository.FindFont(\"Arial\");\nparagraph.AppendLine(fragment);\nbuilder.AppendParagraph(paragraph);",
     "errors": [
       "CS1061: 'TextFragmentState' does not contain a definition for 'Direction'"
+    ]
+  },
+  "signature-is-abstract-use-pkcs7": {
+    "note": "Aspose.Pdf.Forms.Signature is an abstract class — cannot instantiate with 'new Signature(certPath, password)'. Use 'new PKCS7(certPath, password)' (from Aspose.Pdf.Forms) for PKCS#7 attached signatures, or 'new PKCS7Detached(certPath, password)' for detached. For PKCS#1: 'new PKCS1(certPath, password)'. The concrete classes PKCS7, PKCS7Detached, and PKCS1 all extend Signature.",
+    "code": "using Aspose.Pdf.Forms;\n\n// CORRECT — concrete classes:\nPKCS7 pkcs7 = new PKCS7(\"certificate.pfx\", \"password\");\npkcs7.Reason = \"Document approved\";\npkcs7.Location = \"Office\";\npkcs7.ContactInfo = \"contact@example.com\";\n\n// Or detached:\nPKCS7Detached detached = new PKCS7Detached(\"certificate.pfx\", \"password\");\n\n// Or PKCS1 (from Aspose.Pdf.Facades):\n// PKCS1 pkcs1 = new PKCS1(\"certificate.pfx\", \"password\");\n\n// WRONG — abstract class, causes CS0144:\n// Signature sig = new Signature(\"certificate.pfx\", \"password\");",
+    "errors": [
+      "CS0144: Cannot create an instance of the abstract type or interface 'Signature'",
+      "CS0144: Cannot create an instance of the abstract class or interface 'Signature'"
+    ]
+  },
+  "digesthashalgorithm-sha256-pascal-case": {
+    "note": "DigestHashAlgorithm enum values use PascalCase, NOT ALL_CAPS. Correct: Sha256, Sha384, Sha512, Sha1, Sha3_256, Sha3_384, Sha3_512, Auto. Wrong: SHA256, SHA384, SHA512, SHA1.",
+    "code": "using Aspose.Pdf;\n\n// CORRECT — PascalCase:\nDigestHashAlgorithm digest = DigestHashAlgorithm.Sha256;\n// Other valid values: Auto, Sha1, Sha256, Sha384, Sha512, Sha3_256, Sha3_384, Sha3_512\n\npkcs7.TimestampSettings = new TimestampSettings(\"http://timestamp.example.com\", \"\", DigestHashAlgorithm.Sha256);\n\n// WRONG — ALL_CAPS does not exist:\n// DigestHashAlgorithm.SHA256  // CS0117\n// DigestHashAlgorithm.SHA384  // CS0117",
+    "errors": [
+      "CS0117: 'DigestHashAlgorithm' does not contain a definition for 'SHA256'",
+      "CS0117: 'DigestHashAlgorithm' does not contain a definition for 'SHA384'",
+      "CS0117: 'DigestHashAlgorithm' does not contain a definition for 'SHA512'",
+      "CS0117: 'DigestHashAlgorithm' does not contain a definition for 'SHA1'"
+    ]
+  },
+  "docmdpaccesspermissions-no-addnewpages": {
+    "note": "DocMDPAccessPermissions has only 3 values: NoChanges (1), FillingInForms (2), AnnotationModification (3). 'AddNewPages' does NOT exist. For allowing annotations after signing, use AnnotationModification. For form filling only, use FillingInForms. For no changes, use NoChanges.",
+    "code": "using Aspose.Pdf.Forms;\n\n// Valid values:\nDocMDPAccessPermissions.NoChanges;             // Level 1: no changes allowed\nDocMDPAccessPermissions.FillingInForms;         // Level 2: form filling + signing allowed\nDocMDPAccessPermissions.AnnotationModification; // Level 3: annotations + form filling + signing\n\n// WRONG — does not exist:\n// DocMDPAccessPermissions.AddNewPages     // CS0117\n// DocMDPAccessPermissions.FormFilling     // CS0117 (correct: FillingInForms)",
+    "errors": [
+      "CS0117: 'DocMDPAccessPermissions' does not contain a definition for 'AddNewPages'",
+      "CS0117: 'DocMDPAccessPermissions' does not contain a definition for 'FormFilling'",
+      "CS0117: 'DocMDPAccessPermissions' does not contain a definition for 'AllowAll'"
+    ]
+  },
+  "customsignhash-takes-two-params": {
+    "note": "The PKCS7.CustomSignHash delegate (type SignHash) takes TWO parameters: (byte[] hash, DigestHashAlgorithm digestHashAlgorithm). Not one. The lambda must accept both parameters even if the second is unused.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nPKCS7 pkcs7 = new PKCS7(\"certificate.pfx\", \"password\");\n\n// CORRECT — two parameters:\npkcs7.CustomSignHash = (byte[] hash, DigestHashAlgorithm alg) =>\n{\n    // Custom signing logic here\n    return hash;\n};\n\n// WRONG — one parameter causes CS1593:\n// pkcs7.CustomSignHash = (hash) => { return hash; };",
+    "errors": [
+      "CS1593: Delegate 'SignHash' does not take 1 arguments",
+      "CS1593: Delegate 'SignHash' does not take 1 argument"
+    ]
+  },
+  "form-add-field-page-number-not-page-object": {
+    "note": "Document.Form.Add(field, pageNumber) expects an int page number (1-based), NOT a Page object. Pass the page number directly: doc.Form.Add(field, 1). Passing a Page object causes CS1503.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\nDocument doc = new Document();\nPage page = doc.Pages.Add();\nSignatureField sigField = new SignatureField(page, new Aspose.Pdf.Rectangle(100, 100, 300, 200));\n\n// CORRECT — pass int page number:\ndoc.Form.Add(sigField, 1);\n\n// WRONG — passing Page object:\n// doc.Form.Add(sigField, page); // CS1503: cannot convert from 'Page' to 'int'",
+    "errors": [
+      "CS1503: Argument 2: cannot convert from 'Aspose.Pdf.Page' to 'int'",
+      "CS1503: cannot convert from 'Aspose.Pdf.Page' to 'int'"
+    ]
+  },
+  "form-signatures-not-exist-use-fields": {
+    "note": "Document.Form.Signatures property does NOT exist. To iterate over signature fields, loop through Form.Fields and check for SignatureField type. Also: Signature.Name does not exist (use SignatureField.PartialName), SignatureAlgorithmInfo.AlgorithmName does not exist, ValidationResult.ErrorMessage does not exist.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Forms;\n\n// CORRECT — iterate Form.Fields and filter for SignatureField:\nforeach (Field field in doc.Form.Fields)\n{\n    if (field is SignatureField sigField)\n    {\n        Console.WriteLine($\"Signature field: {sigField.PartialName}\");\n        // Use sigField.PartialName (NOT .Name)\n    }\n}\n\n// WRONG:\n// foreach (Signature sig in doc.Form.Signatures) // CS1061: Form has no 'Signatures'\n// Console.WriteLine(sig.Name); // CS1061: Signature has no 'Name'",
+    "errors": [
+      "CS1061: 'Form' does not contain a definition for 'Signatures'",
+      "CS1061: 'Signature' does not contain a definition for 'Name'",
+      "CS1061: 'SignatureAlgorithmInfo' does not contain a definition for 'AlgorithmName'",
+      "CS1061: 'ValidationResult' does not contain a definition for 'ErrorMessage'"
+    ]
+  },
+  "pdf-operators-gsave-grestore-not-q-Q": {
+    "note": "PDF operator classes in Aspose.Pdf.Operators use descriptive names, NOT the raw PDF operator codes. 'q' (save graphics state) = GSave, 'Q' (restore) = GRestore, 'rg' (set RGB fill) = SetRGBColor, 'RG' (set RGB stroke) = SetRGBColorStroke, 're' (rectangle) = Re, 'm' (moveto) = MoveTo, 'l' (lineto) = LineTo, 'c' (curveto) = CurveTo, 'h' (close path) = ClosePath, 'f' (fill) = Fill, 'S' (stroke) = Stroke, 'W' (clip) = Clip, 'cm' (concat matrix) = ConcatenateMatrix.",
+    "code": "using Aspose.Pdf.Operators;\n\n// CORRECT — descriptive class names:\npage.Contents.Add(new GSave());                       // was: new q()\npage.Contents.Add(new SetRGBColor(1, 0, 0));          // red fill color\npage.Contents.Add(new Re(100, 100, 200, 50));         // draw rectangle\npage.Contents.Add(new Fill());                        // fill the path\npage.Contents.Add(new GRestore());                    // was: new Q()\n\n// WRONG — raw PDF codes are not class names:\n// new q();  // CS0246\n// new Q();  // CS0246",
+    "errors": [
+      "CS0246: The type or namespace name 'q' could not be found",
+      "CS0246: The type or namespace name 'Q' could not be found"
+    ]
+  },
+  "hallucinated-operators-setlayer-setfillcolor-settransparency": {
+    "note": "The operator classes SetLayer, SetFillColor, and SetTransparency do NOT exist in Aspose.Pdf.Operators. For fill color use SetRGBColor(r,g,b) or SetColor. For transparency use the ExtGState graphics state with GS operator. For layers use Aspose.Pdf.Layer class on the page.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Operators;\n\n// For fill color:\npage.Contents.Add(new GSave());\npage.Contents.Add(new SetRGBColor(1, 0, 0)); // red fill\n\n// For transparency — use Drawing API instead of raw operators:\nAspose.Pdf.Drawing.Graph graph = new Aspose.Pdf.Drawing.Graph(200f, 200f);\nAspose.Pdf.Drawing.Rectangle rect = new Aspose.Pdf.Drawing.Rectangle(0, 0, 200, 200);\nrect.GraphInfo.FillColor = Aspose.Pdf.Color.Red;\nrect.GraphInfo.Color = Aspose.Pdf.Color.Red;\ngraph.Shapes.Add(rect);\npage.Paragraphs.Add(graph);\npage.Contents.Add(new GRestore());\n\n// WRONG — these classes don't exist:\n// new SetLayer(...)         // CS0246\n// new SetFillColor(...)     // CS0246\n// new SetTransparency(...)  // CS0246",
+    "errors": [
+      "CS0246: The type or namespace name 'SetLayer' could not be found",
+      "CS0246: The type or namespace name 'SetFillColor' could not be found",
+      "CS0246: The type or namespace name 'SetTransparency' could not be found"
+    ]
+  },
+  "graph-shapes-add-takes-shape-not-textfragment": {
+    "note": "Graph.Shapes.Add() only accepts Aspose.Pdf.Drawing.Shape objects (Rectangle, Circle, Line, Arc, Curve, Path, Ellipse). It does NOT accept TextFragment. To add text labels near a graph, use page.Paragraphs.Add(textFragment) separately. Also, Drawing.Rectangle constructor takes float, not double — use literal 'f' suffix.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Drawing;\nusing Aspose.Pdf.Text;\n\n// Graph shapes — use float literals:\nGraph graph = new Graph(400f, 300f);\nAspose.Pdf.Drawing.Rectangle bar = new Aspose.Pdf.Drawing.Rectangle(10f, 10f, 50f, 100f);\nbar.GraphInfo.FillColor = Aspose.Pdf.Color.Blue;\ngraph.Shapes.Add(bar); // OK — Shape type\n\n// Text labels go on the page, NOT in graph.Shapes:\nTextFragment label = new TextFragment(\"Label\");\npage.Paragraphs.Add(graph);\npage.Paragraphs.Add(label);\n\n// WRONG:\n// graph.Shapes.Add(textFragment); // CS1503: cannot convert TextFragment to Shape",
+    "errors": [
+      "CS1503: Argument 1: cannot convert from 'Aspose.Pdf.Text.TextFragment' to 'Aspose.Pdf.Drawing.Shape'",
+      "CS1503: cannot convert from 'double' to 'float'"
+    ]
+  },
+  "ambiguous-rectangle-and-path-with-drawing-namespace": {
+    "note": "When using both 'using Aspose.Pdf;' and 'using Aspose.Pdf.Drawing;', Rectangle and Path become ambiguous (CS0104). Rectangle: Aspose.Pdf.Rectangle (for annotations, fields) vs Aspose.Pdf.Drawing.Rectangle (for Graph shapes). Path: Aspose.Pdf.Drawing.Path (for graph shapes) vs System.IO.Path (for file operations). Always fully qualify these types.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Drawing;\nusing System.IO;\n\n// Fully qualify to avoid ambiguity:\nAspose.Pdf.Rectangle annotRect = new Aspose.Pdf.Rectangle(100, 100, 200, 200);\nAspose.Pdf.Drawing.Rectangle drawRect = new Aspose.Pdf.Drawing.Rectangle(10f, 10f, 50f, 30f);\n\n// File path operations:\nstring filePath = System.IO.Path.Combine(\"output\", \"file.pdf\");\n\n// Drawing path for graphs:\nAspose.Pdf.Drawing.Path drawPath = new Aspose.Pdf.Drawing.Path();\n\n// WRONG — ambiguous without qualification:\n// Rectangle rect = new Rectangle(...); // CS0104\n// Path.Combine(...);                   // CS0104",
+    "errors": [
+      "CS0104: 'Rectangle' is an ambiguous reference between 'Aspose.Pdf.Drawing.Rectangle' and 'Aspose.Pdf.Rectangle'",
+      "CS0104: 'Path' is an ambiguous reference between 'Aspose.Pdf.Drawing.Path' and 'System.IO.Path'"
+    ]
+  },
+  "filespecification-no-file-no-mimetype-properties": {
+    "note": "FileSpecification does NOT have 'File' or 'MimeType' properties. Set the file path and description via the constructor: new FileSpecification(filePath, description). Use .Name for the display name and .Description for the description. MimeType is not a settable property. The Icon enum for FileAttachmentAnnotation is 'FileIcon' (not 'FileAttachmentAnnotationIcons').",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Annotations;\n\n// CORRECT — use constructor parameters:\nFileSpecification fileSpec = new FileSpecification(\"data.csv\", \"CSV data file\");\nfileSpec.Description = \"Quarterly report data\";\n// fileSpec.Name is auto-set from file path\n\nFileAttachmentAnnotation annot = new FileAttachmentAnnotation(\n    page, new Aspose.Pdf.Rectangle(10, 10, 30, 30), fileSpec);\nannot.Icon = FileIcon.PushPin; // NOT FileAttachmentAnnotationIcons.PushPin\n// Valid: FileIcon.PushPin, FileIcon.Graph, FileIcon.Paperclip, FileIcon.Tag\ndoc.Pages[1].Annotations.Add(annot);\n\n// WRONG:\n// fileSpec.File = \"data.csv\";   // CS0117: no 'File' property\n// fileSpec.MimeType = \"text/csv\"; // CS0117: no 'MimeType' property\n// annot.Icon = FileAttachmentAnnotationIcons.PushPin; // CS0103",
+    "errors": [
+      "CS0117: 'FileSpecification' does not contain a definition for 'File'",
+      "CS0117: 'FileSpecification' does not contain a definition for 'MimeType'",
+      "CS0103: The name 'FileAttachmentAnnotationIcons' does not exist in the current context"
+    ]
+  },
+  "page-has-no-columninfo-use-floatingbox": {
+    "note": "Page.ColumnInfo does NOT exist. For multi-column text layouts use FloatingBox with its ColumnInfo property. FloatingBox supports ColumnInfo.ColumnCount, ColumnInfo.ColumnWidths (space-separated string), and ColumnInfo.ColumnSpacing.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Text;\n\nDocument doc = new Document();\nPage page = doc.Pages.Add();\n\n// CORRECT — use FloatingBox for multi-column layout:\nFloatingBox box = new FloatingBox();\nbox.ColumnInfo = new ColumnInfo\n{\n    ColumnCount = 2,\n    ColumnWidths = \"250 250\",\n    ColumnSpacing = \"10\"\n};\n\nbox.Paragraphs.Add(new TextFragment(\"Column 1 text here...\"));\nbox.Paragraphs.Add(new TextFragment(\"Column 2 text continues...\"));\npage.Paragraphs.Add(box);\n\n// WRONG:\n// page.ColumnInfo = ...; // CS1061: Page has no ColumnInfo",
+    "errors": [
+      "CS1061: 'Page' does not contain a definition for 'ColumnInfo'"
+    ]
+  },
+  "javascriptcollection-not-iterable-use-keys": {
+    "note": "JavaScriptCollection does NOT implement IEnumerable — you cannot use 'foreach' directly on it. Instead iterate via the .Keys property (IList<string>) and use the indexer [key] to get each script. Also, PageActionCollection only has OnOpen and OnClose — properties like BeforeClosing, BeforePrinting, BeforeSaving, AfterPrinting, AfterSaving do NOT exist.",
+    "code": "using Aspose.Pdf;\n\n// CORRECT — iterate via Keys:\nif (doc.JavaScript != null)\n{\n    foreach (string key in doc.JavaScript.Keys)\n    {\n        string script = doc.JavaScript[key];\n        Console.WriteLine($\"JS '{key}': {script}\");\n    }\n}\n\n// Page actions — only OnOpen and OnClose exist:\nforeach (Page pg in doc.Pages)\n{\n    if (pg.Actions.OnOpen != null)\n        Console.WriteLine($\"Page {pg.Number} has OnOpen action\");\n    if (pg.Actions.OnClose != null)\n        Console.WriteLine($\"Page {pg.Number} has OnClose action\");\n}\n\n// WRONG:\n// foreach (var js in doc.JavaScript) { }  // CS1579: no GetEnumerator\n// page.Actions.BeforeClosing   // CS1061\n// page.Actions.BeforePrinting  // CS1061",
+    "errors": [
+      "CS1579: foreach statement cannot operate on variables of type 'JavaScriptCollection' because 'JavaScriptCollection' does not contain a public instance or extension definition for 'GetEnumerator'",
+      "CS1061: 'PageActionCollection' does not contain a definition for 'BeforeClosing'",
+      "CS1061: 'PageActionCollection' does not contain a definition for 'BeforePrinting'",
+      "CS1061: 'PageActionCollection' does not contain a definition for 'BeforeSaving'",
+      "CS1061: 'PageActionCollection' does not contain a definition for 'AfterPrinting'",
+      "CS1061: 'PageActionCollection' does not contain a definition for 'AfterSaving'"
+    ]
+  },
+  "javascriptaction-lowercase-s": {
+    "note": "The class name is 'JavascriptAction' (lowercase 's'), NOT 'JavaScriptAction' (uppercase 'S'). It lives in Aspose.Pdf.Annotations namespace. Similarly, TextBoxField is in Aspose.Pdf.Forms namespace — add 'using Aspose.Pdf.Forms;'.",
+    "code": "using Aspose.Pdf;\nusing Aspose.Pdf.Annotations; // JavascriptAction\nusing Aspose.Pdf.Forms;       // TextBoxField\n\n// CORRECT:\ndoc.OpenAction = new JavascriptAction(\"app.alert('Hello');\");\n\nTextBoxField tbf = new TextBoxField(page, new Aspose.Pdf.Rectangle(10, 10, 200, 30));\ntbf.Value = \"Sample text\";\ndoc.Form.Add(tbf);\n\n// WRONG:\n// new JavaScriptAction(...); // CS0246 — uppercase 'S'\n// TextBoxField without 'using Aspose.Pdf.Forms;' // CS0246",
+    "errors": [
+      "CS0246: The type or namespace name 'JavaScriptAction' could not be found",
+      "CS0246: The type or namespace name 'TextBoxField' could not be found"
     ]
   }
 }

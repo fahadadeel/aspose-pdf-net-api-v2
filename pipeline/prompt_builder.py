@@ -5,6 +5,28 @@ pipeline/prompt_builder.py — Build enhanced prompts for retry stages.
 from typing import List
 
 
+def build_namespace_restriction(category: str, exclude_namespaces: list = None) -> str:
+    """Return a prompt instruction forbidding excluded namespaces for non-facade categories.
+
+    Mirrors the logic in mcp_client.py — facade categories are allowed to use
+    Aspose.Pdf.Facades, all others must not.
+    """
+    cat_lower = (category or "").lower()
+    if "facades" in cat_lower:
+        return ""  # Facade categories are allowed
+    ns_list = exclude_namespaces or ["Aspose.Pdf.Plugins", "Aspose.Pdf.Facades"]
+    if not ns_list:
+        return ""
+    ns_str = ", ".join(ns_list)
+    return (
+        f"NAMESPACE RESTRICTION: Do NOT use the following namespaces: {ns_str}. "
+        f"Do not add 'using {ns_list[0]};' or 'using {ns_list[-1]};'. "
+        "Use only the core Aspose.Pdf.* APIs (e.g. Document, Page, TextFragment, Table, "
+        "TextAbsorber) — not Facades wrappers like PdfFileEditor, FormEditor, PdfFileSecurity, "
+        "PdfFileStamp, PdfFileMend."
+    )
+
+
 def build_retry_instruction(attempt: int, error_codes: List[str] = None) -> str:
     """Return attempt-specific coding constraint for retry prompt."""
     if attempt <= 1:

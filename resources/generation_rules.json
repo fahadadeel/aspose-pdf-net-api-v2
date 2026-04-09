@@ -4,6 +4,16 @@
   "version": "26.2.0",
   "rules": {
     "__comment_section_1__": "=== GLOBAL RULES \u2014 apply across ALL tasks ===",
+    "borderinfo-no-color-width-properties": {
+      "note": "BorderInfo does not expose settable .Color or .Width properties after construction. Pass BorderSide, width (float), and color through the constructor: new BorderInfo(BorderSide.All, (float)width, color). This applies to cell.Border, table.Border, table.DefaultCellBorder, and any other BorderInfo assignment.",
+      "code": "// CORRECT \u2014 use the BorderInfo constructor with BorderSide, width, and color:\nAspose.Pdf.Color borderColor = Aspose.Pdf.Color.Blue;\nfloat borderWidth = 1.5f;\ncell.Border = new BorderInfo(BorderSide.All, borderWidth, borderColor);\n\n// CORRECT \u2014 width-only (no color):\ncell.Border = new BorderInfo(BorderSide.All, 1f);\n\n// CORRECT \u2014 explicit cast from double if needed:\ndouble w = 2.0;\ncell.Border = new BorderInfo(BorderSide.All, (float)w, Aspose.Pdf.Color.Green);\n\n// WRONG \u2014 .Color and .Width are not settable properties (CS1061):\n// BorderInfo b = new BorderInfo();\n// b.Color = Aspose.Pdf.Color.Blue;  // CS1061\n// b.Width = 1.5;                    // CS1061",
+      "errors": [
+        "CS1061: 'BorderInfo' does not contain a definition for 'Color' and no accessible extension method 'Color' accepting a first argument of type 'BorderInfo' could be found",
+        "CS1061: 'BorderInfo' does not contain a definition for 'Width' and no accessible extension method 'Width' accepting a first argument of type 'BorderInfo' could be found"
+      ],
+      "works_on": ["Windows", "macOS", "Linux"],
+      "fails_on": []
+    },
     "no-document-attachzugferd-use-embeddedfiles": {
       "note": "There is no Document.AttachZUGFeRD() method in Aspose.PDF 26.x, and there is no Aspose.Pdf.Facades.ZUGFeRD class. To embed a ZUGFeRD XML into a PDF, create a FileSpecification from the XML stream with AFRelationship.Data and add it to Document.EmbeddedFiles. For ZUGFeRD compliance the document should also be converted to PDF/A-3B.",
       "code": "// CORRECT \u2014 use FileSpecification + EmbeddedFiles.Add with AFRelationship.Data:\nusing Aspose.Pdf;\n\nusing (Document document = new Document(\"input.pdf\"))\n{\n    using (FileStream xmlStream = File.OpenRead(\"invoice.xml\"))\n    {\n        var fileSpec = new FileSpecification(xmlStream, \"invoice.xml\", \"ZUGFeRD Invoice XML\")\n        {\n            MIMEType = \"application/xml\",\n            AFRelationship = AFRelationship.Data\n        };\n        document.EmbeddedFiles.Add(fileSpec);\n    }\n    // Convert to PDF/A-3B for ZUGFeRD compliance\n    document.Convert(\"log.xml\", PdfFormat.PDF_A_3B, ConvertErrorAction.Delete);\n    document.Save(\"output.pdf\");\n}\n\n// WRONG \u2014 Document.AttachZUGFeRD does not exist (CS1061):\n// document.AttachZUGFeRD(\"invoice.xml\");\n\n// WRONG \u2014 Aspose.Pdf.Facades.ZUGFeRD class does not exist (CS0246):\n// var zugferd = new ZUGFeRD();\n// zugferd.AttachZUGFeRD(document, \"invoice.xml\");",

@@ -28,3 +28,20 @@ async def results_page(request: Request):
             "nuget_version": nuget_version,
         },
     )
+
+
+@router.get("/results-v2", response_class=HTMLResponse)
+async def results_v2_page(request: Request):
+    """Redesigned Results Dashboard (v2)."""
+    cfg = load_config()
+    pr_target_branch = cfg.git.pr_target_branch or ""
+    nuget_version = cfg.build.nuget_version
+
+    return templates.TemplateResponse(
+        request=request,
+        name="results-v2.html",
+        context={
+            "pr_target_branch": pr_target_branch,
+            "nuget_version": nuget_version,
+        },
+    )

@@ -431,6 +431,49 @@ async def api_resume(job_id: str):
     return {"status": "resumed"}
 
 
+@router.get("/api/failed-tasks/{category:path}")
+async def api_failed_tasks(category: str):
+    """Return failed task dicts for a category from disk results.
+
+    Used by the Results Dashboard to send failed tasks to the Build Monitor
+    for retry.  Returns the same task-dict format that /api/start-tasks expects.
+
+    The category param is the disk slug (e.g. "securing_and_signing_pdf").
+    The returned task dicts use the original category name from the JSON file
+    (e.g. "Securing and signing PDF") so run_pipeline handles them correctly.
+    """
+    from config import load_config
+    from persistence import load_results, versioned_results_dir
+
+    config = load_config()
+    results_dir = versioned_results_dir(config.results_dir, config.build.nuget_version)
+    results = load_results(results_dir, category)
+
+    # Read the original category name from the JSON file
+    import json as _json
+    from pathlib import Path as _Path
+    json_path = _Path(results_dir) / f"{category}.json"
+    original_category = category
+    if json_path.exists():
+        try:
+            raw = _json.loads(json_path.read_text(encoding="utf-8"))
+            original_category = raw.get("category", category)
+        except Exception:
+            pass
+
+    failed = []
+    for task_id, entry in results.items():
+        if entry.get("status") != "FAILED":
+            continue
+        failed.append({
+            "id": task_id,
+            "task": entry.get("task", ""),
+            "category": original_category,
+            "product": "aspose.pdf",
+        })
+    return {"category": original_category, "slug": category, "failed": failed, "count": len(failed)}
+
+
 @router.post("/api/retry-failed/{job_id}")
 async def api_retry_failed(job_id: str, data: dict = Body(None)):
     """Start a new job that re-runs only the failed tasks from a completed job.
@@ -530,47 +573,6 @@ async def api_results(version: str = ""):
 
     available_versions = list_result_versions(config.results_dir)
 
-    # ── Repo sync status: compare disk results with what's on the target branch ──
-    repo_category_status = {}
-    try:
-        from git_ops.github_api import GitHubAPI
-        from git_ops.committer import normalize_category
-        if config.git.repo_token and config.git.repo_url:
-            gh = GitHubAPI(config.git.repo_token)
-            owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
-            target_branch = config.git.pr_target_branch or config.git.repo_branch or "main"
-            if owner and repo_name:
-                repo_category_status = gh.list_branch_category_status(owner, repo_name, target_branch)
-    except Exception as e:
-        print(f"[results] Repo sync check failed: {e}")
-
-    # Enrich category summaries with sync status
-    for cat_slug, summary in category_summaries.items():
-        from git_ops.committer import normalize_category
-        repo_slug = normalize_category(cat_slug)
-        # Check both hyphenated and original slug (handles pre-rename directories)
-        repo_info = repo_category_status.get(repo_slug) or repo_category_status.get(cat_slug, {})
-        repo_count = repo_info.get("cs_count", 0)
-        has_agents_md = repo_info.get("has_agents_md", False)
-        has_index_json = repo_info.get("has_index_json", False)
-        disk_passed = summary.get("examples_with_code", summary["passed"])
-
-        if repo_count == 0:
-            sync_status = "pending"
-        elif repo_count >= disk_passed and has_agents_md and has_index_json:
-            sync_status = "synced"
-        else:
-            sync_status = "partial"
-
-        summary["repo_sync"] = {
-            "status": sync_status,
-            "repo_count": repo_count,
-            "disk_count": disk_passed,
-            "new_count": max(0, disk_passed - repo_count),
-            "has_agents_md": has_agents_md,
-            "has_index_json": has_index_json,
-        }
-
     return {
         "version": effective_version,
         "results_dir": results_dir,
@@ -580,6 +582,241 @@ async def api_results(version: str = ""):
         "total_categories": len(disk_data),
         "available_versions": available_versions,
     }
+
+
+# ── All-categories cache (5 min TTL) ────────────────────────
+import time as _time
+
+_all_cats_cache: dict = {}   # {"data": [...], "ts": float}
+_ALL_CATS_TTL = 300          # 5 minutes
+
+
+def _fetch_all_categories_cached() -> list[dict]:
+    """Fetch all categories + task counts from external API, cached 5 min.
+
+    Returns list of {"name": str, "slug": str, "task_count": int}.
+    """
+    import requests
+    from config import load_config
+    from persistence import _category_slug
+
+    now = _time.time()
+    if _all_cats_cache.get("data") and (now - _all_cats_cache.get("ts", 0)) < _ALL_CATS_TTL:
+        return _all_cats_cache["data"]
+
+    cfg = load_config()
+    result: list[dict] = []
+
+    # Step 1: fetch category names
+    try:
+        resp = requests.get(cfg.categories_api_url, params={"product": "aspose.pdf"}, timeout=5)
+        cat_names = resp.json() if resp.status_code == 200 and isinstance(resp.json(), list) else []
+    except Exception:
+        cat_names = []
+
+    if not cat_names:
+        return result
+
+    # Step 2: fetch task counts concurrently
+    from concurrent.futures import ThreadPoolExecutor
+
+    names = [raw["name"] if isinstance(raw, dict) else str(raw) for raw in cat_names]
+
+    def _get_count(name: str) -> int:
+        try:
+            r = requests.get(
+                cfg.tasks_api_url,
+                params={"product": "aspose.pdf", "category": name, "page": 1, "page_size": 1},
+                timeout=10,
+            )
+            return r.json().get("total", 0) if r.status_code == 200 else 0
+        except Exception:
+            return 0
+
+    with ThreadPoolExecutor(max_workers=5) as pool:
+        counts = list(pool.map(_get_count, names))
+
+    for name, count in zip(names, counts):
+        slug = _category_slug(name)
+        result.append({"name": name, "slug": slug, "task_count": count})
+
+    _all_cats_cache["data"] = result
+    _all_cats_cache["ts"] = now
+    return result
+
+
+@router.get("/api/results/all-categories")
+async def api_results_all_categories(version: str = ""):
+    """Merge external categories with disk results — shows completed AND not-run categories."""
+    from config import load_config
+    from persistence import scan_disk_results, versioned_results_dir, list_result_versions
+
+    config = load_config()
+    effective_version = version.strip() or config.build.nuget_version
+    results_dir = versioned_results_dir(config.results_dir, effective_version)
+    disk_data = scan_disk_results(results_dir)
+
+    # Fetch all categories from external API (cached)
+    all_cats = _fetch_all_categories_cached()
+
+    # Build merged list — disk results + not-run categories
+    categories = {}
+
+    # First: add all disk results
+    for cat_slug, cat_info in disk_data.items():
+        examples_with_title = sum(1 for e in cat_info["examples"] if e["metadata"].get("title"))
+        examples_with_desc = sum(1 for e in cat_info["examples"] if e["metadata"].get("description"))
+        examples_with_apis = sum(1 for e in cat_info["examples"] if e["metadata"].get("apis_used"))
+        examples_with_code = sum(1 for e in cat_info["examples"] if e.get("has_code"))
+
+        # Stage breakdown
+        stage_counts: dict[str, int] = {}
+        for ex in cat_info["examples"]:
+            s = ex.get("stage", "unknown")
+            stage_counts[s] = stage_counts.get(s, 0) + 1
+
+        categories[cat_slug] = {
+            "passed": cat_info["passed"],
+            "failed": cat_info["failed"],
+            "total": cat_info["total"],
+            "examples_with_code": examples_with_code,
+            "has_results": True,
+            "stage_breakdown": stage_counts,
+            "metadata_quality": {
+                "has_title": examples_with_title,
+                "has_description": examples_with_desc,
+                "has_apis": examples_with_apis,
+            },
+        }
+
+    # Second: add not-run categories from external API
+    for cat in all_cats:
+        slug = cat["slug"]
+        if slug not in categories:
+            categories[slug] = {
+                "passed": 0,
+                "failed": 0,
+                "total": 0,
+                "has_results": False,
+                "task_count": cat["task_count"],
+                "display_name": cat["name"],
+            }
+        else:
+            # Enrich existing with display name and task count.
+            # If external API returned 0 (timeout), use disk total as floor —
+            # a category with results can never have 0 tasks.
+            categories[slug]["display_name"] = cat["name"]
+            ext_count = cat["task_count"]
+            disk_total = categories[slug].get("total", 0)
+            categories[slug]["task_count"] = ext_count if ext_count > 0 else disk_total
+
+    total_passed = sum(v["passed"] for v in categories.values())
+    total_failed = sum(v["failed"] for v in categories.values())
+    completed_count = sum(1 for v in categories.values() if v.get("has_results"))
+    available_versions = list_result_versions(config.results_dir)
+
+    return {
+        "version": effective_version,
+        "results_dir": results_dir,
+        "categories": categories,
+        "total_passed": total_passed,
+        "total_failed": total_failed,
+        "total_categories": len(categories),
+        "completed_categories": completed_count,
+        "available_versions": available_versions,
+    }
+
+
+# ── Sync status cache (24h TTL) ──────────────────────────────
+
+_sync_cache: dict = {}       # {version: {"data": {...}, "ts": float}}
+_SYNC_TTL = 86400            # 24 hours
+
+
+def _compute_sync_status(effective_version: str) -> dict:
+    """Blocking helper — runs GitHub API calls in a thread so the event loop stays free."""
+    from config import load_config
+    from persistence import scan_disk_results, versioned_results_dir
+
+    config = load_config()
+    results_dir = versioned_results_dir(config.results_dir, effective_version)
+    disk_data = scan_disk_results(results_dir)
+
+    if not disk_data:
+        return {"categories": {}}
+
+    # Fetch repo state from GitHub (blocking HTTP calls)
+    repo_category_status = {}
+    try:
+        from git_ops.github_api import GitHubAPI
+        if config.git.repo_token and config.git.repo_url:
+            gh = GitHubAPI(config.git.repo_token)
+            owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
+            target_branch = config.git.pr_target_branch or config.git.repo_branch or "main"
+            if owner and repo_name:
+                repo_category_status = gh.list_branch_category_status(owner, repo_name, target_branch)
+    except Exception as e:
+        print(f"[results] Repo sync check failed: {e}")
+        return {"categories": {}, "error": str(e)}
+
+    # Build per-category sync info
+    from git_ops.committer import normalize_category
+
+    sync_results = {}
+    for cat_slug, cat_info in disk_data.items():
+        repo_slug = normalize_category(cat_slug)
+        repo_info = repo_category_status.get(repo_slug) or repo_category_status.get(cat_slug, {})
+        repo_count = repo_info.get("cs_count", 0)
+        has_agents_md = repo_info.get("has_agents_md", False)
+        has_index_json = repo_info.get("has_index_json", False)
+        disk_passed = sum(1 for e in cat_info["examples"] if e.get("has_code"))
+        if disk_passed == 0:
+            disk_passed = cat_info["passed"]
+
+        if repo_count == 0:
+            sync_status = "pending"
+        elif repo_count == disk_passed and has_agents_md and has_index_json:
+            sync_status = "synced"
+        else:
+            sync_status = "partial"
+
+        sync_results[cat_slug] = {
+            "status": sync_status,
+            "repo_count": repo_count,
+            "disk_count": disk_passed,
+            "new_count": max(0, disk_passed - repo_count),
+            "extra_in_repo": max(0, repo_count - disk_passed),
+            "has_agents_md": has_agents_md,
+            "has_index_json": has_index_json,
+        }
+
+    result = {"categories": sync_results}
+
+    # Update cache
+    _sync_cache[effective_version] = {"data": result, "ts": _time.time()}
+    return result
+
+
+@router.get("/api/results/sync-status")
+async def api_results_sync_status(version: str = "", refresh: bool = False):
+    """Compare disk results with GitHub branch — returns per-category sync badges.
+
+    Uses a 24-hour in-memory cache. Pass ``?refresh=true`` to force a fresh fetch.
+    Runs blocking GitHub API calls in a thread to avoid blocking the event loop.
+    """
+    import asyncio
+    from config import load_config
+
+    config = load_config()
+    effective_version = version.strip() or config.build.nuget_version
+
+    # Return cached data if fresh enough and not forced
+    cached = _sync_cache.get(effective_version)
+    if cached and not refresh and (_time.time() - cached["ts"]) < _SYNC_TTL:
+        return {**cached["data"], "cached": True, "cached_at": cached["ts"]}
+
+    result = await asyncio.to_thread(_compute_sync_status, effective_version)
+    return {**result, "cached": False}
 
 
 @router.get("/api/results/{category}")
