@@ -2752,7 +2752,12 @@ def create_pr_from_results(
                     shutil.rmtree(cat_dir)
                     add_log(job_id, f"[{single_cat_name}] Cleaned old directory")
                 _write_examples_to_repo(config, single_cat_name, examples, cat_dir, run_id, results_summary)
-                total_files += len(examples)
+
+                # Pre-commit compile verification
+                removed = _verify_cs_files_compile(config, cat_dir, job_id)
+                if removed:
+                    add_log(job_id, f"[{single_cat_name}] Removed {len(removed)} non-compiling file(s)")
+                total_files += len(examples) - len(removed)
 
             if total_files > 0 and not is_cancelled(job_id):
                 # Commit everything
@@ -2822,6 +2827,17 @@ def create_pr_from_results(
                     cat_results = []
                     _write_examples_to_repo(config, cat_dir_name, examples, cat_dir, run_id, cat_results)
 
+                    # Pre-commit compile verification — remove files that don't compile
+                    removed = _verify_cs_files_compile(config, cat_dir, job_id)
+                    if removed:
+                        add_log(job_id, f"[{cat_dir_name}] Removed {len(removed)} non-compiling file(s)")
+                        file_count -= len(removed)
+                        # Remove corresponding results_summary entries
+                        removed_set = set(removed)
+                        cat_results = [r for r in cat_results if not any(
+                            r.get("metadata", {}).get("filename", "").endswith(fn) for fn in removed_set
+                        )]
+
                     with _git_lock:
                         # Stage all changes in category dir (additions + deletions)
                         _sp.run(["git", "add", "-A", "--", str(cat_dir)],
@@ -2890,6 +2906,69 @@ def create_pr_from_results(
             JOB_CANCEL_FLAGS.pop(job_id, None)
         add_log(job_id, f"PR creation failed: {exc}")
         set_status(job_id, "failed")
+
+
+def _verify_cs_files_compile(config, cat_dir: Path, job_id: str = "") -> list:
+    """Pre-commit compile verification: test each .cs file and remove non-compiling ones.
+
+    Returns list of filenames that were removed.  Uses --no-incremental to avoid
+    stale DLL false positives (same root cause as pipeline build.py fix).
+    """
+    import shutil
+    import textwrap
+
+    cs_files = sorted(f for f in cat_dir.iterdir() if f.suffix == ".cs")
+    if not cs_files:
+        return []
+
+    build_dir = Path("/tmp/_pre_commit_verify")
+    build_dir.mkdir(parents=True, exist_ok=True)
+
+    # Write .csproj
+    tfm = config.build.tfm
+    pkg = config.build.nuget_package
+    ver = config.build.nuget_version
+    csproj = build_dir / "verify.csproj"
+    csproj.write_text(textwrap.dedent(f"""\
+        <Project Sdk="Microsoft.NET.Sdk">
+          <PropertyGroup>
+            <OutputType>Exe</OutputType>
+            <TargetFramework>{tfm}</TargetFramework>
+            <ImplicitUsings>enable</ImplicitUsings>
+          </PropertyGroup>
+          <ItemGroup>
+            <PackageReference Include="{pkg}" Version="{ver}" />
+          </ItemGroup>
+        </Project>"""))
+
+    # Write dummy and restore
+    (build_dir / "Program.cs").write_text("class P { static void Main() {} }\n")
+    _sp = __import__("subprocess")
+    r = _sp.run(["dotnet", "restore", "--nologo"],
+                cwd=build_dir, capture_output=True, text=True, timeout=60)
+    if r.returncode != 0:
+        if job_id:
+            add_log(job_id, "[verify] NuGet restore failed, skipping compile check")
+        return []
+
+    removed = []
+    for cs in cs_files:
+        shutil.copy2(cs, build_dir / "Program.cs")
+        r = _sp.run(
+            ["dotnet", "build", "--no-restore", "--no-incremental", "--nologo", "-v", "q"],
+            cwd=build_dir, capture_output=True, text=True, timeout=60,
+        )
+        if r.returncode != 0:
+            errors = [l.strip() for l in r.stdout.split("\n") if "error CS" in l]
+            short_err = (errors[0][:120] if errors else "compile error")
+            if job_id:
+                add_log(job_id, f"[verify] Removed {cs.name}: {short_err}")
+            cs.unlink(missing_ok=True)
+            removed.append(cs.name)
+
+    # Cleanup
+    shutil.rmtree(build_dir, ignore_errors=True)
+    return removed
 
 
 def _write_examples_to_repo(config, cat_slug: str, examples: list, cat_dir, run_id: str, results_summary: list):

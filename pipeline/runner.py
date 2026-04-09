@@ -18,6 +18,7 @@ from pipeline.mcp_client import MCPClient
 from pipeline.llm_client import LLMClient
 from pipeline.error_parser import detect_and_fix_known_patterns, extract_errors, parse_error_codes
 from pipeline import stages
+from pipeline.prompt_builder import build_namespace_restriction
 from knowledge.rule_search import RuleSearchEngine
 from knowledge.error_catalog import load_error_catalog
 from knowledge.error_fixes import load_error_fixes, match_error_fixes, format_error_fixes_for_prompt
@@ -267,6 +268,11 @@ class PipelineRunner:
             product=task_input.product,
         )
 
+        # ── Namespace restriction (computed once, reused across stages) ──
+        ns_restriction = build_namespace_restriction(
+            task_input.category, self.config.mcp.exclude_namespaces,
+        )
+
         # ── Stage 1: Baseline Generation ──
         task_rules = ""
         if self.config.pipeline.use_own_llm:
@@ -276,6 +282,7 @@ class PipelineRunner:
             task_input, self.mcp, self.builder, self._notify,
             llm=self.llm, config=self.config,
             generation_rules=task_rules,
+            namespace_restriction=ns_restriction,
         )
 
         if outcome.success:
@@ -328,6 +335,7 @@ class PipelineRunner:
                 max_attempts=self.config.pipeline.llm_fix_attempts,
                 user_rules=task_rules,
                 error_fixes_data=self._error_fixes,
+                namespace_restriction=ns_restriction,
             )
             if outcome.success:
                 result.fixed_code = outcome.code
@@ -358,6 +366,7 @@ class PipelineRunner:
             error_catalog=self._error_catalog,
             error_fixes_data=self._error_fixes,
             generation_rules=task_rules,
+            namespace_restriction=ns_restriction,
         )
         if outcome.success:
             result.fixed_code = outcome.code
@@ -380,6 +389,7 @@ class PipelineRunner:
                 self.llm, self.builder, self._notify, self.config,
                 error_fixes_data=self._error_fixes,
                 generation_rules=task_rules,
+                namespace_restriction=ns_restriction,
             )
             if outcome.success:
                 result.fixed_code = outcome.code

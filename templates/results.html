@@ -253,6 +253,16 @@
     }
     .cat-card-stats .s-passed { color: var(--green); }
     .cat-card-stats .s-failed { color: var(--red); }
+    .cat-card-stats .s-failed-link {
+      cursor: pointer;
+      text-decoration: underline;
+      text-decoration-style: dashed;
+      text-underline-offset: 3px;
+    }
+    .cat-card-stats .s-failed-link:hover {
+      color: #ff6b6b;
+      text-decoration-style: solid;
+    }
 
     .sync-badge {
       display: inline-block;
@@ -265,6 +275,55 @@
     .sync-synced   { background: var(--green-bg); color: var(--green); }
     .sync-partial  { background: var(--yellow-bg); color: var(--yellow); }
     .sync-pending  { background: var(--blue-bg); color: var(--blue); }
+    .sync-loading  { background: var(--surface); color: var(--text-dim); opacity: 0.7; }
+    .sync-filter   { cursor: pointer; transition: opacity 0.15s, box-shadow 0.15s; }
+    .sync-filter:hover { opacity: 0.85; box-shadow: 0 0 0 2px rgba(255,255,255,0.15); }
+    .sync-filter.active { box-shadow: 0 0 0 2px rgba(255,255,255,0.4); }
+
+    /* ── Not-run category cards ─────────────────────────────── */
+    .cat-card.not-run {
+      border-style: dashed;
+      opacity: 0.55;
+    }
+    .cat-card.not-run:hover {
+      opacity: 0.8;
+      border-color: var(--text-dim);
+    }
+    .cat-card.not-run .cat-name { color: var(--text-dim); }
+
+    .btn-run-cat {
+      font-size: 12px;
+      padding: 4px 12px;
+      background: var(--green);
+      border: none;
+      border-radius: var(--radius);
+      color: #fff;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.15s;
+    }
+    .btn-run-cat:hover { filter: brightness(1.2); }
+
+    /* ── Run-status filter buttons ──────────────────────────── */
+    .run-filter-group {
+      display: flex;
+      gap: 4px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .run-filter-btn {
+      font-size: 12px;
+      padding: 4px 12px;
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      cursor: pointer;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+    .run-filter-btn:hover { background: var(--surface2); color: var(--text); }
+    .run-filter-btn.active { background: var(--blue); color: #fff; }
 
     .pass-rate-bar {
       height: 6px;
@@ -515,7 +574,7 @@
       </div>
       <div class="stat stat-total">
         <div class="stat-value" id="stat-categories">-</div>
-        <div>categories</div>
+        <div id="stat-categories-label">categories</div>
       </div>
       <div class="stat stat-passed">
         <div class="stat-value" id="stat-passed">-</div>
@@ -529,10 +588,18 @@
         <div style="font-size:12px;color:var(--text-dim);margin-bottom:4px;">Pass Rate: <span id="stat-rate">-</span></div>
         <div class="pass-rate-bar-lg"><div class="fill" id="stat-rate-bar" style="width:0;background:var(--green);"></div></div>
       </div>
+      <div class="run-filter-group">
+        <button class="run-filter-btn active" id="filter-all" onclick="filterByRunStatus('all')">All</button>
+        <button class="run-filter-btn" id="filter-completed" onclick="filterByRunStatus('completed')">Completed</button>
+        <button class="run-filter-btn" id="filter-needsrun" onclick="filterByRunStatus('needs-run')">Needs Run</button>
+        <button class="run-filter-btn" id="filter-hasfailed" onclick="filterByRunStatus('has-failed')">Has Failed</button>
+        <button class="run-filter-btn" id="filter-notrun" onclick="filterByRunStatus('not-run')">Not Run</button>
+      </div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <span class="sync-badge sync-synced" id="stat-synced" title="Categories fully pushed to repo">-</span>
-        <span class="sync-badge sync-partial" id="stat-partial" title="Categories with new examples to push">-</span>
-        <span class="sync-badge sync-pending" id="stat-pending" title="Categories not yet pushed">-</span>
+        <span class="sync-badge sync-synced sync-filter" id="stat-synced" onclick="filterBySync('synced')" title="Click to filter synced categories">-</span>
+        <span class="sync-badge sync-partial sync-filter" id="stat-partial" onclick="filterBySync('partial')" title="Click to filter partial categories">-</span>
+        <span class="sync-badge sync-pending sync-filter" id="stat-pending" onclick="filterBySync('pending')" title="Click to filter pending categories">-</span>
+        <button class="btn" id="sync-now-btn" onclick="syncNow()" title="Fetch latest sync status from GitHub" style="font-size:11px;padding:3px 8px;">&#x1F504; Sync Now</button>
       </div>
     </div>
   </div>
@@ -599,6 +666,10 @@
   var _prLogCount = 0;
   var _prTargetBranch = '{{ pr_target_branch }}';
   var _nugetVersion = '{{ nuget_version }}';
+  var _loadSeq = 0;         // sequence counter to discard stale responses
+  var _syncAbort = null;    // AbortController for in-flight sync request
+  var _syncFilter = null;   // active sync filter: 'synced', 'partial', 'pending', or null
+  var _runFilter = 'all';   // run-status filter: 'all', 'completed', 'not-run'
 
   // ── Helpers ──────────────────────────────────────────────────
   function barColor(pct) {
@@ -634,14 +705,18 @@
   window.loadResults = function(version) {
     var sel = document.getElementById('version-select');
     version = version || sel.value || '';
-    var url = '/api/results' + (version ? '?version=' + encodeURIComponent(version) : '');
+    if (version === 'Loading...') version = '';
+    var versionParam = version ? '?version=' + encodeURIComponent(version) : '';
+    if (_syncAbort) { _syncAbort.abort(); _syncAbort = null; }  // cancel in-flight sync
+    var seq = ++_loadSeq;  // bump sequence; stale responses will be discarded
 
     document.getElementById('cards-grid').innerHTML =
       '<div class="empty-state" style="grid-column:1/-1;"><div class="spinner"></div><p style="margin-top:8px;">Loading results...</p></div>';
 
-    fetch(url)
+    fetch('/api/results/all-categories' + versionParam)
       .then(function(r) { return r.json(); })
       .then(function(resp) {
+        if (seq !== _loadSeq) return;  // stale — a newer loadResults() was called
         // Populate version dropdown
         var versions = resp.available_versions || [];
         var currentVer = resp.version || '';
@@ -663,8 +738,29 @@
         var totalFailed = resp.total_failed || 0;
         var totalAll = totalPassed + totalFailed;
         var rate = totalAll > 0 ? Math.round((totalPassed / totalAll) * 100) : 0;
+        var completedCount = resp.completed_categories || 0;
+        var totalCatCount = resp.total_categories || catKeys.length;
 
-        document.getElementById('stat-categories').textContent = catKeys.length;
+        // Compute filter counts
+        var notRunCount = totalCatCount - completedCount;
+        var needsRunCount = 0;
+        var hasFailedCount = 0;
+        var fullyCompleted = 0;
+        var cKeys = Object.keys(cats);
+        for (var ci = 0; ci < cKeys.length; ci++) {
+          var cc = cats[cKeys[ci]];
+          if (cc.has_results === false) continue;
+          var ran = cc.total || ((cc.passed || 0) + (cc.failed || 0));
+          if (cc.task_count > 0 && cc.task_count > ran) {
+            needsRunCount++;
+          } else {
+            fullyCompleted++;
+          }
+          if ((cc.failed || 0) > 0) hasFailedCount++;
+        }
+
+        document.getElementById('stat-categories').textContent = fullyCompleted + ' / ' + totalCatCount;
+        document.getElementById('stat-categories-label').textContent = 'categories completed';
         document.getElementById('stat-passed').textContent = totalPassed;
         document.getElementById('stat-failed').textContent = totalFailed;
         document.getElementById('stat-rate').textContent = rate + '%';
@@ -672,15 +768,17 @@
         rateBar.style.width = rate + '%';
         rateBar.style.background = barColor(rate);
 
-        // Sync stats
-        var syncCounts = { synced: 0, partial: 0, pending: 0 };
-        for (var si = 0; si < catKeys.length; si++) {
-          var ss = (cats[catKeys[si]].repo_sync || {}).status || 'pending';
-          syncCounts[ss] = (syncCounts[ss] || 0) + 1;
-        }
-        document.getElementById('stat-synced').textContent = '✓ ' + syncCounts.synced + ' synced';
-        document.getElementById('stat-partial').textContent = '▲ ' + syncCounts.partial + ' partial';
-        document.getElementById('stat-pending').textContent = '● ' + syncCounts.pending + ' pending';
+        // Update filter button labels
+        document.getElementById('filter-all').textContent = 'All (' + totalCatCount + ')';
+        document.getElementById('filter-completed').textContent = 'Completed (' + fullyCompleted + ')';
+        document.getElementById('filter-needsrun').textContent = 'Needs Run (' + needsRunCount + ')';
+        document.getElementById('filter-hasfailed').textContent = 'Has Failed (' + hasFailedCount + ')';
+        document.getElementById('filter-notrun').textContent = 'Not Run (' + notRunCount + ')';
+
+        // Show sync stats as loading initially
+        document.getElementById('stat-synced').textContent = '⏳ checking...';
+        document.getElementById('stat-partial').textContent = '';
+        document.getElementById('stat-pending').textContent = '';
 
         _data = cats;
         _selected = {};
@@ -691,7 +789,15 @@
           return;
         }
 
+        // Render cards immediately (sync badges show "loading")
         renderCards(catKeys, cats);
+
+        // Apply current run-status filter
+        applyFilters();
+
+        // Background: fetch sync status and update badges (only for completed categories)
+        var completedKeys = catKeys.filter(function(k) { return cats[k].has_results; });
+        loadSyncStatus(versionParam, completedKeys, cats, seq, false);
       })
       .catch(function(err) {
         document.getElementById('cards-grid').innerHTML =
@@ -699,49 +805,152 @@
       });
   };
 
+  // ── Load Sync Status (background) ──────────────────────────
+  function loadSyncStatus(versionParam, catKeys, cats, seq, forceRefresh) {
+    var sep = versionParam ? '&' : '?';
+    var refreshParam = forceRefresh ? (sep + 'refresh=true') : '';
+    _syncAbort = new AbortController();
+    fetch('/api/results/sync-status' + versionParam + refreshParam, { signal: _syncAbort.signal })
+      .then(function(r) { return r.json(); })
+      .then(function(resp) {
+        if (seq !== _loadSeq) return;  // stale — a newer loadResults() was called
+        var syncData = resp.categories || {};
+        var syncCounts = { synced: 0, partial: 0, pending: 0 };
+
+        for (var i = 0; i < catKeys.length; i++) {
+          var slug = catKeys[i];
+          var sync = syncData[slug] || {};
+
+          // Merge sync data into _data for detail views
+          if (_data[slug]) _data[slug].repo_sync = sync;
+
+          var syncStatus = sync.status || 'pending';
+          syncCounts[syncStatus] = (syncCounts[syncStatus] || 0) + 1;
+
+          // Update badge in-place
+          var badgeEl = document.getElementById('sync-badge-' + slug);
+          if (badgeEl) {
+            var repoCount = sync.repo_count || 0;
+            var newCount = sync.new_count || 0;
+            var hasAgents = sync.has_agents_md || false;
+            var hasIndex = sync.has_index_json || false;
+
+            if (syncStatus === 'synced') {
+              badgeEl.className = 'sync-badge sync-synced';
+              badgeEl.title = '';
+              badgeEl.innerHTML = '&#10003; Synced (' + repoCount + ')';
+            } else if (syncStatus === 'partial') {
+              var details = [];
+              var extraInRepo = sync.extra_in_repo || 0;
+              if (newCount > 0) details.push('+' + newCount + ' new');
+              if (extraInRepo > 0) details.push(extraInRepo + ' extra in repo');
+              if (!hasAgents) details.push('no agents.md');
+              if (!hasIndex) details.push('no index.json');
+              badgeEl.className = 'sync-badge sync-partial';
+              badgeEl.title = details.join(', ');
+              badgeEl.innerHTML = '&#9650; ' + details[0];
+            } else {
+              badgeEl.className = 'sync-badge sync-pending';
+              badgeEl.title = '';
+              badgeEl.innerHTML = '&#9679; Pending';
+            }
+          }
+
+          // Update repo count label
+          var repoLabel = document.getElementById('repo-count-' + slug);
+          if (repoLabel) {
+            var rc = sync.repo_count || 0;
+            if (rc > 0) {
+              repoLabel.innerHTML = '&#128230; ' + rc + ' in repo';
+              repoLabel.style.display = '';
+            } else {
+              repoLabel.style.display = 'none';
+            }
+          }
+        }
+
+        // Update header sync stats
+        document.getElementById('stat-synced').textContent = '✓ ' + syncCounts.synced + ' synced';
+        document.getElementById('stat-partial').textContent = '▲ ' + syncCounts.partial + ' partial';
+        document.getElementById('stat-pending').textContent = '● ' + syncCounts.pending + ' pending';
+
+        // Show cached indicator
+        var syncBtn = document.getElementById('sync-now-btn');
+        if (syncBtn) {
+          syncBtn.disabled = false;
+          if (resp.cached) {
+            var age = resp.cached_at ? new Date(resp.cached_at * 1000).toLocaleTimeString() : '';
+            syncBtn.innerHTML = '&#x1F504; Sync Now';
+            syncBtn.title = 'Cached from ' + age + '. Click to refresh from GitHub.';
+          } else {
+            syncBtn.innerHTML = '&#x1F504; Sync Now';
+            syncBtn.title = 'Synced just now. Click to refresh from GitHub.';
+          }
+        }
+
+        // Re-apply active filter if any (set to null first so toggle logic re-activates it)
+        if (_syncFilter) { var f = _syncFilter; _syncFilter = null; filterBySync(f); }
+      })
+      .catch(function(err) {
+        if (err && err.name === 'AbortError') return;  // expected — user refreshed
+        console.warn('Sync status fetch failed:', err);
+        document.getElementById('stat-synced').textContent = '⚠ sync unavailable';
+        document.getElementById('stat-partial').textContent = '';
+        document.getElementById('stat-pending').textContent = '';
+      });
+  }
+
   // ── Render Cards ─────────────────────────────────────────────
   function renderCards(catKeys, cats) {
     var html = '';
     for (var i = 0; i < catKeys.length; i++) {
       var slug = catKeys[i];
       var c = cats[slug];
+      var hasResults = c.has_results !== false;
+
+      if (!hasResults) {
+        // ── Not-run category card ──
+        var taskCount = c.task_count || 0;
+        var displayName = c.display_name || slug;
+        html += '<div class="cat-card not-run" id="card-' + slug + '" data-has-results="false">';
+        html += '  <div class="cat-card-header">';
+        html += '    <span class="cat-name">' + displayName + '</span>';
+        html += '    <span style="font-size:12px;color:var(--text-dim);">' + taskCount + ' tasks</span>';
+        html += '  </div>';
+        html += '  <div class="cat-card-stats">';
+        html += '    <span style="color:var(--text-dim);font-size:12px;">Not yet generated</span>';
+        html += '  </div>';
+        html += '  <div class="cat-card-footer">';
+        html += '    <button class="btn-run-cat" onclick="event.stopPropagation(); runCategory(\'' + encodeURIComponent(displayName) + '\')">&#9654; Run</button>';
+        html += '  </div>';
+        html += '</div>';
+        continue;
+      }
+
+      // ── Completed category card ──
       var passed = c.passed || 0;
       var failed = c.failed || 0;
       var total = c.total || (passed + failed);
-      var passedOnly = c.examples_with_code || passed;
+      var taskCount = c.task_count || 0;
+      var pending = taskCount > 0 ? Math.max(0, taskCount - total) : 0;
       var rate = total > 0 ? Math.round((passed / total) * 100) : 0;
       var mq = c.metadata_quality || {};
       var mTitle = mq.has_title || 0;
       var mDesc = mq.has_description || 0;
       var mApis = mq.has_apis || 0;
-      var sync = c.repo_sync || {};
-      var syncStatus = sync.status || 'pending';
-      var repoCount = sync.repo_count || 0;
-      var newCount = sync.new_count || 0;
-      var hasAgents = sync.has_agents_md || false;
-      var hasIndex = sync.has_index_json || false;
 
-      html += '<div class="cat-card" id="card-' + slug + '" onclick="toggleCard(\'' + slug + '\', event)">';
+      html += '<div class="cat-card" id="card-' + slug + '" data-has-results="true" onclick="toggleCard(\'' + slug + '\', event)">';
       html += '  <div class="cat-card-header">';
       html += '    <input type="checkbox" id="cb-' + slug + '" ' + (_selected[slug] ? 'checked' : '') + ' onclick="event.stopPropagation(); toggleCard(\'' + slug + '\')" />';
       html += '    <span class="cat-name">' + slug + '</span>';
-      if (syncStatus === 'synced') {
-        html += '    <span class="sync-badge sync-synced">&#10003; Synced (' + repoCount + ')</span>';
-      } else if (syncStatus === 'partial') {
-        var partialDetails = [];
-        if (newCount > 0) partialDetails.push('+' + newCount + ' new');
-        if (!hasAgents) partialDetails.push('no agents.md');
-        if (!hasIndex) partialDetails.push('no index.json');
-        html += '    <span class="sync-badge sync-partial" title="' + partialDetails.join(', ') + '">&#9650; ' + partialDetails[0] + '</span>';
-      } else {
-        html += '    <span class="sync-badge sync-pending">&#9679; Pending</span>';
-      }
-      html += '    <span style="font-size:12px;color:var(--text-dim);">' + total + '</span>';
+      html += '    <span class="sync-badge sync-loading" id="sync-badge-' + slug + '">⏳</span>';
+      html += '    <span style="font-size:12px;color:var(--text-dim);">' + total + (taskCount > 0 ? ' / ' + taskCount : '') + '</span>';
       html += '  </div>';
       html += '  <div class="cat-card-stats">';
       html += '    <span class="s-passed">&#10003; ' + passed + ' passed</span>';
-      if (failed > 0) html += '    <span class="s-failed">&#10007; ' + failed + ' failed</span>';
-      if (repoCount > 0) html += '    <span style="color:var(--text-dim);font-size:12px;">&#128230; ' + repoCount + ' in repo</span>';
+      if (failed > 0) html += '    <span class="s-failed s-failed-link" onclick="event.stopPropagation(); retryFailed(\'' + slug + '\')" title="Click to retry failed tasks">&#10007; ' + failed + ' failed</span>';
+      if (pending > 0) html += '    <span style="color:var(--yellow);font-size:13px;" title="' + pending + ' tasks not yet generated">&#9679; ' + pending + ' left</span>';
+      html += '    <span id="repo-count-' + slug + '" style="color:var(--text-dim);font-size:12px;display:none;"></span>';
       html += '  </div>';
       html += '  <div class="pass-rate-bar"><div class="fill" style="width:' + rate + '%;background:' + barColor(rate) + ';"></div></div>';
       html += '  <div class="meta-quality">';
@@ -786,6 +995,8 @@
     var slugs = Object.keys(_data);
     for (var i = 0; i < slugs.length; i++) {
       var slug = slugs[i];
+      // Skip not-run categories (no checkbox, can't be selected)
+      if (_data[slug] && _data[slug].has_results === false) continue;
       _selected[slug] = checked;
       var cb = document.getElementById('cb-' + slug);
       if (cb) cb.checked = checked;
@@ -797,6 +1008,92 @@
     }
     updateSelectionCount();
   };
+
+  // ── Retry Failed — redirect to Build Monitor with failed tasks ──
+  window.retryFailed = function(slug) {
+    // Fetch failed task IDs from disk, then redirect to Build Monitor
+    fetch('/api/failed-tasks/' + encodeURIComponent(slug))
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (!data.failed || data.failed.length === 0) {
+          alert('No failed tasks found for ' + slug);
+          return;
+        }
+        // Encode failed tasks as JSON in a query param for the Build Monitor
+        var params = new URLSearchParams();
+        params.set('retry_category', slug);
+        params.set('retry_tasks', JSON.stringify(data.failed));
+        window.location.href = '/?' + params.toString();
+      })
+      .catch(function(err) {
+        alert('Error fetching failed tasks: ' + err);
+      });
+  };
+
+  // ── Run Category — redirect to Build Monitor for sweep ──────
+  window.runCategory = function(encodedName) {
+    var name = decodeURIComponent(encodedName);
+    var params = new URLSearchParams();
+    params.set('sweep_categories', JSON.stringify([name]));
+    window.location.href = '/?' + params.toString();
+  };
+
+  // ── Run-status filter ──────────────────────────────────────
+  window.filterByRunStatus = function(status) {
+    _runFilter = status;
+    // Update active button styling
+    document.getElementById('filter-all').classList.toggle('active', status === 'all');
+    document.getElementById('filter-completed').classList.toggle('active', status === 'completed');
+    document.getElementById('filter-needsrun').classList.toggle('active', status === 'needs-run');
+    document.getElementById('filter-hasfailed').classList.toggle('active', status === 'has-failed');
+    document.getElementById('filter-notrun').classList.toggle('active', status === 'not-run');
+    applyFilters();
+  };
+
+  // ── Unified filter (combines run-status + sync filters) ────
+  function applyFilters() {
+    var catKeys = Object.keys(_data).sort();
+    for (var i = 0; i < catKeys.length; i++) {
+      var slug = catKeys[i];
+      var card = document.getElementById('card-' + slug);
+      if (!card) continue;
+
+      var c = _data[slug] || {};
+      var hasResults = c.has_results !== false;
+      var show = true;
+
+      // Run-status filter
+      if (_runFilter === 'completed') {
+        if (!hasResults) { show = false; }
+        else {
+          var tc = c.task_count || 0;
+          var ran = c.total || ((c.passed || 0) + (c.failed || 0));
+          if (tc > 0 && ran < tc) show = false;  // has tasks left — not fully completed
+        }
+      }
+      if (_runFilter === 'not-run' && hasResults) show = false;
+      if (_runFilter === 'needs-run') {
+        if (!hasResults) { show = false; }
+        else {
+          var tc2 = c.task_count || 0;
+          var ran2 = c.total || ((c.passed || 0) + (c.failed || 0));
+          if (tc2 <= 0 || ran2 >= tc2) show = false;
+        }
+      }
+      if (_runFilter === 'has-failed') {
+        if (!hasResults || (c.failed || 0) === 0) show = false;
+      }
+
+      // Sync filter (only applies to completed cards)
+      if (show && _syncFilter && hasResults) {
+        var sync = c.repo_sync || {};
+        var cardStatus = sync.status || 'pending';
+        if (cardStatus !== _syncFilter) show = false;
+      }
+
+      card.style.display = show ? '' : 'none';
+    }
+  }
 
   // ── View Details ─────────────────────────────────────────────
   window.viewDetails = function(slug) {
@@ -1165,6 +1462,59 @@
       })
       .catch(function() {});
   }
+
+  // ── Filter by Sync Status ──────────────────────────────────
+  window.filterBySync = function(status) {
+    // Toggle: click same badge again to clear filter
+    if (_syncFilter === status) {
+      _syncFilter = null;
+    } else {
+      _syncFilter = status;
+    }
+
+    // Update active badge styling
+    document.getElementById('stat-synced').classList.toggle('active', _syncFilter === 'synced');
+    document.getElementById('stat-partial').classList.toggle('active', _syncFilter === 'partial');
+    document.getElementById('stat-pending').classList.toggle('active', _syncFilter === 'pending');
+
+    // Use unified filter
+    applyFilters();
+  };
+
+  // ── Sync Now (force refresh from GitHub) ────────────────────
+  window.syncNow = function() {
+    var sel = document.getElementById('version-select');
+    var version = sel.value || '';
+    var versionParam = version ? '?version=' + encodeURIComponent(version) : '';
+    var catKeys = Object.keys(_data).sort();
+
+    // Reset badges to loading state
+    document.getElementById('stat-synced').textContent = '⏳ syncing...';
+    document.getElementById('stat-partial').textContent = '';
+    document.getElementById('stat-pending').textContent = '';
+    for (var i = 0; i < catKeys.length; i++) {
+      var badge = document.getElementById('sync-badge-' + catKeys[i]);
+      if (badge) { badge.className = 'sync-badge sync-loading'; badge.innerHTML = '⏳'; }
+      var repo = document.getElementById('repo-count-' + catKeys[i]);
+      if (repo) repo.style.display = 'none';
+    }
+
+    var btn = document.getElementById('sync-now-btn');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Syncing...';
+
+    loadSyncStatus(versionParam, catKeys, _data, _loadSeq, true);
+
+    // Re-enable button after response (poll via _syncAbort completion)
+    var checkDone = setInterval(function() {
+      var synced = document.getElementById('stat-synced').textContent;
+      if (synced && synced.indexOf('syncing') === -1 && synced.indexOf('checking') === -1) {
+        clearInterval(checkDone);
+        btn.disabled = false;
+        btn.innerHTML = '&#x1F504; Sync Now';
+      }
+    }, 500);
+  };
 
   // ── Merge to Main ───────────────────────────────────────────
   window.promoteToMain = function() {
