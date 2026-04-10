@@ -120,7 +120,16 @@ class LLMClient:
         Returns a dict with: title, filename, description, tags, apis_used, difficulty.
         Returns empty dict on failure (caller falls back to defaults).
         """
-        prompt = f"""Analyze this C# code example and return a JSON object with metadata.
+        # Cap code size to keep prompt within token budget.
+        # Large wrapper/helper classes can exceed 10k chars which truncates the response.
+        # 6000 chars (~1500 tokens) is plenty to identify title, APIs, and description.
+        MAX_CODE_CHARS = 6000
+        truncated_note = ""
+        if len(code) > MAX_CODE_CHARS:
+            code = code[:MAX_CODE_CHARS] + "\n// ... (truncated for brevity)"
+            truncated_note = " (code was truncated; focus on what's visible)"
+
+        prompt = f"""Analyze this C# code example and return a JSON object with metadata.{truncated_note}
 
 TASK DESCRIPTION:
 {task}
@@ -147,11 +156,11 @@ Rules:
 - "title" should be concise and descriptive
 - "filename" must be lowercase kebab-case, max 60 chars
 - "tags" max 5 short keywords relevant to the example
-- "apis_used" list ONLY Aspose.Pdf classes/methods actually used in the code (not System types)
+- "apis_used": list the MOST IMPORTANT 5-8 Aspose.Pdf classes/methods used (NOT every API — just the key ones). Do not list System types.
 - "difficulty" based on complexity: simple API calls = beginner, multi-step = intermediate, advanced patterns = advanced
 - Output ONLY the JSON object, no other text"""
 
-        content = self.chat("", prompt, temperature=0.0, max_tokens=1000)
+        content = self.chat("", prompt, temperature=0.0, max_tokens=2000)
         if not content:
             return {}
 
@@ -161,20 +170,47 @@ Rules:
             content = re.sub(r"^```(?:json)?\s*", "", content)
             content = re.sub(r"\s*```$", "", content.strip()).strip()
 
+        # Try strict parse first
         try:
             data = json.loads(content)
-            if isinstance(data, dict):
-                # Ensure expected keys exist
-                return {
-                    "title": data.get("title", ""),
-                    "filename": data.get("filename", ""),
-                    "description": data.get("description", ""),
-                    "tags": data.get("tags", []),
-                    "apis_used": data.get("apis_used", []),
-                    "difficulty": data.get("difficulty", ""),
-                }
         except (json.JSONDecodeError, ValueError):
-            pass
+            # Attempt to recover from truncated JSON by salvaging the scalar fields.
+            # Even if apis_used is cut off mid-string, title/description/filename are at the top.
+            data = None
+            try:
+                title_m = re.search(r'"title"\s*:\s*"([^"]*)"', content)
+                filename_m = re.search(r'"filename"\s*:\s*"([^"]*)"', content)
+                desc_m = re.search(r'"description"\s*:\s*"([^"]*)"', content)
+                diff_m = re.search(r'"difficulty"\s*:\s*"([^"]*)"', content)
+                tags_m = re.search(r'"tags"\s*:\s*\[([^\]]*)\]', content)
+                apis_m = re.search(r'"apis_used"\s*:\s*\[([^\]]*)\]', content)
+
+                if title_m:
+                    def _parse_list(match):
+                        if not match:
+                            return []
+                        return re.findall(r'"([^"]+)"', match.group(1))
+
+                    data = {
+                        "title": title_m.group(1) if title_m else "",
+                        "filename": filename_m.group(1) if filename_m else "",
+                        "description": desc_m.group(1) if desc_m else "",
+                        "tags": _parse_list(tags_m),
+                        "apis_used": _parse_list(apis_m),
+                        "difficulty": diff_m.group(1) if diff_m else "",
+                    }
+            except Exception:
+                data = None
+
+        if isinstance(data, dict):
+            return {
+                "title": data.get("title", ""),
+                "filename": data.get("filename", ""),
+                "description": data.get("description", ""),
+                "tags": data.get("tags", []),
+                "apis_used": data.get("apis_used", []),
+                "difficulty": data.get("difficulty", ""),
+            }
         return {}
 
     def fix_code(self, task: str, code: str, build_error: str, user_rules: str = "") -> Optional[str]:
