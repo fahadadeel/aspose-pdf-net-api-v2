@@ -163,8 +163,8 @@ class AppConfig:
     auto_patterns_path: str = "./resources/auto_patterns.json"
 
     # External API proxies (for UI task generator)
-    categories_api_url: str = "http://172.20.1.175:7001/api/categories"
-    tasks_api_url: str = "http://172.20.1.175:7001/api/tasks"
+    categories_api_url: str = "http://172.20.1.175:7061/api/categories"
+    tasks_api_url: str = "http://172.20.1.175:7061/api/tasks"
 
 
 def _env(key: str, default: str) -> str:

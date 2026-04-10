@@ -24,7 +24,7 @@ import requests
 
 # ── Configuration ──
 MCP_RETRIEVE_URL = "http://172.20.1.175:7050/mcp/retrieve"
-CATEGORIES_API_URL = "http://172.20.1.175:7001/api/categories?product=aspose.pdf"
+CATEGORIES_API_URL = "http://172.20.1.175:7061/api/categories?product=aspose.pdf"
 RETRIEVE_LIMIT = 25
 TIMEOUT = 60
 OUTPUT_PATH = Path(__file__).resolve().parent.parent / "resources" / "auto_generation_rules.json"
