@@ -1642,35 +1642,38 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
             set_status(job_id, "failed")
             return
 
-        # ── Phase 1: Tag + Release current main ──
-        set_current_task(job_id, f"Tagging v{old_version}...")
-        add_log(job_id, f"Phase 1: Tagging v{old_version} on main")
-
-        main_sha = gh.get_branch_sha(owner, repo_name, "main")
-        if not main_sha:
-            add_log(job_id, "ERROR: Could not get SHA for main")
-            set_status(job_id, "failed")
-            return
-
+        # ── Phase 1: Tag + Release current main (only if not already done) ──
         tag_name = f"v{old_version}"
-        if gh.create_tag(owner, repo_name, tag_name, main_sha):
-            add_log(job_id, f"✓ Created tag: {tag_name}")
+        if gh.tag_exists(owner, repo_name, tag_name):
+            add_log(job_id, f"Phase 1: Tag {tag_name} already exists — skipping (promote already ran)")
         else:
-            add_log(job_id, f"Tag {tag_name} may already exist — continuing")
+            set_current_task(job_id, f"Tagging v{old_version}...")
+            add_log(job_id, f"Phase 1: Tagging v{old_version} on main")
 
-        release_body = (
-            f"Examples generated for **Aspose.PDF for .NET {old_version}**.\n\n"
-            f"- Target framework: `{config.build.tfm}`\n"
-            f"- NuGet package: `Aspose.PDF {old_version}`\n"
-        )
-        release_url = gh.create_release(
-            owner, repo_name, tag_name,
-            f"Aspose.PDF {old_version} Examples", release_body,
-        )
-        if release_url:
-            add_log(job_id, f"✓ GitHub Release created: {release_url}")
-        else:
-            add_log(job_id, "Release creation failed — continuing anyway")
+            main_sha = gh.get_branch_sha(owner, repo_name, "main")
+            if not main_sha:
+                add_log(job_id, "ERROR: Could not get SHA for main")
+                set_status(job_id, "failed")
+                return
+
+            if gh.create_tag(owner, repo_name, tag_name, main_sha):
+                add_log(job_id, f"✓ Created tag: {tag_name}")
+            else:
+                add_log(job_id, f"Tag {tag_name} creation failed — continuing")
+
+            release_body = (
+                f"Examples generated for **Aspose.PDF for .NET {old_version}**.\n\n"
+                f"- Target framework: `{config.build.tfm}`\n"
+                f"- NuGet package: `Aspose.PDF {old_version}`\n"
+            )
+            release_url = gh.create_release(
+                owner, repo_name, tag_name,
+                f"Aspose.PDF {old_version} Examples", release_body,
+            )
+            if release_url:
+                add_log(job_id, f"✓ GitHub Release created: {release_url}")
+            else:
+                add_log(job_id, "Release creation failed — continuing anyway")
 
         # ── Phase 2: Create empty orphan staging branch ──
         set_current_task(job_id, f"Creating {staging_branch}...")
@@ -1729,15 +1732,17 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
 def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
     """Promote staging branch to main:
 
-    1. Create PR staging_branch → main
-    2. Merge the PR
-    3. Tag main as v{new_version} + create GitHub Release
-    4. Update .env: reset PR_TARGET_BRANCH and REPO_BRANCH to main
-    5. Delete staging branch
+    Release branches are orphans (no shared history with main), so we
+    cannot use a PR.  Instead we force-update the main ref to point at
+    the release branch tip.
+
+    1. Force-update main ref → staging branch HEAD
+    2. Tag main as v{new_version} + create GitHub Release (if not already tagged)
+    3. Update .env: reset PR_TARGET_BRANCH and REPO_BRANCH to main
+    4. Keep staging branch as release archive
     """
     from git_ops.github_api import GitHubAPI
 
-    notify = _make_progress_callback(job_id)
     config = load_config()
 
     try:
@@ -1756,58 +1761,41 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
             set_status(job_id, "failed")
             return
 
-        # ── Phase 1: Create PR staging → main ──
-        set_current_task(job_id, f"Creating PR {staging_branch} → main...")
-        add_log(job_id, f"Phase 1: Creating PR {staging_branch} → main")
+        # ── Phase 1: Force-update main to release branch HEAD ──
+        set_current_task(job_id, f"Updating main → {staging_branch}...")
+        add_log(job_id, f"Phase 1: Force-updating main to {staging_branch} HEAD")
 
-        pr_title = f"Release Aspose.PDF {new_version} Examples"
-        pr_body = (
-            f"## Aspose.PDF {new_version} Examples\n\n"
-            f"This PR promotes all generated examples for **Aspose.PDF for .NET {new_version}** "
-            f"from `{staging_branch}` to `main`.\n\n"
-            f"- NuGet package: `Aspose.PDF {new_version}`\n"
-            f"- All categories have been generated and reviewed\n"
-        )
-
-        pr_url = gh.create_pull_request(owner, repo_name, pr_title, pr_body, staging_branch, "main")
-        if not pr_url:
-            add_log(job_id, "ERROR: Could not create PR")
+        release_sha = gh.get_branch_sha(owner, repo_name, staging_branch)
+        if not release_sha:
+            add_log(job_id, f"ERROR: Could not get SHA for {staging_branch}")
             set_status(job_id, "failed")
             return
-        add_log(job_id, f"✓ PR created: {pr_url}")
-        set_pr_url(job_id, pr_url)
+        add_log(job_id, f"  {staging_branch} HEAD: {release_sha[:10]}")
 
-        # ── Phase 2: Merge the PR ──
-        set_current_task(job_id, "Merging PR...")
-        add_log(job_id, "Phase 2: Merging PR into main")
+        main_sha_before = gh.get_branch_sha(owner, repo_name, "main")
+        add_log(job_id, f"  main before: {main_sha_before[:10] if main_sha_before else 'N/A'}")
 
-        pr_number = gh.get_pr_number(owner, repo_name, staging_branch, "main")
-        if not pr_number:
-            add_log(job_id, "Could not find PR number — please merge manually via GitHub")
-            add_log(job_id, f"PR URL: {pr_url}")
-            set_status(job_id, "completed")
-            return
-
-        if gh.merge_pull_request(owner, repo_name, pr_number,
-                                  f"Release Aspose.PDF {new_version} examples"):
-            add_log(job_id, f"✓ PR merged into main")
+        if release_sha == main_sha_before:
+            add_log(job_id, "main already points at release HEAD — skipping update")
+        elif gh.force_update_ref(owner, repo_name, "main", release_sha):
+            add_log(job_id, f"✓ main updated to {release_sha[:10]}")
         else:
-            add_log(job_id, "Auto-merge failed — please merge manually via GitHub")
-            add_log(job_id, f"PR URL: {pr_url}")
-            set_status(job_id, "completed")
+            add_log(job_id, "ERROR: Could not update main ref")
+            set_status(job_id, "failed")
             return
 
-        # ── Phase 3: Tag main as new version ──
-        set_current_task(job_id, f"Tagging v{new_version}...")
-        add_log(job_id, f"Phase 3: Tagging main as v{new_version}")
+        # ── Phase 2: Tag + Release (only if tag doesn't already exist) ──
+        tag_name = f"v{new_version}"
+        if gh.tag_exists(owner, repo_name, tag_name):
+            add_log(job_id, f"Phase 2: Tag {tag_name} already exists — skipping")
+        else:
+            set_current_task(job_id, f"Tagging v{new_version}...")
+            add_log(job_id, f"Phase 2: Tagging main as v{new_version}")
 
-        import time as _time
-        _time.sleep(2)  # brief pause for GitHub to finalize merge
-        main_sha = gh.get_branch_sha(owner, repo_name, "main")
-        if main_sha:
-            tag_name = f"v{new_version}"
-            if gh.create_tag(owner, repo_name, tag_name, main_sha):
+            if gh.create_tag(owner, repo_name, tag_name, release_sha):
                 add_log(job_id, f"✓ Created tag: {tag_name}")
+            else:
+                add_log(job_id, f"⚠ Tag creation failed — continuing")
 
             release_body = (
                 f"Examples generated for **Aspose.PDF for .NET {new_version}**.\n\n"
@@ -1820,10 +1808,12 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
             )
             if release_url:
                 add_log(job_id, f"✓ GitHub Release created: {release_url}")
+            else:
+                add_log(job_id, "⚠ Release creation failed — tag may still be usable")
 
-        # ── Phase 4: Update .env — reset back to main ──
+        # ── Phase 3: Update .env — reset back to main ──
         set_current_task(job_id, "Updating config...")
-        add_log(job_id, "Phase 4: Resetting .env to main")
+        add_log(job_id, "Phase 3: Resetting .env to main")
 
         _update_env_file("NUGET_VERSION", new_version)
         _update_env_file("PR_TARGET_BRANCH", "")
@@ -1832,13 +1822,9 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
         add_log(job_id, "✓ .env updated: REPO_BRANCH=main")
         add_log(job_id, "✓ .env updated: PR_TARGET_BRANCH= (cleared)")
 
-        # ── Phase 5: Delete staging branch ──
+        # ── Phase 4: Keep staging branch as release archive ──
         set_current_task(job_id, "Cleaning up...")
-        add_log(job_id, f"Phase 5: Deleting staging branch {staging_branch}")
-        if gh.delete_branch(owner, repo_name, staging_branch):
-            add_log(job_id, f"✓ Deleted {staging_branch}")
-        else:
-            add_log(job_id, f"Could not delete {staging_branch} — remove manually if needed")
+        add_log(job_id, f"Phase 4: Keeping {staging_branch} as release archive")
 
         add_log(job_id, "")
         add_log(job_id, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")

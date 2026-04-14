@@ -1063,7 +1063,7 @@
   // ── Merge to Main ─────────────────────────────────────────
   window.promoteToMain = function() {
     if (!_prTargetBranch) { alert('No staging branch configured.'); return; }
-    if (!confirm('Merge to Main: ' + _prTargetBranch + ' → main\n\n1. Create PR\n2. Auto-merge\n3. Tag v' + _nugetVersion + '\n4. Create GitHub Release\n5. Reset .env\n6. Delete staging branch\n\nContinue?')) return;
+    if (!confirm('Merge to Main: ' + _prTargetBranch + ' → main\n\n1. Force-update main to ' + _prTargetBranch + ' HEAD\n2. Tag v' + _nugetVersion + ' + GitHub Release\n3. Reset .env\n4. Keep ' + _prTargetBranch + ' as archive\n\nContinue?')) return;
     var btn = document.getElementById('promote-btn');
     btn.disabled = true; btn.innerHTML = '<span class="spinner"></span> Promoting...';
 

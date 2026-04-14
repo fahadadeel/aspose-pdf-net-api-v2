@@ -50,7 +50,7 @@ def parse_intent_with_llm(user_input: str, available_categories: list[str]) -> d
     """Use LLM to parse natural language command into structured intent.
 
     Returns: {
-        "action": "run" | "retry_failed",
+        "action": "run" | "retry_failed" | "merge_release",
         "categories": [...] | "all" | "all_failed",
         "workers": int
     }
@@ -65,15 +65,27 @@ def parse_intent_with_llm(user_input: str, available_categories: list[str]) -> d
         {cat_list}
 
         Return ONLY valid JSON with these fields:
-        - "action": "run" (generate new) or "retry_failed" (retry failed tasks)
-        - "categories": a list of category names, OR the string "all" for all categories,
-          OR "all_failed" for all categories that have failures
-        - "workers": integer number of parallel workers (default 4 if not specified)
+        - "action": one of:
+            * "run"            — generate new examples
+            * "retry_failed"   — retry failed tasks
+            * "merge_release"  — update & merge open PRs targeting the release branch
+        - "categories":
+            * a list of category names, OR
+            * the string "all" for all categories, OR
+            * "all_failed" for all categories that have failures, OR
+            * for "merge_release": "all" OR a list of PR numbers as strings
+              like ["#192", "#207"]
+        - "workers": integer number of parallel workers (default 4 if not specified;
+          merge_release always uses 1)
 
         Rules:
         - Match category names loosely (e.g. "tables" → "Tables in PDF")
         - If user says "everything" or "all", set categories to "all"
         - If user says "retry all failed" or "all failed", set categories to "all_failed"
+        - If user says "merge", "merge PRs", "merge release", "merge passing",
+          "update and merge", "sync and merge" → action = "merge_release"
+        - If user names specific PR numbers (e.g. "merge PR 192 and 207"),
+          return them as strings in categories
         - If user doesn't specify workers, default to 4
         - Return ONLY the JSON object, no explanation
     """)
@@ -568,6 +580,79 @@ def print_plan(action: str, buckets: list[list[str]], categories: list[dict], ba
     print(f"\n{'═' * 60}")
 
 
+def _run_merge_release(intent: dict, args) -> None:
+    """Dispatch the Flow A merge-release flow.
+
+    Loads config, instantiates bot + merge-acct GitHubAPI clients,
+    fetches mergeable PRs, optionally filters by explicit PR numbers,
+    prints the plan, confirms, and runs the batch. Exits the process
+    with an appropriate status code.
+    """
+    # Make project root importable so the local packages resolve
+    sys.path.insert(0, str(_project_root))
+    from config import load_config
+    from git_ops.github_api import GitHubAPI
+    from scripts.merge_release_prs import (
+        fetch_mergeable_prs,
+        filter_by_numbers,
+        print_merge_plan,
+        run_merge_batch,
+    )
+
+    cfg = load_config()
+    if not cfg.git.repo_token:
+        print("✗ REPO_TOKEN not configured — cannot call GitHub API.")
+        sys.exit(1)
+
+    gh_bot = GitHubAPI(cfg.git.repo_token)
+    gh_personal = GitHubAPI(cfg.git.personal_token or cfg.git.repo_token)
+    owner, repo = GitHubAPI.extract_repo_info(cfg.git.repo_url)
+    if not owner or not repo:
+        print(f"✗ Could not parse repo URL: {cfg.git.repo_url}")
+        sys.exit(1)
+
+    base_branch = cfg.git.effective_pr_target
+    bot_login = cfg.git.bot_login or None
+
+    if not cfg.git.personal_token:
+        print("⚠ MERGE_ACCT_GITHUB_TOKEN not set — merges will be attributed to the bot.")
+
+    print(f"\n  Fetching open PRs targeting {base_branch} (author: {bot_login or 'any'})...")
+    prs = fetch_mergeable_prs(gh_bot, owner, repo, base_branch, bot_login)
+
+    # Honor explicit PR numbers from intent or --pr flag
+    wanted = intent.get("categories")
+    if isinstance(wanted, list) and wanted:
+        before = len(prs)
+        prs = filter_by_numbers(prs, wanted)
+        print(f"  Filtered to {len(prs)}/{before} matching requested PR numbers: {wanted}")
+
+    print_merge_plan(prs, base_branch)
+
+    if not prs:
+        sys.exit(0)
+
+    if getattr(args, "dry_run", False):
+        print("  --dry-run: exiting without merging.")
+        sys.exit(0)
+
+    if not args.yes:
+        answer = input("  Merge these PRs? [Y/n] ").strip().lower()
+        if answer and answer != "y":
+            print("  Cancelled.")
+            sys.exit(0)
+
+    summary = run_merge_batch(prs, gh_bot, gh_personal, owner, repo)
+    print(
+        f"\n  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n"
+        f"  Merged:  {summary['merged']}\n"
+        f"  Skipped: {summary['skipped']}\n"
+        f"  Failed:  {summary['failed']}\n"
+        f"  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+    )
+    sys.exit(0 if summary["failed"] == 0 else 1)
+
+
 def main():
     parser = argparse.ArgumentParser(
         description="Parallel orchestrator for Aspose.PDF example generation",
@@ -589,6 +674,12 @@ def main():
     parser.add_argument("--base-port", type=int, default=BASE_PORT, help=f"Starting port (default: {BASE_PORT})")
     parser.add_argument("--yes", "-y", action="store_true", help="Skip confirmation prompt")
     parser.add_argument("--retry", action="store_true", help="Retry failed tasks instead of running new")
+    parser.add_argument("--merge-release", action="store_true",
+        help="Merge all green bot-authored PRs targeting the release branch")
+    parser.add_argument("--pr", action="append", default=[],
+        help="Specific PR number(s) to merge (repeatable); implies --merge-release")
+    parser.add_argument("--dry-run", action="store_true",
+        help="For --merge-release: print the merge plan and exit without merging")
     args = parser.parse_args()
 
     base_port = args.base_port
@@ -598,6 +689,17 @@ def main():
         print("⚠ LITELLM_API_KEY not set — natural language mode requires it.")
         print("  Set it in .env or use --categories/--all/--all-failed instead.")
         sys.exit(1)
+
+    # ── Shortcut: Explicit --merge-release / --pr flags ──
+    # Handled before fetching categories since merge flow is independent.
+    if args.merge_release or args.pr:
+        intent = {
+            "action": "merge_release",
+            "categories": args.pr if args.pr else "all",
+            "workers": 1,
+        }
+        _run_merge_release(intent, args)
+        return  # _run_merge_release exits
 
     # ── Step 1: Fetch available categories ──
     print("Fetching available categories...")
@@ -631,6 +733,11 @@ def main():
     else:
         parser.print_help()
         sys.exit(0)
+
+    # ── Step 2b: Dispatch merge_release early if parsed from NL ──
+    if intent.get("action") == "merge_release":
+        _run_merge_release(intent, args)
+        return  # _run_merge_release exits
 
     # ── Step 3: Resolve intent to actual categories ──
     action, resolved_cats, num_workers = resolve_intent(intent, all_categories)
