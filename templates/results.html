@@ -1529,11 +1529,10 @@
     if (!confirm(
       'Merge to Main: ' + stagingBranch + ' → main\n\n' +
       'This will:\n' +
-      '1. Create PR: ' + stagingBranch + ' → main\n' +
-      '2. Auto-merge the PR\n' +
-      '3. Tag main as v' + newVersion + ' + create GitHub Release\n' +
-      '4. Reset .env: REPO_BRANCH=main, PR_TARGET_BRANCH=(cleared)\n' +
-      '5. Delete staging branch ' + stagingBranch + '\n\n' +
+      '1. Force-update main to ' + stagingBranch + ' HEAD\n' +
+      '2. Tag v' + newVersion + ' + GitHub Release\n' +
+      '3. Reset .env: REPO_BRANCH=main, PR_TARGET_BRANCH=(cleared)\n' +
+      '4. Keep ' + stagingBranch + ' as archive\n\n' +
       '⚠ Only do this when ALL category sweeps are done and merged!\n\n' +
       'Continue?'
     )) return;

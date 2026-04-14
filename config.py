@@ -127,6 +127,8 @@ class GitConfig:
     repo_push: bool = False
     repo_token: str = ""
     repo_user: str = ""
+    personal_token: str = ""  # Personal PAT for human-attributed reviews/merges (falls back to repo_token)
+    bot_login: str = "agent-aspose-pdf-examples"  # GitHub login of the bot user (used for PR author filter)
     default_category: str = "uncategorized"
     default_product: str = "aspose.pdf"
     update_agents_md: bool = True
@@ -255,6 +257,8 @@ def load_config() -> AppConfig:
     cfg.git.repo_push = _env_bool("REPO_PUSH", cfg.git.repo_push)
     cfg.git.repo_token = _env("REPO_TOKEN", "")
     cfg.git.repo_user = _env("REPO_USER", "")
+    cfg.git.personal_token = _env("MERGE_ACCT_GITHUB_TOKEN", "")
+    cfg.git.bot_login = _env("BOT_GITHUB_LOGIN", cfg.git.bot_login)
     cfg.git.default_category = _env("DEFAULT_CATEGORY", cfg.git.default_category)
     cfg.git.default_product = _env("DEFAULT_PRODUCT", cfg.git.default_product)
     cfg.git.pr_split_threshold = _env_int("PR_SPLIT_THRESHOLD", cfg.git.pr_split_threshold)

@@ -66,6 +66,9 @@ parallel_run.py
 | `--base-port` | 7110 | Starting port for worker instances |
 | `--yes`, `-y` | false | Skip confirmation prompt |
 | `--retry` | false | Retry failed tasks instead of new generation |
+| `--merge-release` | false | Update + merge all green bot-authored PRs targeting the release branch |
+| `--pr` | — | Specific PR number(s) to merge (repeatable); implies `--merge-release` |
+| `--dry-run` | false | For `--merge-release`: print the merge plan and exit without merging |
 
 ### Natural Language Examples
 
@@ -75,6 +78,41 @@ The LLM parses these into structured intents:
 - `"retry failed in tables and forms"` → retries just those categories
 - `"generate annotations and bookmarks examples using 2 workers"` → specific categories
 - `"retry all failed categories with 3 workers"` → retry mode for all failures
+- `"merge all passing release PRs"` → Flow A merge mode
+- `"merge PR 192 and 207"` → Flow A merge mode, specific PRs only
+
+### Merge Release Mode (Flow A)
+
+The `--merge-release` flag (or any "merge release PRs" natural-language
+command) runs a separate flow that does not spawn uvicorn workers.
+Instead it:
+
+1. Queries GitHub for open PRs targeting the effective release branch,
+   filtered to `BOT_GITHUB_LOGIN`.
+2. Fetches per-PR mergeable state + CI status and drops any that are
+   conflicting or red.
+3. Shows a plan table and asks for confirmation.
+4. For each PR sequentially: calls Update Branch (bot token) → waits
+   for CI → merges via `merge_pull_request` using
+   `MERGE_ACCT_GITHUB_TOKEN` so the event is attributed to a human.
+5. Prints a final merged/skipped/failed summary.
+
+```bash
+# Preview only — no merges
+python scripts/parallel_run.py --merge-release --dry-run
+
+# Merge everything green, with confirmation prompt
+python scripts/parallel_run.py --merge-release
+
+# Merge specific PRs only
+python scripts/parallel_run.py --pr 192 --pr 207 -y
+
+# Natural language
+python scripts/parallel_run.py "merge all passing release PRs"
+```
+
+Requires `MERGE_ACCT_GITHUB_TOKEN` in `.env` for human-attributed
+merges. Without it, merges still run but are attributed to the bot.
 
 ### Dependencies
 
