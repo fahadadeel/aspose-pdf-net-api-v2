@@ -39,6 +39,7 @@ HEALTH_TIMEOUT = 60          # seconds to wait for each instance to start
 POLL_INTERVAL = 3            # seconds between SSE reconnect attempts
 TASKS_API = os.getenv("TASKS_API_URL", "http://172.20.1.175:7061/api/tasks")
 CATEGORIES_API = os.getenv("CATEGORIES_API_URL", "http://172.20.1.175:7061/api/categories")
+DASHBOARD_API = os.getenv("DASHBOARD_API_URL", "http://localhost:7103/api/results/all-categories")
 LLM_API_KEY = os.getenv("LITELLM_API_KEY", "")
 LLM_API_BASE = os.getenv("LITELLM_API_BASE", "https://llm.professionalize.com/v1")
 LLM_MODEL = "gpt-oss"
@@ -51,8 +52,9 @@ def parse_intent_with_llm(user_input: str, available_categories: list[str]) -> d
 
     Returns: {
         "action": "run" | "retry_failed" | "merge_release",
-        "categories": [...] | "all" | "all_failed",
-        "workers": int
+        "categories": [...] | "all" | "all_failed" | "not_run" | "needs_run" | "completed",
+        "workers": int,
+        "limit": int (optional) — only take the first N after filtering
     }
     """
     cat_list = "\n".join(f"  - {c}" for c in available_categories[:80])
@@ -71,22 +73,31 @@ def parse_intent_with_llm(user_input: str, available_categories: list[str]) -> d
             * "merge_release"  — update & merge open PRs targeting the release branch
         - "categories":
             * a list of category names, OR
-            * the string "all" for all categories, OR
-            * "all_failed" for all categories that have failures, OR
-            * for "merge_release": "all" OR a list of PR numbers as strings
-              like ["#192", "#207"]
+            * the string "all"         — all categories, OR
+            * "all_failed"              — all categories that have any failure, OR
+            * "not_run"                 — categories that have never been run for this release, OR
+            * "needs_run"               — categories with some tasks not yet attempted
+                                          (fewer results than total tasks), OR
+            * "completed"               — categories where every task has been run, OR
+            * for "merge_release": "all" OR a list of PR numbers as strings ["#192"]
         - "workers": integer number of parallel workers (default 4 if not specified;
           merge_release always uses 1)
+        - "limit" (optional): integer — take only the first N matching categories.
+          Use this when the user says "next N", "first N", "any N", or similar.
 
         Rules:
         - Match category names loosely (e.g. "tables" → "Tables in PDF")
-        - If user says "everything" or "all", set categories to "all"
-        - If user says "retry all failed" or "all failed", set categories to "all_failed"
-        - If user says "merge", "merge PRs", "merge release", "merge passing",
-          "update and merge", "sync and merge" → action = "merge_release"
-        - If user names specific PR numbers (e.g. "merge PR 192 and 207"),
-          return them as strings in categories
-        - If user doesn't specify workers, default to 4
+        - "everything" / "all" → categories = "all"
+        - "retry all failed" / "all failed" → categories = "all_failed"
+        - "not run" / "haven't been run" / "pending" / "unrun" → categories = "not_run"
+        - "needs run" / "incomplete" / "partial" → categories = "needs_run"
+        - "completed" / "done" / "finished" → categories = "completed"
+        - "next 2 not run" / "first 3 pending" → categories = "not_run", limit = 2 or 3
+        - "next 2 categories" (no status qualifier) → categories = "not_run", limit = 2
+          (assume user wants ones they haven't started yet)
+        - "merge" / "merge PRs" / "merge release" / "sync and merge" → action = "merge_release"
+        - Specific PR numbers ("merge PR 192 and 207") → strings in categories
+        - Default workers = 4 if unspecified
         - Return ONLY the JSON object, no explanation
     """)
 
@@ -217,6 +228,57 @@ def fetch_disk_results() -> list[dict]:
         except Exception:
             continue
     return results
+
+
+def fetch_dashboard_status() -> dict:
+    """Fetch per-category status from the running app's dashboard endpoint.
+
+    Classifies each category into one of four mutually-categorisable buckets
+    using the same logic as templates/results-v2.html:
+        - completed:  has_results == True AND ran >= task_count
+        - needs_run:  has_results == True AND task_count > ran
+        - not_run:    has_results == False  (no disk result yet)
+        - has_failed: any category with failed > 0 (overlaps with the above)
+
+    Returns: {
+        "completed": [cat_dict, ...],
+        "needs_run": [cat_dict, ...],
+        "not_run":   [cat_dict, ...],
+        "has_failed":[cat_dict, ...],
+    }
+    Each cat_dict has {name, slug, task_count}.
+    Returns empty dict if the dashboard is unreachable.
+    """
+    try:
+        resp = requests.get(DASHBOARD_API, timeout=15)
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+        print(f"  ⚠ Dashboard status unavailable ({e}); falling back to external API list")
+        return {}
+
+    cats = data.get("categories", {})
+    buckets = {"completed": [], "needs_run": [], "not_run": [], "has_failed": []}
+
+    for slug, info in cats.items():
+        name = info.get("display_name") or slug
+        task_count = int(info.get("task_count", 0) or 0)
+        cat = {"name": name, "slug": slug, "task_count": task_count}
+
+        if not info.get("has_results", False):
+            buckets["not_run"].append(cat)
+            continue
+
+        ran = int(info.get("total") or (info.get("passed", 0) + info.get("failed", 0)))
+        if task_count > 0 and task_count > ran:
+            buckets["needs_run"].append(cat)
+        else:
+            buckets["completed"].append(cat)
+
+        if int(info.get("failed", 0) or 0) > 0:
+            buckets["has_failed"].append(cat)
+
+    return buckets
 
 
 def fetch_failed_tasks(category_slug: str, port: int = 7103) -> list[dict]:
@@ -374,31 +436,6 @@ def balance_categories(categories: list[dict], num_workers: int) -> list[list[st
     return buckets
 
 
-def split_tasks_across_workers(categories: list[dict], num_workers: int) -> list[list[dict]]:
-    """Fetch all tasks for given categories, then round-robin split across workers.
-
-    Used when num_workers > num_categories to split individual tasks.
-    Returns a list of task lists (one per worker).
-    """
-    all_tasks = []
-    for cat in categories:
-        print(f"  Fetching tasks for {cat['name']}...")
-        tasks = fetch_tasks_for_category(cat["name"])
-        all_tasks.extend(tasks)
-
-    if not all_tasks:
-        return []
-
-    print(f"  Total tasks fetched: {len(all_tasks)}")
-
-    # Round-robin distribute for even split
-    buckets: list[list[dict]] = [[] for _ in range(num_workers)]
-    for i, task in enumerate(all_tasks):
-        buckets[i % num_workers].append(task)
-
-    return buckets
-
-
 def slugify(name: str) -> str:
     """Convert category name to disk slug."""
     return name.lower().replace(" ", "_").replace("-", "_")
@@ -522,14 +559,27 @@ def resolve_intent(intent: dict, all_categories: list[dict]) -> tuple[str, list[
     action = intent.get("action", "run")
     categories_spec = intent.get("categories", "all")
     num_workers = int(intent.get("workers", 4))
+    limit = intent.get("limit")
+    limit = int(limit) if limit else None
+
+    def _apply_limit(cats: list[dict]) -> list[dict]:
+        return cats[:limit] if limit and limit > 0 else cats
 
     if categories_spec == "all":
-        return action, all_categories, num_workers
+        return action, _apply_limit(all_categories), num_workers
 
     if categories_spec == "all_failed":
         # Scan disk results for categories with failures
         failed_cats = fetch_disk_results()
-        return action, failed_cats, num_workers
+        return action, _apply_limit(failed_cats), num_workers
+
+    # Dashboard-derived filters: not_run / needs_run / completed
+    if categories_spec in ("not_run", "needs_run", "completed", "has_failed"):
+        buckets = fetch_dashboard_status()
+        if not buckets:
+            print(f"  ⚠ Could not resolve '{categories_spec}' — dashboard unreachable.")
+            return action, [], num_workers
+        return action, _apply_limit(buckets.get(categories_spec, [])), num_workers
 
     # Specific categories
     if isinstance(categories_spec, list):
@@ -550,9 +600,9 @@ def resolve_intent(intent: dict, all_categories: list[dict]) -> tuple[str, list[
                     break
             if not found:
                 print(f"  ⚠ Category not found: '{spec}'")
-        return action, matched, num_workers
+        return action, _apply_limit(matched), num_workers
 
-    return action, all_categories, num_workers
+    return action, _apply_limit(all_categories), num_workers
 
 
 def print_plan(action: str, buckets: list[list[str]], categories: list[dict], base_port: int = BASE_PORT):
@@ -660,16 +710,27 @@ def main():
         epilog=textwrap.dedent("""\
             Examples:
               %(prog)s "run all categories with 4 workers"
+              %(prog)s "run next 2 categories that are not run yet"
               %(prog)s "retry failed in tables and forms"
               %(prog)s --categories "Tables in PDF,Forms" --workers 3
               %(prog)s --all --workers 4
               %(prog)s --all-failed --workers 2
+              %(prog)s --not-run --limit 2 --workers 4
+              %(prog)s --needs-run --workers 3
         """),
     )
     parser.add_argument("command", nargs="?", help="Natural language command (parsed by LLM)")
     parser.add_argument("--categories", help="Comma-separated category names")
     parser.add_argument("--all", action="store_true", help="Run all available categories")
     parser.add_argument("--all-failed", action="store_true", help="Retry all categories with failures")
+    parser.add_argument("--not-run", action="store_true",
+        help="Run only categories that have never been run for this release")
+    parser.add_argument("--needs-run", action="store_true",
+        help="Run only categories with incomplete results (some tasks not yet attempted)")
+    parser.add_argument("--completed", action="store_true",
+        help="Run only fully-completed categories (e.g. to re-run)")
+    parser.add_argument("--limit", "-n", type=int, default=None,
+        help="Take only the first N categories after filtering (e.g. --not-run --limit 2)")
     parser.add_argument("--workers", "-w", type=int, default=4, help="Number of parallel workers (default: 4)")
     parser.add_argument("--base-port", type=int, default=BASE_PORT, help=f"Starting port (default: {BASE_PORT})")
     parser.add_argument("--yes", "-y", action="store_true", help="Skip confirmation prompt")
@@ -723,13 +784,19 @@ def main():
             print("  ⚠ Could not parse command. Use --categories or --all instead.")
             sys.exit(1)
     elif args.all:
-        intent = {"action": "run", "categories": "all", "workers": args.workers}
+        intent = {"action": "run", "categories": "all", "workers": args.workers, "limit": args.limit}
     elif args.all_failed:
-        intent = {"action": "retry_failed", "categories": "all_failed", "workers": args.workers}
+        intent = {"action": "retry_failed", "categories": "all_failed", "workers": args.workers, "limit": args.limit}
+    elif args.not_run:
+        intent = {"action": "run", "categories": "not_run", "workers": args.workers, "limit": args.limit}
+    elif args.needs_run:
+        intent = {"action": "run", "categories": "needs_run", "workers": args.workers, "limit": args.limit}
+    elif args.completed:
+        intent = {"action": "run", "categories": "completed", "workers": args.workers, "limit": args.limit}
     elif args.categories:
         cat_list = [c.strip() for c in args.categories.split(",") if c.strip()]
         action = "retry_failed" if args.retry else "run"
-        intent = {"action": action, "categories": cat_list, "workers": args.workers}
+        intent = {"action": action, "categories": cat_list, "workers": args.workers, "limit": args.limit}
     else:
         parser.print_help()
         sys.exit(0)
@@ -746,49 +813,21 @@ def main():
         print("✗ No matching categories found.")
         sys.exit(1)
 
-    # ── Step 4: Decide distribution mode ──
-    # If workers > categories, split tasks across workers (task-level splitting)
-    # Otherwise, distribute categories across workers (category-level splitting)
-    task_split_mode = num_workers > len(resolved_cats)
-    task_buckets: list[list[dict]] | None = None  # only used in task-split mode
-    cat_buckets: list[list[str]] | None = None     # only used in category mode
+    # ── Step 4: Cap workers to category count ──
+    # Each worker owns whole categories. Splitting a single category across
+    # multiple workers causes races on the shared results/<cat>.json file and
+    # on the local git clone, so we never do that.
+    if num_workers > len(resolved_cats):
+        print(f"\n  ⚠ {num_workers} workers requested but only {len(resolved_cats)} category/ies available — using {len(resolved_cats)} workers")
+        num_workers = len(resolved_cats)
 
-    if task_split_mode:
-        print(f"\n  {num_workers} workers > {len(resolved_cats)} categories → splitting tasks across workers")
-        task_buckets = split_tasks_across_workers(resolved_cats, num_workers)
-        # Remove empty buckets
-        task_buckets = [b for b in task_buckets if b]
-        num_workers = len(task_buckets)
-        if not task_buckets:
-            print("✗ No tasks found to split.")
-            sys.exit(1)
-    else:
-        cat_buckets = balance_categories(resolved_cats, num_workers)
-        # Remove empty buckets
-        cat_buckets = [b for b in cat_buckets if b]
-        num_workers = len(cat_buckets)
+    cat_buckets = balance_categories(resolved_cats, num_workers)
+    # Remove empty buckets
+    cat_buckets = [b for b in cat_buckets if b]
+    num_workers = len(cat_buckets)
 
     # ── Step 5: Print plan & confirm ──
-    if task_split_mode:
-        total_tasks = sum(len(b) for b in task_buckets)
-        cat_names_str = ", ".join(c["name"] for c in resolved_cats)
-        print(f"\n{'═' * 60}")
-        print(f"  Execution Plan (task-split mode)")
-        print(f"{'═' * 60}")
-        print(f"  Action:     {action}")
-        print(f"  Categories: {cat_names_str}")
-        print(f"  Tasks:      {total_tasks}")
-        print(f"  Workers:    {num_workers}")
-        print()
-        for i, bucket in enumerate(task_buckets):
-            cats_in_bucket = sorted(set(t.get("category", "?") for t in bucket))
-            print(f"  Worker {i + 1} (port {base_port + i}): {len(bucket)} tasks")
-            for cn in cats_in_bucket[:3]:
-                count = sum(1 for t in bucket if t.get("category") == cn)
-                print(f"    • {cn} ({count} tasks)")
-        print(f"\n{'═' * 60}")
-    else:
-        print_plan(action, cat_buckets, resolved_cats, base_port=base_port)
+    print_plan(action, cat_buckets, resolved_cats, base_port=base_port)
 
     if not args.yes:
         answer = input("\n  Proceed? [Y/n] ").strip().lower()
@@ -800,7 +839,6 @@ def main():
     print(f"\nStarting {num_workers} workers...")
     workers: list[Worker] = []
 
-    effective_buckets = task_buckets if task_split_mode else cat_buckets
     for i in range(num_workers):
         port = base_port + i
         print(f"  Starting worker {i + 1} on port {port}...")
@@ -809,15 +847,13 @@ def main():
             print(f"  ✓ Worker {i + 1} ready")
             workers.append(w)
         else:
-            print(f"  ✗ Worker {i + 1} failed to start — redistributing tasks")
-            # Redistribute this worker's items to remaining workers
-            if workers and effective_buckets and i < len(effective_buckets):
-                items = effective_buckets[i]
+            print(f"  ✗ Worker {i + 1} failed to start — redistributing categories")
+            # Redistribute this worker's categories to remaining workers
+            if workers and i < len(cat_buckets):
+                items = cat_buckets[i]
                 for j, item in enumerate(items):
                     target_idx = j % len(workers)
-                    if task_split_mode and target_idx < len(task_buckets):
-                        task_buckets[target_idx].append(item)
-                    elif cat_buckets and target_idx < len(cat_buckets):
+                    if target_idx < len(cat_buckets):
                         cat_buckets[target_idx].append(item)
 
     if not workers:
@@ -827,20 +863,7 @@ def main():
     # ── Step 7: Submit jobs ──
     print(f"\nSubmitting {action} jobs...")
     for i, w in enumerate(workers):
-        if task_split_mode:
-            # Task-split mode — submit individual tasks
-            tasks_for_worker = task_buckets[i] if i < len(task_buckets) else []
-            if not tasks_for_worker:
-                w.status = "done"
-                continue
-
-            cat_names_in = sorted(set(t.get("category", "?") for t in tasks_for_worker))
-            w.categories = cat_names_in
-            job_id = w.submit_retry_job(tasks_for_worker)  # submit_retry_job sends {"tasks": [...]}
-            if job_id:
-                print(f"  ✓ Worker {w.worker_id}: job {job_id[:8]}... ({len(tasks_for_worker)} tasks)")
-
-        elif action == "retry_failed":
+        if action == "retry_failed":
             # Category mode retry — collect failed tasks per category
             target_cats = cat_buckets[i] if i < len(cat_buckets) else []
             if not target_cats:
