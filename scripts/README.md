@@ -21,6 +21,17 @@ python scripts/parallel_run.py "run tables and forms with 2 workers"
 # Retry all failed tasks across categories
 python scripts/parallel_run.py --all-failed --workers 2
 
+# Run only categories that haven't been run yet (mirrors the "Not Run" filter on the dashboard)
+python scripts/parallel_run.py --not-run --workers 4
+
+# Run the next 2 categories that haven't been run yet
+python scripts/parallel_run.py --not-run --limit 2 --workers 4
+# …or natural language
+python scripts/parallel_run.py "run next 2 categories that are not run yet"
+
+# Run only categories with incomplete results (some tasks still pending)
+python scripts/parallel_run.py --needs-run --workers 3
+
 # Specific categories
 python scripts/parallel_run.py --categories "Tables in PDF,Forms,Annotations" -w 3
 
@@ -62,6 +73,10 @@ parallel_run.py
 | `--categories` | — | Comma-separated category names |
 | `--all` | false | Run all available categories |
 | `--all-failed` | false | Retry all categories with failures |
+| `--not-run` | false | Run only categories that have never been run for this release (dashboard "Not Run") |
+| `--needs-run` | false | Run only categories with incomplete results (dashboard "Needs Run") |
+| `--completed` | false | Run only fully-completed categories (dashboard "Completed") |
+| `--limit`, `-n` | — | Take only the first N categories after filtering (works with `--not-run`, `--needs-run`, etc.) |
 | `--workers`, `-w` | 4 | Number of parallel workers |
 | `--base-port` | 7110 | Starting port for worker instances |
 | `--yes`, `-y` | false | Skip confirmation prompt |

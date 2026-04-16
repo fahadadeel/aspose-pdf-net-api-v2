@@ -13,6 +13,7 @@ Automated C# code generation and testing pipeline for **Aspose.PDF for .NET**. G
   - [CLI](#cli)
   - [REST API](#rest-api)
 - [Category Sweep Mode](#category-sweep-mode)
+- [Parallel Generation](#parallel-generation)
 - [Version Lifecycle](#version-lifecycle)
   - [Version Bump](#version-bump)
   - [Promote to Main](#promote-to-main)
@@ -433,6 +434,50 @@ Sweep mode processes ALL tasks across selected (or all) categories in a single j
 **Per-category outputs:**
 - Usage report with `run_id` suffix (e.g., `{job_id}-basic-operations`)
 - Separate git branch and PR per category (e.g., `examples/{job_id}-basic-operations`)
+
+---
+
+## Parallel Generation
+
+A full release touches hundreds of tasks across 30+ categories. Running them one-at-a-time through a single app instance takes hours. `scripts/parallel_run.py` is a small orchestrator that spawns **N uvicorn workers on separate ports**, splits the work across them using greedy bin-packing, and monitors everything from one terminal.
+
+Each worker is a full app instance — so there are no code changes to the pipeline; the script just uses the existing HTTP API (`/api/start-tasks`, `/api/status/{job_id}`) as the coordination layer. Results land in the shared `results/{version}/` directory.
+
+```bash
+# Run everything with 4 workers
+python scripts/parallel_run.py --all --workers 4
+
+# Only categories that have never been run for this release
+python scripts/parallel_run.py --not-run --workers 4
+
+# Next 2 categories that haven't been run yet (dashboard "Not Run" filter)
+python scripts/parallel_run.py --not-run --limit 2 --workers 4
+
+# Categories with incomplete results (dashboard "Needs Run")
+python scripts/parallel_run.py --needs-run --workers 3
+
+# Retry all categories that have any failure
+python scripts/parallel_run.py --all-failed --workers 2
+
+# Natural language — LLM parses the intent
+python scripts/parallel_run.py "run next 2 categories that are not run yet"
+python scripts/parallel_run.py "retry failed in tables and forms"
+```
+
+**Status filters** mirror the Results Dashboard tabs (`Completed`, `Needs Run`, `Has Failed`, `Not Run`) — the script pulls live state from `/api/results/all-categories` so counts always match the UI. Combine any filter with `--limit N` to take only the first N categories.
+
+**Safety:**
+- `repo_push` is always disabled for parallel runs — git isn't safe for concurrent use, so create PRs afterward via the Results Dashboard.
+- Workers share the `results/` directory on disk; each task writes to its own JSON file so there are no write conflicts.
+- Ctrl+C terminates all worker processes cleanly.
+
+**Flow A — Merge release PRs as a human:**
+```bash
+# Update-branch + wait-for-CI + merge every green bot PR targeting release/<version>
+python scripts/parallel_run.py --merge-release
+```
+
+See `scripts/README.md` for the full CLI reference and flag table.
 
 ---
 
@@ -963,6 +1008,8 @@ aspose-pdf-api-v2/
 │   └── auto_patterns.json     # Auto-promoted pattern fixes (generated)
 │
 ├── scripts/
+│   ├── parallel_run.py               # Parallel orchestrator — spawns N worker instances
+│   ├── merge_release_prs.py          # Flow A — human-attributed merge of release PRs
 │   └── populate_generation_rules.py  # One-time script to generate auto_generation_rules.json
 │
 ├── requirements.txt           # Python dependencies
