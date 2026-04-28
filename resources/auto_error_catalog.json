@@ -1161,7 +1161,7 @@
     "_created_at": 1776315026.4616241
   },
   {
-    "pattern": ".*'(?<type>\\w+)' is an ambiguous reference between '.*' and '.*'",
+    "pattern": ".*'(\\w+)' is an ambiguous reference between '.*' and '.*'",
     "error_code": "CS0104",
     "fix_guidance": "Disambiguate the type by using its fully‑qualified name or create a using alias (e.g., `using AsposeColor = Aspose.Pdf.Color;`).",
     "_auto": true,
