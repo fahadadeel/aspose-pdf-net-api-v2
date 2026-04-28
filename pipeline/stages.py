@@ -267,7 +267,18 @@ def run_regen_loop(
         else:
             # Full mode: catalog + error fixes + KB rules
             cat_guidance = match_error_catalog(error_catalog or [], last_err) if error_catalog else []
-            matched_catalog = [e.get("pattern", "") for e in (error_catalog or []) if re.search(e.get("pattern", "x^"), last_err)]
+            # Each catalog pattern is data-driven (some are auto-learned),
+            # so a single malformed regex must not crash regen. Skip bad ones.
+            matched_catalog = []
+            for e in (error_catalog or []):
+                pat = e.get("pattern", "")
+                if not pat:
+                    continue
+                try:
+                    if re.search(pat, last_err):
+                        matched_catalog.append(pat)
+                except re.error as rex:
+                    print(f"[stages] Skipping invalid catalog pattern {pat!r}: {rex}")
             fixes = match_error_fixes(error_fixes_data or {}, last_err, error_codes)
             fixes_text = format_error_fixes_for_prompt(fixes)
 

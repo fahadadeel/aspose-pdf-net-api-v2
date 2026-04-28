@@ -21,12 +21,21 @@ def load_error_catalog(path: str) -> List[dict]:
 
 
 def match_error_catalog(catalog: List[dict], error_output: str) -> List[str]:
-    """Match build errors against catalog; return fix guidance strings."""
+    """Match build errors against catalog; return fix guidance strings.
+
+    Patterns are data-driven (some are auto-learned), so a single bad
+    regex is logged and skipped rather than crashing the caller.
+    """
     guidance: List[str] = []
     seen: set = set()
     for entry in catalog:
         pat = entry.get("pattern", "")
-        if pat and re.search(pat, error_output) and pat not in seen:
-            seen.add(pat)
-            guidance.append(entry.get("fix_guidance", ""))
+        if not pat or pat in seen:
+            continue
+        try:
+            if re.search(pat, error_output):
+                seen.add(pat)
+                guidance.append(entry.get("fix_guidance", ""))
+        except re.error as rex:
+            print(f"[error_catalog] Skipping invalid pattern {pat!r}: {rex}")
     return [g for g in guidance if g]
