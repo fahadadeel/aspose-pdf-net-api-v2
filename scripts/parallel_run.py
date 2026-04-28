@@ -314,6 +314,13 @@ class Worker:
         """Start uvicorn instance and wait for health check."""
         env = os.environ.copy()
         env["UI_PORT"] = str(self.port)
+        # Isolate each worker's dotnet build workspace so concurrent
+        # workers don't overwrite each other's Program.cs / .csproj
+        # inside the shared ./_build directory. Crashes preserve output
+        # on disk (under the project root, not /tmp).
+        worker_workspace = self.project_root / ".parallel-workspaces" / f"worker-{self.worker_id}"
+        worker_workspace.mkdir(parents=True, exist_ok=True)
+        env["WORKSPACE_PATH"] = str(worker_workspace)
 
         self.process = subprocess.Popen(
             [

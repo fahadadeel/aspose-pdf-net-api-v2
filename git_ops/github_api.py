@@ -218,7 +218,12 @@ class GitHubAPI:
             return False
 
     def force_update_ref(self, owner: str, repo: str, ref: str, sha: str) -> bool:
-        """Force-update a branch ref to a new SHA (e.g. point main at a different commit)."""
+        """Force-update a branch ref to a new SHA (e.g. point main at a different commit).
+
+        WARNING: This rewrites history. Anyone who already pulled the branch
+        will get non-fast-forward errors on `git pull`. Prefer `update_ref()`
+        (fast-forward only) for branches users may have cloned.
+        """
         try:
             r = self._session.patch(
                 f"https://api.github.com/repos/{owner}/{repo}/git/refs/heads/{ref}",
@@ -234,6 +239,74 @@ class GitHubAPI:
         except Exception as e:
             print(f"[GitHub] Error force-updating ref: {e}")
             return False
+
+    def update_ref(self, owner: str, repo: str, ref: str, sha: str) -> bool:
+        """Fast-forward update of a branch ref (force=False).
+
+        Succeeds only when ``sha`` is a strict descendant of the current ref
+        target — i.e. a clean fast-forward. Used by the snapshot-promote flow
+        so users with the branch cloned can ``git pull`` without conflicts.
+        Returns False on non-FF (e.g. divergent history).
+        """
+        try:
+            r = self._session.patch(
+                f"https://api.github.com/repos/{owner}/{repo}/git/refs/heads/{ref}",
+                headers=self._headers,
+                json={"sha": sha, "force": False},
+                timeout=10,
+            )
+            if r.status_code == 200:
+                return True
+            error_msg = r.json().get("message", r.text[:200])
+            print(f"[GitHub] Fast-forward update of {ref} failed ({r.status_code}): {error_msg}")
+            return False
+        except Exception as e:
+            print(f"[GitHub] Error fast-forwarding ref: {e}")
+            return False
+
+    def get_commit_tree_sha(self, owner: str, repo: str, commit_sha: str) -> Optional[str]:
+        """Return the tree SHA referenced by a commit object."""
+        try:
+            r = self._session.get(
+                f"https://api.github.com/repos/{owner}/{repo}/git/commits/{commit_sha}",
+                headers=self._headers,
+                timeout=10,
+            )
+            if r.status_code == 200:
+                return r.json().get("tree", {}).get("sha")
+            error_msg = r.json().get("message", r.text[:200])
+            print(f"[GitHub] Could not read commit {commit_sha[:10]}: {error_msg}")
+            return None
+        except Exception as e:
+            print(f"[GitHub] Error reading commit tree: {e}")
+            return None
+
+    def create_commit(
+        self, owner: str, repo: str,
+        tree_sha: str, parents: list, message: str,
+    ) -> Optional[str]:
+        """Create a commit object with explicit tree + parents.
+
+        Used by snapshot-promote: build a new commit whose tree matches a
+        release branch but whose parent is main's current HEAD, so the
+        promote becomes a single fast-forward commit on main.
+        Returns the new commit SHA or None.
+        """
+        try:
+            r = self._session.post(
+                f"https://api.github.com/repos/{owner}/{repo}/git/commits",
+                headers=self._headers,
+                json={"message": message, "tree": tree_sha, "parents": list(parents)},
+                timeout=15,
+            )
+            if r.status_code in (200, 201):
+                return r.json().get("sha")
+            error_msg = r.json().get("message", r.text[:200])
+            print(f"[GitHub] Commit creation failed ({r.status_code}): {error_msg}")
+            return None
+        except Exception as e:
+            print(f"[GitHub] Error creating commit: {e}")
+            return None
 
     def create_tag(self, owner: str, repo: str, tag_name: str, sha: str, message: str = "") -> bool:
         """Create a lightweight tag via GitHub API."""
@@ -337,6 +410,82 @@ class GitHubAPI:
             return False
         except Exception as e:
             _log(f"[GitHub] Error creating empty branch: {e}")
+            return False
+
+    def copy_path_between_branches(
+        self, owner: str, repo: str,
+        source_branch: str, dest_branch: str,
+        path: str, message: str,
+        log_fn: Optional[Callable[[str], None]] = None,
+    ) -> bool:
+        """Copy a single file (or every blob under a directory) from one
+        branch to another, creating commits on the destination branch.
+
+        Used to seed a freshly-created orphan release branch with the CI
+        workflow files it needs (e.g. ``.github/workflows/validate-pr.yml``).
+        Without these files, PRs targeting the release branch never trigger
+        CI and get stuck on the required ``Build & Run changed examples``
+        check. Snapshot-promote later carries them back to main intact.
+
+        Returns True if at least one file was copied successfully.
+        """
+        def _log(msg: str):
+            if log_fn:
+                log_fn(msg)
+            print(msg)
+
+        try:
+            # Try as a single file first. The contents API returns a dict
+            # for files and a list for directories — only the dict shape
+            # carries an inline base64 ``content`` field we can copy.
+            file_meta = self.get_file(owner, repo, path, source_branch)
+            if isinstance(file_meta, dict) and file_meta.get("type") == "file":
+                content_b64 = file_meta.get("content", "")
+                try:
+                    content = base64.b64decode(content_b64).decode("utf-8")
+                except Exception:
+                    _log(f"[GitHub] Could not decode {path} from {source_branch}")
+                    return False
+                ok = self.create_or_update_file(
+                    owner, repo, path, content, message, dest_branch,
+                )
+                if ok:
+                    _log(f"[GitHub] Copied {path}: {source_branch} → {dest_branch}")
+                return ok
+
+            # Treat as a directory — list and recurse one level at a time
+            entries = self.list_directory(owner, repo, path, source_branch)
+            if not entries:
+                _log(f"[GitHub] Source path {path} not found on {source_branch}")
+                return False
+
+            any_ok = False
+            for entry in entries:
+                etype = entry.get("type")
+                epath = entry.get("path", "")
+                if etype == "file":
+                    blob = self.get_file(owner, repo, epath, source_branch)
+                    if not blob:
+                        continue
+                    try:
+                        content = base64.b64decode(blob.get("content", "")).decode("utf-8")
+                    except Exception:
+                        _log(f"[GitHub] Skipping non-text blob {epath}")
+                        continue
+                    if self.create_or_update_file(
+                        owner, repo, epath, content, message, dest_branch,
+                    ):
+                        _log(f"[GitHub] Copied {epath}: {source_branch} → {dest_branch}")
+                        any_ok = True
+                elif etype == "dir":
+                    if self.copy_path_between_branches(
+                        owner, repo, source_branch, dest_branch,
+                        epath, message, log_fn=log_fn,
+                    ):
+                        any_ok = True
+            return any_ok
+        except Exception as e:
+            _log(f"[GitHub] Error copying {path}: {e}")
             return False
 
     def merge_pull_request(self, owner: str, repo: str, pr_number: int,

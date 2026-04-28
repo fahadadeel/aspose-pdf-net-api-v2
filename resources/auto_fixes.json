@@ -1,46 +1,4 @@
 {
-  "cast-null-to-annotationtype-array-for-extractannotations": {
-    "note": "When calling PdfAnnotationEditor.ExtractAnnotations with no type filter, explicitly cast null to AnnotationType[] to select the correct overload.",
-    "code": "IList<Annotation> annotations = editor.ExtractAnnotations(1, pageCount, (AnnotationType[])null);",
-    "errors": [
-      "CS1502: The best overloaded method match for 'PdfAnnotationEditor.ExtractAnnotations(int, int, AnnotationType[])' has some invalid arguments",
-      "Ambiguous call to 'ExtractAnnotations' when passing null without a cast"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1776258155.987471,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
-  "exportannotationsxfdf-with-annotationtype-filter": {
-    "note": "Use the ExportAnnotationsXfdf overload that accepts an AnnotationType[] to export only the desired annotation types (e.g., Highlight).",
-    "code": "PdfAnnotationEditor editor = new PdfAnnotationEditor();\neditor.BindPdf(inputPdfPath);\nAnnotationType[] types = { AnnotationType.Highlight };\nusing (FileStream fs = File.Create(outputXfdfPath))\n{\n    editor.ExportAnnotationsXfdf(fs, startPage, endPage, types);\n}",
-    "errors": [
-      "ExportAnnotationsXfdf overload without annotation type exports all annotations",
-      "Unable to filter exported annotations by type"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1776258379.913196,
-    "_hit_count": 0,
-    "_stage": "regen",
-    "_category": "Facades - Annotations"
-  },
-  "use-importannotations-with-string-array": {
-    "note": "Use PdfAnnotationEditor.ImportAnnotations(string[]) instead of the non‑existent ImportAnnotationsFromXfdf method",
-    "code": "using (PdfAnnotationEditor editor = new PdfAnnotationEditor())\n{\n    editor.BindPdf(pdfPath);\n    editor.ImportAnnotations(new string[] { xfdfPath });\n    editor.Save(outputPath);\n}",
-    "errors": [
-      "PdfAnnotationEditor does not contain a definition for 'ImportAnnotationsFromXfdf'",
-      "No overload for method 'ImportAnnotationsFromXfdf' takes 1 arguments"
-    ],
-    "_auto": true,
-    "_confidence": 0.5,
-    "_created_at": 1776258398.018213,
-    "_hit_count": 0,
-    "_stage": "llm_fix",
-    "_category": "Facades - Annotations"
-  },
   "use-exportannotationsxfdf-with-page-range-instead-of-setpagerange": {
     "note": "Do not call a non‑existent SetPageRange on PdfAnnotationEditor; instead export the desired page range to XFDF with ExportAnnotationsXfdf(startPage, endPage, …) and then import that XFDF file.",
     "code": "using (PdfAnnotationEditor editor = new PdfAnnotationEditor())\n{\n    editor.BindPdf(sourcePdf);\n    using (FileStream xfdf = File.Create(tempXfdfPath))\n    {\n        // Export annotations only for pages startPage..endPage\n        editor.ExportAnnotationsXfdf(xfdf, startPage, endPage, (AnnotationType[])null);\n    }\n    editor.Close();\n}\n\nusing (PdfAnnotationEditor importer = new PdfAnnotationEditor())\n{\n    importer.BindPdf(targetPdf);\n    importer.ImportAnnotationsFromXfdf(tempXfdfPath);\n    importer.Save(outputPdf);\n    importer.Close();\n}",
@@ -2763,5 +2721,48 @@
     "_hit_count": 0,
     "_stage": "llm_fix",
     "_category": "Graphs - ZUGFeRD - Operators"
+  },
+  "use-facades-formattedtext-with-float-fontsize": {
+    "note": "Create multi‑line watermarks using Aspose.Pdf.Facades.FormattedText, specifying the font size as a float and using Aspose.Pdf.Facades.EncodingType.",
+    "code": "var ft = new Aspose.Pdf.Facades.FormattedText(\n    \"First line\",\n    System.Drawing.Color.Red,\n    \"Helvetica\",\n    Aspose.Pdf.Facades.EncodingType.Winansi,\n    false,\n    48f);\nft.AddNewLineText(\"Second line\");\nft.AddNewLineText(\"Third line\");",
+    "errors": [
+      "Constructor overload mismatch when using FormattedText with an integer font size",
+      "Missing or incorrect namespace for FormattedText leading to type resolution issues"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1776329596.049995,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Stamps"
+  },
+  "use-rotateangle-for-textstamp": {
+    "note": "Rotate a TextStamp by assigning its RotateAngle property (degrees) and position it with XIndent/YIndent; add the stamp to a page using Page.AddStamp instead of PdfFileStamp.",
+    "code": "TextStamp stamp = new TextStamp(\"Sample\");\nstamp.XIndent = 200f;\nstamp.YIndent = 400f;\nstamp.RotateAngle = 45f;\npage.AddStamp(stamp);",
+    "errors": [
+      "'TextStamp' does not contain a definition for 'SetOrigin'",
+      "'TextStamp' does not contain a definition for 'Rotation'",
+      "Argument 1: cannot convert from 'Aspose.Pdf.TextStamp' to 'Aspose.Pdf.Facades.Stamp'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1776329771.9656162,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Stamps"
+  },
+  "use-page-number-stamp-instead-of-pdffilestamp": {
+    "note": "Replace the obsolete PdfFileStamp with a PageNumberStamp and add it to each target page manually, because PdfFileStamp no longer supports the Pages property.",
+    "code": "Document doc = new Document(inputPath);\nint[] oddPages = Enumerable.Range(1, doc.Pages.Count).Where(p => p % 2 == 1).ToArray();\nPageNumberStamp stamp = new PageNumberStamp {\n    Value = \"#\",\n    NumberingStyle = NumberingStyle.NumeralsRomanLowercase,\n    HorizontalAlignment = HorizontalAlignment.Center,\n    VerticalAlignment = VerticalAlignment.Bottom,\n    YIndent = 20\n};\nforeach (int pageNum in oddPages)\n    doc.Pages[pageNum].AddStamp(stamp);\ndoc.Save(outputPath);",
+    "errors": [
+      "warning CS0618: 'PdfFileStamp.PdfFileStamp(string, string)' is obsolete",
+      "error CS1061: 'PdfFileStamp' does not contain a definition for 'Pages'"
+    ],
+    "_auto": true,
+    "_confidence": 0.5,
+    "_created_at": 1776330024.733862,
+    "_hit_count": 0,
+    "_stage": "llm_fix",
+    "_category": "Facades - Stamps"
   }
 }

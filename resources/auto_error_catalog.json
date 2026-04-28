@@ -1,50 +1,5 @@
 [
   {
-    "pattern": "ComparisonOptions' does not contain a definition for 'CompareFormFields'",
-    "error_code": "CS0117",
-    "fix_guidance": "Remove the nonexistent CompareFormFields member; form fields are compared by default, or upgrade to a version of Aspose.PDF that exposes the needed flag.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776247872.2112489
-  },
-  {
-    "pattern": "ComparisonOptions' does not contain a definition for 'ImageSimilarityThreshold'",
-    "error_code": "CS1061",
-    "fix_guidance": "Upgrade to a version of Aspose.PDF that provides the ImageSimilarityThreshold property, and ensure the Aspose.Pdf.Comparison namespace/assembly is referenced in the project.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776247926.4755971
-  },
-  {
-    "pattern": "DiffOperation' does not contain a definition for 'PageNumber'",
-    "error_code": "CS1061",
-    "fix_guidance": "Remove or replace the 'PageNumber' property access; DiffOperation in Aspose.Pdf does not expose a PageNumber—use the information from diff.ToString() or upgrade to a version where the property exists.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776247983.935408
-  },
-  {
-    "pattern": "Argument \\d+: cannot convert from 'Aspose\\.Pdf\\.(Document|Comparison\\.ComparisonOptions)' to 'Aspose\\.Pdf\\.(Page|Comparison\\.SideBySideComparisonOptions)'",
-    "error_code": "CS1503",
-    "fix_guidance": "Pass a Page (e.g., doc.Pages[1]) instead of a Document to SideBySidePdfComparer.Compare, and use SideBySideComparisonOptions rather than ComparisonOptions.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776248007.58449
-  },
-  {
-    "pattern": "Document' does not contain a definition for 'SecuritySettings'",
-    "error_code": "CS1061",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.Security namespace (or update to a version that includes it) and use Document.Encrypt or the SecuritySettings API provided by that namespace.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776248065.795296
-  },
-  {
     "pattern": "DiffOperation' does not contain a definition for 'Type'",
     "error_code": "CS1061",
     "fix_guidance": "Replace the invalid 'Type' member with the correct 'Operation' property of DiffOperation and compare it against the Aspose.Pdf.DiffOperationType enum.",
@@ -1798,5 +1753,50 @@
     "_confidence": 0.5,
     "_hit_count": 0,
     "_created_at": 1776329570.8799639
+  },
+  {
+    "pattern": "TextStamp' does not contain a definition for '(SetOrigin|Rotation)'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace SetOrigin with XIndent/YIndent properties and Rotation with RotateAngle, and apply the TextStamp using Document/Page.AddStamp (or PdfFileStamp) instead of the missing members.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1776329781.7600021
+  },
+  {
+    "pattern": "PdfFileStamp' does not contain a definition for 'Pages'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace PdfFileStamp with a Document/PageNumberStamp approach, or use PdfFileStamp.AddStamp(pageNumber) instead of accessing a non‑existent Pages property.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1776330032.664763
+  },
+  {
+    "pattern": "ImageStamp' does not contain a definition for 'Margin'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent Margin property with XIndent/YIndent (or other positioning properties) on ImageStamp to set offsets.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1776334410.188461
+  },
+  {
+    "pattern": "An object reference is required for the non-static field, method, or property 'DocumentFactory\\.CreateDocument\\(string\\)'",
+    "error_code": "CS0120",
+    "fix_guidance": "Call the instance method (or use the Document constructor) instead of invoking DocumentFactory.CreateDocument as a static method.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1776334947.7603562
+  },
+  {
+    "pattern": "The type or namespace name '.*' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Add the required using directive (e.g., using Aspose.Pdf.Forms) and ensure the Aspose.Pdf assembly is referenced in the project.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1776334948.001666
   }
 ]
