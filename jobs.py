@@ -1679,7 +1679,8 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
         set_current_task(job_id, f"Creating {staging_branch}...")
         add_log(job_id, f"Phase 2: Creating empty orphan branch: {staging_branch}")
 
-        if gh.get_branch_sha(owner, repo_name, staging_branch):
+        branch_already_existed = bool(gh.get_branch_sha(owner, repo_name, staging_branch))
+        if branch_already_existed:
             add_log(job_id, f"Branch {staging_branch} already exists — skipping creation")
         elif gh.create_empty_branch(
             owner, repo_name, staging_branch,
@@ -1692,6 +1693,33 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
             add_log(job_id, f"  Repo:  {config.git.repo_url}")
             set_status(job_id, "failed")
             return
+
+        # ── Phase 2b: Seed CI workflows from main ──
+        # Without this the release branch has no .github/workflows/ so PRs
+        # targeting it never trigger CI — they stay stuck on the required
+        # 'Build & Run changed examples' check forever. Snapshot-promote
+        # later carries these files back to main, so seeding once here is
+        # enough for the whole release lifecycle.
+        ci_seed_path = ".github"
+        already_seeded = bool(gh.get_file(owner, repo_name, ci_seed_path, staging_branch))
+        if already_seeded:
+            add_log(job_id, f"Phase 2b: {ci_seed_path}/ already on {staging_branch} — skipping seed")
+        else:
+            set_current_task(job_id, "Seeding CI workflows from main...")
+            add_log(job_id, f"Phase 2b: Seeding {ci_seed_path}/ from main → {staging_branch}")
+            seeded = gh.copy_path_between_branches(
+                owner, repo_name,
+                source_branch="main", dest_branch=staging_branch,
+                path=ci_seed_path,
+                message=f"Seed CI workflows for release/{new_version}",
+                log_fn=lambda msg: add_log(job_id, msg),
+            )
+            if seeded:
+                add_log(job_id, f"✓ Seeded {ci_seed_path}/ on {staging_branch}")
+            else:
+                add_log(job_id, f"⚠ Could not seed {ci_seed_path}/ from main — PRs to "
+                                f"{staging_branch} may not trigger CI until you copy "
+                                ".github/workflows/ over manually")
 
         # ── Phase 3: Update .env and runtime config ──
         set_current_task(job_id, "Updating config...")
@@ -1730,14 +1758,20 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
 
 
 def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
-    """Promote staging branch to main:
+    """Promote staging branch to main via a snapshot commit.
 
-    Release branches are orphans (no shared history with main), so we
-    cannot use a PR.  Instead we force-update the main ref to point at
-    the release branch tip.
+    Release branches are orphans (no shared history with main), so a normal
+    PR/merge won't work. The previous implementation force-updated the main
+    ref directly — but that rewrites main's history and breaks ``git pull``
+    for anyone who already cloned the repo.
 
-    1. Force-update main ref → staging branch HEAD
-    2. Tag main as v{new_version} + create GitHub Release (if not already tagged)
+    Instead we **snapshot-promote**: build a single new commit whose
+    ``tree`` matches the release branch exactly but whose ``parent`` is
+    main's current HEAD. The result is a clean fast-forward on main —
+    one new commit that brings all release files in as a reviewable diff.
+
+    1. Snapshot-promote release tree onto main (one fast-forward commit)
+    2. Tag the new main commit as v{new_version} + create GitHub Release
     3. Update .env: reset PR_TARGET_BRANCH and REPO_BRANCH to main
     4. Keep staging branch as release archive
     """
@@ -1761,28 +1795,61 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
             set_status(job_id, "failed")
             return
 
-        # ── Phase 1: Force-update main to release branch HEAD ──
-        set_current_task(job_id, f"Updating main → {staging_branch}...")
-        add_log(job_id, f"Phase 1: Force-updating main to {staging_branch} HEAD")
+        # ── Phase 1: Snapshot-promote release tree onto main ──
+        # Build a new commit on main whose tree equals release/HEAD's tree
+        # but whose parent is main's current HEAD. This is a clean
+        # fast-forward — non-destructive for anyone who already pulled main.
+        set_current_task(job_id, f"Promoting {staging_branch} → main (snapshot)...")
+        add_log(job_id, f"Phase 1: Snapshot-promoting {staging_branch} onto main")
 
         release_sha = gh.get_branch_sha(owner, repo_name, staging_branch)
         if not release_sha:
             add_log(job_id, f"ERROR: Could not get SHA for {staging_branch}")
             set_status(job_id, "failed")
             return
-        add_log(job_id, f"  {staging_branch} HEAD: {release_sha[:10]}")
 
         main_sha_before = gh.get_branch_sha(owner, repo_name, "main")
-        add_log(job_id, f"  main before: {main_sha_before[:10] if main_sha_before else 'N/A'}")
-
-        if release_sha == main_sha_before:
-            add_log(job_id, "main already points at release HEAD — skipping update")
-        elif gh.force_update_ref(owner, repo_name, "main", release_sha):
-            add_log(job_id, f"✓ main updated to {release_sha[:10]}")
-        else:
-            add_log(job_id, "ERROR: Could not update main ref")
+        if not main_sha_before:
+            add_log(job_id, "ERROR: Could not get SHA for main")
             set_status(job_id, "failed")
             return
+        add_log(job_id, f"  {staging_branch} HEAD: {release_sha[:10]}")
+        add_log(job_id, f"  main before:        {main_sha_before[:10]}")
+
+        release_tree = gh.get_commit_tree_sha(owner, repo_name, release_sha)
+        if not release_tree:
+            add_log(job_id, f"ERROR: Could not read tree of {release_sha[:10]}")
+            set_status(job_id, "failed")
+            return
+
+        main_tree = gh.get_commit_tree_sha(owner, repo_name, main_sha_before)
+
+        if main_tree == release_tree:
+            add_log(job_id, "main tree already matches release — skipping promote commit")
+            promote_sha = main_sha_before
+        else:
+            promote_sha = gh.create_commit(
+                owner, repo_name,
+                tree_sha=release_tree,
+                parents=[main_sha_before],
+                message=(
+                    f"Promote release/{new_version} to main\n\n"
+                    f"Snapshot of {staging_branch}@{release_sha[:10]} brought onto "
+                    f"main as a single fast-forward commit. History is preserved — "
+                    f"users who already cloned main can `git pull` cleanly."
+                ),
+            )
+            if not promote_sha:
+                add_log(job_id, "ERROR: Could not create promote commit")
+                set_status(job_id, "failed")
+                return
+            if not gh.update_ref(owner, repo_name, "main", promote_sha):
+                add_log(job_id, "ERROR: Fast-forward update of main failed "
+                                "(divergent history?). Aborting — main is unchanged.")
+                set_status(job_id, "failed")
+                return
+            add_log(job_id, f"✓ main fast-forwarded to {promote_sha[:10]} "
+                            f"(one new commit, history preserved)")
 
         # ── Phase 2: Tag + Release (only if tag doesn't already exist) ──
         tag_name = f"v{new_version}"
@@ -1792,8 +1859,10 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
             set_current_task(job_id, f"Tagging v{new_version}...")
             add_log(job_id, f"Phase 2: Tagging main as v{new_version}")
 
-            if gh.create_tag(owner, repo_name, tag_name, release_sha):
-                add_log(job_id, f"✓ Created tag: {tag_name}")
+            # Tag the NEW promote commit on main (not the orphan release tip)
+            # so `git checkout vX.Y.Z` lands on a commit reachable from main.
+            if gh.create_tag(owner, repo_name, tag_name, promote_sha):
+                add_log(job_id, f"✓ Created tag: {tag_name} → {promote_sha[:10]}")
             else:
                 add_log(job_id, f"⚠ Tag creation failed — continuing")
 
