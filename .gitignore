@@ -22,6 +22,7 @@ formdata.json
 conversion_log.txt
 _build/
 .parallel-workspaces/
+results/
 .venv/
 venv/
 .claude/
