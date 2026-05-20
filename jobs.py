@@ -1057,7 +1057,7 @@ def update_repo_docs(job_id: str, update_readme: bool = True):
         set_current_task(job_id, "Normalizing folder names...")
         renamed = normalize_repo_folders(config.git.repo_path)
         if renamed:
-            add_log(job_id, f"Renamed {len(renamed)} folder(s): {', '.join(f'{k} → {v}' for k, v in renamed.items())}")
+            add_log(job_id, f"Renamed {len(renamed)} folder(s): {', '.join(f'{k} -> {v}' for k, v in renamed.items())}")
             # Re-scan after renames
             scan = scan_repo(config.git.repo_path)
             total_files = sum(len(files) for files in scan.values())
@@ -1628,7 +1628,7 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
 
     try:
         init_build(job_id, total=0)
-        add_log(job_id, f"Version bump setup: {old_version} → {new_version}")
+        add_log(job_id, f"Version bump setup: {old_version} -> {new_version}")
 
         if not config.git.repo_token:
             add_log(job_id, "ERROR: REPO_TOKEN not configured")
@@ -1706,7 +1706,7 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
             add_log(job_id, f"Phase 2b: {ci_seed_path}/ already on {staging_branch} — skipping seed")
         else:
             set_current_task(job_id, "Seeding CI workflows from main...")
-            add_log(job_id, f"Phase 2b: Seeding {ci_seed_path}/ from main → {staging_branch}")
+            add_log(job_id, f"Phase 2b: Seeding {ci_seed_path}/ from main -> {staging_branch}")
             seeded = gh.copy_path_between_branches(
                 owner, repo_name,
                 source_branch="main", dest_branch=staging_branch,
@@ -1781,7 +1781,7 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
 
     try:
         init_build(job_id, total=0)
-        add_log(job_id, f"Promoting {staging_branch} → main")
+        add_log(job_id, f"Promoting {staging_branch} -> main")
 
         if not config.git.repo_token:
             add_log(job_id, "ERROR: REPO_TOKEN not configured")
@@ -1799,7 +1799,7 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
         # Build a new commit on main whose tree equals release/HEAD's tree
         # but whose parent is main's current HEAD. This is a clean
         # fast-forward — non-destructive for anyone who already pulled main.
-        set_current_task(job_id, f"Promoting {staging_branch} → main (snapshot)...")
+        set_current_task(job_id, f"Promoting {staging_branch} -> main (snapshot)...")
         add_log(job_id, f"Phase 1: Snapshot-promoting {staging_branch} onto main")
 
         release_sha = gh.get_branch_sha(owner, repo_name, staging_branch)
@@ -1862,7 +1862,7 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
             # Tag the NEW promote commit on main (not the orphan release tip)
             # so `git checkout vX.Y.Z` lands on a commit reachable from main.
             if gh.create_tag(owner, repo_name, tag_name, promote_sha):
-                add_log(job_id, f"✓ Created tag: {tag_name} → {promote_sha[:10]}")
+                add_log(job_id, f"Created tag: {tag_name} -> {promote_sha[:10]}")
             else:
                 add_log(job_id, f"⚠ Tag creation failed — continuing")
 

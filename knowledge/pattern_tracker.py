@@ -114,7 +114,7 @@ def _promote_candidate(patterns_path: str, candidate: dict) -> Optional[dict]:
         patterns = patterns[-_MAX_PATTERNS:]
 
     _save_json_list(patterns_path, patterns)
-    print(f"[PatternTracker] Promoted pattern: '{candidate['old']}' → '{candidate['new']}' ({candidate.get('count', 0)} occurrences)")
+    print(f"[PatternTracker] Promoted pattern: '{candidate['old']}' -> '{candidate['new']}' ({candidate.get('count', 0)} occurrences)")
     return new_pattern
 
 

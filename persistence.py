@@ -84,7 +84,7 @@ def migrate_flat_results(base_results_dir: str, nuget_version: str):
             migrated += 1
 
     if migrated:
-        print(f"[persistence] Migrated {migrated} item(s) from {base} → {target}")
+        print(f"[persistence] Migrated {migrated} item(s) from {base} -> {target}")
 
 
 def _looks_like_version(name: str) -> bool:

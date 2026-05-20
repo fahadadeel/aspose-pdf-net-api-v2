@@ -450,7 +450,7 @@ class GitHubAPI:
                     owner, repo, path, content, message, dest_branch,
                 )
                 if ok:
-                    _log(f"[GitHub] Copied {path}: {source_branch} → {dest_branch}")
+                    _log(f"[GitHub] Copied {path}: {source_branch} -> {dest_branch}")
                 return ok
 
             # Treat as a directory — list and recurse one level at a time
@@ -475,7 +475,7 @@ class GitHubAPI:
                     if self.create_or_update_file(
                         owner, repo, epath, content, message, dest_branch,
                     ):
-                        _log(f"[GitHub] Copied {epath}: {source_branch} → {dest_branch}")
+                        _log(f"[GitHub] Copied {epath}: {source_branch} -> {dest_branch}")
                         any_ok = True
                 elif etype == "dir":
                     if self.copy_path_between_branches(
