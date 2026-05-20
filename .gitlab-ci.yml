@@ -1,0 +1,13 @@
+stages:
+  - test
+
+unit-tests:
+  stage: test
+  image: python:3.12-slim
+  before_script:
+    - pip install -q pytest python-dotenv
+  script:
+    - python -m pytest tests/ -v
+  only:
+    - main
+    - merge_requests
