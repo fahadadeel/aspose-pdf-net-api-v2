@@ -1,14 +1,14 @@
 """
-reporting.py — Fire-and-forget usage reporting to external endpoint.
+reporting.py -- Fire-and-forget usage reporting to external endpoint.
 
 Reports job completion metrics to a Google Apps Script endpoint.
 Also logs each report locally to usage_reports.jsonl for review.
 Failures are logged but NEVER affect the pipeline.
 
 Config switches:
-  REPORTING_ENABLED      — master switch (default: true)
-  REPORTING_LOG_TO_FILE  — write each report to usage_reports.jsonl (default: true)
-  REPORTING_ENDPOINT_URL — if empty, remote POST is skipped (local log still works)
+  REPORTING_ENABLED      -- master switch (default: true)
+  REPORTING_LOG_TO_FILE  -- write each report to usage_reports.jsonl (default: true)
+  REPORTING_ENDPOINT_URL -- if empty, remote POST is skipped (local log still works)
 """
 
 import json
@@ -20,7 +20,7 @@ import requests
 
 from config import AppConfig
 
-# Local log file — one JSON object per line, appended after each run
+# Local log file -- one JSON object per line, appended after each run
 _LOG_FILE = Path("usage_reports.jsonl")
 
 

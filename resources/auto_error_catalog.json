@@ -1,1802 +1,1802 @@
 [
   {
-    "pattern": "DiffOperation' does not contain a definition for 'Type'",
+    "pattern": "Form' does not contain a definition for 'ExportData'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace the invalid 'Type' member with the correct 'Operation' property of DiffOperation and compare it against the Aspose.Pdf.DiffOperationType enum.",
+    "fix_guidance": "Call the ExportData method on the Document object (e.g., doc.ExportData(outputXml, options)) or update to a version of Aspose.Pdf where Form.ExportData is available, and ensure the proper namespace/reference is included.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776248340.6115441
+    "_created_at": 1778007638.965469
   },
   {
-    "pattern": "DiffOperation' does not contain a definition for 'PageIndex'",
+    "pattern": "AnnotationActionCollection does not contain a definition for 'OnValueChanged'",
     "error_code": "CS1061",
-    "fix_guidance": "Use the correct property name (e.g., DiffOperation.PageNumber) or upgrade to a newer Aspose.Pdf.Comparison version that provides the PageIndex property.",
+    "fix_guidance": "Replace the nonexistent OnValueChanged action with a supported one (e.g., OnCalculate) or use a JavaScript action attached via the appropriate Actions property.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776248548.249444
+    "_created_at": 1778007931.3524292
   },
   {
-    "pattern": "DiffOperation' does not contain a definition for 'OperationType'",
+    "pattern": "AnnotationActionCollection' does not contain a definition for 'SubmitForm'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent 'OperationType' member with the correct 'Operation' property (e.g., diff.Operation) and ensure the appropriate Aspose.PDF namespace is imported.",
+    "fix_guidance": "Use the correct API to add a submit action, e.g., `buttonField.Actions.Add(new SubmitFormAction(submitUrl));` instead of calling a non‑existent `SubmitForm` method.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776248557.022329
+    "_created_at": 1778008265.908458
   },
   {
-    "pattern": "Operator '\\?' cannot be applied to operand of type 'Operation'",
-    "error_code": "CS0023",
-    "fix_guidance": "Remove the null‑conditional operator or make the operand nullable; for enums like Operation, use diff.Operation.ToString() directly.",
+    "pattern": "A 'using namespace' directive can only be applied to namespaces; 'SubmitFormAction' is a type not a namespace",
+    "error_code": "CS0138",
+    "fix_guidance": "Delete the `using Aspose.Pdf.Annotations.SubmitFormAction;` line and reference `SubmitFormAction` directly (or use a fully‑qualified name) since it is a type, not a namespace.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776248648.637738
+    "_created_at": 1778008515.2063072
   },
   {
-    "pattern": "DiffOperationType",
-    "error_code": "CS0103",
-    "fix_guidance": "Replace the undefined DiffOperationType with the correct enum (e.g., Operation) from Aspose.Pdf and add the necessary using directive.",
+    "pattern": "Could not find file '.*source_form\\.pdf'",
+    "error_code": "FileNotFoundException",
+    "fix_guidance": "Verify that the source PDF file exists at the specified path or adjust the path to point to the correct location before loading the document.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776248975.783823
+    "_created_at": 1778008627.1615958
   },
   {
-    "pattern": "DocSaveOptions\\.DocFormat' does not contain a definition for 'Docx'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the invalid enum value 'Docx' with the correct member name 'DocX' (case‑sensitive) when setting DocSaveOptions.Format.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776249204.702056
-  },
-  {
-    "pattern": "DocSaveOptions\\.DocFormat does not contain a definition for 'Docx'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the invalid enum value with the correct member, e.g., use DocSaveOptions.DocFormat.DocX instead of Docx.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776249219.064969
-  },
-  {
-    "pattern": "PptxSaveOptions' does not contain a definition for 'ProgressEventType'",
-    "error_code": "CS0117",
-    "fix_guidance": "Remove or replace the nonexistent ProgressEventType property; use the appropriate progress event (e.g., SaveOptions.ProgressEventHandler) or omit it when configuring PptxSaveOptions.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776249625.6602838
-  },
-  {
-    "pattern": "HtmlSaveOptions\\.CssSavingInfo' does not contain a definition for 'CustomProcessingCancelled'",
-    "error_code": "CS1061",
-    "fix_guidance": "Remove or replace the nonexistent CustomProcessingCancelled property; use only the supported HtmlSaveOptions properties or upgrade to a version of Aspose.PDF that includes it.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776250016.166479
-  },
-  {
-    "pattern": "The type or namespace name 'Slides' does not exist in the namespace 'Aspose'",
+    "pattern": "The type or namespace name 'InteractiveFeatures' does not exist in the namespace 'Aspose\\.Pdf'",
     "error_code": "CS0234",
-    "fix_guidance": "Add a reference to the Aspose.Slides library (e.g., via NuGet) or correct the using directive to reference the proper assembly.",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.InteractiveFeatures assembly (or install the corresponding NuGet package) or remove the using directive if the feature is not needed.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776250239.457736
+    "_created_at": 1778008768.6898189
   },
   {
-    "pattern": "JpegDevice': type used in a using statement must implement 'System.IDisposable'",
-    "error_code": "CS1674",
-    "fix_guidance": "Do not place JpegDevice in a using block; instantiate it normally and dispose the Document instead, as JpegDevice does not implement IDisposable.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776250247.034751
-  },
-  {
-    "pattern": "Source file '.*\\.editorconfig' could not be found",
-    "error_code": "CS2001",
-    "fix_guidance": "Ensure the referenced editorconfig file is generated or present (e.g., run the build step that creates it or clean and rebuild), or remove the invalid file reference from the project.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776250408.645843
-  },
-  {
-    "pattern": "Top-level statements must precede namespace and type declarations",
-    "error_code": "CS8803",
-    "fix_guidance": "Move any top‑level statements (e.g., code outside a class) before namespace/type declarations or place the code inside a Main method within a class.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776250478.2916338
-  },
-  {
-    "pattern": "The type or namespace name 'ICustomHtmlSavingStrategy' does not exist in the namespace 'Aspose\\.Pdf'",
-    "error_code": "CS0234",
-    "fix_guidance": "Reference the Aspose.Pdf.Html assembly (or upgrade the Aspose.Pdf package) and add `using Aspose.Pdf.Html;` so the ICustomHtmlSavingStrategy and HtmlSavingStrategyInfo types are available.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776250524.6536791
-  },
-  {
-    "pattern": "The type or namespace name 'XslFo' does not exist in the namespace 'Aspose\\.Pdf'",
-    "error_code": "CS0234",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.XslFo assembly (or install the Aspose.Pdf.XslFo NuGet package) and include the appropriate using directive (e.g., using Aspose.Pdf.XslFo;).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776250725.445819
-  },
-  {
-    "pattern": "TextFragmentState' does not contain a definition for 'VerticalAlignment'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the use of TextFragmentState.VerticalAlignment with the TextFragment object's VerticalAlignment property (or upgrade to a version of Aspose.Pdf that includes this property).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776250809.2880929
-  },
-  {
-    "pattern": "Document' does not contain a definition for 'GenerateToc'",
-    "error_code": "CS1061",
-    "fix_guidance": "Remove the call to Document.GenerateToc; instead create a TocInfo object, configure its Title and other settings, assign it to a newly inserted page (doc.Pages.Insert) and let Aspose.Pdf generate the TOC via the TocInfo.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776250890.202661
-  },
-  {
-    "pattern": "Page' does not contain a definition for 'ConvertToSvg'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent Page.ConvertToSvg call with Aspose.Pdf's SVG conversion API (e.g., use SvgDevice or Document.Save with SvgSaveOptions) and add the required Aspose.Pdf.Devices namespace.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776250925.836915
-  },
-  {
-    "pattern": "Page' does not contain a definition for 'PageSize'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace usage of the non‑existent PageSize member with the PageInfo property (e.g., page.PageInfo.Width, page.PageInfo.Height, page.PageInfo.IsLandscape) or use the SetPageSize method.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251061.311764
-  },
-  {
-    "pattern": "The type or namespace name 'CallBackGetHocr' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf assembly that contains CallBackGetHocr and include the appropriate using directive (e.g., `using Aspose.Pdf.Text;`).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251071.834191
-  },
-  {
-    "pattern": "Cannot create an instance of the abstract type or interface 'Signature'",
-    "error_code": "CS0144",
-    "fix_guidance": "Replace the abstract Signature instantiation with a concrete subclass such as PKCS7 (e.g., `PKCS7 pkcs7 = new PKCS7(pfxPath, pfxPassword);`) and use that object for signing.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251138.5869608
-  },
-  {
-    "pattern": "Cannot open '.*AsposePdfApi_.*\\.dll' for writing -- The process cannot access the file .* because it is being used by another process",
-    "error_code": "CS2012",
-    "fix_guidance": "Stop any running process that has loaded the DLL (e.g., previous instance of the app, test runner, or Visual Studio), then clean the project or delete the obj folder before rebuilding.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251236.4185028
-  },
-  {
-    "pattern": "There is no argument given that corresponds to the required parameter 'formattingMode' of 'TextExtractionOptions\\.TextExtractionOptions\\(TextExtractionOptions\\.TextFormattingMode\\)'",
-    "error_code": "CS7036",
-    "fix_guidance": "Pass a TextFormattingMode enum value (e.g., TextExtractionOptions.TextFormattingMode.Pure) to the TextExtractionOptions constructor.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251342.0143921
-  },
-  {
-    "pattern": "TextExtractionOptions' does not contain a definition for 'TextFormattingModeEnum'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent 'TextFormattingModeEnum' with the correct 'TextFormattingMode' enum (e.g., TextExtractionOptions.TextFormattingMode.Pure) or update to a version of Aspose.PDF that includes the enum.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251344.857643
-  },
-  {
-    "pattern": "TextExtractionOptions\\.TextFormattingMode' does not contain a definition for 'PreserveLayout'",
-    "error_code": "CS0117",
-    "fix_guidance": "Upgrade to a newer Aspose.PDF for .NET version that includes the PreserveLayout enum value, or replace it with a supported TextFormattingMode value.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251379.921855
-  },
-  {
-    "pattern": "Argument 1: cannot convert from 'Aspose\\.Pdf\\.Image' to 'System\\.Drawing\\.Image'",
-    "error_code": "CS1503",
-    "fix_guidance": "Use the Aspose.Pdf.Image overloads or convert the Aspose.Pdf.Image to a System.Drawing.Image (e.g., via a memory stream) before passing it to methods expecting System.Drawing.Image.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251400.508391
-  },
-  {
-    "pattern": "Could not write to output file.*AsposePdfApi\\.sourcelink\\.json",
-    "error_code": "CS0016",
-    "fix_guidance": "Ensure the obj/Debug/... directory exists and you have write permissions (clean the obj folder or disable SourceLink generation) so the compiler can create the sourcelink.json file.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251487.5823731
-  },
-  {
-    "pattern": "Argument 1: cannot convert from 'System\\.IO\\.FileStream' to 'System\\.Security\\.Cryptography\\.X509Certificates\\.X509Certificate2'",
-    "error_code": "CS1503",
-    "fix_guidance": "Create and pass an X509Certificate2 object (e.g., new X509Certificate2(certPath, password)) instead of a FileStream, and supply a DigestHashAlgorithm enum value (e.g., DigestHashAlgorithm.SHA256) rather than a string.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251535.4338272
-  },
-  {
-    "pattern": "The type or namespace name 'OutlineItem' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Replace 'OutlineItem' with the correct Aspose.Pdf class name (e.g., OutlineItemBase) and ensure `using Aspose.Pdf;` is present.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251849.8578901
-  },
-  {
-    "pattern": "FileSpecification' does not contain a constructor that takes \\d+ arguments",
+    "pattern": "FileSelectBoxField' does not contain a constructor that takes 2 arguments",
     "error_code": "CS1729",
-    "fix_guidance": "Use a constructor overload that matches the available parameters (e.g., FileSpecification(string filePath) or the parameterless constructor) and set the remaining properties manually.",
+    "fix_guidance": "Replace the FileSelectBoxField creation with a TextBoxField (or another supported field type) because FileSelectBoxField has no public constructors; then add the field to the document's Form collection.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776251920.694398
+    "_created_at": 1778008975.201731
   },
   {
-    "pattern": "Document' does not contain a definition for 'Portfolio'",
+    "pattern": "TextBoxField' does not contain a definition for 'BackgroundColor'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent Portfolio API with Document.Collection: instantiate Document.Collection if null and add FileSpecification objects via Collection.Add.",
+    "fix_guidance": "Use the TextBoxField.Color property (or its widget annotation's Color) instead of BackgroundColor, and ensure the appropriate Aspose.Pdf namespaces are imported.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776251924.9665668
+    "_created_at": 1778009036.683363
   },
   {
-    "pattern": "Use of unassigned local variable 'link'",
+    "pattern": "A 'using namespace' directive can only be applied to namespaces; 'SaveOptions' is a type not a namespace",
+    "error_code": "CS0138",
+    "fix_guidance": "Remove the incorrect 'using Aspose.Pdf.SaveOptions;' line and keep only 'using Aspose.Pdf;'; reference SaveOptions types directly or use a 'using static' if you need static members.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778009445.8839061
+  },
+  {
+    "pattern": "JavaScriptCollection' does not contain a definition for 'Add'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the call to doc.JavaScript.Add(...) with assigning the JavaScriptAction to doc.OpenAction, as JavaScriptCollection does not support Add.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778009621.0900779
+  },
+  {
+    "pattern": "Cannot implicitly convert type 'Aspose\\.Pdf\\.Forms\\.TextBoxField' to 'Aspose\\.Pdf\\.Forms\\.PasswordBoxField'",
+    "error_code": "CS0266",
+    "fix_guidance": "Use a TextBoxField (which can act as a password field) instead of PasswordBoxField, or cast explicitly if appropriate; PasswordBoxField has no public constructor.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778010243.581981
+  },
+  {
+    "pattern": "AnnotationActionCollection' does not contain a definition for 'OnValueChanged'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent OnValueChanged property with a supported action property such as OnCalculate (or another appropriate event) on the AnnotationActionCollection.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778010282.05494
+  },
+  {
+    "pattern": "The type or namespace name 'Field' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Add a reference to Aspose.Pdf.Forms (e.g., `using Aspose.Pdf.Forms;`) and ensure the Aspose.Pdf.Forms assembly is referenced in the project.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778010323.282955
+  },
+  {
+    "pattern": "Use of unassigned local variable 'toggleChk'",
     "error_code": "CS0165",
-    "fix_guidance": "Initialize the variable 'link' before it is read, ensuring every code path assigns a value (e.g., set it to null or a default string).",
+    "fix_guidance": "Initialize the variable before accessing its members, e.g., assign 'toggleChk' with a new CheckboxField instance before setting properties or using it.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776251925.0289128
+    "_created_at": 1778010392.869119
   },
   {
-    "pattern": "The variable '.*' is assigned but its value is never used",
-    "error_code": "CS0219",
-    "fix_guidance": "Remove the unused variable or reference it in the code to eliminate the warning.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776251944.124676
-  },
-  {
-    "pattern": "PageSize' does not contain a definition for 'Letter'|Rotation' does not contain a definition for 'Rotate90'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent members with valid Aspose.PDF enum values, e.g., use PageSize.A4 (or another supported size) instead of PageSize.Letter, and use Rotation.On90 instead of Rotation.Rotate90.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252050.236096
-  },
-  {
-    "pattern": "Source file '.*AsposePdfApi\\.AssemblyInfo\\.cs' could not be found",
-    "error_code": "CS2001",
-    "fix_guidance": "Clean the project (delete the obj folder) and rebuild, or enable automatic AssemblyInfo generation by setting <GenerateAssemblyInfo>true</GenerateAssemblyInfo> in the .csproj.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252093.873203
-  },
-  {
-    "pattern": "Source file '.*AsposePdfApi\\.GeneratedMSBuildEditorConfig\\.editorconfig' could not be found",
-    "error_code": "CS2001",
-    "fix_guidance": "Make sure the referenced .editorconfig file exists at the specified path or remove the missing file reference from the project file.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252105.981312
-  },
-  {
-    "pattern": "PrinterSettings' is an ambiguous reference between",
-    "error_code": "CS0104",
-    "fix_guidance": "Disambiguate the type by using its fully qualified name (e.g., System.Drawing.Printing.PrinterSettings) or create a using alias, and remove or qualify the conflicting Aspose.Pdf.Printing namespace.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252107.1788669
-  },
-  {
-    "pattern": "The type or namespace name 'EmbeddedFile' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to Aspose.Pdf.dll (or the appropriate NuGet package) and include the correct namespace, or replace 'EmbeddedFile' with the valid class name such as 'EmbeddedFileCollection' from Aspose.Pdf.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252268.939976
-  },
-  {
-    "pattern": "There is no argument given that corresponds to the required parameter 'exception' of 'CrashReportOptions\\.CrashReportOptions\\(Exception\\)'",
-    "error_code": "CS7036",
-    "fix_guidance": "Pass the caught exception to the CrashReportOptions constructor, e.g., `new CrashReportOptions(exception)` instead of using the parameterless constructor.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252296.6817641
-  },
-  {
-    "pattern": "Source file '.*AsposePdfApi\\.GlobalUsings\\.g\\.cs' could not be found",
-    "error_code": "CS2001",
-    "fix_guidance": "Clean the project (delete the obj folder) and rebuild so the missing GlobalUsings.g.cs file is regenerated; verify the target framework and SDK support global usings.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252526.099675
-  },
-  {
-    "pattern": "cannot reference a type through an expression; try 'Document\\.OptimizationOptions' instead",
-    "error_code": "CS0572",
-    "fix_guidance": "Replace the obsolete Document.OptimizationOptions usage with the new Aspose.Pdf.Optimization.OptimizationOptions API (e.g., create an OptimizationOptions instance and pass it to pdfDoc.OptimizeResources).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252595.452994
-  },
-  {
-    "pattern": "error CS1010: Newline in constant",
-    "error_code": "CS1010",
-    "fix_guidance": "Close the string literal properly—use a verbatim string (prefix with @) or escape line breaks and quotes so the constant does not span multiple lines.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252655.3282828
-  },
-  {
-    "pattern": "The type or namespace name 'XYZExplicitDestination' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf assembly and include the appropriate using directive (e.g., `using Aspose.Pdf;`) so the `XYZExplicitDestination` type is recognized.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252830.9390988
-  },
-  {
-    "pattern": "TextBoxField' does not contain a constructor that takes \\d+ arguments",
-    "error_code": "CS1729",
-    "fix_guidance": "Instantiate TextBoxField using the (Page, Rectangle) constructor (e.g., new TextBoxField(page, rect)) and set properties like PartialName separately.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252907.0813901
-  },
-  {
-    "pattern": "The type or namespace name 'GoToAction' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf library version that contains GoToAction and include the proper using directive (e.g., `using Aspose.Pdf.Annotations;`).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776252938.750304
-  },
-  {
-    "pattern": "The type or namespace name 'DefaultAppearance' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Remove references to the non‑existent 'DefaultAppearance' type and set appearance via the TextFragment's TextState (e.g., Font, FontSize, ForegroundColor) instead.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776253026.6878011
-  },
-  {
-    "pattern": "Property or indexer 'TextFragment\\.TextState' cannot be assigned to",
-    "error_code": "CS0200",
-    "fix_guidance": "Do not assign a new TextState to TextFragment.TextState; instead modify the existing TextState's properties (e.g., FontSize, Font) or create a new TextFragment with the desired settings.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776253033.8795898
-  },
-  {
-    "pattern": "The type or namespace name 'RadioButtonOption' does not exist in the namespace 'Aspose\\.Pdf\\.Forms'",
-    "error_code": "CS0234",
-    "fix_guidance": "Remove the direct reference to RadioButtonOption and use Form.GetButtonOptionValues (or upgrade to a version of Aspose.Pdf that includes RadioButtonOption) and ensure the Aspose.Pdf assembly is referenced.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776253284.61532
-  },
-  {
-    "pattern": "Dereference of a possibly null reference",
-    "error_code": "CS8602",
-    "fix_guidance": "Ensure the object is not null before accessing its members, e.g., add a null‑check or use the null‑conditional operator (?.) to safely dereference.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776253573.503362
-  },
-  {
-    "pattern": "Could not write to output file.*sourcelink\\.json",
-    "error_code": "CS0016",
-    "fix_guidance": "Ensure the obj directory exists and you have write permissions (clean the project or delete the obj folder) so the compiler can create the sourcelink.json file, then rebuild.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776253636.633982
-  },
-  {
-    "pattern": "Annotation' does not contain a definition for 'Action'",
+    "pattern": "Form' does not contain a definition for 'Recalculate'",
     "error_code": "CS1061",
-    "fix_guidance": "Stop accessing Annotation.Action; use Aspose.Pdf's HiddenDataSanitizer (with HiddenDataSanitizationOptions) to remove or modify actions, or add the correct Aspose.Pdf.Annotations reference if that property is required.",
+    "fix_guidance": "Remove the nonexistent Form.Recalculate call and use the correct API (e.g., doc.Form.Calculate() or update field values manually) after ensuring you reference the appropriate Aspose.Pdf version.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776253681.4649699
-  },
-  {
-    "pattern": "Cell' does not contain a definition for 'ColumnSpan'",
-    "error_code": "CS1061",
-    "fix_guidance": "Upgrade to a newer Aspose.PDF for .NET version that includes the Cell.ColumnSpan property, or replace the usage with supported table‑cell spanning APIs available in your current library version.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776253819.2546618
-  },
-  {
-    "pattern": "The type or namespace name 'Fonts' does not exist in the namespace 'Aspose\\.Pdf'",
-    "error_code": "CS0234",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.Fonts assembly (install the Aspose.Pdf.Fonts NuGet package) or remove/replace the Fonts usage with a supported namespace.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776256871.930597
-  },
-  {
-    "pattern": "FileAttachmentAnnotation' does not contain a definition for 'IconNames'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent 'IconNames' member with the correct 'IconName' property (or use the appropriate enum value) provided by Aspose.Pdf.FileAttachmentAnnotation.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776256924.836735
-  },
-  {
-    "pattern": "The type or namespace name 'Epub' does not exist in the namespace 'Aspose\\.Pdf'",
-    "error_code": "CS0234",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.Epub assembly (e.g., install the Aspose.Pdf.Epub NuGet package) and ensure the correct using directive is present.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776257046.80839
-  },
-  {
-    "pattern": "AnnotationType' does not contain a definition for '(ThreeD|Redact)'",
-    "error_code": "CS0117",
-    "fix_guidance": "Remove or comment out the unsupported AnnotationType members (ThreeD, Redact) or upgrade to a Aspose.PDF version that defines them.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776257085.770874
-  },
-  {
-    "pattern": "TextFragment.*DefaultAppearance",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace usage of the non‑existent DefaultAppearance property with the TextState object (e.g., title.TextState.Font, FontSize, and ForegroundColor) to set font attributes.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776257172.0859141
-  },
-  {
-    "pattern": "Document does not contain a definition for 'SanitizeHiddenData'",
-    "error_code": "CS1061",
-    "fix_guidance": "Reference Aspose.Pdf.Security.HiddenDataSanitization, create a HiddenDataSanitizer (with HiddenDataSanitizationOptions) and call sanitizer.Sanitize(document) instead of Document.SanitizeHiddenData.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776257327.837472
+    "_created_at": 1778010455.021098
   },
   {
     "pattern": "The type or namespace name 'Saving' does not exist in the namespace 'Aspose\\.Pdf'",
     "error_code": "CS0234",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.Saving namespace (e.g., `using Aspose.Pdf.Saving;`) or fully qualify the types, and ensure the Aspose.Pdf package version includes the Saving namespace.",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Saving assembly or install the correct Aspose.Pdf version, and include the proper using directive (e.g., using Aspose.Pdf.Saving;).",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776257334.1773582
+    "_created_at": 1778010550.054234
   },
   {
-    "pattern": "ProgressEventHandlerInfo could not be found",
+    "pattern": "AnnotationActionCollection' does not contain a definition for 'OnActivated'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent OnActivated action with a supported one (e.g., OnSubmit) or use a TextBoxField with JavaScript validation instead of FileSelectBoxField.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778010655.60531
+  },
+  {
+    "pattern": "The type or namespace name 'TextAnnotation' could not be found",
     "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.Facades assembly (or the appropriate NuGet package) and include `using Aspose.Pdf.Facades;` in the source file.",
+    "fix_guidance": "Add a reference to Aspose.Pdf (if not already referenced) and include the namespace with `using Aspose.Pdf.Annotations;` so the TextAnnotation type is available.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776257572.7186298
+    "_created_at": 1778010707.208886
   },
   {
-    "pattern": "Argument 1: cannot convert from 'string' to 'System\\.IO\\.Stream'",
+    "pattern": "Cannot implicitly convert type 'string' to 'int'",
+    "error_code": "CS0029",
+    "fix_guidance": "Convert the string to an int (e.g., int.Parse or int.TryParse) or change the target variable's type to string to match the source.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778010953.9957519
+  },
+  {
+    "pattern": "^'ButtonField' does not contain a definition for 'Text'.*$",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent `Text` property with the `Value` property (or use a TextBoxField) because `ButtonField` only supports `Value`; ensure you have `using Aspose.Pdf.Forms;`.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778011294.90332
+  },
+  {
+    "pattern": "Argument 1: cannot convert from 'Aspose\\.Pdf\\.Forms\\.Form' to 'Aspose\\.Pdf\\.Document'",
     "error_code": "CS1503",
-    "fix_guidance": "Pass a Stream (e.g., File.OpenRead(path) or a MemoryStream) to the method instead of a string file path.",
+    "fix_guidance": "Pass a Document instance (e.g., new Document(...)) or use the Form's Document property instead of the Form object where a Document is required.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776257653.973208
+    "_created_at": 1778011399.043766
   },
   {
-    "pattern": "Property or indexer 'TextAbsorber\\.Text' cannot be assigned to",
-    "error_code": "CS0200",
-    "fix_guidance": "Do not assign to TextAbsorber.Text; it is read‑only—create a new TextAbsorber for each page (or reuse it without resetting) and read its Text property instead of setting it.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776257708.594794
-  },
-  {
-    "pattern": "The type or namespace name 'ProgressEventHandlerInfo' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.UnifiedSaveOptions namespace (or the appropriate Aspose.Pdf assembly) and include `using Aspose.Pdf.UnifiedSaveOptions;` at the top of the file.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776257716.534137
-  },
-  {
-    "pattern": "Form' does not contain a definition for 'FieldNames'",
+    "pattern": "AnnotationActionCollection' does not contain a definition for 'OnMouseUp'",
     "error_code": "CS1061",
-    "fix_guidance": "Add a reference to Aspose.Pdf.Forms and use the Form.Fields collection (e.g., var fields = doc.Form?.Fields) instead of the non‑existent FieldNames property.",
+    "fix_guidance": "Replace the nonexistent OnMouseUp property with the correct action property (e.g., OnPressMouseBtn) supported by the Aspose.Pdf version you are using.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776258309.411883
+    "_created_at": 1778011430.619806
   },
   {
-    "pattern": "Annotation' does not contain a definition for 'Title'",
+    "pattern": "WidgetAnnotation' does not contain a definition for 'FieldType'",
     "error_code": "CS1061",
-    "fix_guidance": "Cast the Annotation to a MarkupAnnotation (or a derived type that defines Title) before accessing the Title property, e.g., `if (annotation is MarkupAnnotation markup && markup.Title == ...)`.",
+    "fix_guidance": "Replace the WidgetAnnotation with a ButtonField (or appropriate field type) and check its type via the field collection instead of accessing a non‑existent FieldType property.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776258650.043703
+    "_created_at": 1778011550.2302148
   },
   {
-    "pattern": "PdfFileEditor' does not contain a definition for 'Dispose'",
-    "error_code": "CS1061",
-    "fix_guidance": "Remove the call to Dispose on PdfFileEditor (it doesn't implement IDisposable); use the appropriate cleanup method (e.g., Close) or rely on the object's own resource management.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776258667.773908
-  },
-  {
-    "pattern": "Property or indexer 'TextStamp\\.TextState' cannot be assigned to",
-    "error_code": "CS0200",
-    "fix_guidance": "Do not assign a new TextState to TextStamp.TextState; instead modify the existing TextState's properties (e.g., stamp.TextState.Font = ..., stamp.TextState.FontSize = ...).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776258679.4641438
-  },
-  {
-    "pattern": "Rotation' does not contain a definition for 'Rotate90'",
+    "pattern": "TextBoxField' does not contain a definition for 'Display'",
     "error_code": "CS0117",
-    "fix_guidance": "Replace the invalid enum member with the correct value (e.g., use Rotation.on90) or refer to the proper rotation API provided by Aspose.PDF.",
+    "fix_guidance": "Remove the nonexistent Display property; control field visibility with JavaScript (e.g., this.getField('name').display = display.hidden) or use the appropriate Aspose.PDF visibility API.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776258736.1297998
+    "_created_at": 1778011663.069995
   },
   {
-    "pattern": "CrashReportOptions' does not contain a definition for 'CrashReportFileName'",
+    "pattern": "Annotation' does not contain a definition for 'Action'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent CrashReportFileName property with the correct CrashReportDirectory (or other valid property) on CrashReportOptions and ensure the Aspose.Pdf namespace is referenced.",
+    "fix_guidance": "Cast the annotation to a concrete type that supports the Action property (e.g., LinkAnnotation) or use the appropriate Actions collection; the base Annotation class in Aspose.PDF does not expose an Action member.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776258838.415448
+    "_created_at": 1778011723.583859
   },
   {
-    "pattern": "TextAnnotation' does not contain a constructor that takes 0 arguments",
+    "pattern": "The type or namespace name 'Pdf3DAnnotation' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Aspose.PDF for .NET does not provide Pdf3DAnnotation, Pdf3DView, or Pdf3DCrossSection classes; replace them with generic Annotation handling (e.g., use Annotation.Flags) or add a reference to the Aspose.Pdf.3D assembly if you need 3‑D support.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778011754.76099
+  },
+  {
+    "pattern": "BarcodeField' does not contain a definition for 'BarcodeType'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent BarcodeType property with the correct API: set barcodeField.Barcode.Type (and add a reference/using for Aspose.Pdf.Barcode) to specify the barcode type.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778011863.219497
+  },
+  {
+    "pattern": "TextBoxField' does not contain a constructor that takes 3 arguments",
     "error_code": "CS1729",
-    "fix_guidance": "Use a constructor overload that supplies required arguments (e.g., new TextAnnotation(page, rect)) instead of the parameterless constructor.",
+    "fix_guidance": "Use the TextBoxField constructor that accepts only (Page, Rectangle), then assign the field name via the PartialName property and set DefaultAppearance separately.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776258841.7732868
+    "_created_at": 1778033716.159261
   },
   {
-    "pattern": "Cannot implicitly convert type 'Aspose\\.Pdf\\.Facades\\.FieldType' to 'string'",
-    "error_code": "CS0029",
-    "fix_guidance": "Store the result of GetFieldType in a FieldType variable (or cast to string via .ToString()) instead of assigning it to a string.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776258997.362437
-  },
-  {
-    "pattern": "Form' is an ambiguous reference between 'Aspose\\.Pdf\\.Facades\\.Form' and 'Aspose\\.Pdf\\.Forms\\.Form'",
-    "error_code": "CS0104",
-    "fix_guidance": "Add an alias or use the fully qualified name (e.g., Aspose.Pdf.Facades.Form) to specify which Form class you intend to use.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776259051.712467
-  },
-  {
-    "pattern": "PdfAnnotationEditor' does not contain a definition for 'FlattenAnnotations'",
+    "pattern": "Form does not contain a definition for 'Xfa'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace the call to FlattenAnnotations() with the correct method name FlatteningAnnotations() provided by PdfAnnotationEditor.",
+    "fix_guidance": "Verify that the Aspose.Pdf version you reference includes the Form.Xfa property; if not, guard the code with a version check or use reflection to access Xfa only when the property exists, or remove the XFA‑specific code.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776259068.890336
+    "_created_at": 1778033768.6011362
   },
   {
-    "pattern": "No overload for method 'DeleteAnnotations' takes 2 arguments",
-    "error_code": "CS1501",
-    "fix_guidance": "Call DeleteAnnotations with a single string argument (the annotation type) or use the correct overload signature as defined in Aspose.Pdf.Facades.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776259204.832313
-  },
-  {
-    "pattern": "Could not write to output file '.*?sourcelink\\.json' -- 'Could not find file '.*?sourcelink\\.json'.'",
-    "error_code": "CS0016",
-    "fix_guidance": "Ensure the output directory (obj/... ) exists and you have write permissions; delete the obj folder to clean stale files or disable SourceLink generation, then rebuild.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776259247.261885
-  },
-  {
-    "pattern": "Heading' does not contain a definition for 'NumberingStyle'",
-    "error_code": "CS0117",
-    "fix_guidance": "Upgrade to a newer Aspose.Pdf for .NET version that includes the Heading.NumberingStyle property, or use the appropriate alternative API for heading numbering in the version you have.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776259310.832426
-  },
-  {
-    "pattern": "The type or namespace name 'Annotation' could not be found",
+    "pattern": "The type or namespace name 'SubmitFormAction' could not be found",
     "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf assembly and include `using Aspose.Pdf.Annotations;` at the top of the file.",
+    "fix_guidance": "Add a reference to Aspose.Pdf.dll (version that includes SubmitFormAction) and include the namespace with `using Aspose.Pdf.Actions;`.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776259402.1182542
+    "_created_at": 1778034010.6498098
   },
   {
-    "pattern": "The type or namespace name 'NUnit' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add the NUnit NuGet package (or reference the assembly) to the project and ensure `using NUnit.Framework;` is present, or provide minimal stub definitions if testing without the package.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776259599.691063
-  },
-  {
-    "pattern": "Cannot convert null literal to non-nullable reference type",
-    "error_code": "CS8625",
-    "fix_guidance": "Assign a non‑null value or change the variable/type to a nullable reference (e.g., use string? instead of string).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776259682.3825622
-  },
-  {
-    "pattern": "Annotation' does not contain a definition for 'ReadOnly'",
+    "pattern": "Document' does not contain a definition for 'XFA'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent ReadOnly property with a check on the annotation's Flags, e.g., `(annotation.Flags & AnnotationFlags.ReadOnly) == AnnotationFlags.ReadOnly`, or upgrade to a version of Aspose.PDF that includes the ReadOnly property.",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Xfa assembly and include `using Aspose.Pdf.Xfa;`, or remove the XFA call if the PDF is not an XFA form.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776260253.416374
-  },
-  {
-    "pattern": "Annotation' does not contain a definition for 'PageNumber'",
-    "error_code": "CS1061",
-    "fix_guidance": "Upgrade to a recent Aspose.Pdf for .NET version where the Annotation class includes the PageNumber property, or cast to a specific annotation type that provides the page number.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776260368.027549
-  },
-  {
-    "pattern": "PdfAnnotationEditor' does not contain a definition for 'CreateAnnotation'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent CreateAnnotation call with a supported method such as AddAnnotation (after constructing an annotation object) and ensure the Aspose.Pdf.Annotations namespace is imported.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776260931.398368
-  },
-  {
-    "pattern": "PdfAnnotationEditor' does not contain a definition for 'CreateText'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent 'CreateText' call with the correct method name (e.g., 'CreateTextAnnotation') and ensure the Aspose.Pdf.Facades namespace and assembly are referenced.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776261126.86467
-  },
-  {
-    "pattern": "Program does not contain a static 'Main' method",
-    "error_code": "CS5001",
-    "fix_guidance": "Add a static Main method to a class (e.g., Program) or change the project output type to a Class Library if no executable entry point is needed.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776261614.537819
-  },
-  {
-    "pattern": "The best overload for 'ModifyAnnotationsAuthor' does not have a parameter named 'startPage'",
-    "error_code": "CS1739",
-    "fix_guidance": "Call ModifyAnnotationsAuthor with positional arguments (or correct parameter names) that match an existing overload, removing the nonexistent 'startPage' named argument.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776270072.156139
-  },
-  {
-    "pattern": "The best overload for 'ModifyAnnotations' does not have a parameter named 'pageIndex'",
-    "error_code": "CS1739",
-    "fix_guidance": "Call ModifyAnnotations using positional arguments (e.g., ModifyAnnotations(1, 1, txtAnn)) and remove the named 'pageIndex' parameter.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776270410.3583481
-  },
-  {
-    "pattern": "Annotation' does not contain a definition for 'ModificationDate'",
-    "error_code": "CS1061",
-    "fix_guidance": "Cast the Annotation to MarkupAnnotation (e.g., 'if (ann is MarkupAnnotation markup)') and use markup.Modified (or markup.CreationDate) instead of Annotation.ModificationDate, because only markup annotations expose date properties.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776270550.5874822
-  },
-  {
-    "pattern": "The type or namespace name 'AnnotationType' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf assembly that defines AnnotationType and include `using Aspose.Pdf.Annotations;` at the top of the file.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776270842.054817
-  },
-  {
-    "pattern": "No overload for method 'CreateBookmarks' takes 8 arguments",
-    "error_code": "CS1501",
-    "fix_guidance": "Update the call to match the current API signature—use the available overload (e.g., CreateBookmarksAction with named parameters) or remove/adjust arguments to fit the method's defined parameters.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776272510.489409
-  },
-  {
-    "pattern": "Cannot implicitly convert type 'Aspose\\.Pdf\\.Facades\\.Bookmarks' to 'Aspose\\.Pdf\\.Facades\\.Bookmark\\[\\]'",
-    "error_code": "CS0029",
-    "fix_guidance": "Use the Bookmarks collection returned by ExtractBookmarks (or call .ToArray()) instead of assigning it to a Bookmark[] variable, and iterate over the collection accordingly.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776272595.2603672
-  },
-  {
-    "pattern": "Bookmark' does not contain a constructor that takes 1 arguments",
-    "error_code": "CS1729",
-    "fix_guidance": "Do not instantiate Bookmark directly; use the Bookmarks collection returned by PdfBookmarkEditor.ExtractBookmarks() (e.g., Aspose.Pdf.Facades.Bookmarks) and iterate over it.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776272683.246469
-  },
-  {
-    "pattern": "^warning CS8600: Converting null literal or possible null value to non-nullable type\\.$",
-    "error_code": "CS8600",
-    "fix_guidance": "Initialize the variable with a non‑null value, make the target type nullable, or use the null‑forgiving operator (!) after the expression.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776272867.706999
-  },
-  {
-    "pattern": "Bookmark' does not contain a definition for 'Color'",
-    "error_code": "CS0117",
-    "fix_guidance": "Remove the nonexistent Bookmark.Color property and set the bookmark color via its TextState (e.g., bm.TextState = new TextState { ForegroundColor = Color.Red };) or use the appropriate color property for the Aspose.Pdf version you are using.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776272978.883374
-  },
-  {
-    "pattern": "Cannot implicitly convert type 'int' to 'Aspose\\.Pdf\\.Devices\\.Resolution'",
-    "error_code": "CS0029",
-    "fix_guidance": "Replace the integer with a Resolution object, e.g., `var resolution = new Resolution(300);` or `new Resolution(horizontalDpi, verticalDpi)` before assigning.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776273090.344428
-  },
-  {
-    "pattern": "The type or namespace name 'Cells' does not exist in the namespace 'Aspose'",
-    "error_code": "CS0234",
-    "fix_guidance": "Add a reference to the Aspose.Cells assembly (e.g., install the Aspose.Cells NuGet package) or remove the incorrect using directive.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776273155.243556
+    "_created_at": 1778034334.06783
   },
   {
     "pattern": "No overload for method 'Add' takes 2 arguments",
     "error_code": "CS1501",
-    "fix_guidance": "Use an overload that matches the Aspose.Pdf API – either call Add with the correct signature (e.g., Add(string title, int pageNumber)) or create a Bookmark object and pass that to Add, instead of supplying two mismatched arguments.",
+    "fix_guidance": "Use the single‑parameter overload (e.g., doc.Form.Add(yourField)) or the appropriate collection method instead of passing two arguments.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776273156.819646
+    "_created_at": 1778035217.803099
   },
   {
-    "pattern": "Resolution could not be found",
+    "pattern": "Rectangle' does not contain a definition for 'IsLandscape'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent IsLandscape property with a manual orientation check, e.g., compare width (URX‑LLX) and height (URY‑LLY) of the Rectangle, or use an appropriate Aspose.Pdf extension if available.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778038150.002657
+  },
+  {
+    "pattern": "PageCollection' does not contain a definition for 'Move'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent Move call with Pages.Insert at the target index followed by Pages.Delete of the original page (adjusting the delete index when source ≥ target).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778038174.132622
+  },
+  {
+    "pattern": "Rotation' does not contain a definition for 'Clockwise90'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the nonexistent enum member with the correct one for a 90° rotation (e.g., use Rotation.on90 or the appropriate value supported by your Aspose.PDF version).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778038313.712729
+  },
+  {
+    "pattern": "Rotation' does not contain a definition for 'Degrees90'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the nonexistent enum value with the correct member defined in the Rotation enum (e.g., use Rotation.on90).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778038472.0763788
+  },
+  {
+    "pattern": "Cannot implicitly convert type 'Aspose\\.Pdf\\.PageSize' to 'Aspose\\.Pdf\\.Rectangle'",
+    "error_code": "CS0029",
+    "fix_guidance": "Assign the page dimensions via PageInfo.Width and PageInfo.Height (or create a new Rectangle from PageSize dimensions) instead of setting pg.Rect directly to PageSize.A4.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778038538.2216709
+  },
+  {
+    "pattern": "The type or namespace name 'Paragraph' could not be found",
     "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.Devices namespace (e.g., `using Aspose.Pdf.Devices;`) and ensure the Aspose.Pdf assembly is referenced in the project.",
+    "fix_guidance": "Add a reference to Aspose.Pdf (if missing) and include `using Aspose.Pdf.Text;` or replace `Paragraph` with `TextFragment` which is the correct class for adding text.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776273175.8643131
+    "_created_at": 1778039108.9947531
   },
   {
-    "pattern": "The type or namespace name 'ImageFormat' does not exist in the namespace 'Aspose\\.Pdf'",
-    "error_code": "CS0234",
-    "fix_guidance": "Add a reference to System.Drawing.Common (or System.Drawing) and include `using System.Drawing.Imaging;`, then use `ImageFormat.Tiff` instead of `Aspose.Pdf.ImageFormat.Tiff`.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776273240.429678
-  },
-  {
-    "pattern": "Bookmark' does not contain a definition for 'DestinationPage'",
+    "pattern": "HtmlFragment' does not contain a definition for 'IsHtml'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent 'DestinationPage' member with the correct API, e.g., use bookmark.Destination?.PageNumber (or bookmark.Destination.PageNumber) to obtain the target page.",
+    "fix_guidance": "Remove the IsHtml assignment; HtmlFragment treats its content as HTML by default (or use the appropriate API if a different behavior is required).",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776273260.943954
+    "_created_at": 1778039129.347171
   },
   {
-    "pattern": "The type or namespace name 'Resolution' could not be found",
+    "pattern": "TextStamp.*IsBackground",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent 'IsBackground' property with the current 'Background' property on TextStamp (e.g., stamp.Background = true) and ensure you reference the correct Aspose.Pdf version.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778039244.28173
+  },
+  {
+    "pattern": "Path' does not contain a definition for 'Operators'",
+    "error_code": "CS1061",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Operators namespace (e.g., `using Aspose.Pdf.Operators;`) or update to a version of Aspose.Pdf that includes the Operators class, then use the correct operator types instead of a non‑existent `Path.Operators` member.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778039355.986592
+  },
+  {
+    "pattern": "PageNumberStamp' does not contain a definition for 'Clone'",
+    "error_code": "CS1061",
+    "fix_guidance": "Remove the Clone call; either reuse the same PageNumberStamp instance for each page or create a new PageNumberStamp per page, as the Clone method is not available.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778039464.298885
+  },
+  {
+    "pattern": "TextState' does not contain a definition for 'FontColor'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent FontColor property with TextState.ForegroundColor (e.g., pageNumberStamp.TextState.ForegroundColor = Aspose.Pdf.Color.Black).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778039551.206638
+  },
+  {
+    "pattern": "PageCollection' does not contain a definition for 'OnBeforePageGenerate'",
+    "error_code": "CS1061",
+    "fix_guidance": "Remove the OnBeforePageGenerate subscription and instead iterate over doc.Pages, adding the stamp to each Page, or upgrade to a version of Aspose.Pdf that provides this event.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778039993.830016
+  },
+  {
+    "pattern": "HeaderFooter' does not contain a definition for",
+    "error_code": "CS0117",
+    "fix_guidance": "Use a TextFragment (or other supported object) instead of HeaderFooter for setting text, font, and size, then assign that TextFragment to page.Header.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778040030.652055
+  },
+  {
+    "pattern": "Form' does not contain a definition for 'ExportFdf'",
+    "error_code": "CS1061",
+    "fix_guidance": "Use the Facade Form class (Aspose.Pdf.Facades.Form) which provides ExportFdf, or add the appropriate using directive for Aspose.Pdf.Facades.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778040086.60399
+  },
+  {
+    "pattern": "XFormCollection' does not contain a definition for 'Keys'",
+    "error_code": "CS1061",
+    "fix_guidance": "Iterate over the XFormCollection directly (e.g., foreach (var form in page.Resources.Forms)) or use its Values property instead of accessing a non‑existent Keys property.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778041614.7855308
+  },
+  {
+    "pattern": "The type or namespace name '(WidgetAnnotation|RadioButtonListField)' could not be found",
     "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.Devices namespace (e.g., `using Aspose.Pdf.Devices;`) or ensure the Aspose.Pdf assembly containing the Resolution class is referenced.",
+    "fix_guidance": "Add the correct Aspose.PDF using directive (e.g., Aspose.Pdf.Forms) and replace the missing types with the current API types such as Field, CheckboxField, etc., that exist in your Aspose.PDF version.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776273294.517157
+    "_created_at": 1778041694.499348
   },
   {
-    "pattern": "FontRepository' does not contain a definition for 'SetDefaultFont'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace calls to SetDefaultFont and AddFontSubstitutes with the new FontRepository.Substitutions API, e.g., FontRepository.Substitutions.Add(new SimpleFontSubstitution(\"Symbol\", \"Arial Unicode MS\"));",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776273379.424918
-  },
-  {
-    "pattern": "PdfConverter' does not contain a definition for 'ConvertPageToImage'",
+    "pattern": "Form' does not contain a definition for 'ExportXml'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent ConvertPageToImage call with the correct PdfConverter methods (e.g., BindPdf, DoConvert, then GetNextImage) and ensure you reference Aspose.Pdf.Facades.",
+    "fix_guidance": "Replace the call to the non‑existent ExportXml method with the correct Aspose.PDF API (e.g., Form.ExportXfa(stream) or manually write the form fields to XML) and ensure the proper Aspose.Pdf namespace is referenced.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776273430.7665641
+    "_created_at": 1778041772.60078
   },
   {
-    "pattern": "Document' does not contain a definition for 'FontSubstitutions'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace Document.FontSubstitutions with FontRepository.Substitutions using SimpleFontSubstitution.",
+    "pattern": "Invalid expression term '\\{'",
+    "error_code": "CS1525",
+    "fix_guidance": "Escape literal braces in interpolated strings by using double braces {{ and }} (e.g., $\"^{{{text}}}\").",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776273558.866855
+    "_created_at": 1778042014.1196318
   },
   {
-    "pattern": "The type or namespace name 'CoordinateType' does not exist in the namespace 'Aspose\\.Pdf'",
-    "error_code": "CS0234",
-    "fix_guidance": "Replace 'CoordinateType' with the correct enum 'PageCoordinateType' (e.g., converter.CoordinateType = PageCoordinateType.CropBox) and ensure the Aspose.Pdf assembly is referenced.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776273731.553979
-  },
-  {
-    "pattern": "The type or namespace name 'Resolution' does not exist in the namespace 'Aspose\\.Pdf\\.Facades'",
-    "error_code": "CS0234",
-    "fix_guidance": "Import the correct namespaces (e.g., add `using Aspose.Pdf.Devices;` and use `Aspose.Pdf.Devices.Resolution`) or reference the appropriate Aspose.Pdf assembly that contains the `Resolution` and `PageCoordinateType` types.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776273863.840925
-  },
-  {
-    "pattern": "Resolution",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to Aspose.Pdf.Devices (e.g., `using Aspose.Pdf.Devices;`) and ensure the Aspose.Pdf assembly is referenced in the project.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776273966.5095592
-  },
-  {
-    "pattern": "RenderingOptions' does not contain a definition for 'FontSubstitution'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent RenderingOptions.FontSubstitution with FontRepository.Substitutions (e.g., FontRepository.Substitutions.Add(new SimpleFontSubstitution(\"Helvetica\", \"Arial\"))).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776274083.97556
-  },
-  {
-    "pattern": "PdfFileEditor' does not contain a definition for '(BindPdf|Close)'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace PdfFileEditor with the Document class for loading PDFs, as PdfFileEditor does not provide BindPdf or Close methods; use Document constructor to open the file.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776313555.302557
-  },
-  {
-    "pattern": "No overload for method 'Insert' takes 3 arguments",
-    "error_code": "CS1501",
-    "fix_guidance": "Call the Insert overload that matches Aspose.PDF: use Document.Pages.Insert(int index, Document sourceDocument, int[] pageIndices) with the correct argument order and types.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776313742.749768
-  },
-  {
-    "pattern": "No overload for method 'Insert' takes 4 arguments",
-    "error_code": "CS1501",
-    "fix_guidance": "Call an Insert overload that matches the provided argument count and types, or modify the arguments to fit an existing overload signature.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776313758.333225
-  },
-  {
-    "pattern": "PdfFileEditor' does not contain a definition for 'Split'",
-    "error_code": "CS1929",
-    "fix_guidance": "Replace the nonexistent 'Split' call with the correct PdfFileEditor.SplitToPages method (or another valid method) and pass the appropriate input file path and output template.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776313823.6804988
-  },
-  {
-    "pattern": "PdfFileEditor' does not contain a definition for 'BindPdf'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace PdfFileEditor with Aspose.Pdf.Document (and import Aspose.Pdf) because PdfFileEditor lacks BindPdf, Document, and Close members; use Document to load and work with PDFs.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776313845.986829
-  },
-  {
-    "pattern": "PdfPageEditor' does not contain a definition for 'RotatePage'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the use of PdfPageEditor.RotatePage with the Document API: load the PDF into a Document, set the desired page's Rotate property (e.g., doc.Pages[1].Rotate = Rotation.on90), and save the document.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776313846.345686
-  },
-  {
-    "pattern": "PageSize' does not contain a definition for 'Letter'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent PageSize.Letter with a valid size, e.g., `editor.PageSize = new PageSize(612, 792);` (8.5\" x 11\" in points) or use another supported PageSize enum value.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776313880.169342
-  },
-  {
-    "pattern": "PageInfo' does not contain a definition for 'Rotate'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent Rotate method with the Rotate property: set page.PageInfo.Rotate = RotationAngle.Rotate90 (or another enum value) and ensure the Aspose.Pdf namespace is imported.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776313880.6656692
-  },
-  {
-    "pattern": "type used in a using statement must implement 'System.IDisposable'",
-    "error_code": "CS1674",
-    "fix_guidance": "Do not place PdfFileEditor in a using block; instantiate it directly (e.g., var editor = new PdfFileEditor();) because it does not implement IDisposable.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776314175.9084108
-  },
-  {
-    "pattern": "PageCollection' does not contain a definition for 'NUp'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent PageCollection.NUp call with PdfFileEditor.MakeNUp (or the appropriate API method) and ensure the Aspose.Pdf namespace/assembly that provides this method is referenced.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776314190.84567
-  },
-  {
-    "pattern": "The name 'PageSize' does not exist in the current context",
-    "error_code": "CS0103",
-    "fix_guidance": "Add a using directive for Aspose.Pdf or fully qualify the enum as Aspose.Pdf.PageSize.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776314220.618794
-  },
-  {
-    "pattern": "The best overload for 'Insert' does not have a parameter named 'sourceFile'",
-    "error_code": "CS1739",
-    "fix_guidance": "Remove the nonexistent 'sourceFile' named argument and call PdfFileEditor.Insert with the correct overload signature (e.g., Insert(string inputPdf, int[] pages, string outputPdf) or Insert(string inputPdf, int startPage, int endPage, string outputPdf)).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776314302.0951302
-  },
-  {
-    "pattern": "type used in a using statement must implement 'System\\.IDisposable'",
-    "error_code": "CS1674",
-    "fix_guidance": "Do not wrap PdfFileEditor in a using block; instantiate it directly (e.g., var editor = new PdfFileEditor()) because it does not implement IDisposable.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776314315.7748969
-  },
-  {
-    "pattern": "Converting null literal or possible null value to non-nullable type",
-    "error_code": "CS8600",
-    "fix_guidance": "Pass a non‑null value or add a null‑check before the call, or change the target parameter/type to be nullable.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776314578.3529248
-  },
-  {
-    "pattern": "The type or namespace name 'VisualStudio' does not exist in the namespace 'Microsoft'",
-    "error_code": "CS0234",
-    "fix_guidance": "Add a reference to the MSTest framework (e.g., install the Microsoft.NET.Test.Sdk and MSTest.TestFramework NuGet packages) or provide minimal stub definitions for the Microsoft.VisualStudio.TestTools.UnitTesting namespace.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776314630.1576698
-  },
-  {
-    "pattern": "Cannot implicitly convert type 'System\\.Collections\\.Generic\\.IList<string>' to 'System\\.Collections\\.IList'",
-    "error_code": "CS0266",
-    "fix_guidance": "Change the target variable to IList<string> (or another generic collection) or cast explicitly, e.g., IList list = (IList)genericList.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776314643.445737
-  },
-  {
-    "pattern": "ImportFormat' does not contain a definition for 'Jpeg'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the use of ImportFormat.Jpeg (which is not defined) with the appropriate Aspose.Pdf API, e.g., load the JPEG via Aspose.Pdf.Image and add it to a Document page, or use the correct enum from Aspose.Pdf.Facades if needed.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776314710.4999511
-  },
-  {
-    "pattern": "The name 'SaveType' does not exist in the current context",
-    "error_code": "CS0103",
-    "fix_guidance": "Add a reference to the Aspose.Pdf namespace (e.g., `using Aspose.Pdf;`) or fully qualify the enum as `Aspose.Pdf.SaveType`.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776314798.63659
-  },
-  {
-    "pattern": "PdfFileStamp\\.InputFile' is obsolete.*Use BindPdf\\(inputFile\\) method",
-    "error_code": "CS0618",
-    "fix_guidance": "Replace usage of PdfFileStamp.InputFile with the BindPdf(inputFile) method and PdfFileStamp.OutputFile with the Save(outputFile) method.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776314952.418318
-  },
-  {
-    "pattern": "Rectangle' is an ambiguous reference between 'System.Drawing.Rectangle' and 'Aspose.Pdf.Rectangle'",
-    "error_code": "CS0104",
-    "fix_guidance": "Fully qualify the Rectangle type (e.g., System.Drawing.Rectangle or Aspose.Pdf.Rectangle) or create a using alias to disambiguate the reference.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776315017.940298
-  },
-  {
-    "pattern": "Argument 1: cannot convert from 'System\\.Drawing\\.Printing\\.PrinterSettings' to 'Aspose\\.Pdf\\.Printing\\.PrinterSettings'",
+    "pattern": "Argument 1: cannot convert from 'string' to 'System\\.IO\\.Stream'",
     "error_code": "CS1503",
-    "fix_guidance": "Replace System.Drawing.Printing.PrinterSettings with Aspose.Pdf.Printing.PrinterSettings (or map the required properties) when calling Aspose PDF printing APIs.",
+    "fix_guidance": "Open a FileStream (or MemoryStream) for the target file and pass that stream to the Aspose.Pdf method (e.g., img.Save(stream)) instead of passing a string path.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776315024.678623
+    "_created_at": 1778042080.7210162
   },
   {
-    "pattern": "Page' does not contain a definition for 'PageAction'",
+    "pattern": "GraphicElement' does not contain a definition for 'BoundingBox'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent PageAction property with the correct Page.Actions property (e.g., doc.Pages[i].Actions.OnOpen) and ensure the Aspose.Pdf namespace is referenced.",
+    "fix_guidance": "Use the existing Rectangle property (e.g., element.Rectangle) instead of the non‑existent BoundingBox property.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776315026.4616241
+    "_created_at": 1778042193.72992
   },
   {
-    "pattern": ".*'(\\w+)' is an ambiguous reference between '.*' and '.*'",
-    "error_code": "CS0104",
-    "fix_guidance": "Disambiguate the type by using its fully‑qualified name or create a using alias (e.g., `using AsposeColor = Aspose.Pdf.Color;`).",
+    "pattern": "Argument 1: cannot convert from 'Aspose\\.Pdf\\.Vector\\.GraphicsAbsorber' to 'Aspose\\.Pdf\\.Annotations\\.AnnotationSelector'",
+    "error_code": "CS1503",
+    "fix_guidance": "Replace the call to page.Accept(absorber) with absorber.Visit(page), because Page.Accept expects an AnnotationSelector, not a GraphicsAbsorber.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776315093.4794939
+    "_created_at": 1778042215.913354
   },
   {
-    "pattern": "PdfFileStamp\\.PdfFileStamp\\(string, string\\) is obsolete",
+    "pattern": "SvgSaveOptions' does not contain a definition for 'SplitIntoPages'",
+    "error_code": "CS0117",
+    "fix_guidance": "Remove the nonexistent SplitIntoPages property from SvgSaveOptions; the class saves a single SVG by default or use supported properties for page handling.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778042264.6514492
+  },
+  {
+    "pattern": "Resources' does not contain a definition for 'XObjects'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the call to Resources.XObjects with the correct property (e.g., Resources.Forms) and ensure any required namespaces are imported.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778042300.60465
+  },
+  {
+    "pattern": "Document' does not contain a definition for 'Fonts'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace doc.Fonts with iteration over each page's Resources.Fonts collection (e.g., collect unique font names from doc.Pages[i].Resources.Fonts) to count fonts.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778042331.7494662
+  },
+  {
+    "pattern": "SvgSaveOptions' does not contain a definition for '(PageSize|SvgPageSize)'",
+    "error_code": "CS0117",
+    "fix_guidance": "Remove the unsupported PageSize/SvgPageSize settings from SvgSaveOptions; instantiate the options without those properties or use only the members that exist in the current Aspose.PDF version.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778042356.446053
+  },
+  {
+    "pattern": "The type or namespace name 'Aspose' does not exist in the namespace 'Aspose\\.Pdf'",
+    "error_code": "CS0234",
+    "fix_guidance": "Add a reference to the Aspose.Pdf library (e.g., install the Aspose.Pdf NuGet package) and ensure the project targets a compatible .NET framework.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778042406.057816
+  },
+  {
+    "pattern": "TextAbsorber' does not contain a definition for 'TextFragments'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace TextAbsorber with TextFragmentAbsorber (or another appropriate absorber) to access the TextFragments collection.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778042438.329634
+  },
+  {
+    "pattern": "Cannot implicitly convert type 'Aspose\\.Pdf\\.Forms\\.Option' to 'string'",
+    "error_code": "CS0029",
+    "fix_guidance": "Use the appropriate property of the Option object (e.g., .Name) when assigning to a string instead of assigning the Option itself.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778042532.743392
+  },
+  {
+    "pattern": "PKCS1' does not contain a definition for 'Contact'",
+    "error_code": "CS0117",
+    "fix_guidance": "Use the correct property name (e.g., ContactInfo) on PKCS1 instead of the non‑existent Contact property.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778047920.3224509
+  },
+  {
+    "pattern": "SignatureName' does not contain a constructor that takes 1 arguments",
+    "error_code": "CS1729",
+    "fix_guidance": "Remove the invalid SignatureName constructor call and pass the signature name string directly to RemoveSignature (or use a constructor that matches the available overload).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778047942.008799
+  },
+  {
+    "pattern": "PdfFileSignature\\.VerifySignature\\(string\\) is obsolete",
     "error_code": "CS0618",
-    "fix_guidance": "Replace the obsolete PdfFileStamp(string, string) constructor with the parameterless PdfFileStamp() and bind the PDF using BindPdf, or use the Document API for stamping.",
+    "fix_guidance": "Replace the obsolete string overload with the VerifySignature(SignatureName) overload, creating a SignatureName instance for the field name.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776315188.712341
+    "_created_at": 1778047983.3551009
   },
   {
-    "pattern": "PdfContentEditor' does not contain a definition for 'SetBookmarksParent'",
+    "pattern": "Cannot implicitly convert type 'System\\.Collections\\.Generic\\.IList<Aspose\\.Pdf\\.Facades\\.SignatureName>' to 'System\\.Collections\\.Generic\\.IList<string>'",
+    "error_code": "CS0266",
+    "fix_guidance": "Declare the variable as IList<SignatureName> (or cast each element) and use the Name property when a string is needed.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778048178.209664
+  },
+  {
+    "pattern": "Argument \\d+: cannot convert from '.*' to '.*'",
+    "error_code": "CS1503",
+    "fix_guidance": "Ensure the arguments you pass to the method match the expected parameter types and order—use strings for string parameters, a Rectangle for the rectangle parameter, and a Signature (e.g., PKCS1) object for the signature parameter.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778048265.889166
+  },
+  {
+    "pattern": "Argument 1: cannot convert from 'string' to 'Aspose\\.Pdf\\.Facades\\.SignatureName'",
+    "error_code": "CS1503",
+    "fix_guidance": "Pass a SignatureName object (e.g., iterate over the SignatureName[] returned by GetSignatureNames) instead of a string when calling TryExtractCertificate.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778048360.102998
+  },
+  {
+    "pattern": "Argument 1: cannot convert from 'Aspose\\.Pdf\\.Facades\\.SignatureName' to 'string'",
+    "error_code": "CS1503",
+    "fix_guidance": "Pass the signature's Name property (a string) to the method, e.g., pdfSignature.VerifySignature(sigName.Name), instead of passing the SignatureName object directly.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778048453.179738
+  },
+  {
+    "pattern": "PdfFileSignature' does not contain a definition for 'SignatureAppearanceBackgroundColor'",
     "error_code": "CS1061",
-    "fix_guidance": "Remove or replace SetBookmarksParent calls; the method was removed in recent Aspose.Pdf versions—use PdfBookmarkEditor or the current bookmark API (e.g., CreateBookmarksAction) instead.",
+    "fix_guidance": "Replace the nonexistent SignatureAppearanceBackgroundColor property with the correct API, e.g., set PdfFileSignature.SignatureAppearance.BackgroundColor or configure a SignatureCustomAppearance, and ensure the appropriate Aspose.Pdf namespaces are imported.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776315211.257704
+    "_created_at": 1778048567.414421
   },
   {
-    "pattern": "The name 'ImageFormat' does not exist in the current context",
-    "error_code": "CS0103",
-    "fix_guidance": "Add a reference to System.Drawing.Common (or the appropriate assembly) and include `using System.Drawing.Imaging;` or fully qualify the type as `System.Drawing.Imaging.ImageFormat`.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776315230.840343
-  },
-  {
-    "pattern": "The type or namespace name 'ViewerPreferences' could not be found",
+    "pattern": "SignatureAppearance could not be found",
     "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf namespace (e.g., `using Aspose.Pdf;`) and replace `ViewerPreferences` with the correct enum name `ViewerPreference`.",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Facades assembly (or the appropriate NuGet package) and include `using Aspose.Pdf.Facades;` so the `SignatureAppearance` type is available.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776315306.618006
+    "_created_at": 1778048682.676697
+  },
+  {
+    "pattern": "error CS0104: 'Rectangle' is an ambiguous reference between 'System\\.Drawing\\.Rectangle' and 'Aspose\\.Pdf\\.Rectangle'",
+    "error_code": "CS0104",
+    "fix_guidance": "Fully qualify the Rectangle type (e.g., System.Drawing.Rectangle or Aspose.Pdf.Rectangle) or use a using alias to disambiguate.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778048760.45929
+  },
+  {
+    "pattern": "Image' is an ambiguous reference between 'System\\.Drawing\\.Image' and 'Aspose\\.Pdf\\.Image'",
+    "error_code": "CS0104",
+    "fix_guidance": "Disambiguate the type by using a fully‑qualified name (e.g., System.Drawing.Image) or create an alias with a using directive.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778052136.917587
+  },
+  {
+    "pattern": "Rotation' does not contain a definition for 'Rotate180'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the nonexistent enum member with the correct one (e.g., Rotation.On180) or use RotateAngle for arbitrary angles.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778052493.131376
+  },
+  {
+    "pattern": "PdfSaveOptions' does not contain a definition for 'IncrementalUpdate'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent IncrementalUpdate property with PdfSaveOptions.UpdateMode = UpdateMode.Incremental (add `using Aspose.Pdf.Facades;` for the UpdateMode enum).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778052982.891853
+  },
+  {
+    "pattern": "Page' does not contain a definition for 'Label'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent Page.Label property with Page.PageInfo.Label (or doc.Pages[i].PageInfo.Label) to access or set page labels.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778053156.290496
+  },
+  {
+    "pattern": "TextState' does not contain a definition for 'TextRenderingMode'",
+    "error_code": "CS1061",
+    "fix_guidance": "Upgrade to the current Aspose.Pdf version and remove the TextRenderingMode usage; instead achieve outline effects by selecting a bold/heavier font or using other visual tricks, as the property is no longer exposed.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778053294.961355
+  },
+  {
+    "pattern": "TextState' does not contain a definition for 'StrokeColor'",
+    "error_code": "CS1061",
+    "fix_guidance": "Remove the assignment to TextState.StrokeColor (the property was removed in recent Aspose.PDF versions); use TextState.ForegroundColor for fill and, if needed, a bold font to simulate an outline, or downgrade to a version that still includes StrokeColor.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778053339.26453
+  },
+  {
+    "pattern": "TextStamp' does not contain a definition for 'IsRightToLeft'",
+    "error_code": "CS0117",
+    "fix_guidance": "Set the IsRightToLeft flag on a TextState object and pass that TextState to the TextStamp constructor (or remove the IsRightToLeft property from TextStamp).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778053544.723563
+  },
+  {
+    "pattern": "Rotation' does not contain a definition for 'Rotate90'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the nonexistent enum member 'Rotate90' with the correct Aspose.Pdf.Rotation value (e.g., Rotation.on90) and ensure the proper enum is referenced.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778053634.358024
+  },
+  {
+    "pattern": "Property or indexer 'TextStamp\\.TextState' cannot be assigned to",
+    "error_code": "CS0200",
+    "fix_guidance": "Do not assign a new TextState object; instead modify the existing TextState's properties (e.g., stamp.TextState.Font = ..., stamp.TextState.FontSize = ...) because TextState is read‑only.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778053719.067374
+  },
+  {
+    "pattern": "FileSpecification' does not contain a definition for 'Save'",
+    "error_code": "CS1061",
+    "fix_guidance": "Upgrade to a recent Aspose.PDF for .NET version (or add the appropriate assembly reference) where the FileSpecification.Save(string) method is available.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778060787.777875
+  },
+  {
+    "pattern": "There is no argument given that corresponds to the required parameter 'value' of 'CollectionExtensions\\.Remove<[^>]+>'",
+    "error_code": "CS7036",
+    "fix_guidance": "Pass an out variable (or discard) for the 'value' parameter, e.g., `CollectionExtensions.Remove(dict, key, out var removedValue);`.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778060930.623404
+  },
+  {
+    "pattern": "The type or namespace name 'EmbeddedFile' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Replace 'EmbeddedFile' with 'FileSpecification' (or the correct class) and ensure the appropriate Aspose.Pdf namespace is imported.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778060966.171896
+  },
+  {
+    "pattern": "JavaScriptAction could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Replace the misspelled type with the correct class name 'JavascriptAction' (lower‑case 's') and ensure the Aspose.Pdf namespace is imported.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778061073.1813
+  },
+  {
+    "pattern": "The type or namespace name 'JavaScriptAction' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Replace 'JavaScriptAction' with the correct class name 'JavascriptAction' (note the lowercase 's') and ensure the Aspose.Pdf namespace is imported.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778061091.9846988
+  },
+  {
+    "pattern": "WidgetAnnotation' does not contain a definition for 'Value'|Form' does not contain a definition for 'Recalculate'",
+    "error_code": "CS1061",
+    "fix_guidance": "Cast the Form indexer result to a concrete field type (e.g., TextBoxField) to access the Value property, and replace the removed Form.Recalculate() call with Form.AutoRecalculate = true (the document recalculates on save).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778061202.719147
+  },
+  {
+    "pattern": "Argument 1: cannot convert from 'Aspose\\.Pdf\\.Color' to 'System\\.Drawing\\.Color'",
+    "error_code": "CS1503",
+    "fix_guidance": "Convert the Aspose.Pdf.Color to a System.Drawing.Color (e.g., System.Drawing.Color.FromArgb(color.R, color.G, color.B)) or use the overload that accepts Aspose.Pdf.Color.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778061362.826167
+  },
+  {
+    "pattern": "Page' does not contain a definition for 'Operators'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace usage of the removed Page.Operators collection with the page.Contents collection (1‑based indexing) to access PDF operators.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778061397.024562
+  },
+  {
+    "pattern": "Rectangle' does not contain a definition for 'GraphInfo'",
+    "error_code": "CS1061",
+    "fix_guidance": "Use Aspose.Pdf.Drawing.Rectangle (or fully‑qualified Aspose.Pdf.Drawing.Rectangle) instead of Aspose.Pdf.Rectangle, and ensure the Aspose.Pdf.Drawing namespace is imported.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778061518.8228
+  },
+  {
+    "pattern": "The type or namespace name 'Polyline' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Add a reference to Aspose.Pdf.Drawing (or the appropriate assembly) and include `using Aspose.Pdf.Drawing;` so the Polyline class is available, or replace Polyline with a supported shape such as Line.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778061711.406389
+  },
+  {
+    "pattern": "Path' is an ambiguous reference between 'Aspose\\.Pdf\\.Drawing\\.Path' and 'System\\.IO\\.Path'",
+    "error_code": "CS0104",
+    "fix_guidance": "Disambiguate the reference by using a fully qualified name or an alias (e.g., `using AsposePath = Aspose.Pdf.Drawing.Path;` and then use `AsposePath` in the code).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778061939.1242838
+  },
+  {
+    "pattern": "FileSpecification.*?MimeType",
+    "error_code": "CS1061",
+    "fix_guidance": "Remove the use of the non‑existent MimeType property; instead pass the description via the FileSpecification constructor or set other supported properties.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778062005.691513
+  },
+  {
+    "pattern": "Document' does not contain a definition for 'Attachments'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace usage of the non‑existent `Attachments` member with the correct `EmbeddedFiles` collection (e.g., `doc.EmbeddedFiles`) and ensure the appropriate Aspose.PDF version/reference is included.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778062099.583544
+  },
+  {
+    "pattern": "There is no argument given that corresponds to the required parameter 'serverUrl'",
+    "error_code": "CS7036",
+    "fix_guidance": "Instantiate TimestampSettings using its constructor and supply the required serverUrl (and other parameters), e.g., new TimestampSettings(\"http://timestamp.digicert.com\", \"\", DigestHashAlgorithm.Sha256).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778062270.514848
+  },
+  {
+    "pattern": "XImage' does not contain a definition for 'ImageFormat'",
+    "error_code": "CS1061",
+    "fix_guidance": "Add a reference to System.Drawing.Common and include `using System.Drawing.Imaging;` then call `xImage.Save(filePath, ImageFormat.Png)` (or another format) instead of accessing a non‑existent ImageFormat property.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778062681.456665
+  },
+  {
+    "pattern": "The type or namespace name 'PrintDuplex' does not exist in the namespace 'Aspose\\.Pdf\\.Printing'",
+    "error_code": "CS0234",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Printing assembly (or upgrade to a version that includes it) and use the correct enum, e.g., Aspose.Pdf.Printing.Duplex.Vertical, instead of the missing PrintDuplex type.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778062860.159265
+  },
+  {
+    "pattern": "AnnotationActionCollection.*OnActivated",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent 'OnActivated' member with a supported action (e.g., OnMouseDown, OnFocus) or upgrade to a version of Aspose.PDF that includes the desired event.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778063031.089092
+  },
+  {
+    "pattern": "PdfSaveOptions' does not contain a definition for 'Compliance'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the nonexistent 'Compliance' property with the appropriate PDF/A setting, e.g., set PdfSaveOptions.PdfAConformanceLevel = PdfAConformanceLevel.PdfA1b, and use the PdfAConformanceLevel enum instead of PdfCompliance.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778063427.65533
+  },
+  {
+    "pattern": "The type or namespace name 'ValidationResult' does not exist in the namespace 'Aspose\\.Pdf'",
+    "error_code": "CS0234",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Validation assembly (or install the appropriate NuGet package) and include `using Aspose.Pdf.Validation;` in the source file.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778063675.505722
+  },
+  {
+    "pattern": "Point' does not contain a definition for '(Width|Height)'",
+    "error_code": "CS1061",
+    "fix_guidance": "Use the page's Width and Height (e.g., page.PageInfo.Width/Height) to calculate coordinates and assign a new Point, because Aspose.Pdf.Point has no Width/Height properties.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778064442.572963
+  },
+  {
+    "pattern": "DocumentActionCollection' does not contain a definition for 'AfterOpen'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace accesses to non‑existent DocumentActionCollection slots (e.g., AfterOpen, BeforeClose) with the supported Document.OpenAction property (set it to null) or use the current SDK’s dedicated methods for clearing JavaScript actions.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778064514.916787
+  },
+  {
+    "pattern": "foreach statement cannot operate on variables of type 'JavaScriptCollection' because 'JavaScriptCollection' does not contain a public instance or extension definition for 'GetEnumerator'",
+    "error_code": "CS1579",
+    "fix_guidance": "Iterate over the collection via its Keys (or indexer) instead of using foreach, e.g., foreach (var key in doc.JavaScript.Keys) { var script = doc.JavaScript[key]; … }, because JavaScriptCollection is not enumerable.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778064570.501602
+  },
+  {
+    "pattern": "SoundAnnotation' does not contain a definition for 'Action'",
+    "error_code": "CS1061",
+    "fix_guidance": "Upgrade to a recent Aspose.PDF for .NET version or add the appropriate using (Aspose.Pdf.Annotations) and assign an IAction (e.g., new JavaScriptAction) to the annotation's Action property, which is available only in newer releases.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778064723.891372
+  },
+  {
+    "pattern": "FileSpecification' does not contain a definition for 'File'",
+    "error_code": "CS1061",
+    "fix_guidance": "Use the FileSpecification constructor that accepts the file path (e.g., new FileSpecification(path, description)) and add the object to doc.EmbeddedFiles (or doc.EmbeddedFiles.Add) instead of accessing a non‑existent File property or doc.Attachments.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778064758.888581
+  },
+  {
+    "pattern": "PngDevice.*type used in a using statement must implement 'System.IDisposable'",
+    "error_code": "CS1674",
+    "fix_guidance": "Do not place PngDevice in a using block; instantiate it normally (or use a disposable wrapper) because PngDevice does not implement IDisposable.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778064843.466149
+  },
+  {
+    "pattern": "Cannot implicitly convert type 'string' to 'Aspose\\.Pdf\\.Text\\.TextFragment'",
+    "error_code": "CS0029",
+    "fix_guidance": "Wrap the string in a TextFragment, e.g., use new TextFragment(\"your text\") instead of assigning a raw string.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778065484.8460412
+  },
+  {
+    "pattern": "Graph\\.Graph\\(float, float\\)",
+    "error_code": "CS0618",
+    "fix_guidance": "Replace the obsolete Graph(float, float) call with the double overload, e.g., new Graph(400.0, 300.0).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778066180.785408
+  },
+  {
+    "pattern": "Graph\\.Graph\\(float, float\\) is obsolete",
+    "error_code": "CS0618",
+    "fix_guidance": "Replace the Graph constructor that takes float arguments with the overload that accepts double values, e.g., new Graph(500.0, 500.0).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778066216.622057
+  },
+  {
+    "pattern": "Graph\\.Graph\\(float, float\\)'.*Constructor is deprecated\\. Please use constructor with double instead",
+    "error_code": "CS0618",
+    "fix_guidance": "Replace the float‑based Graph constructor with the overload that takes double values (e.g., new Graph(500.0, 400.0)).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778066443.409313
+  },
+  {
+    "pattern": "GraphInfo' does not contain a definition for 'Transparency'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the nonexistent Transparency property with the supported Opacity property (or set alpha via Color.FromArgb) on GraphInfo.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778066503.628356
+  },
+  {
+    "pattern": "Graph' does not contain a definition for 'Bottom'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the obsolete Bottom property with the Top property (e.g., set Top = desiredBottom + graph.Height) or use the appropriate positioning API for the current Aspose.PDF version.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778066725.8946712
+  },
+  {
+    "pattern": "Image' does not contain a constructor that takes 1 arguments",
+    "error_code": "CS1729",
+    "fix_guidance": "Create the Image object using the parameterless constructor and set its File (or other) properties afterwards, e.g., var img = new Image(); img.File = \"path/to/image.jpg\";.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778069388.993918
+  },
+  {
+    "pattern": "The type or namespace name 'Border' does not exist in the namespace 'Aspose\\.Pdf'",
+    "error_code": "CS0234",
+    "fix_guidance": "Replace the obsolete Aspose.Pdf.Border usage with GraphInfo (e.g., graph.GraphInfo = new GraphInfo { ... }) and add the correct Aspose.Pdf.Drawing namespace reference.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778069430.651545
+  },
+  {
+    "pattern": "The type or namespace name 'Generator' does not exist in the namespace 'Aspose\\.Pdf'",
+    "error_code": "CS0234",
+    "fix_guidance": "Remove the `using Aspose.Pdf.Generator;` directive (or add the missing assembly) and use the types from `Aspose.Pdf.Drawing` instead.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778070072.511233
   },
   {
     "pattern": "Argument \\d+: cannot convert from 'double' to 'float'",
     "error_code": "CS1503",
-    "fix_guidance": "Use float literals (e.g., 100f) or cast the double values to float (e.g., (float)myDouble) before passing them to methods expecting float parameters.",
+    "fix_guidance": "Cast the double values to float (e.g., (float)value) or use float literals (e.g., 1f) when calling Aspose.Pdf.Drawing.Rectangle, which expects float parameters.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776315396.264029
+    "_created_at": 1778070297.7921112
   },
   {
-    "pattern": "The type or namespace name 'KeySize' does not exist in the namespace 'Aspose\\.Pdf'",
-    "error_code": "CS0234",
-    "fix_guidance": "Add the correct using directive (e.g., `using Aspose.Pdf.Security;`) or reference the appropriate Aspose.Pdf assembly that contains the KeySize enum.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776315475.9770272
-  },
-  {
-    "pattern": "Rectangle' is an ambiguous reference between 'System\\.Drawing\\.Rectangle' and 'Aspose\\.Pdf\\.Rectangle'",
-    "error_code": "CS0104",
-    "fix_guidance": "Fully qualify the Rectangle type (e.g., System.Drawing.Rectangle) or create a using alias to specify which Rectangle you intend to use.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776315540.434647
-  },
-  {
-    "pattern": "The type or namespace name 'Outline' does not exist in the namespace 'Aspose\\.Pdf'",
-    "error_code": "CS0234",
-    "fix_guidance": "Add a reference to the Aspose.Pdf assembly that contains the Outline class and include the correct using directive (e.g., `using Aspose.Pdf.Outline;`).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776315541.144022
-  },
-  {
-    "pattern": "Permissions' does not contain a definition for 'ModifyDocument'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent Permissions.ModifyDocument with a valid permission flag (e.g., Permissions.Modify or use DocumentPrivilege.Modify) that exists in the Aspose.PDF API.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776315583.7088041
-  },
-  {
-    "pattern": "PrinterSettings' is an ambiguous reference",
-    "error_code": "CS0104",
-    "fix_guidance": "Fully qualify the type (e.g., Aspose.Pdf.Printing.PrinterSettings) or create a using alias to disambiguate the conflicting PrinterSettings classes.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776315595.105414
-  },
-  {
-    "pattern": "The type or namespace name 'RenderingOptions' could not be found",
+    "pattern": "The type or namespace name 'GraphInfo' could not be found",
     "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf.Facades assembly and include `using Aspose.Pdf.Facades;`, or replace the use of RenderingOptions with the newer device API (e.g., PngDevice) that does not require that class.",
+    "fix_guidance": "Add a reference to the Aspose.Pdf namespace (e.g., `using Aspose.Pdf;`) and use the existing `GraphInfo` property on shape objects (e.g., `rect.GraphInfo.FillColor = ...`) instead of trying to instantiate a new `GraphInfo` class.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776315691.875656
+    "_created_at": 1778070923.084621
   },
   {
-    "pattern": "The type or namespace name 'Resolution' does not exist in the namespace 'Aspose\\.Pdf'",
-    "error_code": "CS0234",
-    "fix_guidance": "Add a reference to Aspose.Pdf.Devices and include `using Aspose.Pdf.Devices;` (or fully qualify the class) because the Resolution class resides in that namespace.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776315777.808195
-  },
-  {
-    "pattern": "PdfFileSecurity\\.PdfFileSecurity\\(string, string\\) is obsolete",
-    "error_code": "CS0618",
-    "fix_guidance": "Replace the obsolete constructor with the parameter‑less PdfFileSecurity(), call BindPdf(sourcePath) to load the PDF, then after encryption call Save(destinationPath).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776315803.9446578
-  },
-  {
-    "pattern": "Argument 1: cannot convert from 'Aspose\\.Pdf\\.TextStamp' to 'Aspose\\.Pdf\\.Facades\\.Stamp'",
-    "error_code": "CS1503",
-    "fix_guidance": "Use the Document API instead of the PdfFileStamp facade: load the PDF with a Document, call page.AddStamp(stamp) for each page, and then save; TextStamp is not a Facades.Stamp.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776315847.244766
-  },
-  {
-    "pattern": "DefaultMetadataProperties' does not contain a definition for 'Creator'",
+    "pattern": "GraphInfo' does not contain a definition for 'TransformationMatrix'",
     "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent DefaultMetadataProperties.Creator with the literal XMP property name (e.g., \"dc:creator\") or use the correct constant provided by Aspose.Pdf for the creator field.",
+    "fix_guidance": "Replace the nonexistent GraphInfo.TransformationMatrix usage with the Matrix class (e.g., Matrix.Rotation and Matrix.Transform) as the TransformationMatrix property was removed in newer Aspose.Pdf versions.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776315915.830434
+    "_created_at": 1778071768.820888
   },
   {
-    "pattern": "Argument \\d+: cannot convert from 'Aspose\\.Pdf\\.[^']+' to 'System\\.Drawing\\.[^']+'",
-    "error_code": "CS1503",
-    "fix_guidance": "Replace Aspose.Pdf.Rectangle/Color arguments with System.Drawing.Rectangle and System.Drawing.Color (e.g., construct a System.Drawing.Rectangle from the rectangle's coordinates and use System.Drawing.Color.Transparent or convert the Aspose color to a System.Drawing color).",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776315971.4080021
-  },
-  {
-    "pattern": "'.+?' is an ambiguous reference between '.+?' and '.+?'",
-    "error_code": "CS0104",
-    "fix_guidance": "Fully qualify the type with its namespace or define a using alias (e.g., `using AsposeRect = Aspose.Pdf.Rectangle;`) to remove the ambiguity.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776316012.724746
-  },
-  {
-    "pattern": "PdfFileStamp\\.(InputFile|OutputFile)' is obsolete",
-    "error_code": "CS0618",
-    "fix_guidance": "Replace the obsolete InputFile/OutputFile property assignments with the new facade methods: call BindPdf(inputPdf) to set the source PDF and Save(outputPdf) to write the result.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776316013.1161249
-  },
-  {
-    "pattern": "PdfContentEditor' does not contain a definition for 'PageNumber'",
+    "pattern": "TextFragmentState' does not contain a definition for 'VerticalAlignment'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace the use of the non‑existent PageNumber property with the appropriate API, e.g., pass the page number to methods like CreateFileAttachment or work with Aspose.Pdf.Document and its Pages collection instead of PdfContentEditor.",
+    "fix_guidance": "Remove the VerticalAlignment assignment; TextFragmentState has no such property—use Position.Y or other layout logic instead.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776316192.9232152
+    "_created_at": 1778074107.483368
   },
   {
-    "pattern": "Argument \\d+: cannot convert from 'Aspose\\.Pdf\\.[A-Za-z]+' to 'System\\.Drawing\\.[A-Za-z]+'",
-    "error_code": "CS1503",
-    "fix_guidance": "Replace Aspose.Pdf types with the corresponding System.Drawing types (e.g., use System.Drawing.Rectangle and System.Drawing.Color) when calling PdfContentEditor methods.",
+    "pattern": "PdfFileStamp' does not contain a definition for 'AddText'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace PdfFileStamp with PdfFileMend (or another class that provides AddText) and ensure the appropriate namespace is imported.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776316219.778399
+    "_created_at": 1778134363.0433311
   },
   {
-    "pattern": "StampAnnotation' does not contain a definition for 'BlendMode'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent BlendMode property with the correct property (e.g., BlendingSpace) or use the Stamp class which supports BlendMode; ensure you reference the appropriate Aspose.Pdf namespace.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776316305.454087
-  },
-  {
-    "pattern": "Cannot implicitly convert type 'System\\.Collections\\.Generic\\.IList<string>' to 'string\\[\\]'",
+    "pattern": "Cannot implicitly convert type 'Aspose\\.Pdf\\.Facades\\.WordWrapMode' to 'Aspose\\.Pdf\\.Text\\.TextFormattingOptions\\.WordWrapMode'",
     "error_code": "CS0266",
-    "fix_guidance": "Convert the IList<string> to an array with .ToArray() or change the target variable type to IList<string>.",
+    "fix_guidance": "Cast the Facades.WordWrapMode value to TextFormattingOptions.WordWrapMode or use the correct TextFormattingOptions.WordWrapMode enum directly.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776316358.166285
+    "_created_at": 1778135017.2837849
   },
   {
-    "pattern": "Annotation does not contain a definition for 'Opacity'",
+    "pattern": "XImage' does not contain a definition for 'ImageInfo'",
     "error_code": "CS1061",
-    "fix_guidance": "Cast the retrieved annotation to the concrete annotation type (e.g., SquareAnnotation) that provides an Opacity property, then set the opacity on that casted instance.",
+    "fix_guidance": "Upgrade to a newer Aspose.Pdf for .NET version that includes the XImage.ImageInfo property, or replace the call with supported APIs for retrieving image information.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776316373.88232
+    "_created_at": 1778135387.977101
   },
   {
-    "pattern": "The name 'TextAnnotationIcon' does not exist in the current context",
-    "error_code": "CS0103",
-    "fix_guidance": "Add `using Aspose.Pdf.Annotations;` and reference the enum as `TextAnnotationIcon.Note` (or another valid value) instead of an undefined identifier.",
+    "pattern": "Program does not contain a static 'Main' method",
+    "error_code": "CS5001",
+    "fix_guidance": "Add a static Main method (e.g., public static void Main(string[] args)) to serve as the entry point, or change the project output type to a class library if no executable is needed.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776316378.812151
+    "_created_at": 1778135414.750227
   },
   {
-    "pattern": "TextStamp.*does not contain a definition for 'PageNumber'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the use of the non‑existent PageNumber property with Document.Pages[pageIndex].AddStamp(textStamp) (or use PdfFileStamp facade) to apply the stamp to a specific page.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776316386.901336
-  },
-  {
-    "pattern": "Cannot implicitly convert type 'string' to 'System.DateTime'",
-    "error_code": "CS0029",
-    "fix_guidance": "Assign a DateTime value (e.g., DateTime.UtcNow) to the property or parse the string to DateTime using DateTime.Parse/ParseExact instead of assigning a formatted string.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776316543.9813602
-  },
-  {
-    "pattern": "Argument 2: cannot convert from 'Aspose\\.Pdf\\.Rectangle' to 'System\\.Drawing\\.Rectangle'",
-    "error_code": "CS1503",
-    "fix_guidance": "Pass a System.Drawing.Rectangle (and System.Drawing.Color) to CreateJavaScriptLink, or convert the Aspose types to the corresponding System.Drawing types.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776316568.555242
-  },
-  {
-    "pattern": "Document' does not contain a definition for 'ViewerPreferences'",
-    "error_code": "CS1061",
-    "fix_guidance": "Use Aspose.Pdf.Facades.PdfContentEditor.ChangeViewerPreference (or upgrade to a version where Document.ViewerPreferences exists) and add a using Aspose.Pdf; directive if needed.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776316783.510454
-  },
-  {
-    "pattern": "'[A-Za-z]+' is an ambiguous reference between 'System\\.Drawing\\.[A-Za-z]+' and 'Aspose\\.Pdf\\.[A-Za-z]+'",
-    "error_code": "CS0104",
-    "fix_guidance": "Disambiguate by using fully‑qualified names (e.g., Aspose.Pdf.Rectangle) or create an alias with a using directive (e.g., using PdfRect = Aspose.Pdf.Rectangle) for the conflicting types.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776316787.012112
-  },
-  {
-    "pattern": ".*'Rectangle' is an ambiguous reference between 'System\\.Drawing\\.Rectangle' and 'Aspose\\.Pdf\\.Rectangle'.*",
-    "error_code": "CS0104",
-    "fix_guidance": "Remove the conflicting `using System.Drawing;` directive or qualify the types (e.g., `Aspose.Pdf.Rectangle` and `Aspose.Pdf.Color`) or create aliases to disambiguate.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776316796.722579
-  },
-  {
-    "pattern": "Argument \\d+: cannot convert from 'Aspose\\.Pdf\\.(Rectangle|Color)' to 'System\\.Drawing\\.(Rectangle|Color)'",
-    "error_code": "CS1503",
-    "fix_guidance": "Pass a System.Drawing.Rectangle and System.Drawing.Color (or convert the Aspose.Pdf types to their System.Drawing equivalents) to the method; create new System.Drawing objects with the same dimensions/color before calling CreateSquareCircle.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776316930.085828
-  },
-  {
-    "pattern": "The type or namespace name 'PdfException' could not be found",
+    "pattern": "The type or namespace name 'NUnit' could not be found",
     "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf assembly (e.g., Aspose.Pdf.dll) and include the appropriate using directive (e.g., using Aspose.Pdf;).",
+    "fix_guidance": "Add a reference to the NUnit framework by installing the NUnit NuGet package (e.g., `dotnet add package NUnit`) and ensure `using NUnit.Framework;` is present.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776317024.405065
+    "_created_at": 1778135656.4880981
   },
   {
-    "pattern": "TextAnnotation' does not contain a definition for 'IsOpen'",
+    "pattern": "GraphInfo' does not contain a definition for 'LineCap'",
     "error_code": "CS0117",
-    "fix_guidance": "Replace the nonexistent IsOpen property with the correct property (e.g., Open) or use a PopupAnnotation to control visibility, matching the API version you reference.",
+    "fix_guidance": "Import Aspose.Pdf.Operators and use the SetLineCap operator (e.g., page.Contents.Add(new SetLineCap(LineCap.RoundCap))) instead of trying to access LineCap through GraphInfo.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776317073.962753
+    "_created_at": 1778139366.2837381
   },
   {
-    "pattern": "ExtractImageMode' does not contain a definition for 'AllImages'",
-    "error_code": "CS0117",
-    "fix_guidance": "Replace 'ExtractImageMode.AllImages' with a valid enum value such as 'ExtractImageMode.DefinedInResources' (or the appropriate mode for your Aspose.Pdf version).",
+    "pattern": "Rectangle' does not contain a definition for '(X|Y)'",
+    "error_code": "CS1061",
+    "fix_guidance": "Use the correct Aspose.Pdf.Rectangle properties (e.g., LLX/LLY or URX/URY) instead of X/Y, or access the rectangle's Position via its GraphInfo if needed.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776317277.81394
+    "_created_at": 1778139732.622022
   },
   {
-    "pattern": "Color' is an ambiguous reference between 'System\\.Drawing\\.Color' and 'Aspose\\.Pdf\\.Color'",
+    "pattern": "Graph\\.Graph\\(float, float\\).*obsolete",
+    "error_code": "CS0618",
+    "fix_guidance": "Replace the float‑based Graph constructor with the double version (e.g., new Graph(400.0, 300.0)).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778141514.177435
+  },
+  {
+    "pattern": "Rectangle' is an ambiguous reference between 'Aspose\\.Pdf\\.Drawing\\.Rectangle' and 'Aspose\\.Pdf\\.Rectangle'",
     "error_code": "CS0104",
-    "fix_guidance": "Remove the conflicting using directive or fully qualify the type (e.g., use Aspose.Pdf.Color) to eliminate the ambiguity.",
+    "fix_guidance": "Disambiguate the type by using a fully‑qualified name (e.g., Aspose.Pdf.Drawing.Rectangle) or create a using alias (e.g., using PdfRect = Aspose.Pdf.Rectangle) and reference the alias.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776317306.298462
+    "_created_at": 1778142537.991494
+  },
+  {
+    "pattern": "The type or namespace name 'Color' does not exist in the namespace 'Aspose\\.Pdf\\.Drawing'",
+    "error_code": "CS0234",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Drawing assembly (e.g., install or update the Aspose.Pdf NuGet package) so the Color class is available.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778143182.174479
+  },
+  {
+    "pattern": "Constructor is deprecated\\. Please use constructor with double instead",
+    "error_code": "CS0618",
+    "fix_guidance": "Replace the float arguments with double literals (e.g., new Graph(400.0, 200.0)) and ensure the appropriate using directives are present.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778143236.890326
+  },
+  {
+    "pattern": "No overload for method 'Scale' takes 2 arguments",
+    "error_code": "CS1501",
+    "fix_guidance": "Replace the two‑argument call with the single‑argument overload (e.g., graph.Transform.Scale(1.5)) or create a scaling matrix via Matrix.GetScaleInstance(1.5, 1.5) and assign it to graph.Transform.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778143622.792759
+  },
+  {
+    "pattern": "Argument 2: cannot convert from 'Aspose\\.Pdf\\.Color' to 'Aspose\\.Pdf\\.Facades\\.FontColor'",
+    "error_code": "CS1503",
+    "fix_guidance": "Use the Facades‑specific types (e.g., Aspose.Pdf.Facades.FontColor.Black) or switch to the newer TextStamp API where you set TextState.ForegroundColor = Aspose.Pdf.Color.Black.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778146520.188732
+  },
+  {
+    "pattern": "Argument \\d+: cannot convert from 'Aspose\\.Pdf\\.Color' to 'Aspose\\.Pdf\\.Facades\\.FontColor'",
+    "error_code": "CS1503",
+    "fix_guidance": "Replace the Color argument with a FontColor enum value (e.g., FontColor.Black) and replace the string argument with a FontStyle enum value (e.g., FontStyle.Bold) when constructing the FormattedText.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778146632.038912
+  },
+  {
+    "pattern": "PdfFileStamp\\.InputFile' is obsolete",
+    "error_code": "CS0618",
+    "fix_guidance": "Replace PdfFileStamp.InputFile and PdfFileStamp.OutputFile with the newer BindPdf(inputFile) and Save(outputFile) methods.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778146681.5014431
   },
   {
     "pattern": "Stamp' is an ambiguous reference between 'Aspose\\.Pdf\\.Facades\\.Stamp' and 'Aspose\\.Pdf\\.Stamp'",
     "error_code": "CS0104",
-    "fix_guidance": "Disambiguate by using the fully‑qualified type name (e.g., Aspose.Pdf.Facades.Stamp) or create a using alias for the desired Stamp class.",
+    "fix_guidance": "Disambiguate the type by using its fully qualified name (e.g., Aspose.Pdf.Facades.Stamp) or create a using alias for the desired Stamp class.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776317519.979274
+    "_created_at": 1778146808.120119
   },
   {
-    "pattern": "TextAnnotation.*does not contain a definition for 'FillColor'",
+    "pattern": "Argument \\d+: cannot convert from '.*' to 'Aspose\\.Pdf\\.Facades\\.(FontColor|FontStyle)'",
+    "error_code": "CS1503",
+    "fix_guidance": "Pass the correct types expected by the overload – use Aspose.Pdf.Facades.FontColor (or its enum value) instead of Aspose.Pdf.Color, and supply a FontStyle enum value rather than a plain string.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778147210.797028
+  },
+  {
+    "pattern": "Argument .* cannot convert from 'Aspose\\.Pdf\\.Color' to 'Aspose\\.Pdf\\.Facades\\.FontColor'",
+    "error_code": "CS1503",
+    "fix_guidance": "Replace Aspose.Pdf.Color with a Facades.FontColor (or System.Drawing.Color) and use Facades.FontStyle and Facades.Stamp types instead of the TextStamp class.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778147872.2703118
+  },
+  {
+    "pattern": "Stamp' does not contain a definition for 'HorizontalAlignment'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent FillColor property with the correct property (e.g., BackColor or Color) for TextAnnotation and ensure the Aspose.Pdf.Annotations namespace is referenced.",
+    "fix_guidance": "Use the ImageStamp class (which provides HorizontalAlignment and VerticalAlignment) instead of the generic Stamp class, or reference the correct namespace that defines those properties.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776317522.062216
+    "_created_at": 1778147946.9055831
   },
   {
-    "pattern": "PdfAnnotationEditor' does not contain a definition for 'CreateSquareCircle'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the obsolete PdfAnnotationEditor façade with the current Aspose.Pdf.Annotations API (e.g., create a SquareAnnotation or CircleAnnotation on a Document page) and remove the Facades using directive.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776317595.2124941
-  },
-  {
-    "pattern": "Argument 1: cannot convert from 'System\\.Drawing\\.RectangleF' to 'System\\.Drawing\\.Rectangle'",
-    "error_code": "CS1503",
-    "fix_guidance": "Pass a System.Drawing.Rectangle (int‑based) to the method—e.g., create a new Rectangle from the RectangleF values or use Rectangle.Round—to match the expected parameter type.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776317696.3648052
-  },
-  {
-    "pattern": "Argument 1: cannot convert from 'Aspose\\.Pdf\\.Rectangle' to 'System\\.Drawing\\.Rectangle'",
-    "error_code": "CS1503",
-    "fix_guidance": "Pass a System.Drawing.Rectangle (or convert the Aspose.Pdf.Rectangle to one) to the method; e.g., create a new System.Drawing.Rectangle with the same dimensions.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776317851.6230369
-  },
-  {
-    "pattern": "Argument \\d+: cannot convert from 'Aspose\\.Pdf\\.Rectangle' to 'System\\.Drawing\\.Rectangle'",
-    "error_code": "CS1503",
-    "fix_guidance": "Replace Aspose.Pdf.Rectangle and Aspose.Pdf.Color arguments with System.Drawing.Rectangle and System.Drawing.Color (or convert them) when calling PdfContentEditor methods.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776317915.4306
-  },
-  {
-    "pattern": "Argument 4: cannot convert from 'Aspose\\.Pdf\\.Color' to 'System\\.Drawing\\.Color'",
-    "error_code": "CS1503",
-    "fix_guidance": "Convert the Aspose.Pdf.Color value to a System.Drawing.Color (e.g., use System.Drawing.Color.FromArgb(color.A, color.R, color.G, color.B)) before passing it to the method.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776318376.561187
-  },
-  {
-    "pattern": "PdfAnnotationEditor does not contain a definition for 'CreateText'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace 'CreateText' with the correct Aspose.Pdf API method (e.g., CreateTextAnnotation) and ensure you reference the appropriate Aspose.Pdf namespace or update to a version that includes the method.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776318404.86588
-  },
-  {
-    "pattern": "The type or namespace name 'Azure' does not exist in the namespace 'Microsoft'",
+    "pattern": "The type or namespace name 'TextStamp' does not exist in the namespace 'Aspose\\.Pdf\\.Facades'",
     "error_code": "CS0234",
-    "fix_guidance": "Add the appropriate Azure SDK NuGet packages (e.g., Microsoft.Azure.WebJobs, Azure.Storage.Blobs) and include the required using directives such as `using Microsoft.Azure;` or `using Microsoft.Azure.WebJobs;`.",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Text namespace (and ensure the Aspose.Pdf assembly is referenced) or use the correct class from its proper namespace instead of Aspose.Pdf.Facades.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776318470.740559
+    "_created_at": 1778148241.7759192
   },
   {
-    "pattern": "The type or namespace name 'Amazon' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add the required AWS SDK NuGet package (e.g., AWSSDK.Core) to the project and include the appropriate using directive, then run a restore.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776318567.33023
-  },
-  {
-    "pattern": "The type or namespace name 'PutObjectRequest' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Storage.Cloud SDK (install the NuGet package) and include the appropriate using directive, e.g., `using Aspose.Storage.Cloud.Sdk.Model;`.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776318625.880097
-  },
-  {
-    "pattern": "WidgetAnnotation' does not contain a definition for 'Value'",
-    "error_code": "CS1061",
-    "fix_guidance": "Cast the WidgetAnnotation to the specific field type that exposes a Value property (e.g., TextBoxField) or use the appropriate property/method for the annotation type.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776318715.6757498
-  },
-  {
-    "pattern": "The type or namespace name 'Azure' could not be found",
-    "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Azure.Storage.Blobs NuGet package (or the appropriate Azure SDK) and ensure the using directive `using Azure.Storage.Blobs;` is present.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776319110.5206048
-  },
-  {
-    "pattern": "Argument 1: cannot convert from 'string' to 'Aspose\\.Pdf\\.Document'",
+    "pattern": "Argument \\d+: cannot convert from 'Aspose\\.Pdf\\.Color' to 'Aspose\\.Pdf\\.Facades\\.FontColor'|Argument \\d+: cannot convert from 'string' to 'Aspose\\.Pdf\\.Facades\\.FontStyle'",
     "error_code": "CS1503",
-    "fix_guidance": "Create or load an Aspose.Pdf.Document (e.g., new Document(filePath)) and pass that object instead of a string path to the method.",
+    "fix_guidance": "Pass a FontColor (e.g., System.Drawing.Color or Aspose.Pdf.Facades.FontColor) for the color argument and use the FontStyle enum (e.g., FontStyles.Bold) instead of a string for the style argument.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776319513.583553
-  },
-  {
-    "pattern": "Cannot implicitly convert type 'System\\.Collections\\.Generic\\.IList<.*>' to 'System\\.Collections\\.IList'",
-    "error_code": "CS0266",
-    "fix_guidance": "Change the variable type to IList<string> (or another generic interface) or cast the value, e.g., (IList)myList, to match the expected non‑generic IList.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776319522.0277572
+    "_created_at": 1778148552.240853
   },
   {
     "pattern": "The type or namespace name 'TextFragment' could not be found",
     "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf assembly and include the directive `using Aspose.Pdf.Text;` (or fully qualify as `Aspose.Pdf.Text.TextFragment`).",
+    "fix_guidance": "Add a reference to the Aspose.Pdf assembly and include the appropriate using directives (e.g., `using Aspose.Pdf;` and `using Aspose.Pdf.Text;`).",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776319869.355826
+    "_created_at": 1778148685.8994508
   },
   {
-    "pattern": "The type name 'OleDbConnection' could not be found in the namespace 'System\\.Data\\.OleDb'",
-    "error_code": "CS1069",
-    "fix_guidance": "Add a reference to the System.Data.OleDb assembly (e.g., install the System.Data.OleDb NuGet package) and include `using System.Data.OleDb;` in the source file.",
+    "pattern": "Stamp' does not contain a definition for 'BorderInfo'",
+    "error_code": "CS1061",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Annotations namespace (e.g., `using Aspose.Pdf.Annotations;`) or upgrade to a version of Aspose.Pdf where `Stamp.BorderInfo` is available.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776320006.53732
+    "_created_at": 1778148961.4565089
   },
   {
-    "pattern": "Preprocessor directive expected",
-    "error_code": "CS1024",
-    "fix_guidance": "Delete or replace stray ‘#’ characters (PowerShell comments) with C# comments (//) so the file starts with valid C# code such as using statements or a namespace.",
+    "pattern": "Stamp' does not contain a definition for 'RotateAngle'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent RotateAngle property with the correct Rotation property on the Stamp object (e.g., stamp.Rotation = 45f) and ensure the appropriate Aspose.Pdf.Facades namespace is referenced.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776320033.8977458
+    "_created_at": 1778149017.191466
   },
   {
-    "pattern": "AutoFiller\\.InputFileName",
-    "error_code": "CS0618",
-    "fix_guidance": "Replace usage of the obsolete InputFileName property with the new BindPdf(inputFile) method to initialize the facade.",
+    "pattern": "Stamp' is an ambiguous reference between",
+    "error_code": "CS0104",
+    "fix_guidance": "Fully qualify the Stamp class (e.g., Aspose.Pdf.Facades.Stamp) or use a using alias to disambiguate the reference.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776320160.175382
+    "_created_at": 1778150157.8117042
   },
   {
-    "pattern": "Cannot implicitly convert type 'bool' to 'Aspose\\.Pdf\\.ExtractImageMode'",
-    "error_code": "CS0029",
-    "fix_guidance": "Replace the boolean with a valid ExtractImageMode enum value (e.g., ExtractImageMode.AllImages) or cast appropriately; do not assign true/false to this property.",
+    "pattern": "Form' does not contain a definition for 'Signatures'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace usage of Form.Signatures with iteration over doc.Form.Fields and cast each SignatureField to access its Signature; the Form class has no Signatures property.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776320244.048838
+    "_created_at": 1778216949.835731
   },
   {
-    "pattern": "AutoFiller\\.Save\\(\\)'.*obsolete.*Use Save\\(destination\\)",
-    "error_code": "CS0618",
-    "fix_guidance": "Replace calls to AutoFiller.Save() with AutoFiller.Save(destination) providing a file path or stream where the PDF should be saved.",
+    "pattern": "SignatureField' does not contain a definition for 'Lock'",
+    "error_code": "CS1061",
+    "fix_guidance": "Add a reference to a recent Aspose.Pdf version and include the Aspose.Pdf.Forms namespace, then use the SignatureFieldLock class (e.g., sigField.Lock = new SignatureFieldLock(...)) instead of a non‑existent Lock member.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776320289.831525
+    "_created_at": 1778217355.598916
   },
   {
-    "pattern": "The type or namespace name 'PdfA2bSaveOptions' could not be found",
+    "pattern": "FreeTextAnnotation' does not contain a definition for 'Open'|Border' does not contain a definition for 'CornerRadius'",
+    "error_code": "CS0117",
+    "fix_guidance": "Remove the use of the non‑existent Open property on FreeTextAnnotation and the CornerRadius property on Border; these members are not available in the current Aspose.PDF for .NET API. Adjust the annotation by setting only supported properties such as Color, Contents, and Border.Width/Border.DashStyle.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778218701.5939908
+  },
+  {
+    "pattern": "Property or indexer 'ScreenAnnotation\\.Action' cannot be assigned to",
+    "error_code": "CS0200",
+    "fix_guidance": "Do not assign to the read‑only Action property; instead supply the media URL when constructing the ScreenAnnotation (e.g., new ScreenAnnotation(page, rect, videoUrl)) or use the appropriate media‑related property.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778219222.130241
+  },
+  {
+    "pattern": "Use of unassigned local variable '[^']+'",
+    "error_code": "CS0165",
+    "fix_guidance": "Initialize the variable (e.g., assign a default value) before it is read or passed to any method.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778219350.8114402
+  },
+  {
+    "pattern": "WatermarkAnnotation' does not contain a definition for 'Rotation'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the nonexistent 'Rotation' property with the correct 'RotationAngle' property on WatermarkAnnotation.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778219724.6513019
+  },
+  {
+    "pattern": "TextBoxField' does not contain a definition for 'MaxLength'",
+    "error_code": "CS1061",
+    "fix_guidance": "Use Aspose.Pdf.Facades.FormEditor.SetFieldMaxLength (or upgrade to a version where TextBoxField.MaxLength exists) instead of accessing a non‑existent MaxLength property on TextBoxField.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778220429.098494
+  },
+  {
+    "pattern": "Form' does not contain a definition for 'Xfa'",
+    "error_code": "CS1061",
+    "fix_guidance": "Use the XFA API (e.g., Document.XfaForm) instead of Form.Xfa and add a reference/using for Aspose.Pdf.Xfa, or upgrade to a version of Aspose.Pdf that includes XFA support.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778220770.677912
+  },
+  {
+    "pattern": "The left-hand side of an assignment must be a variable, property or indexer",
+    "error_code": "CS0131",
+    "fix_guidance": "Assign the result of the expression to a properly declared variable, property with a setter, or an indexer; do not assign to a method call or a read‑only expression.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778221103.143946
+  },
+  {
+    "pattern": "Table' does not contain a definition for 'GetCellPosition'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent GetCellPosition call with Table.Rows[rowIndex].Cells[colIndex].Rectangle (after forcing layout by saving or calling doc.Save) to obtain the cell's position.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778225029.070615
+  },
+  {
+    "pattern": "Table.*AutoFitColumns",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent AutoFitColumns() call with the Table.ColumnAdjustment property, e.g., table.ColumnAdjustment = ColumnAdjustment.AutoFitToContent; and ensure the Aspose.Pdf namespace is referenced.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778225272.133642
+  },
+  {
+    "pattern": "Argument 1: cannot convert from 'Aspose\\.Pdf\\.Text\\.TextParagraph' to 'Aspose\\.Pdf\\.BaseParagraph'",
+    "error_code": "CS1503",
+    "fix_guidance": "Replace the TextParagraph with a TextFragment (or another BaseParagraph‑derived type) when adding to the page's Paragraphs collection, as TextParagraph does not inherit from BaseParagraph.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778225859.6077921
+  },
+  {
+    "pattern": "The type or namespace name 'Transform' could not be found",
     "error_code": "CS0246",
-    "fix_guidance": "Add a reference to the Aspose.Pdf library that contains PdfA2bSaveOptions (or upgrade to a version that includes it) and include the appropriate using directive; alternatively, use the newer Convert method with PdfFormat.PDF_A_2B for PDF/A‑2b compliance.",
+    "fix_guidance": "Replace the missing 'Transform' class with the correct Aspose.Pdf operator (e.g., ConcatenateMatrix) and ensure the appropriate using directive for Aspose.Pdf.Operators is present.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776320313.158376
+    "_created_at": 1778226761.150672
   },
   {
-    "pattern": "The type or namespace name 'AspNetCore' does not exist in the namespace 'Microsoft'",
-    "error_code": "CS0234",
-    "fix_guidance": "Add the appropriate Microsoft.AspNetCore.* NuGet packages (e.g., Microsoft.AspNetCore.Mvc) and ensure the project targets a compatible .NET version, or remove the AspNetCore references if they are not needed.",
+    "pattern": "The type or namespace name 'TableRow' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Replace 'TableRow' with the correct Aspose.Pdf class 'Row' (e.g., Row header = table.Rows.Add();) and ensure the Aspose.Pdf namespace is imported.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776320488.390927
+    "_created_at": 1778226831.785318
+  },
+  {
+    "pattern": "TextFragmentState' does not contain a definition for 'IsRightToLeft'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent IsRightToLeft property with the TextFragmentState.Bidi property (set to true) or upgrade to a version of Aspose.PDF that provides the correct RTL API.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778229679.309077
+  },
+  {
+    "pattern": "TextFragmentState' does not contain a definition for 'Kerning'",
+    "error_code": "CS1061",
+    "fix_guidance": "Use the CharacterSpacing property instead of Kerning (e.g., fragment.TextState.CharacterSpacing = 0.5f) to simulate kerning, as TextFragmentState does not expose a Kerning member.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778229765.869942
+  },
+  {
+    "pattern": "PdfActionCollection' does not contain a definition for 'OnEnter'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent OnEnter call with a supported method, e.g., use PdfActionCollection.Add(new JavascriptAction(...)) or assign a JavascriptAction to a LinkAnnotation's Action property.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778230022.3498921
+  },
+  {
+    "pattern": "TextFragment.*GetLineBreakInfo",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the removed GetLineBreakInfo call with code that iterates the fragment's Segments (cast to TextSegment) and groups them by Y‑position to derive line‑break information.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778230316.913538
+  },
+  {
+    "pattern": "AppearanceDictionary' does not contain a definition for 'Normal'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent 'Normal' member with the correct 'NormalAppearance' property (or use the appropriate annotation class) and ensure the proper Aspose.Pdf namespace is imported.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778230439.698865
+  },
+  {
+    "pattern": "Dereference of a possibly null reference",
+    "error_code": "CS8602",
+    "fix_guidance": "Ensure the object being dereferenced is not null—add null‑checks or use null‑conditional operators (e.g., ?. and ??) before accessing its members.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778233037.617131
   },
   {
     "pattern": "warning CS8600: Converting null literal or possible null value to non-nullable type",
     "error_code": "CS8600",
-    "fix_guidance": "Add a null‑check before the assignment or change the target type to be nullable (e.g., string?) or use the null‑forgiving operator (!).",
+    "fix_guidance": "Declare the variable as nullable (e.g., XmlNode?) or add null‑checks/?. operators and provide a fallback value before assigning to a non‑nullable type.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776320502.145398
+    "_created_at": 1778233185.172658
   },
   {
-    "pattern": "AutoFiller\\.InputFileName' is obsolete|AutoFiller\\.Save\\(\\) is obsolete",
-    "error_code": "CS0618",
-    "fix_guidance": "Replace the obsolete AutoFiller members: use BindPdf(inputFile) to set the source PDF and call Save(destinationPath) to write the result.",
+    "pattern": "CS8600: Converting null literal or possible null value to non-nullable type",
+    "error_code": "CS8600",
+    "fix_guidance": "Ensure the value assigned to a non‑nullable variable is not null—use a non‑null literal, change the variable to a nullable type (e.g., string?), or apply the null‑forgiving operator (!).",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776320605.470499
+    "_created_at": 1778233368.665188
   },
   {
-    "pattern": "AutoFiller\\.InputFileName' is obsolete",
-    "error_code": "CS0618",
-    "fix_guidance": "Replace usage of the obsolete InputFileName property with the BindPdf(inputFile) method on the AutoFiller instance.",
+    "pattern": "DefaultMetadataProperties' does not contain a definition for",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace references to DefaultMetadataProperties.Title/Creator with the correct XMP property names (e.g., \"dc:title\" and \"dc:creator\") or use the appropriate Aspose.Pdf metadata API.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776320900.82032
+    "_created_at": 1778233541.3386629
   },
   {
-    "pattern": "Could not write to output file '.*AsposePdfApi\\.sourcelink\\.json' -- 'Could not find file '.*AsposePdfApi\\.sourcelink\\.json'.'",
-    "error_code": "CS0016",
-    "fix_guidance": "Make sure the output directory exists and you have write permissions (e.g., delete the stale obj folder or clean the project) then rebuild.",
+    "pattern": "No overload for method 'Save' takes 0 arguments",
+    "error_code": "CS1501",
+    "fix_guidance": "Call Save with a required argument (e.g., a file path or Stream) or use Document.Save instead of the Facade's parameter‑less Save, as the Facade API does not provide a zero‑argument overload.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776326302.989944
+    "_created_at": 1778234141.4961731
+  },
+  {
+    "pattern": "Program does not contain a static 'Main' method suitable for an entry point",
+    "error_code": "CS5001",
+    "fix_guidance": "Add a static Main method (e.g., public static void Main(string[] args)) to serve as the entry point, or change the project OutputType to 'Library' if the assembly is not meant to be executable.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778234209.362798
+  },
+  {
+    "pattern": "The type or namespace name 'aspose' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Add a reference to the Aspose.Pdf .NET library (e.g., via NuGet) and use the correct namespace casing, e.g., `using Aspose.Pdf;`.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778235237.100307
+  },
+  {
+    "pattern": "DefaultMetadataProperties' does not contain a definition for 'Title'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace DefaultMetadataProperties.Title with a valid XMP property, e.g., use XmpMetadataProperty.Title or set the value via doc.Metadata[\"dc:title\"]",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778235359.6394649
+  },
+  {
+    "pattern": "Document.*does not contain a definition for 'Compress'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the removed Compress method with the OptimizationOptions API (e.g., create an OptimizationOptions object and call doc.OptimizeResources), and add the Aspose.Pdf.Optimization namespace.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778235410.0007198
+  },
+  {
+    "pattern": "The type or namespace name 'Xmp' does not exist in the namespace 'Aspose\\.Pdf'",
+    "error_code": "CS0234",
+    "fix_guidance": "Reference the Aspose.Pdf.Facades assembly or NuGet package and use the full namespace Aspose.Pdf.Facades for PdfXmpMetadata.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1778235559.279289
   },
   {
     "pattern": "Cannot implicitly convert type 'System\\.DateTime' to 'string'",
     "error_code": "CS0029",
-    "fix_guidance": "Convert the DateTime to a string (e.g., DateTime.Now.ToString(\"yyyyMMddHHmmss\")) or change the target variable/property to DateTime instead of string.",
+    "fix_guidance": "Convert the DateTime value to a string (e.g., DateTime.Now.ToString(\"yyyyMMddHHmmss\")) or assign it to a property that accepts DateTime.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776326474.964303
+    "_created_at": 1778235712.028781
   },
   {
-    "pattern": "Non-nullable property '.*' must contain a non-null value when exiting constructor",
-    "error_code": "CS8618",
-    "fix_guidance": "Make the property nullable (e.g., string?) or mark it as required, and ensure it is assigned a non‑null value before the constructor finishes.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776326590.4598851
-  },
-  {
-    "pattern": "CS2012: Cannot open '.*AsposePdfApi_.*\\.dll' for writing -- The process cannot access the file .* because it is being used by another process",
-    "error_code": "CS2012",
-    "fix_guidance": "Terminate any process that is locking the DLL (e.g., stop running instances, close the IDE, or kill lingering dotnet processes), then clean the build output (dotnet clean or delete the obj/bin folders) before rebuilding.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776329570.8799639
-  },
-  {
-    "pattern": "TextStamp' does not contain a definition for '(SetOrigin|Rotation)'",
+    "pattern": "StructureElement' does not contain a definition for 'SetAttribute'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace SetOrigin with XIndent/YIndent properties and Rotation with RotateAngle, and apply the TextStamp using Document/Page.AddStamp (or PdfFileStamp) instead of the missing members.",
+    "fix_guidance": "Replace the nonexistent SetAttribute call with the proper Aspose.Pdf API (e.g., use HeaderElement, set properties like Language, or use the SetAttribute overload on the correct element type) and ensure the appropriate Aspose.Pdf.Tagged namespace is referenced.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776329781.7600021
+    "_created_at": 1779190273.2595751
   },
   {
-    "pattern": "PdfFileStamp' does not contain a definition for 'Pages'",
+    "pattern": "BorderInfo' does not contain a definition for 'Color'",
+    "error_code": "CS0117",
+    "fix_guidance": "Use the BorderInfo constructor that accepts a color (e.g., new BorderInfo(BorderSide.All, thickness, Aspose.Pdf.Color.Gray)) and ensure the Aspose.Pdf.Drawing namespace is referenced.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779192202.83922
+  },
+  {
+    "pattern": "PdfFormat' does not contain a definition for 'PDF_UA'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace PdfFormat.PDF_UA with the correct enum member (e.g., PdfFormat.PDF_UA_1) that exists in the Aspose.Pdf.PdfFormat enumeration.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779192687.4755032
+  },
+  {
+    "pattern": "ParagraphElement' does not contain a definition for 'IsInNewPage'",
     "error_code": "CS1061",
-    "fix_guidance": "Replace PdfFileStamp with a Document/PageNumberStamp approach, or use PdfFileStamp.AddStamp(pageNumber) instead of accessing a non‑existent Pages property.",
+    "fix_guidance": "Replace the use of IsInNewPage with a supported element such as DivElement: create a DivElement, call SetTag(\"PageBreak\"), and append it to the root structure element instead of setting IsInNewPage on a ParagraphElement.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776330032.664763
+    "_created_at": 1779192805.362276
   },
   {
-    "pattern": "ImageStamp' does not contain a definition for 'Margin'",
-    "error_code": "CS1061",
-    "fix_guidance": "Replace the nonexistent Margin property with XIndent/YIndent (or other positioning properties) on ImageStamp to set offsets.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776334410.188461
-  },
-  {
-    "pattern": "An object reference is required for the non-static field, method, or property 'DocumentFactory\\.CreateDocument\\(string\\)'",
-    "error_code": "CS0120",
-    "fix_guidance": "Call the instance method (or use the Document constructor) instead of invoking DocumentFactory.CreateDocument as a static method.",
-    "_auto": true,
-    "_confidence": 0.5,
-    "_hit_count": 0,
-    "_created_at": 1776334947.7603562
-  },
-  {
-    "pattern": "The type or namespace name '.*' could not be found",
+    "pattern": "The type or namespace name 'PdfA1bSaveOptions' could not be found",
     "error_code": "CS0246",
-    "fix_guidance": "Add the required using directive (e.g., using Aspose.Pdf.Forms) and ensure the Aspose.Pdf assembly is referenced in the project.",
+    "fix_guidance": "Add a reference to the Aspose.Pdf library version that includes PdfA1bSaveOptions and include `using Aspose.Pdf;`, or replace the obsolete PdfA1bSaveOptions usage with the newer `doc.Convert(..., PdfFormat.PDF_A_1B, ...)` API.",
     "_auto": true,
     "_confidence": 0.5,
     "_hit_count": 0,
-    "_created_at": 1776334948.001666
+    "_created_at": 1779194258.195381
+  },
+  {
+    "pattern": "The type or namespace name 'PdfX3SaveOptions' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Add a reference to the correct Aspose.PDF assembly that contains PdfX3SaveOptions, or update the code to use the current API (e.g., PdfSaveOptions with PdfFormat.PDF_X_3 or Document.Convert) and include the appropriate using directive.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779194303.72398
+  },
+  {
+    "pattern": "No overload for method 'Split' takes 0 arguments",
+    "error_code": "CS1501",
+    "fix_guidance": "Replace the nonexistent Document.Split() call with page‑by‑page processing: iterate over srcDoc.Pages, create a new Document for each page, add the page via pageDoc.Pages.Add(srcDoc.Pages[i]), and save the new document.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779194535.362336
+  },
+  {
+    "pattern": "PdfFormat' does not contain a definition for 'Pdf_1_4'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the nonexistent member 'Pdf_1_4' with the correct enum value 'PdfFormat.v_1_4' (or use PdfVersion.v_1_4) when specifying the PDF version.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779195250.348863
+  },
+  {
+    "pattern": "PdfA1bSaveOptions' could not be found",
+    "error_code": "CS0246",
+    "fix_guidance": "Add a reference to the Aspose.Pdf assembly that defines PdfA1bSaveOptions (or upgrade to a version that includes it) and include `using Aspose.Pdf;`, or replace the usage with the newer `doc.Convert(..., PdfFormat.PDF_A_1B, ...)` API.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779195986.740206
+  },
+  {
+    "pattern": "Document' does not contain a definition for 'Encryption'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent 'Encryption' member with the Document.Encrypt method (e.g., doc.Encrypt(userPwd, ownerPwd, permissions, CryptoAlgorithm.AESx128)) and ensure the Aspose.Pdf namespace is referenced.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779211217.428689
+  },
+  {
+    "pattern": "Cannot declare a variable of static type 'SideBySidePdfComparer'",
+    "error_code": "CS0723",
+    "fix_guidance": "Remove the variable declaration and call the static members of SideBySidePdfComparer directly, e.g., SideBySidePdfComparer.Compare(...).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779212905.227129
+  },
+  {
+    "pattern": "ComparisonOptions' does not contain a definition for 'StartPage'",
+    "error_code": "CS0117",
+    "fix_guidance": "Upgrade to a Aspose.PDF for .NET version that includes StartPage/EndPage in ComparisonOptions, or remove those properties and use the default full‑document comparison (or set the range via reflection if needed).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779251378.111073
+  },
+  {
+    "pattern": "The name 'DocumentComparer' does not exist in the current context",
+    "error_code": "CS0103",
+    "fix_guidance": "Add a reference to the Aspose.Pdf.Comparison namespace (e.g., `using Aspose.Pdf.Comparison;`) and ensure the Aspose.Pdf.Comparison package is referenced in the project.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779251564.9815722
+  },
+  {
+    "pattern": "Argument \\d+: cannot convert from 'Aspose\\.Pdf\\.Document' to 'Aspose\\.Pdf\\.Page'",
+    "error_code": "CS1503",
+    "fix_guidance": "Pass a Page instance (e.g., doc.Pages[1]) to the method or use the overload that accepts Document objects; for comparison use SideBySideComparisonOptions instead of ComparisonOptions.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779251627.051897
+  },
+  {
+    "pattern": "ComparisonOptions' does not contain a definition for 'TextComparisonOptions'",
+    "error_code": "CS1061",
+    "fix_guidance": "Upgrade to a Aspose.Pdf.Comparison version that includes the TextComparisonOptions property or remove the reference and use the available ComparisonOptions members (e.g., IgnoreCase, ExcludeTables) supported by your current library version.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779251745.355434
+  },
+  {
+    "pattern": "Cannot implicitly convert type 'System.Collections.Generic.List<Aspose\\.Pdf\\.Rectangle>' to 'Aspose\\.Pdf\\.Rectangle\\[\\]'",
+    "error_code": "CS0029",
+    "fix_guidance": "Convert the List<Aspose.Pdf.Rectangle> to an array (e.g., call .ToArray()) before assigning it to properties expecting Aspose.Pdf.Rectangle[].",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779251818.159314
+  },
+  {
+    "pattern": "PageInfo' does not contain a constructor that takes 2 arguments",
+    "error_code": "CS1729",
+    "fix_guidance": "Replace the two‑argument PageInfo constructor with a parameterless PageInfo instance and set Width, Height (and other needed properties) via its setters.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779252021.4308631
+  },
+  {
+    "pattern": "ComparisonOptions' does not contain a definition for 'CompareFonts'",
+    "error_code": "CS0117",
+    "fix_guidance": "Remove the non‑existent Compare* properties and instantiate ComparisonOptions with its default constructor (or use the new API methods) since font, text, image, annotation, and graphics comparisons are enabled by default.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779252128.447907
+  },
+  {
+    "pattern": "Cannot implicitly convert type 'int' to 'Aspose\\.Pdf\\.Devices\\.Resolution'",
+    "error_code": "CS0029",
+    "fix_guidance": "Replace the integer with a Resolution instance (e.g., new Resolution(150)) and add a using directive for Aspose.Pdf.Devices.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779252443.990026
+  },
+  {
+    "pattern": "SideBySidePdfComparer.*static",
+    "error_code": "CS0723",
+    "fix_guidance": "Do not declare or instantiate the static class SideBySidePdfComparer; instead call its static Compare method (or use TextPdfComparer.CompareDocumentsPageByPage) with the required arguments.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779252504.374892
+  },
+  {
+    "pattern": "DiffOperation' does not contain a definition for '(PageNumber|Offset)'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent properties with the correct ones from the current Aspose.PDF API (e.g., use diff.PageIndex or diff.PageNumber and diff.Location/Bounds instead of PageNumber and Offset) and ensure the Aspose.Pdf.Comparison namespace is imported.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779252574.135128
+  },
+  {
+    "pattern": "DocSaveOptions\\.DocFormat.*does not contain a definition for 'Docx'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the nonexistent enum member 'Docx' with the correct value 'DocX' (e.g., DocSaveOptions.DocFormat.DocX) or use the appropriate format enum for the Aspose.PDF version you target.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779257625.986607
+  },
+  {
+    "pattern": "DocSaveOptions\\.DocFormat' does not contain a definition for 'Docx'",
+    "error_code": "CS0117",
+    "fix_guidance": "Replace the nonexistent DocSaveOptions.DocFormat.Docx with the correct enum value DocSaveOptions.DocFormat.DocX (note the capital X) and remove any removed properties such as Mode.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779257671.665789
+  },
+  {
+    "pattern": "using namespace directive can only be applied to namespaces; 'DocSaveOptions' is a type",
+    "error_code": "CS0138",
+    "fix_guidance": "Delete the 'using Aspose.Pdf.DocSaveOptions;' line and import only 'using Aspose.Pdf;' (or reference DocSaveOptions with its full namespace) since DocSaveOptions is a type, not a namespace.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779257825.728278
+  },
+  {
+    "pattern": "XImage' does not contain a definition for 'AlternativeText'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace the nonexistent AlternativeText property with a supported property such as XImage.Name (or upgrade to a version of Aspose.PDF that exposes AlternativeText).",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779257941.555557
+  },
+  {
+    "pattern": "using namespace directive can only be applied to namespaces; 'SaveOptions' is a type",
+    "error_code": "CS0138",
+    "fix_guidance": "Remove or replace the `using Aspose.Pdf.SaveOptions;` line—`SaveOptions` is a class, not a namespace; use the class directly or a `using static` if you need its static members.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779258309.149678
+  },
+  {
+    "pattern": "DocumentInfo' does not contain a definition for 'CustomProperties'",
+    "error_code": "CS1061",
+    "fix_guidance": "Replace usage of the non‑existent CustomProperties collection with the DocumentInfo indexer (e.g., pdfDoc.Info[\"Key\"] = \"Value\") or the appropriate AddCustomProperty method.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779259597.767915
+  },
+  {
+    "pattern": "The type or namespace name 'Slides' does not exist in the namespace 'Aspose'",
+    "error_code": "CS0234",
+    "fix_guidance": "Add a reference to the Aspose.Slides library (e.g., install the Aspose.Slides NuGet package) or remove the Aspose.Slides using statements and related code if only PDF functionality is needed.",
+    "_auto": true,
+    "_confidence": 0.5,
+    "_hit_count": 0,
+    "_created_at": 1779259967.252471
   }
 ]

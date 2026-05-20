@@ -1,5 +1,5 @@
 """
-knowledge/auto_learner.py — Self-learning: extract reusable rules from successful fixes.
+knowledge/auto_learner.py -- Self-learning: extract reusable rules from successful fixes.
 
 When the pipeline fails at Stage 1 but succeeds at a later stage, the code diff
 contains a valuable signal. This module uses the LLM to generalize that fix into

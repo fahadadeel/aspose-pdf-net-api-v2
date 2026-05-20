@@ -1,7 +1,7 @@
 """
-knowledge/pattern_tracker.py — Track recurring code transformations for auto-pattern discovery.
+knowledge/pattern_tracker.py -- Track recurring code transformations for auto-pattern discovery.
 
-When the same text substitution (old → new) appears 3+ times across different tasks,
+When the same text substitution (old -> new) appears 3+ times across different tasks,
 it's promoted to auto_patterns.json so future runs can apply it instantly via
 detect_and_fix_known_patterns() without needing an LLM call.
 """
@@ -32,7 +32,7 @@ def record_transformation(
     with _LOCK:
         candidates = _load_json_list(candidates_path)
 
-        # Find existing candidate with same old → new
+        # Find existing candidate with same old -> new
         found = None
         for c in candidates:
             if c.get("old") == old_text and c.get("new") == new_text:

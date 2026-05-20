@@ -1,10 +1,10 @@
 """
-jobs.py — Background worker (run_job, retry_pr, run_sweep, run_version_bump).
+jobs.py -- Background worker (run_job, retry_pr, run_sweep, run_version_bump).
 
-Runs in a daemon thread — NOT in the async event loop.
+Runs in a daemon thread -- NOT in the async event loop.
 This keeps heavy CPU/IO work (dotnet build, ML models) off Uvicorn's event loop.
 
-Fully in-memory — no database. Results tracked via state.BUILD_STATE.
+Fully in-memory -- no database. Results tracked via state.BUILD_STATE.
 """
 
 import subprocess
@@ -154,7 +154,7 @@ def _run_rule_learning(job_id, config, failed_results, builder, notify):
         rule = result["rule"]
 
         if is_duplicate_rule(config.auto_fixes_path, rule_id, rule.get("errors", [])):
-            add_log(job_id, f"  Rule '{rule_id}' is a duplicate — skipped")
+            add_log(job_id, f"  Rule '{rule_id}' is a duplicate -- skipped")
             continue
 
         builder.write_program_cs(fixed_code)
@@ -173,7 +173,7 @@ def _run_rule_learning(job_id, config, failed_results, builder, notify):
             error_type = "runtime crash" if is_runtime else "compile error"
             error_lines = output.strip().split("\n") if output else ["(no output)"]
             error_preview = error_lines[-8:]
-            add_log(job_id, f"  Claude's fix for task #{idx} failed ({error_type}) — rule discarded")
+            add_log(job_id, f"  Claude's fix for task #{idx} failed ({error_type}) -- rule discarded")
             for line in error_preview:
                 stripped = line.strip()
                 if stripped:
@@ -261,7 +261,7 @@ def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_su
             cat_slug = normalize_category(cat_name, config.git.default_category)
             cat_dir = _Path(config.git.repo_path) / cat_slug
 
-            # Scan actual .cs files on disk — more reliable than commit path list
+            # Scan actual .cs files on disk -- more reliable than commit path list
             # (filenames may differ if LLM provided a short name vs task-slug fallback)
             cs_files = sorted(f.name for f in cat_dir.iterdir() if f.is_file() and f.suffix == ".cs") if cat_dir.exists() else sorted(c["path"].name for c in commits)
             agents_content = generate_cumulative_category_agents_md(
@@ -293,7 +293,7 @@ def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_su
                         cwd=config.git.repo_path, check=True, capture_output=True, text=True,
                     )
 
-                # Stage index.json if it exists (written by commit_code → _write_category_index)
+                # Stage index.json if it exists (written by commit_code -> _write_category_index)
                 index_path = cat_dir / "index.json"
                 if index_path.exists():
                     subprocess.run(
@@ -320,7 +320,7 @@ def _split_commit_and_pr(job_id, config, repo, committer, pr_manager, results_su
             # Record branch so retry-failed can push to it
             set_category_branch(job_id, cat_name, cat_branch)
 
-            # Create PR for this category — build results_summary from commits for LLM description
+            # Create PR for this category -- build results_summary from commits for LLM description
             cat_results_summary = [
                 {"task": c["prompt"], "category": cat_name, "status": "PASSED"}
                 for c in commits
@@ -375,7 +375,7 @@ def _push_to_existing_branches(job_id, config, committer, results_summary, categ
 
         existing_branch = category_branches.get(cat_name)
         if not existing_branch:
-            add_log(job_id, f"[{cat_name}] No existing branch found — skipping {len(commits)} file(s)")
+            add_log(job_id, f"[{cat_name}] No existing branch found -- skipping {len(commits)} file(s)")
             continue
 
         add_log(job_id, f"[{cat_name}] Pushing {len(commits)} retry file(s) to {existing_branch}...")
@@ -439,7 +439,7 @@ def _push_to_existing_branches(job_id, config, committer, results_summary, categ
                     cwd=config.git.repo_path, check=True, capture_output=True, text=True, timeout=60,
                 )
 
-            add_log(job_id, f"[{cat_name}] Pushed — PR auto-updated on {existing_branch}")
+            add_log(job_id, f"[{cat_name}] Pushed -- PR auto-updated on {existing_branch}")
 
             # Look up the existing PR URL to show in UI
             if owner and repo_name and config.git.repo_token:
@@ -601,7 +601,7 @@ def run_job(
                     _stats = get_resume_stats(config.results_dir, _cat)
                     _total_cached += _stats["passed"]
                 if _total_cached:
-                    add_log(job_id, f"Resume: {_total_cached} previously passed task(s) found on disk — will be skipped")
+                    add_log(job_id, f"Resume: {_total_cached} previously passed task(s) found on disk -- will be skipped")
 
             for idx, p in enumerate(prompts, 1):
                 if is_cancelled(job_id):
@@ -609,11 +609,11 @@ def run_job(
 
                 # ── Pause check ──────────────────────────────────────
                 if is_paused(job_id):
-                    add_log(job_id, f"⏸ Paused after task {idx - 1}/{total}. Click Resume to continue.")
+                    add_log(job_id, f"[PAUSED] Paused after task {idx - 1}/{total}. Click Resume to continue.")
                     wait_if_paused(job_id)
                     if is_cancelled(job_id):
                         break
-                    add_log(job_id, "▶ Resumed.")
+                    add_log(job_id, ">> Resumed.")
 
                 task_text = p.get("prompt", p.get("task", ""))
                 task_id = str(p.get("id", idx))
@@ -633,8 +633,8 @@ def run_job(
                             committer.commit_code(task_text, p.get("category", ""), cached_code, metadata=cached_metadata)
                         add_log(job_id, f"Task {task_id} restored from cache (code + metadata)")
                         continue
-                    # Code file missing — fall through to re-run the pipeline
-                    add_log(job_id, f"Task {task_id} was cached but code file missing — re-running")
+                    # Code file missing -- fall through to re-run the pipeline
+                    add_log(job_id, f"Task {task_id} was cached but code file missing -- re-running")
 
                 separator = "=" * 60
                 add_log(job_id, separator)
@@ -654,12 +654,12 @@ def run_job(
                 status_str = "PASSED" if result.status == "SUCCESS" else "FAILED"
 
                 if result.status == "API_FAILED":
-                    # Transient error (MCP timeout, network issue) — requeue
+                    # Transient error (MCP timeout, network issue) -- requeue
                     retry_count = p.get("_retry_count", 0)
                     if retry_count < max_retries:
                         p["_retry_count"] = retry_count + 1
                         retry_queue.append(p)
-                        add_log(job_id, f"Task {task_id} hit a transient API error — queued for retry ({retry_count + 1}/{max_retries})")
+                        add_log(job_id, f"Task {task_id} hit a transient API error -- queued for retry ({retry_count + 1}/{max_retries})")
                         continue
                     else:
                         add_log(job_id, f"Task {task_id} failed after {max_retries} retries (API unreachable)")
@@ -723,7 +723,7 @@ def run_job(
                     if result.status == "API_FAILED" and retry_num < max_retries:
                         p["_retry_count"] = retry_num + 1
                         retry_queue.append(p)
-                        add_log(job_id, f"Task {task_id} still failing — queued again ({retry_num + 1}/{max_retries})")
+                        add_log(job_id, f"Task {task_id} still failing -- queued again ({retry_num + 1}/{max_retries})")
                         continue
 
                     results_summary.append({
@@ -909,7 +909,7 @@ def create_pr(job_id: str, passed_results: list, results_summary: list):
         )
 
         # Commit each passed result's code
-        # NOTE: category is already stored in each passed result by add_passed() —
+        # NOTE: category is already stored in each passed result by add_passed() --
         # no need to look it up from results_summary (which gets overwritten per category).
         committed = 0
         for item in passed_results:
@@ -1042,7 +1042,7 @@ def update_repo_docs(job_id: str, update_readme: bool = True):
         add_log(job_id, f"Found {total_files} .cs file(s) across {len(scan)} categories")
 
         if not scan:
-            add_log(job_id, "No .cs files found — nothing to do")
+            add_log(job_id, "No .cs files found -- nothing to do")
             set_status(job_id, "completed")
             return
 
@@ -1053,7 +1053,7 @@ def update_repo_docs(job_id: str, update_readme: bool = True):
             set_status(job_id, "failed")
             return
 
-        # Normalize folder names (e.g. "Working with Attachment" → "working-with-attachment")
+        # Normalize folder names (e.g. "Working with Attachment" -> "working-with-attachment")
         set_current_task(job_id, "Normalizing folder names...")
         renamed = normalize_repo_folders(config.git.repo_path)
         if renamed:
@@ -1097,9 +1097,9 @@ def update_repo_docs(job_id: str, update_readme: bool = True):
         if _write_if_changed(agents_path, agents_content):
             add_log(job_id, f"Root agents.md updated: {total_files} examples, {len(scan)} categories")
         else:
-            add_log(job_id, "Root agents.md unchanged — skipping")
+            add_log(job_id, "Root agents.md unchanged -- skipping")
 
-        # Generate per-category agents.md — only write if missing or content changed
+        # Generate per-category agents.md -- only write if missing or content changed
         cat_agents_count = 0
         for cat_name, files in sorted(scan.items()):
             cat_agents = generate_cumulative_category_agents_md(
@@ -1187,7 +1187,7 @@ def update_repo_docs(job_id: str, update_readme: bool = True):
         if _write_if_changed(index_path, index_content):
             add_log(job_id, f"Root index.json updated: {len(scan)} categories, {total_files} examples")
         else:
-            add_log(job_id, "Root index.json unchanged — skipping")
+            add_log(job_id, "Root index.json unchanged -- skipping")
 
         # Update or create README.md (always regenerate fully for link consistency)
         if update_readme:
@@ -1217,8 +1217,8 @@ def update_repo_docs(job_id: str, update_readme: bool = True):
                     cwd=repo_path, capture_output=True, text=True,
                 )
                 if diff_result.returncode == 0:
-                    # No changes staged — nothing to commit
-                    add_log(job_id, "No changes detected — everything is up to date")
+                    # No changes staged -- nothing to commit
+                    add_log(job_id, "No changes detected -- everything is up to date")
                     set_status(job_id, "completed")
                     set_current_task(job_id, "Repo docs already up to date.")
                     return
@@ -1261,7 +1261,7 @@ def update_repo_docs(job_id: str, update_readme: bool = True):
             set_pr_url(job_id, pr_url)
             add_log(job_id, f"Docs PR created: {pr_url}")
         else:
-            add_log(job_id, "PR creation failed — docs are on the branch")
+            add_log(job_id, "PR creation failed -- docs are on the branch")
 
         set_status(job_id, "completed")
         set_current_task(job_id, "Repo docs update complete.")
@@ -1337,7 +1337,7 @@ def run_sweep(
                 all_category_tasks[cat] = tasks
                 add_log(job_id, f"  {cat}: {len(tasks)} task(s)")
             else:
-                add_log(job_id, f"  {cat}: no tasks found — skipping")
+                add_log(job_id, f"  {cat}: no tasks found -- skipping")
 
         grand_total = sum(len(t) for t in all_category_tasks.values())
         if grand_total == 0:
@@ -1353,7 +1353,7 @@ def run_sweep(
         all_pr_urls = []
 
         # Setup repo, committer, pr_manager ONCE for the whole sweep.
-        # The sweep handles per-category branching itself — we do NOT
+        # The sweep handles per-category branching itself -- we do NOT
         # need _setup_pr_workflow (which creates a single branch that
         # collides on the second category).
         repo, committer, pr_manager = None, None, None
@@ -1442,7 +1442,7 @@ def run_sweep(
                     if retry_count < max_retries:
                         task_obj["_retry_count"] = retry_count + 1
                         retry_queue.append(task_obj)
-                        add_log(job_id, f"Task {task_id} API error — queued for retry ({retry_count + 1}/{max_retries})")
+                        add_log(job_id, f"Task {task_id} API error -- queued for retry ({retry_count + 1}/{max_retries})")
                         continue
                     else:
                         add_log(job_id, f"Task {task_id} failed after {max_retries} retries (API unreachable)")
@@ -1617,7 +1617,7 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
     3. Update .env: NUGET_VERSION, PR_TARGET_BRANCH, REPO_BRANCH
     4. Update runtime config
 
-    Does NOT run sweep — user triggers sweeps per category manually.
+    Does NOT run sweep -- user triggers sweeps per category manually.
     """
     from git_ops.github_api import GitHubAPI
 
@@ -1645,7 +1645,7 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
         # ── Phase 1: Tag + Release current main (only if not already done) ──
         tag_name = f"v{old_version}"
         if gh.tag_exists(owner, repo_name, tag_name):
-            add_log(job_id, f"Phase 1: Tag {tag_name} already exists — skipping (promote already ran)")
+            add_log(job_id, f"Phase 1: Tag {tag_name} already exists -- skipping (promote already ran)")
         else:
             set_current_task(job_id, f"Tagging v{old_version}...")
             add_log(job_id, f"Phase 1: Tagging v{old_version} on main")
@@ -1657,9 +1657,9 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
                 return
 
             if gh.create_tag(owner, repo_name, tag_name, main_sha):
-                add_log(job_id, f"✓ Created tag: {tag_name}")
+                add_log(job_id, f"[OK] Created tag: {tag_name}")
             else:
-                add_log(job_id, f"Tag {tag_name} creation failed — continuing")
+                add_log(job_id, f"Tag {tag_name} creation failed -- continuing")
 
             release_body = (
                 f"Examples generated for **Aspose.PDF for .NET {old_version}**.\n\n"
@@ -1671,9 +1671,9 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
                 f"Aspose.PDF {old_version} Examples", release_body,
             )
             if release_url:
-                add_log(job_id, f"✓ GitHub Release created: {release_url}")
+                add_log(job_id, f"[OK] GitHub Release created: {release_url}")
             else:
-                add_log(job_id, "Release creation failed — continuing anyway")
+                add_log(job_id, "Release creation failed -- continuing anyway")
 
         # ── Phase 2: Create empty orphan staging branch ──
         set_current_task(job_id, f"Creating {staging_branch}...")
@@ -1681,12 +1681,12 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
 
         branch_already_existed = bool(gh.get_branch_sha(owner, repo_name, staging_branch))
         if branch_already_existed:
-            add_log(job_id, f"Branch {staging_branch} already exists — skipping creation")
+            add_log(job_id, f"Branch {staging_branch} already exists -- skipping creation")
         elif gh.create_empty_branch(
             owner, repo_name, staging_branch,
             log_fn=lambda msg: add_log(job_id, msg),
         ):
-            add_log(job_id, f"✓ Created empty branch: {staging_branch}")
+            add_log(job_id, f"[OK] Created empty branch: {staging_branch}")
         else:
             add_log(job_id, f"ERROR: Could not create branch {staging_branch}")
             add_log(job_id, "  Check: REPO_TOKEN has 'repo' (contents write) scope")
@@ -1696,14 +1696,14 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
 
         # ── Phase 2b: Seed CI workflows from main ──
         # Without this the release branch has no .github/workflows/ so PRs
-        # targeting it never trigger CI — they stay stuck on the required
+        # targeting it never trigger CI -- they stay stuck on the required
         # 'Build & Run changed examples' check forever. Snapshot-promote
         # later carries these files back to main, so seeding once here is
         # enough for the whole release lifecycle.
         ci_seed_path = ".github"
         already_seeded = bool(gh.get_file(owner, repo_name, ci_seed_path, staging_branch))
         if already_seeded:
-            add_log(job_id, f"Phase 2b: {ci_seed_path}/ already on {staging_branch} — skipping seed")
+            add_log(job_id, f"Phase 2b: {ci_seed_path}/ already on {staging_branch} -- skipping seed")
         else:
             set_current_task(job_id, "Seeding CI workflows from main...")
             add_log(job_id, f"Phase 2b: Seeding {ci_seed_path}/ from main -> {staging_branch}")
@@ -1715,9 +1715,9 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
                 log_fn=lambda msg: add_log(job_id, msg),
             )
             if seeded:
-                add_log(job_id, f"✓ Seeded {ci_seed_path}/ on {staging_branch}")
+                add_log(job_id, f"[OK] Seeded {ci_seed_path}/ on {staging_branch}")
             else:
-                add_log(job_id, f"⚠ Could not seed {ci_seed_path}/ from main — PRs to "
+                add_log(job_id, f"[WARN] Could not seed {ci_seed_path}/ from main -- PRs to "
                                 f"{staging_branch} may not trigger CI until you copy "
                                 ".github/workflows/ over manually")
 
@@ -1733,22 +1733,22 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
         config.git.pr_target_branch = staging_branch
         config.git.repo_branch = staging_branch
 
-        add_log(job_id, f"✓ .env updated: NUGET_VERSION={new_version}")
-        add_log(job_id, f"✓ .env updated: PR_TARGET_BRANCH={staging_branch}")
-        add_log(job_id, f"✓ .env updated: REPO_BRANCH={staging_branch}")
+        add_log(job_id, f"[OK] .env updated: NUGET_VERSION={new_version}")
+        add_log(job_id, f"[OK] .env updated: PR_TARGET_BRANCH={staging_branch}")
+        add_log(job_id, f"[OK] .env updated: REPO_BRANCH={staging_branch}")
         add_log(job_id, "")
-        add_log(job_id, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        add_log(job_id, f"✅ Version bump setup complete!")
+        add_log(job_id, "=====================================")
+        add_log(job_id, f"[OK] Version bump setup complete!")
         add_log(job_id, f"   Old version tagged: {tag_name}")
         add_log(job_id, f"   Staging branch:     {staging_branch}")
         add_log(job_id, f"   New NuGet version:  {new_version}")
         add_log(job_id, "")
         add_log(job_id, "Next steps:")
         add_log(job_id, "  1. Restart the app to load new .env settings")
-        add_log(job_id, "  2. Run Sweep per category — PRs will target " + staging_branch)
+        add_log(job_id, "  2. Run Sweep per category -- PRs will target " + staging_branch)
         add_log(job_id, "  3. Review and merge each category PR on GitHub")
         add_log(job_id, "  4. Click 'Promote to Main' when all categories are done")
-        add_log(job_id, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        add_log(job_id, "=====================================")
 
         set_status(job_id, "completed")
 
@@ -1762,12 +1762,12 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
 
     Release branches are orphans (no shared history with main), so a normal
     PR/merge won't work. The previous implementation force-updated the main
-    ref directly — but that rewrites main's history and breaks ``git pull``
+    ref directly -- but that rewrites main's history and breaks ``git pull``
     for anyone who already cloned the repo.
 
     Instead we **snapshot-promote**: build a single new commit whose
     ``tree`` matches the release branch exactly but whose ``parent`` is
-    main's current HEAD. The result is a clean fast-forward on main —
+    main's current HEAD. The result is a clean fast-forward on main --
     one new commit that brings all release files in as a reviewable diff.
 
     1. Snapshot-promote release tree onto main (one fast-forward commit)
@@ -1798,7 +1798,7 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
         # ── Phase 1: Snapshot-promote release tree onto main ──
         # Build a new commit on main whose tree equals release/HEAD's tree
         # but whose parent is main's current HEAD. This is a clean
-        # fast-forward — non-destructive for anyone who already pulled main.
+        # fast-forward -- non-destructive for anyone who already pulled main.
         set_current_task(job_id, f"Promoting {staging_branch} -> main (snapshot)...")
         add_log(job_id, f"Phase 1: Snapshot-promoting {staging_branch} onto main")
 
@@ -1825,7 +1825,7 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
         main_tree = gh.get_commit_tree_sha(owner, repo_name, main_sha_before)
 
         if main_tree == release_tree:
-            add_log(job_id, "main tree already matches release — skipping promote commit")
+            add_log(job_id, "main tree already matches release -- skipping promote commit")
             promote_sha = main_sha_before
         else:
             promote_sha = gh.create_commit(
@@ -1835,7 +1835,7 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
                 message=(
                     f"Promote release/{new_version} to main\n\n"
                     f"Snapshot of {staging_branch}@{release_sha[:10]} brought onto "
-                    f"main as a single fast-forward commit. History is preserved — "
+                    f"main as a single fast-forward commit. History is preserved -- "
                     f"users who already cloned main can `git pull` cleanly."
                 ),
             )
@@ -1845,16 +1845,16 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
                 return
             if not gh.update_ref(owner, repo_name, "main", promote_sha):
                 add_log(job_id, "ERROR: Fast-forward update of main failed "
-                                "(divergent history?). Aborting — main is unchanged.")
+                                "(divergent history?). Aborting -- main is unchanged.")
                 set_status(job_id, "failed")
                 return
-            add_log(job_id, f"✓ main fast-forwarded to {promote_sha[:10]} "
+            add_log(job_id, f"[OK] main fast-forwarded to {promote_sha[:10]} "
                             f"(one new commit, history preserved)")
 
         # ── Phase 2: Tag + Release (only if tag doesn't already exist) ──
         tag_name = f"v{new_version}"
         if gh.tag_exists(owner, repo_name, tag_name):
-            add_log(job_id, f"Phase 2: Tag {tag_name} already exists — skipping")
+            add_log(job_id, f"Phase 2: Tag {tag_name} already exists -- skipping")
         else:
             set_current_task(job_id, f"Tagging v{new_version}...")
             add_log(job_id, f"Phase 2: Tagging main as v{new_version}")
@@ -1864,7 +1864,7 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
             if gh.create_tag(owner, repo_name, tag_name, promote_sha):
                 add_log(job_id, f"Created tag: {tag_name} -> {promote_sha[:10]}")
             else:
-                add_log(job_id, f"⚠ Tag creation failed — continuing")
+                add_log(job_id, f"[WARN] Tag creation failed -- continuing")
 
             release_body = (
                 f"Examples generated for **Aspose.PDF for .NET {new_version}**.\n\n"
@@ -1876,11 +1876,11 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
                 f"Aspose.PDF {new_version} Examples", release_body,
             )
             if release_url:
-                add_log(job_id, f"✓ GitHub Release created: {release_url}")
+                add_log(job_id, f"[OK] GitHub Release created: {release_url}")
             else:
-                add_log(job_id, "⚠ Release creation failed — tag may still be usable")
+                add_log(job_id, "[WARN] Release creation failed -- tag may still be usable")
 
-        # ── Phase 3: Update .env — reset back to main ──
+        # ── Phase 3: Update .env -- reset back to main ──
         set_current_task(job_id, "Updating config...")
         add_log(job_id, "Phase 3: Resetting .env to main")
 
@@ -1888,20 +1888,20 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
         _update_env_file("PR_TARGET_BRANCH", "")
         _update_env_file("REPO_BRANCH", "main")
 
-        add_log(job_id, "✓ .env updated: REPO_BRANCH=main")
-        add_log(job_id, "✓ .env updated: PR_TARGET_BRANCH= (cleared)")
+        add_log(job_id, "[OK] .env updated: REPO_BRANCH=main")
+        add_log(job_id, "[OK] .env updated: PR_TARGET_BRANCH= (cleared)")
 
         # ── Phase 4: Keep staging branch as release archive ──
         set_current_task(job_id, "Cleaning up...")
         add_log(job_id, f"Phase 4: Keeping {staging_branch} as release archive")
 
         add_log(job_id, "")
-        add_log(job_id, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-        add_log(job_id, f"✅ Promotion complete!")
+        add_log(job_id, "=====================================")
+        add_log(job_id, f"[OK] Promotion complete!")
         add_log(job_id, f"   main now has: Aspose.PDF {new_version} examples")
         add_log(job_id, f"   Tagged:        v{new_version}")
         add_log(job_id, "   Restart the app to load updated .env settings")
-        add_log(job_id, "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
+        add_log(job_id, "=====================================")
 
         set_status(job_id, "completed")
 
@@ -1921,7 +1921,7 @@ def run_retry_failed(
     """Re-run failed tasks from a previous job.
 
     If the original job used repo_push and created category branches,
-    new passing examples are pushed to those same branches (Option B —
+    new passing examples are pushed to those same branches (Option B --
     same branch, same PR updated automatically on GitHub).
     """
     notify = _make_progress_callback(job_id)
@@ -1938,13 +1938,13 @@ def run_retry_failed(
     set_repo_push(job_id, repo_push)
     add_log(job_id, f"Retrying {total} failed task(s) from job {original_job_id[:8]}...")
 
-    # Get category→branch mapping from original job for Option B
+    # Get category->branch mapping from original job for Option B
     original_state = get_build_state(original_job_id)
     category_branches = original_state.get("category_branches", {}) if original_state else {}
     if category_branches:
-        add_log(job_id, f"Found {len(category_branches)} existing branch(es) — will push to them")
+        add_log(job_id, f"Found {len(category_branches)} existing branch(es) -- will push to them")
     else:
-        add_log(job_id, "No existing branches from original job — new branches will be created")
+        add_log(job_id, "No existing branches from original job -- new branches will be created")
 
     try:
         runner = PipelineRunner(config, progress_callback=notify, usage_tracker=usage_tracker)
@@ -1953,7 +1953,7 @@ def run_retry_failed(
         repo, committer, pr_manager = None, None, None
         if repo_push:
             if category_branches:
-                # Option B: use repo without creating a new PR branch — we'll push to existing branches
+                # Option B: use repo without creating a new PR branch -- we'll push to existing branches
                 repo = RepoManager(
                     repo_path=config.git.repo_path,
                     repo_url=config.git.repo_url,
@@ -1977,10 +1977,10 @@ def run_retry_failed(
                     )
                     pr_manager = PRManager(config, repo, notify=notify, llm_client=llm)
                 else:
-                    add_log(job_id, "Git repository not ready — commits will be skipped")
+                    add_log(job_id, "Git repository not ready -- commits will be skipped")
                     repo = None
             else:
-                # No existing branches — create new ones via normal workflow
+                # No existing branches -- create new ones via normal workflow
                 repo, committer, pr_manager = _setup_pr_workflow(config, job_id, notify)
                 if repo and repo.pr_branch:
                     set_pr_branch(job_id, repo.pr_branch)
@@ -1995,11 +1995,11 @@ def run_retry_failed(
 
             # ── Pause check ──
             if is_paused(job_id):
-                add_log(job_id, f"⏸ Paused after task {idx - 1}/{total}. Click Resume to continue.")
+                add_log(job_id, f"[PAUSED] Paused after task {idx - 1}/{total}. Click Resume to continue.")
                 wait_if_paused(job_id)
                 if is_cancelled(job_id):
                     break
-                add_log(job_id, "▶ Resumed.")
+                add_log(job_id, ">> Resumed.")
 
             task_text = p.get("prompt", p.get("task", ""))
             task_id = str(p.get("id", idx))
@@ -2027,13 +2027,13 @@ def run_retry_failed(
             if result.status == "SUCCESS":
                 add_passed(job_id, task_id, task_display, badge, code=final_code,
                            category=category, product=p.get("product", ""), metadata=result.metadata)
-                add_log(job_id, f"✓ Task {task_id} now passes ({badge})")
+                add_log(job_id, f"[OK] Task {task_id} now passes ({badge})")
                 if committer:
                     committer.commit_code(task_text, category, final_code, metadata=result.metadata)
             else:
                 add_failed(job_id, task_id, task_display, badge, code=final_code,
                            category=category, product=p.get("product", ""))
-                add_log(job_id, f"✗ Task {task_id} still failing ({badge})")
+                add_log(job_id, f"[FAIL] Task {task_id} still failing ({badge})")
                 failed_task_dicts.append({
                     "prompt": task_text,
                     "category": category,
@@ -2053,12 +2053,12 @@ def run_retry_failed(
         # ── Commit & PR ──
         if committer and committer._pending_commits:
             if category_branches:
-                # Option B — push to existing branches
+                # Option B -- push to existing branches
                 _push_to_existing_branches(
                     job_id, config, committer, results_summary, category_branches, notify,
                 )
             else:
-                # No existing branches — split or single PR
+                # No existing branches -- split or single PR
                 pending_count = len(committer._pending_commits)
                 split_threshold = config.git.pr_split_threshold
                 if split_threshold > 0 and pending_count > split_threshold:
@@ -2124,7 +2124,7 @@ def run_retry_failed(
 
 
 # ═══════════════════════════════════════════════════════════════
-# UNIFIED PIPELINE — single entry point for all generation flows
+# UNIFIED PIPELINE -- single entry point for all generation flows
 # ═══════════════════════════════════════════════════════════════
 
 
@@ -2206,7 +2206,7 @@ def run_pipeline(
                     pr_manager = PRManager(config, repo, notify=notify, llm_client=llm)
                     add_log(job_id, "Git repo ready (pushing to existing branches)")
                 else:
-                    add_log(job_id, "Git repository not ready — commits will be skipped")
+                    add_log(job_id, "Git repository not ready -- commits will be skipped")
                     repo = None
             elif pr_style == "per-category":
                 # Sweep-style: repo without a single PR branch; per-category branches created later
@@ -2233,7 +2233,7 @@ def run_pipeline(
                     pr_manager = PRManager(config, repo, notify=notify, llm_client=llm)
                     add_log(job_id, "Git repo ready for per-category PRs")
                 else:
-                    add_log(job_id, "Git repository not ready — PRs will be skipped")
+                    add_log(job_id, "Git repository not ready -- PRs will be skipped")
                     repo = None
             else:
                 # Single branch for all tasks
@@ -2249,7 +2249,7 @@ def run_pipeline(
                 _stats = get_resume_stats(results_dir, _cat)
                 _total_cached += _stats["passed"]
             if _total_cached:
-                add_log(job_id, f"Resume: {_total_cached} previously passed task(s) found — will be skipped")
+                add_log(job_id, f"Resume: {_total_cached} previously passed task(s) found -- will be skipped")
 
         # ── Main task loop ──
         results_summary = []
@@ -2269,11 +2269,11 @@ def run_pipeline(
 
             # ── Pause check ──
             if is_paused(job_id):
-                add_log(job_id, f"⏸ Paused after task {idx - 1}/{total}. Click Resume to continue.")
+                add_log(job_id, f"[PAUSED] Paused after task {idx - 1}/{total}. Click Resume to continue.")
                 wait_if_paused(job_id)
                 if is_cancelled(job_id):
                     break
-                add_log(job_id, "▶ Resumed.")
+                add_log(job_id, ">> Resumed.")
 
             task_text = p.get("prompt", p.get("task", ""))
             task_id = str(p.get("id", idx))
@@ -2310,7 +2310,7 @@ def run_pipeline(
                         committer.commit_code(task_text, category, cached_code, metadata=cached_metadata)
                     add_log(job_id, f"Task {task_id} restored from cache")
                     continue
-                add_log(job_id, f"Task {task_id} was cached but code missing — re-running")
+                add_log(job_id, f"Task {task_id} was cached but code missing -- re-running")
 
             # ── Execute pipeline ──
             task_input = TaskInput(
@@ -2323,13 +2323,13 @@ def run_pipeline(
             final_code = result.fixed_code or result.generated_code or ""
             status_str = "PASSED" if result.status == "SUCCESS" else "FAILED"
 
-            # ── Handle API_FAILED (transient error — retry) ──
+            # ── Handle API_FAILED (transient error -- retry) ──
             if result.status == "API_FAILED":
                 retry_count = p.get("_retry_count", 0)
                 if retry_count < max_retries:
                     p["_retry_count"] = retry_count + 1
                     retry_queue.append(p)
-                    add_log(job_id, f"Task {task_id} API error — queued for retry ({retry_count + 1}/{max_retries})")
+                    add_log(job_id, f"Task {task_id} API error -- queued for retry ({retry_count + 1}/{max_retries})")
                     continue
                 else:
                     add_log(job_id, f"Task {task_id} failed after {max_retries} retries (API unreachable)")
@@ -2387,7 +2387,7 @@ def run_pipeline(
                 if result.status == "API_FAILED" and retry_num < max_retries:
                     p["_retry_count"] = retry_num + 1
                     retry_queue.append(p)
-                    add_log(job_id, f"Task {task_id} still failing — queued again ({retry_num + 1}/{max_retries})")
+                    add_log(job_id, f"Task {task_id} still failing -- queued again ({retry_num + 1}/{max_retries})")
                     continue
 
                 results_summary.append({"task": task_display, "category": category, "status": status_str})
@@ -2596,7 +2596,7 @@ def _build_rich_pr_description(category: str, examples: list, nuget_version: str
     """Build a detailed PR body from persisted example metadata.
 
     Uses the actual metadata (titles, APIs, tags, difficulty) to create
-    a rich PR description — no LLM call needed.
+    a rich PR description -- no LLM call needed.
     """
     titles = []
     all_apis = set()
@@ -2637,10 +2637,10 @@ def _build_rich_pr_description(category: str, examples: list, nuget_version: str
     lines.append("| # | Example | Difficulty |")
     lines.append("|---|---------|-----------|")
     for i, title in enumerate(titles[:50], 1):
-        diff = examples[i - 1].get("metadata", {}).get("difficulty", "—")
+        diff = examples[i - 1].get("metadata", {}).get("difficulty", "--")
         # Truncate long titles
         display = title[:70] + "..." if len(title) > 70 else title
-        lines.append(f"| {i} | {display} | {diff or '—'} |")
+        lines.append(f"| {i} | {display} | {diff or '--'} |")
     if len(titles) > 50:
         lines.append(f"| ... | *{len(titles) - 50} more examples* | |")
     lines.append("")
@@ -2700,7 +2700,7 @@ def create_pr_from_results(
     pr_target_branch: str = None,
     write_mode: str = "replace",
 ):
-    """Create PRs from persisted disk results — no running pipeline needed.
+    """Create PRs from persisted disk results -- no running pipeline needed.
 
     Reads .cs files + metadata from results/{version}/{category}/passed/,
     writes them to the git repo, generates agents.md + index.json,
@@ -2844,7 +2844,7 @@ def create_pr_from_results(
 
                 examples = load_passed_examples(results_dir, cat_slug)
                 if not examples:
-                    add_log(job_id, f"[{normalize_category(cat_slug)}] No passed code on disk — skipping")
+                    add_log(job_id, f"[{normalize_category(cat_slug)}] No passed code on disk -- skipping")
                     continue
 
                 file_count = len(examples)
@@ -2882,7 +2882,7 @@ def create_pr_from_results(
                     cat_results = []
                     _write_examples_to_repo(config, cat_dir_name, examples, cat_dir, run_id, cat_results)
 
-                    # Pre-commit compile verification — remove files that don't compile
+                    # Pre-commit compile verification -- remove files that don't compile
                     removed = _verify_cs_files_compile(config, cat_dir, job_id)
                     if removed:
                         add_log(job_id, f"[{cat_dir_name}] Removed {len(removed)} non-compiling file(s)")
@@ -3030,7 +3030,7 @@ def _write_examples_to_repo(config, cat_slug: str, examples: list, cat_dir, run_
     """Write example .cs files, index.json, and agents.md to the repo directory.
 
     Populates results_summary with entries for each written example.
-    Does NOT do any git operations — caller handles git add/commit/push.
+    Does NOT do any git operations -- caller handles git add/commit/push.
     """
     import json as _json
     from datetime import datetime, timezone
@@ -3156,7 +3156,7 @@ def regenerate_metadata(
 
         llm = LLMClient(config)
         if not llm.available:
-            add_log(job_id, "LLM not available — cannot extract metadata.")
+            add_log(job_id, "LLM not available -- cannot extract metadata.")
             set_status(job_id, "failed")
             return
 
@@ -3176,7 +3176,7 @@ def regenerate_metadata(
             ]
 
             if not missing:
-                add_log(job_id, f"[{cat_slug}] All {len(examples)} examples already have metadata — skipped")
+                add_log(job_id, f"[{cat_slug}] All {len(examples)} examples already have metadata -- skipped")
                 total_skipped += len(examples)
                 continue
 
@@ -3193,7 +3193,7 @@ def regenerate_metadata(
 
                 if not code:
                     total_failed += 1
-                    add_log(job_id, f"  [{cat_slug}] Task {task_id}: no code on disk — skipped")
+                    add_log(job_id, f"  [{cat_slug}] Task {task_id}: no code on disk -- skipped")
                     continue
 
                 try:

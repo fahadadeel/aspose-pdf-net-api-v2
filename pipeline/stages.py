@@ -1,5 +1,5 @@
 """
-pipeline/stages.py — The 5-stage retry pipeline functions.
+pipeline/stages.py -- The 5-stage retry pipeline functions.
 
 Stage 1: Baseline Generation
 Stage 2: LLM Fix Attempts
@@ -33,18 +33,18 @@ from knowledge.reranker import llm_rerank_rules
 Notify = Callable[[str, str], None]
 
 
-# ── var → explicit-type regex replacements ────────────────────────────────────
+# ── var -> explicit-type regex replacements ────────────────────────────────────
 # These cover the most common patterns the LLM produces with `var`.
 # Each tuple: (regex pattern, replacement using captured groups)
-# Applied deterministically before building — no LLM involved.
+# Applied deterministically before building -- no LLM involved.
 _VAR_REPLACEMENTS: list = [
-    # var x = new SomeType(         →  SomeType x = new SomeType(
+    # var x = new SomeType(         ->  SomeType x = new SomeType(
     (re.compile(r'\bvar\s+(\w+)\s*=\s*new\s+([\w.]+)\s*\('), r'\2 \1 = new \2('),
-    # var x = new SomeType {        →  SomeType x = new SomeType {
+    # var x = new SomeType {        ->  SomeType x = new SomeType {
     (re.compile(r'\bvar\s+(\w+)\s*=\s*new\s+([\w.]+)\s*\{'), r'\2 \1 = new \2 {'),
-    # var x = new SomeType[         →  SomeType[] x = new SomeType[
+    # var x = new SomeType[         ->  SomeType[] x = new SomeType[
     (re.compile(r'\bvar\s+(\w+)\s*=\s*new\s+([\w.]+)\[\]'), r'\2[] \1 = new \2[]'),
-    # foreach (var x in            →  foreach (var x in  — skip (type unknown without analysis)
+    # foreach (var x in            ->  foreach (var x in  -- skip (type unknown without analysis)
 ]
 
 
@@ -106,7 +106,7 @@ def run_baseline(
     if not code:
         return StageOutcome(success=False, stage="baseline", build_log="API call failed")
 
-    # Apply deterministic style guard (e.g. var → explicit types)
+    # Apply deterministic style guard (e.g. var -> explicit types)
     code = _sanitize_code(code)
 
     builder.write_csproj()
@@ -209,7 +209,7 @@ def run_context_enrichment(
         if chunks_text:
             parts.append(chunks_text)
     else:
-        # Only one (or neither) is enabled — run sequentially
+        # Only one (or neither) is enabled -- run sequentially
         if do_retrieve:
             chunks = mcp.retrieve(
                 task,

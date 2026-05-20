@@ -1,5 +1,5 @@
 """
-routers/files.py — File upload endpoints.
+routers/files.py -- File upload endpoints.
 
 POST /api/upload-files
 """

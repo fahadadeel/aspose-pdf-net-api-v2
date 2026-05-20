@@ -1,5 +1,5 @@
 """
-knowledge/auto_fixes.py — Load and save auto-learned error fixes.
+knowledge/auto_fixes.py -- Load and save auto-learned error fixes.
 
 Thread-safe file I/O for resources/auto_fixes.json.
 Uses the same format as error_fixes.json so match_error_fixes() works seamlessly.

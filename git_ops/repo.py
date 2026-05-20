@@ -1,5 +1,5 @@
 """
-git_ops/repo.py — RepoManager: clone, pull, configure, branch.
+git_ops/repo.py -- RepoManager: clone, pull, configure, branch.
 
 All git subprocess calls are serialised via _git_lock.
 """

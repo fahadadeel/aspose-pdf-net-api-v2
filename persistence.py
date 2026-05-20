@@ -1,5 +1,5 @@
 """
-persistence.py — Disk-backed task results + code files for crash recovery.
+persistence.py -- Disk-backed task results + code files for crash recovery.
 
 Supplements the in-memory BUILD_STATE (which powers SSE/UI) with:
 - A JSON index per category tracking pass/fail status
@@ -12,8 +12,8 @@ Design decisions:
 - Atomic writes (write .tmp then os.replace) to avoid corrupted JSON on crash.
 - Keyed by task_id (unique database primary key from the tasks API).
 - Code files named by task_id for reliable lookup on resume.
-- Only used by batch/CSV mode — single-task mode does not benefit.
-- Does NOT replace in-memory state — BUILD_STATE stays as-is for SSE/UI.
+- Only used by batch/CSV mode -- single-task mode does not benefit.
+- Does NOT replace in-memory state -- BUILD_STATE stays as-is for SSE/UI.
 """
 
 import json
@@ -44,7 +44,7 @@ def migrate_flat_results(base_results_dir: str, nuget_version: str):
     Old: results/working_with_images.json
     New: results/26.3.0/working_with_images.json
 
-    Safe to call multiple times — skips if already migrated or nothing to migrate.
+    Safe to call multiple times -- skips if already migrated or nothing to migrate.
     """
     import shutil
 

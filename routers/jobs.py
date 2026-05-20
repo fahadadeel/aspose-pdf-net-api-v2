@@ -1,16 +1,16 @@
 """
-routers/jobs.py — Job management endpoints + SSE streaming.
+routers/jobs.py -- Job management endpoints + SSE streaming.
 
 All task sources feed into run_pipeline() via /api/start or /api/start-tasks.
 
-POST /api/start           — Single prompt or CSV upload
-POST /api/start-tasks     — Task list and/or category sweep (JSON body)
-POST /api/start-sweep     — DEPRECATED: redirects to /api/start-tasks
+POST /api/start           -- Single prompt or CSV upload
+POST /api/start-tasks     -- Task list and/or category sweep (JSON body)
+POST /api/start-sweep     -- DEPRECATED: redirects to /api/start-tasks
 POST /api/version-bump
 GET  /api/status/{job_id}
 GET  /api/stream/{job_id}   (SSE)
 POST /api/cancel/{job_id}
-POST /api/retry-failed/{job_id}  — Re-run failed tasks via run_pipeline
+POST /api/retry-failed/{job_id}  -- Re-run failed tasks via run_pipeline
 POST /api/retry-pr/{job_id}
 POST /api/update-repo-docs
 GET  /api/repo-categories
@@ -134,9 +134,9 @@ async def api_start_tasks(data: dict = Body(...)):
     """Start a job from selected tasks or categories.
 
     Accepts either:
-      - {"tasks": [...]}  — Task Generator mode (list of task dicts or strings)
-      - {"categories": [...]} — Sweep mode (fetch all tasks for each category)
-      - Both — categories are fetched and merged with explicit tasks
+      - {"tasks": [...]}  -- Task Generator mode (list of task dicts or strings)
+      - {"categories": [...]} -- Sweep mode (fetch all tasks for each category)
+      - Both -- categories are fetched and merged with explicit tasks
 
     Task dicts: {task, category, product, id}
     Category entries: strings (category names).
@@ -207,7 +207,7 @@ async def api_start_tasks(data: dict = Body(...)):
 
 @router.post("/api/start-sweep")
 async def api_start_sweep(data: dict = Body(...)):
-    """Start a category sweep job — delegates to /api/start-tasks.
+    """Start a category sweep job -- delegates to /api/start-tasks.
 
     DEPRECATED: Use /api/start-tasks with {"categories": [...]} instead.
     This endpoint is kept for backward compatibility.
@@ -268,7 +268,7 @@ async def api_status(job_id: str):
 
 @router.get("/api/stream/{job_id}")
 async def api_stream(job_id: str):
-    """SSE endpoint — pushes build state updates in real time."""
+    """SSE endpoint -- pushes build state updates in real time."""
     state = get_build_state(job_id)
     if not state:
         return JSONResponse({"error": "Job not found"}, status_code=404)
@@ -372,7 +372,7 @@ async def api_retry_pr(job_id: str):
     pr_branch = state.get("pr_branch", "")
 
     if pr_branch:
-        # Job ran with repo_push — retry by recovering from old branch
+        # Job ran with repo_push -- retry by recovering from old branch
         thread = threading.Thread(
             target=retry_pr,
             args=(job_id, pr_branch, results_summary),
@@ -381,7 +381,7 @@ async def api_retry_pr(job_id: str):
         thread.start()
         return {"status": "retrying", "old_branch": pr_branch}
     else:
-        # Job ran without repo_push — fresh commit from in-memory code
+        # Job ran without repo_push -- fresh commit from in-memory code
         thread = threading.Thread(
             target=create_pr,
             args=(job_id, passed_results, results_summary),
@@ -427,7 +427,7 @@ async def api_resume(job_id: str):
     if not state.get("paused"):
         return JSONResponse({"error": "Job is not paused"}, status_code=400)
     resume_job(job_id)
-    add_log(job_id, "▶ Job resumed.")
+    add_log(job_id, ">> Job resumed.")
     return {"status": "resumed"}
 
 
@@ -479,7 +479,7 @@ async def api_retry_failed(job_id: str, data: dict = Body(None)):
     """Start a new job that re-runs only the failed tasks from a completed job.
 
     Passes category_branches from the original job so new passing examples
-    are pushed to the same branches (Option B — same PR auto-updated).
+    are pushed to the same branches (Option B -- same PR auto-updated).
     """
     state = get_build_state(job_id)
     if not state:
@@ -496,7 +496,7 @@ async def api_retry_failed(job_id: str, data: dict = Body(None)):
     api_url = (data or {}).get("api_url") or None
     pr_target_branch = ((data or {}).get("pr_target_branch") or "").strip() or None
 
-    # Get category→branch mapping from original job for Option B
+    # Get category->branch mapping from original job for Option B
     category_branches = state.get("category_branches", {})
 
     new_job_id = str(uuid.uuid4())
@@ -522,7 +522,7 @@ async def api_retry_failed(job_id: str, data: dict = Body(None)):
 
 @router.get("/api/results")
 async def api_results(version: str = ""):
-    """List persisted results from disk — per-category stats and metadata.
+    """List persisted results from disk -- per-category stats and metadata.
 
     Shows what's available for PR creation without needing a running job.
     Query params:
@@ -647,7 +647,7 @@ def _fetch_all_categories_cached() -> list[dict]:
 
 @router.get("/api/results/all-categories")
 async def api_results_all_categories(version: str = ""):
-    """Merge external categories with disk results — shows completed AND not-run categories."""
+    """Merge external categories with disk results -- shows completed AND not-run categories."""
     from config import load_config
     from persistence import scan_disk_results, versioned_results_dir, list_result_versions
 
@@ -659,7 +659,7 @@ async def api_results_all_categories(version: str = ""):
     # Fetch all categories from external API (cached)
     all_cats = _fetch_all_categories_cached()
 
-    # Build merged list — disk results + not-run categories
+    # Build merged list -- disk results + not-run categories
     categories = {}
 
     # First: add all disk results
@@ -703,7 +703,7 @@ async def api_results_all_categories(version: str = ""):
             }
         else:
             # Enrich existing with display name and task count.
-            # If external API returned 0 (timeout), use disk total as floor —
+            # If external API returned 0 (timeout), use disk total as floor --
             # a category with results can never have 0 tasks.
             categories[slug]["display_name"] = cat["name"]
             ext_count = cat["task_count"]
@@ -734,7 +734,7 @@ _SYNC_TTL = 86400            # 24 hours
 
 
 def _compute_sync_status(effective_version: str) -> dict:
-    """Blocking helper — runs GitHub API calls in a thread so the event loop stays free."""
+    """Blocking helper -- runs GitHub API calls in a thread so the event loop stays free."""
     from config import load_config
     from persistence import scan_disk_results, versioned_results_dir
 
@@ -799,7 +799,7 @@ def _compute_sync_status(effective_version: str) -> dict:
 
 @router.get("/api/results/sync-status")
 async def api_results_sync_status(version: str = "", refresh: bool = False):
-    """Compare disk results with GitHub branch — returns per-category sync badges.
+    """Compare disk results with GitHub branch -- returns per-category sync badges.
 
     Uses a 24-hour in-memory cache. Pass ``?refresh=true`` to force a fresh fetch.
     Runs blocking GitHub API calls in a thread to avoid blocking the event loop.
@@ -846,12 +846,12 @@ async def api_results_category(category: str, version: str = ""):
 
 @router.post("/api/create-pr-from-results")
 async def api_create_pr_from_results(data: dict = Body(...)):
-    """Create PR(s) from persisted disk results — no running pipeline needed.
+    """Create PR(s) from persisted disk results -- no running pipeline needed.
 
     Body:
         {
-            "categories": ["working-with-images", ...],  // optional — omit for all
-            "version": "26.3.0",                         // optional — default from config
+            "categories": ["working-with-images", ...],  // optional -- omit for all
+            "version": "26.3.0",                         // optional -- default from config
             "pr_style": "per-category",                  // "per-category" or "single"
             "pr_target_branch": ""                       // optional override
         }
@@ -896,8 +896,8 @@ async def api_regenerate_metadata(data: dict = Body(...)):
 
     Body:
         {
-            "categories": ["working_with_images", ...],  // optional — omit for all
-            "version": "26.3.0"                          // optional — default from config
+            "categories": ["working_with_images", ...],  // optional -- omit for all
+            "version": "26.3.0"                          // optional -- default from config
         }
     """
     categories = data.get("categories") or None
@@ -1142,7 +1142,7 @@ async def api_generate_index_json(
         pr_title = f"Update index.json ({total} examples)"
         pr_body = (
             f"## Repository Index Update\n\n"
-            f"Updated `index.json` — machine-readable manifest of the repository.\n\n"
+            f"Updated `index.json` -- machine-readable manifest of the repository.\n\n"
             f"- **{total}** total examples across **{len(scan)}** categories\n"
             f"- Includes per-category: files, required namespaces, key APIs\n"
             f"\n---\n*Generated by Examples Generator*"

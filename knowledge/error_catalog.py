@@ -1,5 +1,5 @@
 """
-knowledge/error_catalog.py — Load and match error patterns from error_catalog.json.
+knowledge/error_catalog.py -- Load and match error patterns from error_catalog.json.
 """
 
 import json

@@ -1,5 +1,5 @@
 """
-routers/categories.py — GET /api/categories
+routers/categories.py -- GET /api/categories
 """
 
 import requests

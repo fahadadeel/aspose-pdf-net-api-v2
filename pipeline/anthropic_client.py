@@ -1,5 +1,5 @@
 """
-pipeline/anthropic_client.py — Anthropic Claude client for post-pipeline rule learning.
+pipeline/anthropic_client.py -- Anthropic Claude client for post-pipeline rule learning.
 
 Uses the official anthropic SDK to analyze failed pipeline tasks,
 fix code, and extract reusable error fix rules.
@@ -15,7 +15,7 @@ from config import AppConfig
 
 
 class AnthropicClient:
-    """Client for Anthropic Claude API — used for post-pipeline rule learning."""
+    """Client for Anthropic Claude API -- used for post-pipeline rule learning."""
 
     def __init__(self, config: AppConfig):
         self.config = config
@@ -70,7 +70,7 @@ class AnthropicClient:
             "- When adding Graph objects: create Graph with dimensions, add shapes to Graph.Shapes, "
             "then add Graph to page.Paragraphs.\n"
             "- For runtime errors at Document.Save(): check that all objects are properly initialized "
-            "before saving — null references in page content cause Save() to crash internally.\n"
+            "before saving -- null references in page content cause Save() to crash internally.\n"
             "- Ensure all added objects (graphs, shapes, annotations) have valid non-null properties.\n\n"
             "Return ONLY a JSON object with this exact structure:\n"
             "{\n"
@@ -105,7 +105,7 @@ class AnthropicClient:
         # Append matched error fixes as proven reference patterns
         if fixes_context:
             user_prompt += (
-                f"\n\nREFERENCE — These are proven fixes for similar errors. "
+                f"\n\nREFERENCE -- These are proven fixes for similar errors. "
                 f"Study them carefully and apply the same patterns:\n{fixes_context}"
             )
 

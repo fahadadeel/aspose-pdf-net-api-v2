@@ -1,5 +1,5 @@
 """
-git_ops/pr.py — PRManager: create PR, update agents.md, retry PR.
+git_ops/pr.py -- PRManager: create PR, update agents.md, retry PR.
 """
 
 import subprocess
@@ -235,7 +235,7 @@ class PRManager:
                 # Recover .cs files from the old branch
                 # Try LLM filename first, fall back to slugified task name
                 files_ok = 0
-                recovered: dict = {}  # cat_slug → {filename_stem → metadata}
+                recovered: dict = {}  # cat_slug -> {filename_stem -> metadata}
 
                 for result in results_summary:
                     category = result.get("category", "")

@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Results Dashboard — Wireframe v2</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:          #0a0e14;
+      --surface:     #141a23;
+      --surface2:    #1b2432;
+      --surface3:    #222d3d;
+      --border:      #2a3545;
+      --border-hover:#3d4f65;
+      --text:        #e2e8f0;
+      --text-dim:    #7b8ca3;
+      --text-muted:  #4a5568;
+
+      --green:       #22c55e;
+      --green-bg:    rgba(34,197,94,0.10);
+      --green-border:rgba(34,197,94,0.25);
+      --red:         #ef4444;
+      --red-bg:      rgba(239,68,68,0.10);
+      --red-border:  rgba(239,68,68,0.25);
+      --yellow:      #eab308;
+      --yellow-bg:   rgba(234,179,8,0.10);
+      --yellow-border:rgba(234,179,8,0.25);
+      --blue:        #3b82f6;
+      --blue-bg:     rgba(59,130,246,0.10);
+      --blue-border: rgba(59,130,246,0.25);
+      --purple:      #a78bfa;
+      --purple-bg:   rgba(167,139,250,0.10);
+      --cyan:        #06b6d4;
+      --cyan-bg:     rgba(6,182,212,0.10);
+      --orange:      #f97316;
+      --orange-bg:   rgba(249,115,22,0.10);
+
+      --radius:      8px;
+      --radius-lg:   12px;
+      --gap:         16px;
+      --gap-lg:      24px;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Inter", Helvetica, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      line-height: 1.5;
+    }
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+    /* ── Header ──────────────────────────────────────────── */
+    .header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 32px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .header-left { display: flex; align-items: center; gap: 12px; }
+    .logo {
+      width: 26px; height: 26px;
+      background: linear-gradient(135deg, var(--green), var(--blue));
+      border-radius: 7px;
+    }
+    .header h1 { font-size: 16px; font-weight: 600; letter-spacing: -0.3px; }
+    .header-right { display: flex; align-items: center; gap: 10px; }
+    .version-pill {
+      font-size: 12px; padding: 3px 10px;
+      border: 1px solid var(--border); border-radius: 20px;
+      color: var(--text-dim); background: var(--surface2);
+    }
+    .nav-link {
+      font-size: 13px; color: var(--blue); text-decoration: none;
+      padding: 5px 12px; border-radius: var(--radius); transition: background 0.15s;
+    }
+    .nav-link:hover { background: var(--surface2); }
+
+    .container { max-width: 1600px; margin: 0 auto; padding: var(--gap-lg); }
+
+    /* ── KPI Bar ─────────────────────────────────────────── */
+    .kpi-bar {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: var(--gap);
+      margin-bottom: var(--gap-lg);
+    }
+    .kpi-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 16px 20px;
+      position: relative; overflow: hidden;
+    }
+    .kpi-card::before {
+      content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+    }
+    .kpi-categories::before { background: var(--blue); }
+    .kpi-passed::before    { background: var(--green); }
+    .kpi-failed::before    { background: var(--red); }
+    .kpi-left::before      { background: var(--yellow); }
+    .kpi-rate::before      { background: var(--purple); }
+
+    .kpi-label {
+      font-size: 11px; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--text-dim); margin-bottom: 6px;
+    }
+    .kpi-value { font-size: 26px; font-weight: 700; line-height: 1.1; }
+    .kpi-sub { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+    .kpi-categories .kpi-value { color: var(--blue); }
+    .kpi-passed .kpi-value     { color: var(--green); }
+    .kpi-failed .kpi-value     { color: var(--red); }
+    .kpi-left .kpi-value       { color: var(--yellow); }
+    .kpi-rate .kpi-value       { color: var(--purple); }
+
+    .rate-bar {
+      height: 6px; background: var(--border); border-radius: 3px;
+      overflow: hidden; margin-top: 10px; display: flex;
+    }
+    .rate-bar .seg-pass { background: var(--green); }
+    .rate-bar .seg-fail { background: var(--red); }
+    .rate-bar .seg-left { background: var(--yellow); opacity: 0.5; }
+
+    /* ── Controls Row ────────────────────────────────────── */
+    .controls-row {
+      display: flex; align-items: center; gap: var(--gap);
+      margin-bottom: var(--gap-lg); flex-wrap: wrap;
+    }
+    .filter-group {
+      display: flex; background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .filter-btn {
+      font-size: 12px; font-weight: 500; padding: 7px 14px;
+      border: none; background: transparent; color: var(--text-dim);
+      cursor: pointer; transition: all 0.15s; white-space: nowrap;
+      border-right: 1px solid var(--border);
+    }
+    .filter-btn:last-child { border-right: none; }
+    .filter-btn:hover { background: var(--surface2); color: var(--text); }
+    .filter-btn.active { background: var(--blue); color: #fff; }
+    .filter-count {
+      font-size: 10px; background: var(--surface3); padding: 1px 6px;
+      border-radius: 10px; margin-left: 5px; font-weight: 600;
+    }
+    .filter-btn.active .filter-count { background: rgba(255,255,255,0.2); }
+
+    .sync-chips { display: flex; gap: 6px; }
+    .sync-chip {
+      font-size: 11px; font-weight: 600; padding: 5px 10px;
+      border-radius: 20px; cursor: pointer; transition: all 0.15s;
+      border: 1px solid transparent;
+    }
+    .sync-chip.s-synced  { background: var(--green-bg); color: var(--green); border-color: var(--green-border); }
+    .sync-chip.s-partial { background: var(--yellow-bg); color: var(--yellow); border-color: var(--yellow-border); }
+    .sync-chip.s-pending { background: var(--blue-bg); color: var(--blue); border-color: var(--blue-border); }
+    .sync-chip:hover { opacity: 0.8; }
+    .sync-chip.active { box-shadow: 0 0 0 2px rgba(255,255,255,0.15); }
+
+    .controls-spacer { flex: 1; }
+    .action-group { display: flex; gap: 8px; align-items: center; }
+    .btn {
+      font-size: 12px; font-weight: 500; padding: 7px 14px;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      background: var(--surface); color: var(--text-dim); cursor: pointer;
+      transition: all 0.15s; white-space: nowrap; display: flex; align-items: center; gap: 5px;
+    }
+    .btn:hover { border-color: var(--border-hover); color: var(--text); background: var(--surface2); }
+    .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .btn-primary { background: var(--green); border-color: var(--green); color: #fff; font-weight: 600; }
+    .btn-primary:hover { filter: brightness(1.1); }
+    .btn-accent { background: var(--blue); border-color: var(--blue); color: #fff; font-weight: 600; }
+    .btn-danger { background: transparent; border-color: var(--red-border); color: var(--red); }
+    .btn-danger:hover { background: var(--red-bg); }
+    .selection-badge {
+      font-size: 12px; color: var(--text-dim); padding: 4px 10px;
+      background: var(--surface2); border-radius: var(--radius);
+    }
+
+    /* ── Cards Grid ──────────────────────────────────────── */
+    .cards-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(380px, 1fr));
+      gap: var(--gap);
+    }
+
+    /* ── Category Card ───────────────────────────────────── */
+    .card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 20px;
+      transition: all 0.15s ease; cursor: default; position: relative;
+    }
+    .card:hover { border-color: var(--border-hover); background: var(--surface2); }
+    .card.selected { border-color: var(--blue); box-shadow: 0 0 0 1px var(--blue); }
+
+    .card-top {
+      display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 14px;
+    }
+    .card-title-row { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 0; }
+    .card-checkbox {
+      width: 16px; height: 16px; accent-color: var(--blue);
+      cursor: pointer; flex-shrink: 0; margin-top: 2px;
+    }
+    .card-title {
+      font-size: 14px; font-weight: 600; overflow: hidden;
+      text-overflow: ellipsis; white-space: nowrap;
+    }
+    .card-badge {
+      font-size: 10px; font-weight: 600; padding: 3px 8px;
+      border-radius: 10px; flex-shrink: 0; letter-spacing: 0.3px;
+    }
+    .badge-synced  { background: var(--green-bg); color: var(--green); }
+    .badge-partial { background: var(--yellow-bg); color: var(--yellow); }
+    .badge-pending { background: var(--blue-bg); color: var(--blue); }
+
+    /* Counts row */
+    .card-counts {
+      display: flex; gap: 14px; font-size: 13px; margin-bottom: 12px; align-items: center; flex-wrap: wrap;
+    }
+    .count-item { display: flex; align-items: center; gap: 4px; }
+    .count-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-pass { background: var(--green); }
+    .dot-fail { background: var(--red); }
+    .dot-left { background: var(--yellow); }
+    .count-val { font-weight: 600; }
+    .count-label { color: var(--text-dim); }
+    .count-item.is-fail {
+      cursor: pointer; text-decoration: underline; text-decoration-style: dashed;
+      text-underline-offset: 3px; color: var(--red);
+    }
+    .count-item.is-fail:hover { color: #f87171; text-decoration-style: solid; }
+
+    /* Progress bar */
+    .card-progress {
+      height: 4px; background: var(--border); border-radius: 2px;
+      overflow: hidden; margin-bottom: 14px; display: flex;
+    }
+    .card-progress .seg { height: 100%; transition: width 0.3s ease; }
+    .seg-pass { background: var(--green); }
+    .seg-fail { background: var(--red); }
+
+    /* ── Repo Sync Row ───────────────────────────────────── */
+    .card-repo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 12px; color: var(--text-dim);
+      margin-bottom: 12px; padding: 8px 10px;
+      background: var(--surface2); border-radius: var(--radius);
+    }
+    .repo-icon { font-size: 14px; flex-shrink: 0; }
+    .repo-counts { display: flex; gap: 12px; flex: 1; }
+    .repo-count-item { display: flex; align-items: center; gap: 4px; }
+    .repo-count-val { font-weight: 600; color: var(--text); }
+    .repo-push-status {
+      font-size: 10px; font-weight: 600; padding: 2px 8px;
+      border-radius: 10px;
+    }
+    .push-synced { background: var(--green-bg); color: var(--green); }
+    .push-behind { background: var(--yellow-bg); color: var(--yellow); }
+    .push-none   { background: var(--surface3); color: var(--text-muted); }
+
+    /* ── Stage Breakdown ─────────────────────────────────── */
+    .card-stages {
+      margin-bottom: 14px;
+    }
+    .stage-label-row {
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 5px;
+    }
+    .stage-label-row span {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted);
+    }
+    .stage-bar {
+      height: 8px; background: var(--border); border-radius: 4px;
+      overflow: hidden; display: flex; margin-bottom: 6px;
+    }
+    .stage-bar .seg {
+      height: 100%; transition: width 0.3s ease;
+    }
+    .seg-baseline  { background: var(--green); }
+    .seg-patternfix { background: var(--cyan); }
+    .seg-llmfix    { background: var(--blue); }
+    .seg-regen     { background: var(--purple); }
+    .seg-finalllm  { background: var(--orange); }
+    .seg-exhausted { background: var(--red); }
+
+    .stage-legend {
+      display: flex; gap: 10px; flex-wrap: wrap;
+    }
+    .stage-legend-item {
+      display: flex; align-items: center; gap: 4px; font-size: 10px; color: var(--text-dim);
+    }
+    .stage-legend-dot {
+      width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0;
+    }
+
+    /* Metadata quality */
+    .card-meta { display: flex; gap: 12px; margin-bottom: 14px; }
+    .meta-item { flex: 1; text-align: center; }
+    .meta-item-label {
+      font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px;
+      color: var(--text-muted); margin-bottom: 3px;
+    }
+    .meta-item-bar {
+      height: 3px; background: var(--border); border-radius: 2px;
+      overflow: hidden; margin-bottom: 2px;
+    }
+    .meta-item-bar .fill { height: 100%; border-radius: 2px; }
+    .meta-item-count { font-size: 11px; color: var(--text-dim); }
+
+    /* Card footer */
+    .card-actions {
+      display: flex; gap: 6px; justify-content: flex-end;
+      padding-top: 12px; border-top: 1px solid var(--border);
+    }
+    .card-btn {
+      font-size: 11px; padding: 4px 10px; background: transparent;
+      border: 1px solid var(--border); border-radius: var(--radius);
+      color: var(--text-dim); cursor: pointer; transition: all 0.15s;
+    }
+    .card-btn:hover { color: var(--blue); border-color: var(--blue); background: var(--blue-bg); }
+    .card-btn.warn { color: var(--yellow); }
+    .card-btn.warn:hover { border-color: var(--yellow); background: var(--yellow-bg); }
+
+    /* ── Not-Run Card ────────────────────────────────────── */
+    .card.not-run {
+      border-style: dashed; border-color: var(--border);
+      background: var(--bg); opacity: 0.55;
+    }
+    .card.not-run:hover { opacity: 0.75; border-color: var(--border-hover); background: var(--surface); }
+    .not-run-body { text-align: center; padding: 12px 0; }
+    .not-run-count { font-size: 28px; font-weight: 700; color: var(--text-dim); }
+    .not-run-label { font-size: 12px; color: var(--text-muted); margin-bottom: 12px; }
+    .btn-run {
+      font-size: 12px; font-weight: 600; padding: 6px 18px;
+      background: var(--green); border: none; border-radius: var(--radius);
+      color: #fff; cursor: pointer; transition: all 0.15s;
+    }
+    .btn-run:hover { filter: brightness(1.15); }
+
+    /* ── Section Divider ─────────────────────────────────── */
+    .section-divider {
+      grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 8px 0;
+    }
+    .section-divider::before, .section-divider::after {
+      content: ''; flex: 1; height: 1px; background: var(--border);
+    }
+    .section-divider span {
+      font-size: 11px; text-transform: uppercase; letter-spacing: 1px;
+      color: var(--text-muted); white-space: nowrap;
+    }
+
+    /* ── Detail Panel (Slide-in) ─────────────────────────── */
+    .detail-overlay {
+      position: fixed; top: 0; right: 0; bottom: 0; width: 520px;
+      background: var(--surface); border-left: 1px solid var(--border);
+      box-shadow: -8px 0 32px rgba(0,0,0,0.4); z-index: 100;
+      display: flex; flex-direction: column;
+      transform: translateX(100%); transition: transform 0.25s ease;
+    }
+    .detail-overlay.open { transform: translateX(0); }
+    .detail-header {
+      padding: 16px 20px; border-bottom: 1px solid var(--border);
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .detail-header h3 { font-size: 15px; font-weight: 600; }
+    .detail-close {
+      font-size: 18px; color: var(--text-dim); background: none;
+      border: none; cursor: pointer; padding: 4px 8px; border-radius: var(--radius);
+    }
+    .detail-close:hover { background: var(--surface2); color: var(--text); }
+    .detail-body { flex: 1; overflow-y: auto; padding: 0; }
+
+    /* Detail summary stats */
+    .detail-stats {
+      display: flex; gap: 16px; padding: 14px 20px;
+      border-bottom: 1px solid var(--border); background: var(--surface2);
+    }
+    .detail-stat {
+      text-align: center; flex: 1;
+    }
+    .detail-stat-val { font-size: 18px; font-weight: 700; }
+    .detail-stat-label { font-size: 10px; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-muted); }
+
+    /* Detail stage breakdown */
+    .detail-stage-bar {
+      display: flex; height: 6px; margin: 0 20px; margin-top: 14px; border-radius: 3px; overflow: hidden;
+      background: var(--border);
+    }
+    .detail-stage-legend {
+      display: flex; gap: 12px; padding: 8px 20px 14px; flex-wrap: wrap;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-table {
+      width: 100%; font-size: 12px; border-collapse: collapse;
+    }
+    .detail-table th {
+      text-align: left; font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.5px; color: var(--text-muted); padding: 10px 14px;
+      border-bottom: 1px solid var(--border); font-weight: 600;
+      position: sticky; top: 0; background: var(--surface);
+    }
+    .detail-table td {
+      padding: 10px 14px; border-bottom: 1px solid var(--border); color: var(--text-dim);
+    }
+    .detail-table tr:hover td { background: var(--surface2); }
+    .status-pill {
+      font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 10px;
+    }
+    .pill-pass { background: var(--green-bg); color: var(--green); }
+    .pill-fail { background: var(--red-bg); color: var(--red); }
+    .fname { font-family: "SF Mono", "Fira Code", monospace; font-size: 11px; color: var(--text); }
+
+    .stage-pill {
+      font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 8px;
+      text-transform: uppercase; letter-spacing: 0.3px;
+    }
+    .stage-baseline   { background: var(--green-bg); color: var(--green); }
+    .stage-llm_fix    { background: var(--blue-bg); color: var(--blue); }
+    .stage-regen      { background: var(--purple-bg); color: var(--purple); }
+    .stage-final_llm  { background: var(--orange-bg); color: var(--orange); }
+    .stage-exhausted  { background: var(--red-bg); color: var(--red); }
+    .stage-pattern_fix { background: var(--cyan-bg); color: var(--cyan); }
+
+    .diff-badge {
+      font-size: 9px; font-weight: 600; padding: 2px 6px; border-radius: 8px;
+    }
+    .diff-beginner     { background: var(--green-bg); color: var(--green); }
+    .diff-intermediate { background: var(--yellow-bg); color: var(--yellow); }
+    .diff-advanced     { background: var(--red-bg); color: var(--red); }
+
+    .backdrop {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.4); z-index: 99;
+      opacity: 0; pointer-events: none; transition: opacity 0.25s;
+    }
+    .backdrop.visible { opacity: 1; pointer-events: auto; }
+
+    @media (max-width: 1100px) {
+      .kpi-bar { grid-template-columns: repeat(3, 1fr); }
+      .cards-grid { grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+    }
+    @media (max-width: 700px) {
+      .kpi-bar { grid-template-columns: 1fr 1fr; }
+      .controls-row { flex-direction: column; align-items: stretch; }
+    }
+
+    .wf-label {
+      position: fixed; bottom: 16px; right: 16px; font-size: 11px;
+      color: var(--text-muted); background: var(--surface); border: 1px solid var(--border);
+      padding: 4px 10px; border-radius: var(--radius); z-index: 200;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ═══════════ HEADER ═══════════ -->
+  <div class="header">
+    <div class="header-left">
+      <div class="logo"></div>
+      <h1>Results Dashboard</h1>
+    </div>
+    <div class="header-right">
+      <span class="version-pill">v26.3.0</span>
+      <span class="version-pill" style="border-color:var(--green-border);color:var(--green);">release/26.3.0</span>
+      <a href="/" class="nav-link">Build Monitor</a>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- ═══════════ KPI BAR ═══════════ -->
+    <div class="kpi-bar">
+      <div class="kpi-card kpi-categories">
+        <div class="kpi-label">Categories</div>
+        <div class="kpi-value">28 <span style="font-size:14px;color:var(--text-dim);font-weight:400;">/ 42</span></div>
+        <div class="kpi-sub">completed</div>
+      </div>
+      <div class="kpi-card kpi-passed">
+        <div class="kpi-label">Passed</div>
+        <div class="kpi-value">2,847</div>
+        <div class="kpi-sub">examples generated</div>
+      </div>
+      <div class="kpi-card kpi-failed">
+        <div class="kpi-label">Failed</div>
+        <div class="kpi-value">56</div>
+        <div class="kpi-sub">need retry</div>
+      </div>
+      <div class="kpi-card kpi-left">
+        <div class="kpi-label">Left</div>
+        <div class="kpi-value">312</div>
+        <div class="kpi-sub">tasks remaining</div>
+      </div>
+      <div class="kpi-card kpi-rate">
+        <div class="kpi-label">Pass Rate</div>
+        <div class="kpi-value">98.1%</div>
+        <div class="rate-bar">
+          <div class="seg-pass" style="width:85%;"></div>
+          <div class="seg-fail" style="width:2%;"></div>
+          <div class="seg-left" style="width:13%;"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ═══════════ CONTROLS ROW ═══════════ -->
+    <div class="controls-row">
+      <div class="filter-group">
+        <button class="filter-btn active">All<span class="filter-count">42</span></button>
+        <button class="filter-btn">Completed<span class="filter-count">28</span></button>
+        <button class="filter-btn">Needs Run<span class="filter-count">6</span></button>
+        <button class="filter-btn">Has Failed<span class="filter-count">8</span></button>
+        <button class="filter-btn">Not Run<span class="filter-count">8</span></button>
+      </div>
+      <div class="sync-chips">
+        <span class="sync-chip s-synced">&#10003; 20 synced</span>
+        <span class="sync-chip s-partial">&#9650; 5 partial</span>
+        <span class="sync-chip s-pending">&#9679; 3 pending</span>
+      </div>
+      <div class="controls-spacer"></div>
+      <div class="action-group">
+        <button class="btn">Select All</button>
+        <span class="selection-badge">3 selected</span>
+        <button class="btn btn-primary">Create PR</button>
+        <button class="btn">Regen Metadata</button>
+        <button class="btn btn-accent">Update Docs</button>
+        <button class="btn btn-danger">Merge to Main</button>
+      </div>
+    </div>
+
+    <!-- ═══════════ CARDS GRID ═══════════ -->
+    <div class="cards-grid">
+
+      <!-- ── Card 1: Perfect, synced ── -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-title-row">
+            <input type="checkbox" class="card-checkbox" />
+            <span class="card-title">basic_operations</span>
+          </div>
+          <span class="card-badge badge-synced">&#10003; Synced</span>
+        </div>
+        <div class="card-counts">
+          <div class="count-item"><span class="count-dot dot-pass"></span><span class="count-val">45</span><span class="count-label">passed</span></div>
+        </div>
+        <div class="card-progress">
+          <div class="seg seg-pass" style="width:100%;"></div>
+        </div>
+        <!-- Repo Sync Row -->
+        <div class="card-repo">
+          <span class="repo-icon">&#128230;</span>
+          <div class="repo-counts">
+            <div class="repo-count-item"><span class="repo-count-val">45</span> in repo</div>
+            <div class="repo-count-item"><span class="repo-count-val">45</span> local</div>
+          </div>
+          <span class="repo-push-status push-synced">In Sync</span>
+        </div>
+        <!-- Stage Breakdown -->
+        <div class="card-stages">
+          <div class="stage-label-row">
+            <span>Pipeline stages</span>
+            <span>45 total</span>
+          </div>
+          <div class="stage-bar">
+            <div class="seg seg-baseline" style="width:71%;"></div>
+            <div class="seg seg-llmfix" style="width:16%;"></div>
+            <div class="seg seg-regen" style="width:9%;"></div>
+            <div class="seg seg-finalllm" style="width:4%;"></div>
+          </div>
+          <div class="stage-legend">
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--green);"></div>MCP 32</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--blue);"></div>LLM Fix 7</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--purple);"></div>Regen 4</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--orange);"></div>Final 2</div>
+          </div>
+        </div>
+        <!-- Metadata -->
+        <div class="card-meta">
+          <div class="meta-item">
+            <div class="meta-item-label">Titles</div>
+            <div class="meta-item-bar"><div class="fill" style="width:100%;background:var(--green);"></div></div>
+            <div class="meta-item-count">45/45</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-item-label">Desc.</div>
+            <div class="meta-item-bar"><div class="fill" style="width:100%;background:var(--green);"></div></div>
+            <div class="meta-item-count">45/45</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-item-label">APIs</div>
+            <div class="meta-item-bar"><div class="fill" style="width:93%;background:var(--green);"></div></div>
+            <div class="meta-item-count">42/45</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="card-btn" onclick="toggleDetail()">View Examples</button>
+        </div>
+      </div>
+
+      <!-- ── Card 2: Has failed + left, partial sync, needs meta regen ── -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-title-row">
+            <input type="checkbox" class="card-checkbox" />
+            <span class="card-title">facades___annotations</span>
+          </div>
+          <span class="card-badge badge-partial">&#9650; Partial</span>
+        </div>
+        <div class="card-counts">
+          <div class="count-item"><span class="count-dot dot-pass"></span><span class="count-val">103</span><span class="count-label">passed</span></div>
+          <div class="count-item is-fail" title="Click to retry"><span class="count-dot dot-fail"></span><span class="count-val">4</span><span class="count-label">failed</span></div>
+          <div class="count-item"><span class="count-dot dot-left"></span><span class="count-val">13</span><span class="count-label">left</span></div>
+        </div>
+        <div class="card-progress">
+          <div class="seg seg-pass" style="width:85.8%;"></div>
+          <div class="seg seg-fail" style="width:3.3%;"></div>
+        </div>
+        <!-- Repo Sync Row -->
+        <div class="card-repo">
+          <span class="repo-icon">&#128230;</span>
+          <div class="repo-counts">
+            <div class="repo-count-item"><span class="repo-count-val">105</span> in repo</div>
+            <div class="repo-count-item"><span class="repo-count-val">103</span> local</div>
+          </div>
+          <span class="repo-push-status push-behind">2 extra in repo</span>
+        </div>
+        <!-- Stage Breakdown -->
+        <div class="card-stages">
+          <div class="stage-label-row">
+            <span>Pipeline stages</span>
+            <span>107 total</span>
+          </div>
+          <div class="stage-bar">
+            <div class="seg seg-baseline" style="width:60%;"></div>
+            <div class="seg seg-patternfix" style="width:5%;"></div>
+            <div class="seg seg-llmfix" style="width:15%;"></div>
+            <div class="seg seg-regen" style="width:12%;"></div>
+            <div class="seg seg-finalllm" style="width:4%;"></div>
+            <div class="seg seg-exhausted" style="width:4%;"></div>
+          </div>
+          <div class="stage-legend">
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--green);"></div>MCP 64</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--cyan);"></div>Pattern 5</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--blue);"></div>LLM Fix 16</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--purple);"></div>Regen 13</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--orange);"></div>Final 5</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--red);"></div>Failed 4</div>
+          </div>
+        </div>
+        <!-- Metadata -->
+        <div class="card-meta">
+          <div class="meta-item">
+            <div class="meta-item-label">Titles</div>
+            <div class="meta-item-bar"><div class="fill" style="width:99%;background:var(--green);"></div></div>
+            <div class="meta-item-count">102/103</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-item-label">Desc.</div>
+            <div class="meta-item-bar"><div class="fill" style="width:99%;background:var(--green);"></div></div>
+            <div class="meta-item-count">102/103</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-item-label">APIs</div>
+            <div class="meta-item-bar"><div class="fill" style="width:99%;background:var(--green);"></div></div>
+            <div class="meta-item-count">102/103</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="card-btn warn">Regen Meta</button>
+          <button class="card-btn" onclick="toggleDetail()">View Examples</button>
+        </div>
+      </div>
+
+      <!-- ── Card 3: Pending sync, low metadata ── -->
+      <div class="card selected">
+        <div class="card-top">
+          <div class="card-title-row">
+            <input type="checkbox" class="card-checkbox" checked />
+            <span class="card-title">graphs</span>
+          </div>
+          <span class="card-badge badge-pending">&#9679; Not Pushed</span>
+        </div>
+        <div class="card-counts">
+          <div class="count-item"><span class="count-dot dot-pass"></span><span class="count-val">78</span><span class="count-label">passed</span></div>
+          <div class="count-item is-fail" title="Click to retry"><span class="count-dot dot-fail"></span><span class="count-val">2</span><span class="count-label">failed</span></div>
+        </div>
+        <div class="card-progress">
+          <div class="seg seg-pass" style="width:97.5%;"></div>
+          <div class="seg seg-fail" style="width:2.5%;"></div>
+        </div>
+        <!-- Repo Sync Row -->
+        <div class="card-repo">
+          <span class="repo-icon">&#128230;</span>
+          <div class="repo-counts">
+            <div class="repo-count-item"><span class="repo-count-val">0</span> in repo</div>
+            <div class="repo-count-item"><span class="repo-count-val">78</span> local</div>
+          </div>
+          <span class="repo-push-status push-none">Not Pushed</span>
+        </div>
+        <!-- Stage Breakdown -->
+        <div class="card-stages">
+          <div class="stage-label-row">
+            <span>Pipeline stages</span>
+            <span>80 total</span>
+          </div>
+          <div class="stage-bar">
+            <div class="seg seg-baseline" style="width:62%;"></div>
+            <div class="seg seg-llmfix" style="width:18%;"></div>
+            <div class="seg seg-regen" style="width:10%;"></div>
+            <div class="seg seg-finalllm" style="width:7.5%;"></div>
+            <div class="seg seg-exhausted" style="width:2.5%;"></div>
+          </div>
+          <div class="stage-legend">
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--green);"></div>MCP 50</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--blue);"></div>LLM Fix 14</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--purple);"></div>Regen 8</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--orange);"></div>Final 6</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--red);"></div>Failed 2</div>
+          </div>
+        </div>
+        <!-- Metadata -->
+        <div class="card-meta">
+          <div class="meta-item">
+            <div class="meta-item-label">Titles</div>
+            <div class="meta-item-bar"><div class="fill" style="width:100%;background:var(--green);"></div></div>
+            <div class="meta-item-count">78/78</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-item-label">Desc.</div>
+            <div class="meta-item-bar"><div class="fill" style="width:72%;background:var(--yellow);"></div></div>
+            <div class="meta-item-count">56/78</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-item-label">APIs</div>
+            <div class="meta-item-bar"><div class="fill" style="width:65%;background:var(--yellow);"></div></div>
+            <div class="meta-item-count">51/78</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="card-btn warn">Regen Meta</button>
+          <button class="card-btn" onclick="toggleDetail()">View Examples</button>
+        </div>
+      </div>
+
+      <!-- ── Card 4: Compact, fully done ── -->
+      <div class="card">
+        <div class="card-top">
+          <div class="card-title-row">
+            <input type="checkbox" class="card-checkbox" />
+            <span class="card-title">document</span>
+          </div>
+          <span class="card-badge badge-synced">&#10003; Synced</span>
+        </div>
+        <div class="card-counts">
+          <div class="count-item"><span class="count-dot dot-pass"></span><span class="count-val">32</span><span class="count-label">passed</span></div>
+          <div class="count-item is-fail"><span class="count-dot dot-fail"></span><span class="count-val">2</span><span class="count-label">failed</span></div>
+          <div class="count-item"><span class="count-dot dot-left"></span><span class="count-val">8</span><span class="count-label">left</span></div>
+        </div>
+        <div class="card-progress">
+          <div class="seg seg-pass" style="width:94%;"></div>
+          <div class="seg seg-fail" style="width:6%;"></div>
+        </div>
+        <div class="card-repo">
+          <span class="repo-icon">&#128230;</span>
+          <div class="repo-counts">
+            <div class="repo-count-item"><span class="repo-count-val">32</span> in repo</div>
+            <div class="repo-count-item"><span class="repo-count-val">32</span> local</div>
+          </div>
+          <span class="repo-push-status push-synced">In Sync</span>
+        </div>
+        <div class="card-stages">
+          <div class="stage-label-row"><span>Pipeline stages</span><span>34 total</span></div>
+          <div class="stage-bar">
+            <div class="seg seg-baseline" style="width:74%;"></div>
+            <div class="seg seg-llmfix" style="width:12%;"></div>
+            <div class="seg seg-regen" style="width:8%;"></div>
+            <div class="seg seg-exhausted" style="width:6%;"></div>
+          </div>
+          <div class="stage-legend">
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--green);"></div>MCP 25</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--blue);"></div>LLM Fix 4</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--purple);"></div>Regen 3</div>
+            <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--red);"></div>Failed 2</div>
+          </div>
+        </div>
+        <div class="card-meta">
+          <div class="meta-item">
+            <div class="meta-item-label">Titles</div>
+            <div class="meta-item-bar"><div class="fill" style="width:100%;background:var(--green);"></div></div>
+            <div class="meta-item-count">32/32</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-item-label">Desc.</div>
+            <div class="meta-item-bar"><div class="fill" style="width:100%;background:var(--green);"></div></div>
+            <div class="meta-item-count">32/32</div>
+          </div>
+          <div class="meta-item">
+            <div class="meta-item-label">APIs</div>
+            <div class="meta-item-bar"><div class="fill" style="width:100%;background:var(--green);"></div></div>
+            <div class="meta-item-count">32/32</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="card-btn" onclick="toggleDetail()">View Examples</button>
+        </div>
+      </div>
+
+      <!-- ── Section Divider ── -->
+      <div class="section-divider"><span>Not yet run</span></div>
+
+      <!-- ── Not-Run Cards ── -->
+      <div class="card not-run">
+        <div class="card-top">
+          <div class="card-title-row"><span class="card-title">Accessibility and Tagged PDFs</span></div>
+        </div>
+        <div class="not-run-body">
+          <div class="not-run-count">48</div>
+          <div class="not-run-label">tasks available</div>
+          <button class="btn-run">&#9654; Run</button>
+        </div>
+      </div>
+      <div class="card not-run">
+        <div class="card-top">
+          <div class="card-title-row"><span class="card-title">PDF Portfolios</span></div>
+        </div>
+        <div class="not-run-body">
+          <div class="not-run-count">22</div>
+          <div class="not-run-label">tasks available</div>
+          <button class="btn-run">&#9654; Run</button>
+        </div>
+      </div>
+      <div class="card not-run">
+        <div class="card-top">
+          <div class="card-title-row"><span class="card-title">Miscellaneous</span></div>
+        </div>
+        <div class="not-run-body">
+          <div class="not-run-count">15</div>
+          <div class="not-run-label">tasks available</div>
+          <button class="btn-run">&#9654; Run</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ═══════════ DETAIL PANEL ═══════════ -->
+  <div class="backdrop" id="backdrop" onclick="toggleDetail()"></div>
+  <div class="detail-overlay" id="detail-panel">
+    <div class="detail-header">
+      <h3>basic_operations <span style="color:var(--text-dim);font-weight:400;">(45 examples)</span></h3>
+      <button class="detail-close" onclick="toggleDetail()">&times;</button>
+    </div>
+    <!-- Summary stats in detail panel -->
+    <div class="detail-stats">
+      <div class="detail-stat">
+        <div class="detail-stat-val" style="color:var(--green);">43</div>
+        <div class="detail-stat-label">Passed</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-val" style="color:var(--red);">2</div>
+        <div class="detail-stat-label">Failed</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-val" style="color:var(--text);">45</div>
+        <div class="detail-stat-label">In Repo</div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-val" style="color:var(--purple);">95.6%</div>
+        <div class="detail-stat-label">Pass Rate</div>
+      </div>
+    </div>
+    <!-- Stage bar in detail -->
+    <div class="detail-stage-bar">
+      <div class="seg seg-baseline" style="width:71%;"></div>
+      <div class="seg seg-llmfix" style="width:16%;"></div>
+      <div class="seg seg-regen" style="width:9%;"></div>
+      <div class="seg seg-exhausted" style="width:4%;"></div>
+    </div>
+    <div class="detail-stage-legend">
+      <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--green);"></div>MCP 32</div>
+      <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--blue);"></div>LLM Fix 7</div>
+      <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--purple);"></div>Regen 4</div>
+      <div class="stage-legend-item"><div class="stage-legend-dot" style="background:var(--red);"></div>Failed 2</div>
+    </div>
+    <div class="detail-body">
+      <table class="detail-table">
+        <thead>
+          <tr>
+            <th></th>
+            <th>Filename</th>
+            <th>Stage</th>
+            <th>Difficulty</th>
+            <th>APIs</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><span class="status-pill pill-pass">PASS</span></td>
+            <td class="fname">add-text-to-pdf.cs</td>
+            <td><span class="stage-pill stage-baseline">MCP</span></td>
+            <td><span class="diff-badge diff-beginner">beginner</span></td>
+            <td style="color:var(--text-dim);">3</td>
+          </tr>
+          <tr>
+            <td><span class="status-pill pill-pass">PASS</span></td>
+            <td class="fname">create-pdf-from-scratch.cs</td>
+            <td><span class="stage-pill stage-baseline">MCP</span></td>
+            <td><span class="diff-badge diff-intermediate">intermediate</span></td>
+            <td style="color:var(--text-dim);">5</td>
+          </tr>
+          <tr>
+            <td><span class="status-pill pill-pass">PASS</span></td>
+            <td class="fname">merge-multiple-pdfs.cs</td>
+            <td><span class="stage-pill stage-regen">REGEN</span></td>
+            <td><span class="diff-badge diff-beginner">beginner</span></td>
+            <td style="color:var(--text-dim);">2</td>
+          </tr>
+          <tr>
+            <td><span class="status-pill pill-pass">PASS</span></td>
+            <td class="fname">convert-html-to-pdf.cs</td>
+            <td><span class="stage-pill stage-llm_fix">LLM FIX</span></td>
+            <td><span class="diff-badge diff-intermediate">intermediate</span></td>
+            <td style="color:var(--text-dim);">4</td>
+          </tr>
+          <tr>
+            <td><span class="status-pill pill-fail">FAIL</span></td>
+            <td class="fname">split-pdf-pages.cs</td>
+            <td><span class="stage-pill stage-exhausted">EXHAUSTED</span></td>
+            <td><span style="color:var(--text-muted);">&mdash;</span></td>
+            <td style="color:var(--text-dim);">&mdash;</td>
+          </tr>
+          <tr>
+            <td><span class="status-pill pill-pass">PASS</span></td>
+            <td class="fname">extract-text-from-pdf.cs</td>
+            <td><span class="stage-pill stage-baseline">MCP</span></td>
+            <td><span class="diff-badge diff-advanced">advanced</span></td>
+            <td style="color:var(--text-dim);">6</td>
+          </tr>
+          <tr>
+            <td><span class="status-pill pill-pass">PASS</span></td>
+            <td class="fname">rotate-pdf-pages.cs</td>
+            <td><span class="stage-pill stage-final_llm">FINAL</span></td>
+            <td><span class="diff-badge diff-beginner">beginner</span></td>
+            <td style="color:var(--text-dim);">2</td>
+          </tr>
+          <tr>
+            <td><span class="status-pill pill-fail">FAIL</span></td>
+            <td class="fname">flatten-form-fields.cs</td>
+            <td><span class="stage-pill stage-exhausted">EXHAUSTED</span></td>
+            <td><span style="color:var(--text-muted);">&mdash;</span></td>
+            <td style="color:var(--text-dim);">&mdash;</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="wf-label">Wireframe v2 — for review only</div>
+
+  <script>
+    function toggleDetail() {
+      document.getElementById('detail-panel').classList.toggle('open');
+      document.getElementById('backdrop').classList.toggle('visible');
+    }
+    document.querySelectorAll('.filter-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        document.querySelectorAll('.filter-btn').forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+      });
+    });
+    document.querySelectorAll('.sync-chip').forEach(function(chip) {
+      chip.addEventListener('click', function() { chip.classList.toggle('active'); });
+    });
+    document.querySelectorAll('.card:not(.not-run)').forEach(function(card) {
+      card.addEventListener('click', function(e) {
+        if (e.target.tagName === 'BUTTON' || e.target.closest('.is-fail')) return;
+        var cb = card.querySelector('.card-checkbox');
+        if (e.target !== cb) cb.checked = !cb.checked;
+        card.classList.toggle('selected', cb.checked);
+      });
+    });
+  </script>
+</body>
+</html>

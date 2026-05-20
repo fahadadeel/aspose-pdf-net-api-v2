@@ -1,5 +1,5 @@
 """
-pipeline/mcp_client.py — MCP API client for code generation and retrieval.
+pipeline/mcp_client.py -- MCP API client for code generation and retrieval.
 """
 
 import time
@@ -36,7 +36,7 @@ class MCPClient:
                 return resp
             except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
                 if attempt < _MAX_RETRIES:
-                    print(f"MCP request failed (attempt {attempt}/{_MAX_RETRIES}): {e} — retrying in {_RETRY_BACKOFF}s...")
+                    print(f"MCP request failed (attempt {attempt}/{_MAX_RETRIES}): {e} -- retrying in {_RETRY_BACKOFF}s...")
                     time.sleep(_RETRY_BACKOFF)
                 else:
                     print(f"MCP request failed after {_MAX_RETRIES} attempts: {e}")
@@ -68,7 +68,7 @@ class MCPClient:
             ns = exclude_namespaces or list(cfg.exclude_namespaces)
             task_req = task
 
-        # Always use config product/platform for MCP — the task-level
+        # Always use config product/platform for MCP -- the task-level
         # "product" (e.g. "aspose.pdf") is a display name, not the MCP key.
         payload = {
             "task": task_req,

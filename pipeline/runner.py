@@ -1,5 +1,5 @@
 """
-pipeline/runner.py — PipelineRunner: orchestrates the 5-stage retry pipeline.
+pipeline/runner.py -- PipelineRunner: orchestrates the 5-stage retry pipeline.
 
 Framework-agnostic: no FastAPI, no threading, no state.py dependencies.
 Usable from CLI, API, or UI modes.
@@ -228,13 +228,13 @@ class PipelineRunner:
         # Skip if metadata is already complete (e.g. own-LLM baseline success)
         _META_KEYS = ("title", "filename", "description", "tags", "apis_used", "difficulty")
         if all(result.metadata.get(k) for k in _META_KEYS):
-            self._notify("metadata", "Metadata already complete — skipping extraction")
+            self._notify("metadata", "Metadata already complete -- skipping extraction")
             return
         try:
             self._notify("metadata", "Extracting metadata from compiled code...")
             meta = self.llm.extract_metadata(result.task, final_code, result.category)
             if meta:
-                # Merge — LLM-extracted metadata wins, but don't overwrite existing non-empty values
+                # Merge -- LLM-extracted metadata wins, but don't overwrite existing non-empty values
                 for key, value in meta.items():
                     if value and not result.metadata.get(key):
                         result.metadata[key] = value

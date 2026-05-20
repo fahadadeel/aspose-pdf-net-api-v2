@@ -1,5 +1,5 @@
 """
-main.py — FastAPI application entry point.
+main.py -- FastAPI application entry point.
 
 Start with:
     uvicorn main:app --host 0.0.0.0 --port 7103 --reload      # development

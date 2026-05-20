@@ -1,10 +1,10 @@
 """
-state.py — Shared in-process state for Build Monitor.
+state.py -- Shared in-process state for Build Monitor.
 
 Thread-safe via JOB_LOCK. All access to BUILD_STATE and JOB_CANCEL_FLAGS
 must go through the helper functions or be protected with JOB_LOCK.
 
-Fully in-memory — no database. Everything is lost on restart.
+Fully in-memory -- no database. Everything is lost on restart.
 """
 
 import json
@@ -65,8 +65,8 @@ def init_build(job_id: str, total: int = 0):
             "pr_branch": "",
             "results_summary": [],
             "paused": False,
-            "category_branches": {},   # {category_name: branch_name} — for retry-failed
-            "failed_tasks": [],        # full task dicts for failed items — for retry-failed
+            "category_branches": {},   # {category_name: branch_name} -- for retry-failed
+            "failed_tasks": [],        # full task dicts for failed items -- for retry-failed
             "repo_push": False,        # whether job ran with repo_push=True
         }
         JOB_CANCEL_FLAGS[job_id] = False
@@ -158,7 +158,7 @@ def set_repo_push(job_id: str, repo_push: bool):
 
 
 def set_category_branch(job_id: str, category: str, branch: str):
-    """Record the branch created for a category — used by retry-failed."""
+    """Record the branch created for a category -- used by retry-failed."""
     with JOB_LOCK:
         state = BUILD_STATE.get(job_id)
         if state:
@@ -167,7 +167,7 @@ def set_category_branch(job_id: str, category: str, branch: str):
 
 
 def set_failed_tasks(job_id: str, tasks: list):
-    """Store the full task dicts for all failed examples — used by retry-failed."""
+    """Store the full task dicts for all failed examples -- used by retry-failed."""
     with JOB_LOCK:
         state = BUILD_STATE.get(job_id)
         if state:
@@ -187,7 +187,7 @@ def set_status(job_id: str, status: str):
 # ── Pause / Resume ─────────────────────────────────────────────────────────
 
 def pause_job(job_id: str):
-    """Pause the job — the worker thread will block after its current example."""
+    """Pause the job -- the worker thread will block after its current example."""
     with JOB_LOCK:
         state = BUILD_STATE.get(job_id)
         if state:

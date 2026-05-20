@@ -1,5 +1,5 @@
 """
-pipeline/llm_client.py — LLM client for code fixing, decomposition, and PR generation.
+pipeline/llm_client.py -- LLM client for code fixing, decomposition, and PR generation.
 """
 
 import json
@@ -156,7 +156,7 @@ Rules:
 - "title" should be concise and descriptive
 - "filename" must be lowercase kebab-case, max 60 chars
 - "tags" max 5 short keywords relevant to the example
-- "apis_used": list the MOST IMPORTANT 5-8 Aspose.Pdf classes/methods used (NOT every API — just the key ones). Do not list System types.
+- "apis_used": list the MOST IMPORTANT 5-8 Aspose.Pdf classes/methods used (NOT every API -- just the key ones). Do not list System types.
 - "difficulty" based on complexity: simple API calls = beginner, multi-step = intermediate, advanced patterns = advanced
 - Output ONLY the JSON object, no other text"""
 
@@ -306,17 +306,17 @@ Rules:
                       rules_text: str = "", category: str = "") -> Optional[dict]:
         """Generate C# code using the same prompt structure as MCP /generate.
 
-        Replicates the MCP server's prompt.py build_prompt() — single user message
+        Replicates the MCP server's prompt.py build_prompt() -- single user message
         with rules, task, documentation context, and output requirements.
 
         Returns a dict with keys:
-            code        — the generated C# source code (required)
-            title       — human-readable example title
-            filename    — recommended kebab-case filename stem (no .cs)
-            description — 1-2 sentence summary of what the example demonstrates
-            tags        — list of short keyword strings
-            apis_used   — list of Aspose.Pdf API class/method names used
-            difficulty  — beginner / intermediate / advanced
+            code        -- the generated C# source code (required)
+            title       -- human-readable example title
+            filename    -- recommended kebab-case filename stem (no .cs)
+            description -- 1-2 sentence summary of what the example demonstrates
+            tags        -- list of short keyword strings
+            apis_used   -- list of Aspose.Pdf API class/method names used
+            difficulty  -- beginner / intermediate / advanced
         Returns None if generation fails.
         """
         prompt = f"""You are an Aspose.Pdf expert for NET.
@@ -359,18 +359,18 @@ TASK:
 GROUND TRUTH DOCUMENTATION:
 {chunks_text}
 
-CODE STYLE RULES (MANDATORY — violations will be rejected):
+CODE STYLE RULES (MANDATORY -- violations will be rejected):
 - NEVER use `var`. Always declare the explicit type: `Document doc = new Document();` NOT `var doc = new Document();`
 - NEVER use implicit usings. Always write every `using` directive explicitly at the top of the file.
 - ALWAYS use fully qualified type names when ambiguity exists: `Aspose.Pdf.Color`, `Aspose.Pdf.Rectangle`, `Aspose.Pdf.Image`.
 - ALWAYS use explicit float literals: `0.5f` or `(float)0.5`, never assign a double literal to a float variable.
 - ALWAYS wrap `Document` operations in `using` blocks: `using (Document doc = new Document()) {{ ... }}`
-- Output path must be a simple filename: `doc.Save("output.pdf");` — no directory paths.
+- Output path must be a simple filename: `doc.Save("output.pdf");` -- no directory paths.
 
 OUTPUT REQUIREMENTS:
 Return a JSON object with exactly these keys:
 {{
-  "code": "<valid C# source code — no markdown fences, compilable>",
+  "code": "<valid C# source code -- no markdown fences, compilable>",
   "title": "<concise human-readable title, e.g. 'Add Text Annotation to PDF Page'>",
   "filename": "<kebab-case filename stem without extension, e.g. 'add-text-annotation'>",
   "description": "<1-2 sentences describing what the example demonstrates>",
@@ -380,7 +380,7 @@ Return a JSON object with exactly these keys:
 }}
 
 Rules for the JSON:
-- "code" must be pure C# — no markdown, no JSON wrapper inside it, must compile
+- "code" must be pure C# -- no markdown, no JSON wrapper inside it, must compile
 - "filename" must be lowercase kebab-case, max 60 chars, no .cs extension
 - "tags" max 5 short keywords
 - "apis_used" list the main Aspose.Pdf classes/methods actually used in the code
@@ -424,7 +424,7 @@ Rules for the JSON:
             'Return ONLY JSON: {"title": "...", "body": "..."}\n'
             "Title: under 70 chars. Body: markdown with summary and categories.\n"
             "Do NOT include any test statistics, pass/fail counts, or pass rates in the body.\n"
-            "Each category is a SINGLE name — do NOT split category names on dashes or hyphens."
+            "Each category is a SINGLE name -- do NOT split category names on dashes or hyphens."
         )
         cat_list = "\n".join(f'  - "{c}"' for c in categories) if categories else '  - "uncategorized"'
         user = (

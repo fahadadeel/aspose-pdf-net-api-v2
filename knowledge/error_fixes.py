@@ -1,5 +1,5 @@
 """
-knowledge/error_fixes.py — Load and match curated error fixes from error_fixes.json.
+knowledge/error_fixes.py -- Load and match curated error fixes from error_fixes.json.
 """
 
 import json

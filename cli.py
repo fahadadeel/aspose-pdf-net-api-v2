@@ -1,5 +1,5 @@
 """
-cli.py — CLI entry point for running tasks without a web server.
+cli.py -- CLI entry point for running tasks without a web server.
 
 Usage:
     python cli.py --task "Convert PDF to HTML"
@@ -168,7 +168,7 @@ def _commit_and_pr(config, task, category, code, results_summary):
 
 
 def run_sweep_cli(config, categories: list, repo_push: bool):
-    """Run category sweep from CLI — processes all tasks for selected categories."""
+    """Run category sweep from CLI -- processes all tasks for selected categories."""
     import uuid
     import requests
 
@@ -281,7 +281,7 @@ def main():
         import uuid as _uuid
         from jobs import run_version_bump
         job_id = str(_uuid.uuid4())
-        print(f"\nVersion bump: {config.build.nuget_version} → {args.version_bump}")
+        print(f"\nVersion bump: {config.build.nuget_version} -> {args.version_bump}")
         print(f"Repo push: {args.repo_push}")
         print("=" * 60)
         run_version_bump(job_id, args.version_bump, repo_push=args.repo_push)

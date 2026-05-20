@@ -1,5 +1,5 @@
 """
-pipeline/usage_tracker.py — Thread-safe usage counters for a single job run.
+pipeline/usage_tracker.py -- Thread-safe usage counters for a single job run.
 
 Tracks LLM token usage and API call counts. Passed into LLMClient and MCPClient
 so they can report usage without any global state.

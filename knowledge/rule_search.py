@@ -1,5 +1,5 @@
 """
-knowledge/rule_search.py — Hybrid semantic + keyword search for KB rules.
+knowledge/rule_search.py -- Hybrid semantic + keyword search for KB rules.
 """
 
 import json
@@ -43,7 +43,7 @@ class RuleSearchEngine:
         try:
             from sentence_transformers import SentenceTransformer
         except ImportError:
-            print("sentence-transformers not installed — rule search disabled")
+            print("sentence-transformers not installed -- rule search disabled")
             return False
 
         try:

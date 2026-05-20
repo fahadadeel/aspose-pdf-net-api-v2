@@ -1,5 +1,5 @@
 """
-git_ops/agents_content.py — Extract prescriptive content from resource files
+git_ops/agents_content.py -- Extract prescriptive content from resource files
 for enhanced agents.md generation.
 
 Reads error_catalog.json, error_fixes.json, and kb.json to produce
@@ -64,7 +64,7 @@ See the root [agents.md](../agents.md) for repository-wide conventions and bound
 
 You are a C# developer specializing in PDF processing using Aspose.PDF for .NET.
 When working in this repository:
-- Each `.cs` file is a **standalone Console Application** — do not create multi-file projects
+- Each `.cs` file is a **standalone Console Application** -- do not create multi-file projects
 - All examples must **compile and run** without errors using `dotnet build` and `dotnet run`
 - Follow the conventions, boundaries, and anti-patterns documented below exactly
 - Use the **Command Reference** section for build/run commands
@@ -75,16 +75,16 @@ When working in this repository:
 def build_boundaries() -> str:
     """Return structured boundaries section (Always / Ask First / Never).
 
-    Replaces ``build_enhanced_conventions()`` in templates — merges the same
+    Replaces ``build_enhanced_conventions()`` in templates -- merges the same
     code examples into GitHub's recommended three-tier boundary framework.
     """
     return """## Boundaries
 
-### ✅ Always
+### [OK] Always
 
 These rules are mandatory for every example.
 
-#### Use explicit types — never use `var`
+#### Use explicit types -- never use `var`
 ```csharp
 // CORRECT
 Document document = new Document("input.pdf");
@@ -98,12 +98,12 @@ TextFragmentAbsorber absorber = new TextFragmentAbsorber("search");
 
 #### Use 1-based indexing for Pages, Annotations, EmbeddedFiles
 ```csharp
-// CORRECT — first page is index 1
+// CORRECT -- first page is index 1
 Page firstPage = document.Pages[1];
 Annotation firstAnnotation = page.Annotations[1];
 FileSpecification firstFile = document.EmbeddedFiles[1];
 
-// WRONG — index 0 throws IndexOutOfRangeException
+// WRONG -- index 0 throws IndexOutOfRangeException
 // Page page = document.Pages[0];
 ```
 
@@ -114,7 +114,7 @@ Aspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(100, 200, 300, 400);
 Aspose.Pdf.Drawing.Rectangle drawRect = new Aspose.Pdf.Drawing.Rectangle(50, 50, 200, 100);
 Aspose.Pdf.Color pdfColor = Aspose.Pdf.Color.Blue;
 
-// WRONG — ambiguous CS0104
+// WRONG -- ambiguous CS0104
 // Rectangle rect = new Rectangle(100, 200, 300, 400);
 // Color color = Color.Blue;
 ```
@@ -136,13 +136,13 @@ Document document = new Document("input.pdf");
 document.Save("output.pdf");
 ```
 
-### ⚠️ Ask First
+### [WARN]️ Ask First
 
 Check with a human before doing any of these:
-- **Creating multi-file projects** — each example must be a single `.cs` file
-- **Using deprecated APIs** — check the Aspose.PDF changelog for the current API surface
-- **Adding NuGet packages** beyond `Aspose.PDF` — the `.csproj` template only includes Aspose.PDF
-- **Modifying shared infrastructure** — `.csproj` templates, `agents.md` files, CI configs
+- **Creating multi-file projects** -- each example must be a single `.cs` file
+- **Using deprecated APIs** -- check the Aspose.PDF changelog for the current API surface
+- **Adding NuGet packages** beyond `Aspose.PDF` -- the `.csproj` template only includes Aspose.PDF
+- **Modifying shared infrastructure** -- `.csproj` templates, `agents.md` files, CI configs
 
 ### 🚫 Never
 
@@ -152,8 +152,8 @@ See the full **Common Mistakes** section below for code-level prohibitions with 
 - Never use unqualified type names for `Rectangle`, `Color`, `Path`, `Image`, `Matrix`, `Point`
 - Never use `Aspose.Pdf.Saving` namespace (it does not exist)
 - Never mix `Aspose.Pdf.LogicalStructure` and `Aspose.Pdf.Structure` namespaces
-- Never modify `agents.md` files — they are auto-generated
-- Never modify the `.csproj` template — it is generated
+- Never modify `agents.md` files -- they are auto-generated
+- Never modify the `.csproj` template -- it is generated
 
 """
 
@@ -311,7 +311,7 @@ def load_anti_patterns(
                 "source": "error_catalog",
             })
 
-    # Deduplicate — prefer entries with code examples
+    # Deduplicate -- prefer entries with code examples
     seen_titles = set()
     unique = []
     for e in entries:
@@ -502,14 +502,14 @@ def load_category_tips(kb_path: str, category_name: str, max_count: int = 5) -> 
 
     Matching strategy:
     1. Exact match (case-insensitive, hyphen/space agnostic)
-    2. Keyword fallback — split the category name into meaningful keywords
+    2. Keyword fallback -- split the category name into meaningful keywords
        (filtering stop-words like "working", "with", "pdf") and match KB
        categories that contain any keyword (min 3 chars).
-       e.g. "working-with-xml" → keyword "xml" → matches "Working-With-XML-XSLT".
+       e.g. "working-with-xml" -> keyword "xml" -> matches "Working-With-XML-XSLT".
 
     Facades handling (mirrors pipeline/mcp_client.py):
-    - If "facades" is in the category name → prefer Facades-namespace entries
-    - If "facades" is NOT in the category name → exclude Facades-namespace entries
+    - If "facades" is in the category name -> prefer Facades-namespace entries
+    - If "facades" is NOT in the category name -> exclude Facades-namespace entries
     """
     data = _load_json(kb_path)
     if not isinstance(data, list):
@@ -521,7 +521,7 @@ def load_category_tips(kb_path: str, category_name: str, max_count: int = 5) -> 
     def _is_facades_entry(entry: dict) -> bool:
         """Check if a KB entry belongs to the Facades namespace.
 
-        Checks category, namespace, AND api_surface — entries whose APIs
+        Checks category, namespace, AND api_surface -- entries whose APIs
         are predominantly ``Aspose.Pdf.Facades.*`` are treated as Facades
         entries even when their KB category is something else (e.g. an
         entry filed under 'Text' that uses PdfContentEditor).
@@ -698,12 +698,12 @@ TextFragmentAbsorber absorber = new TextFragmentAbsorber("search");
 Aspose.PDF uses 1-based indexing for Pages, Annotations, and EmbeddedFiles.
 
 ```csharp
-// CORRECT — first page is index 1
+// CORRECT -- first page is index 1
 Page firstPage = document.Pages[1];
 Annotation firstAnnotation = page.Annotations[1];
 FileSpecification firstFile = document.EmbeddedFiles[1];
 
-// WRONG — index 0 throws IndexOutOfRangeException
+// WRONG -- index 0 throws IndexOutOfRangeException
 // Page page = document.Pages[0];
 ```
 
@@ -716,7 +716,7 @@ Aspose.Pdf.Rectangle rect = new Aspose.Pdf.Rectangle(100, 200, 300, 400);
 Aspose.Pdf.Drawing.Rectangle drawRect = new Aspose.Pdf.Drawing.Rectangle(50, 50, 200, 100);
 Aspose.Pdf.Color pdfColor = Aspose.Pdf.Color.Blue;
 
-// WRONG — ambiguous CS0104
+// WRONG -- ambiguous CS0104
 // Rectangle rect = new Rectangle(100, 200, 300, 400);
 // Color color = Color.Blue;
 ```
@@ -746,7 +746,7 @@ document.Save("output.pdf");
 
 
 # ---------------------------------------------------------------------------
-# Code Intelligence — analyse actual .cs files for enriched agents.md
+# Code Intelligence -- analyse actual .cs files for enriched agents.md
 # ---------------------------------------------------------------------------
 
 _RE_USING = re.compile(r"^\s*using\s+([\w.]+)\s*;", re.MULTILINE)

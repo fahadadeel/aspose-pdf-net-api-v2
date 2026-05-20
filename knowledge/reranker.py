@@ -1,5 +1,5 @@
 """
-knowledge/reranker.py — LLM-based reranking of candidate KB rules.
+knowledge/reranker.py -- LLM-based reranking of candidate KB rules.
 """
 
 import json

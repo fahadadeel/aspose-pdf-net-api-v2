@@ -1,5 +1,5 @@
 """
-pipeline/build.py — .NET build and run operations.
+pipeline/build.py -- .NET build and run operations.
 
 Uses an isolated `_build` subdirectory so generated code output
 (files, folders) doesn't pollute the project root.
@@ -69,7 +69,7 @@ def _run_with_kill(cmd, cwd, timeout):
         except OSError:
             pass
         proc.wait(timeout=5)
-        return BuildResult(ok=False, log=f"Timeout after {timeout}s — process killed")
+        return BuildResult(ok=False, log=f"Timeout after {timeout}s -- process killed")
     except Exception as e:
         try:
             proc.kill()
@@ -177,7 +177,7 @@ class DotnetBuilder:
                     try:
                         item.unlink()
                     except OSError:
-                        pass  # Locked files are harmless — unique AssemblyName prevents reuse
+                        pass  # Locked files are harmless -- unique AssemblyName prevents reuse
 
     def _dotnet_clean(self):
         """Best-effort ``dotnet clean`` to remove MSBuild-tracked outputs.
@@ -203,7 +203,7 @@ class DotnetBuilder:
         ``dotnet build`` reports success, a post-build check verifies
         the expected DLL actually exists on disk.
         """
-        # Unique assembly name per build — core defense against stale DLLs
+        # Unique assembly name per build -- core defense against stale DLLs
         self._build_id = uuid.uuid4().hex[:8]
 
         self._dotnet_clean()

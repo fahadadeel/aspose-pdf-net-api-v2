@@ -1,5 +1,5 @@
 """
-knowledge/fix_history.py — Thread-safe fix history: record successful fixes, compute boosts.
+knowledge/fix_history.py -- Thread-safe fix history: record successful fixes, compute boosts.
 """
 
 import json

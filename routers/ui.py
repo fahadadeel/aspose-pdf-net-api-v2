@@ -1,5 +1,5 @@
 """
-routers/ui.py — Serves the Build Monitor HTML UI.
+routers/ui.py -- Serves the Build Monitor HTML UI.
 """
 
 from pathlib import Path

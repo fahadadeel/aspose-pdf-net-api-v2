@@ -1,5 +1,5 @@
 """
-pipeline/error_parser.py — Extract and parse build errors, apply known pattern fixes.
+pipeline/error_parser.py -- Extract and parse build errors, apply known pattern fixes.
 """
 
 import json
@@ -71,7 +71,7 @@ def parse_error_codes(error_lines: List[str]) -> List[ParsedError]:
     return errors
 
 
-# Known pattern fixes — applied before LLM/MCP retry
+# Known pattern fixes -- applied before LLM/MCP retry
 _KNOWN_FIXES = [
     {
         "pattern": r"error CS0103.*'TextAnnotationIcon' does not exist",
@@ -226,7 +226,7 @@ _KNOWN_FIXES = [
         "rule": {"description": "FoLoadOptions does not exist; use XslFoLoadOptions", "pattern": "new XslFoLoadOptions()"},
     },
 
-    # ── DefaultAppearance: Aspose.Pdf.Color → System.Drawing.Color ──
+    # ── DefaultAppearance: Aspose.Pdf.Color -> System.Drawing.Color ──
     {
         "pattern": r"(?s)error CS1503.*cannot convert from 'Aspose\.Pdf\.Color' to 'System\.Drawing\.Color'",
         "old": r"new\s+DefaultAppearance\(([^,]+),\s*([^,]+),\s*Aspose\.Pdf\.Color\.(\w+)\)",
@@ -235,7 +235,7 @@ _KNOWN_FIXES = [
         "rule": {"description": "DefaultAppearance constructor takes System.Drawing.Color, not Aspose.Pdf.Color", "pattern": "new DefaultAppearance(font, size, System.Drawing.Color.X)"},
     },
 
-    # ── CheckBoxField → CheckboxField (lowercase b) ──
+    # ── CheckBoxField -> CheckboxField (lowercase b) ──
     {
         "pattern": r"(?s)error CS0246.*'CheckBoxField'",
         "old": "CheckBoxField",
@@ -244,7 +244,7 @@ _KNOWN_FIXES = [
         "rule": {"description": "CheckBoxField has wrong casing; use CheckboxField (lowercase b)", "pattern": "CheckboxField"},
     },
 
-    # ── JavaScriptAction → JavascriptAction (lowercase s) ──
+    # ── JavaScriptAction -> JavascriptAction (lowercase s) ──
     {
         "pattern": r"(?s)error CS0246.*'JavaScriptAction'",
         "old": "JavaScriptAction",
@@ -253,7 +253,7 @@ _KNOWN_FIXES = [
         "rule": {"description": "JavaScriptAction has wrong casing; use JavascriptAction (lowercase s)", "pattern": "JavascriptAction"},
     },
 
-    # ── PasswordBoxField → TextBoxField ──
+    # ── PasswordBoxField -> TextBoxField ──
     {
         "pattern": r"(?s)error CS1729.*'PasswordBoxField'.*does not contain a constructor",
         "old": r"new\s+PasswordBoxField\(",
@@ -262,7 +262,7 @@ _KNOWN_FIXES = [
         "rule": {"description": "PasswordBoxField has no public constructor; use TextBoxField", "pattern": "new TextBoxField(page, rect)"},
     },
 
-    # ── DefaultAppearance CS0246 → add using Aspose.Pdf.Annotations ──
+    # ── DefaultAppearance CS0246 -> add using Aspose.Pdf.Annotations ──
     {
         "pattern": r"(?s)error CS0246.*'DefaultAppearance'.*could not be found",
         "old": "using Aspose.Pdf.Forms;",

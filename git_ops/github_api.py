@@ -1,5 +1,5 @@
 """
-git_ops/github_api.py — GitHub REST API wrapper.
+git_ops/github_api.py -- GitHub REST API wrapper.
 
 Low-level functions for file CRUD and PR management via the GitHub API.
 """
@@ -244,7 +244,7 @@ class GitHubAPI:
         """Fast-forward update of a branch ref (force=False).
 
         Succeeds only when ``sha`` is a strict descendant of the current ref
-        target — i.e. a clean fast-forward. Used by the snapshot-promote flow
+        target -- i.e. a clean fast-forward. Used by the snapshot-promote flow
         so users with the branch cloned can ``git pull`` without conflicts.
         Returns False on non-FF (e.g. divergent history).
         """
@@ -357,7 +357,7 @@ class GitHubAPI:
                             log_fn=None) -> bool:
         """Create an orphan branch (no parent commits) via GitHub Git Data API.
 
-        Uses a minimal tree with a .gitkeep placeholder — empty trees are
+        Uses a minimal tree with a .gitkeep placeholder -- empty trees are
         rejected by the GitHub API. Accepts an optional log_fn(msg) callback
         so callers can route error messages to their own logging system.
         """
@@ -436,7 +436,7 @@ class GitHubAPI:
 
         try:
             # Try as a single file first. The contents API returns a dict
-            # for files and a list for directories — only the dict shape
+            # for files and a list for directories -- only the dict shape
             # carries an inline base64 ``content`` field we can copy.
             file_meta = self.get_file(owner, repo, path, source_branch)
             if isinstance(file_meta, dict) and file_meta.get("type") == "file":
@@ -453,7 +453,7 @@ class GitHubAPI:
                     _log(f"[GitHub] Copied {path}: {source_branch} -> {dest_branch}")
                 return ok
 
-            # Treat as a directory — list and recurse one level at a time
+            # Treat as a directory -- list and recurse one level at a time
             entries = self.list_directory(owner, repo, path, source_branch)
             if not entries:
                 _log(f"[GitHub] Source path {path} not found on {source_branch}")
@@ -675,7 +675,7 @@ class GitHubAPI:
                 last_state = state
             if state in ("success", "failure"):
                 return state
-            # 'pending' or 'unknown' — keep polling
+            # 'pending' or 'unknown' -- keep polling
             time.sleep(poll_interval)
 
     def update_pr_branch(self, owner: str, repo: str, pr_number: int,
@@ -685,7 +685,7 @@ class GitHubAPI:
         PUT /repos/{owner}/{repo}/pulls/{pr_number}/update-branch
 
         Returns True on 202 (accepted). Returns False on 422 (merge
-        conflict — caller should skip).
+        conflict -- caller should skip).
         """
         try:
             r = self._session.put(
@@ -741,7 +741,7 @@ class GitHubAPI:
             return False
 
     def get_pr_number(self, owner: str, repo: str, head: str, base: str) -> Optional[int]:
-        """Find open PR number for head→base. Returns PR number or None."""
+        """Find open PR number for head->base. Returns PR number or None."""
         try:
             r = self._session.get(
                 f"https://api.github.com/repos/{owner}/{repo}/pulls",
@@ -808,7 +808,7 @@ class GitHubAPI:
     def delete_release(self, owner: str, repo: str, tag_name: str) -> bool:
         """Delete a GitHub Release identified by its tag name.
 
-        Does NOT delete the underlying tag — call delete_tag afterwards
+        Does NOT delete the underlying tag -- call delete_tag afterwards
         if you want to remove the tag as well.
         """
         release = self.get_release_by_tag(owner, repo, tag_name)

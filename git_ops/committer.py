@@ -1,5 +1,5 @@
 """
-git_ops/committer.py — CodeCommitter: commit, push, batch operations.
+git_ops/committer.py -- CodeCommitter: commit, push, batch operations.
 
 Handles writing code files to the repo, committing, and pushing.
 """
@@ -116,7 +116,7 @@ class CodeCommitter:
         if "examples" not in index_data:
             index_data["examples"] = {}
 
-        # Build entry — merge LLM metadata with pipeline-added fields
+        # Build entry -- merge LLM metadata with pipeline-added fields
         entry = {
             "title": metadata.get("title") or filename_stem.replace("-", " ").title(),
             "filename": f"{filename_stem}.cs",
