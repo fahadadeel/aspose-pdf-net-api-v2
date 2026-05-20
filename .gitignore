@@ -1,28 +1,69 @@
+# Python
 __pycache__/
 *.pyc
+.venv/
+venv/
+.winvenv/
+
+# Environment
 .env
 .env.production
 .env.staging
+
+# Build artifacts (.NET)
+_build/
+bin/
+obj/
+*.csproj
+*.sln
+Program.cs
+
+# Generated output files (dotnet run artifacts)
+*.pdf
+*.html
+*.xps
+*.epub
+*.tex
+*.xfdf
+*.fdf
+*.xslfo
+*.ps
+*.doc
+*.docx
+*.pptx
+*.ods
+*.xls
 *.xlsx
+*.xlsm
+*.csv
 *.log
+output.*
+extracted*.txt
+xfaData.xml
+form_data.json
+form_data.xml
+form_fields.json
+form_fields.xml
+formdata.json
+conversion_log.txt
+headings.md
+pdfa_conversion.log
+data.fdf
+
+# App runtime
 logs/
 uploads/
 fix_history.json
-*.csproj
-Program.cs
-bin/
-obj/
-OutputImages/
-*.fdf
-*.pdf
-output.*
-extracted*.txt
-fields*.json
-formdata.json
-conversion_log.txt
-_build/
-.parallel-workspaces/
+usage_reports.jsonl
 results/
-.venv/
-venv/
+.parallel-workspaces/
+rollback_snapshots/
+
+# IDE / OS
 .claude/
+.DS_Store
+.pytest_cache/
+.backups/
+
+# Keep these HTML files (templates)
+!templates/*.html
