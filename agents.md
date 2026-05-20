@@ -17,6 +17,20 @@
 
 Automated C# code generation and testing pipeline for Aspose.PDF for .NET. Generates working code examples via an MCP API, compiles and runs them with `dotnet`, auto-fixes errors through a multi-stage retry pipeline, and publishes results as GitHub pull requests.
 
+## Output Repository
+
+Generated examples are committed and pushed to a separate GitHub repository:
+
+| Field | Value |
+|-------|-------|
+| **Repository** | [aspose-pdf/agentic-net-examples](https://github.com/aspose-pdf/agentic-net-examples) |
+| **Default Config** | `REPO_URL` in [`config.py`](config.py), overridable via `.env` |
+| **Local Clone Path** | `REPO_PATH` in `.env` (e.g. `C:\fahad\agentic-net-examples-v3` on server) |
+| **Branch Strategy** | Feature branches per category (e.g. `examples/{job_id}-conversion`), PRs target `main` or `release/{version}` |
+| **File Structure** | `{Category}/{slug}.cs` with `agents.md` and `index.json` sidecar files per category |
+
+This repository (aspose-pdf-net-api-v2) is the **agent/pipeline** — it generates, tests, and publishes code. The output repository contains only the final passing C# examples.
+
 ## Capabilities
 
 ### Code Generation & Testing
