@@ -137,7 +137,7 @@ python cli.py --csv tasks.csv --repo-push
               └─────────────────────────┘
 ```
 
-The system runs as a single-process FastAPI application. Jobs execute in daemon threads with thread-safe state management. Real-time updates stream to the UI via Server-Sent Events (SSE). Results are written to disk as they complete for crash recovery.
+The system runs as a single-process FastAPI application ([`main.py`](main.py)). Jobs execute in daemon threads ([`jobs.py`](jobs.py)) with thread-safe state management ([`state.py`](state.py)). Real-time updates stream to the UI via Server-Sent Events (SSE) ([`routers/jobs.py#api_stream`](routers/jobs.py)). Results are written to disk as they complete for crash recovery ([`persistence.py`](persistence.py)).
 
 ---
 
@@ -173,8 +173,8 @@ The UI has three modes:
 - Real-time stats: total, passed, failed, pass rate, elapsed time
 - Live console log with timestamped entries
 - View generated code inline with copy-to-clipboard
-- **Create PR** button — Create/retry PR after job completes
-- **Download CSV** button — Export results as CSV
+- **Create PR** button — Create/retry PR after job completes ([`routers/jobs.py#api_retry_pr`](routers/jobs.py), [`jobs.py#create_pr`](jobs.py))
+- **Download CSV** button — Export results as CSV ([`templates/index.html#downloadCSV`](templates/index.html))
 
 **Task Generator Tips:**
 - Click a category to load its tasks (single selection)
@@ -250,53 +250,53 @@ All endpoints are served under the root path.
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `POST /api/start` | Multipart form | Start single or CSV job |
-| `POST /api/start-tasks` | JSON body | Start job from task list |
-| `POST /api/start-sweep` | JSON body | Start category sweep job |
-| `POST /api/version-bump` | JSON body | Tag old version, create staging branch, update `.env` |
-| `POST /api/promote-to-main` | JSON body | Snapshot-promote staging branch to main, tag release, reset `.env` |
-| `GET /api/status/{job_id}` | — | Poll job status |
-| `GET /api/stream/{job_id}` | SSE | Real-time event stream |
-| `POST /api/cancel/{job_id}` | — | Cancel a running job |
-| `POST /api/pause/{job_id}` | — | Pause a running job |
-| `POST /api/resume/{job_id}` | — | Resume a paused job |
-| `POST /api/retry-pr/{job_id}` | — | Create or retry PR for completed job |
-| `POST /api/retry-failed/{job_id}` | JSON body | Re-run failed tasks from a previous job |
+| `POST /api/start` | Multipart form | Start single or CSV job — [`routers/jobs.py#api_start`](routers/jobs.py) |
+| `POST /api/start-tasks` | JSON body | Start job from task list — [`routers/jobs.py#api_start_tasks`](routers/jobs.py) |
+| `POST /api/start-sweep` | JSON body | Start category sweep job — [`routers/jobs.py#api_start_sweep`](routers/jobs.py) |
+| `POST /api/version-bump` | JSON body | Tag old version, create staging branch, update `.env` — [`jobs.py#run_version_bump`](jobs.py) |
+| `POST /api/promote-to-main` | JSON body | Snapshot-promote staging branch to main — [`jobs.py#run_promote_to_main`](jobs.py) |
+| `GET /api/status/{job_id}` | — | Poll job status — [`routers/jobs.py#api_status`](routers/jobs.py) |
+| `GET /api/stream/{job_id}` | SSE | Real-time event stream — [`routers/jobs.py#api_stream`](routers/jobs.py) |
+| `POST /api/cancel/{job_id}` | — | Cancel a running job — [`routers/jobs.py#api_cancel`](routers/jobs.py), [`state.py#cancel_job`](state.py) |
+| `POST /api/pause/{job_id}` | — | Pause a running job — [`routers/jobs.py#api_pause`](routers/jobs.py), [`state.py#pause_job`](state.py) |
+| `POST /api/resume/{job_id}` | — | Resume a paused job — [`routers/jobs.py#api_resume`](routers/jobs.py), [`state.py#resume_job`](state.py) |
+| `POST /api/retry-pr/{job_id}` | — | Create or retry PR for completed job — [`routers/jobs.py#api_retry_pr`](routers/jobs.py) |
+| `POST /api/retry-failed/{job_id}` | JSON body | Re-run failed tasks from a previous job — [`routers/jobs.py#api_retry_failed`](routers/jobs.py) |
 
 #### Results Dashboard
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `GET /results-v2` | — | Results Dashboard UI (primary) |
-| `GET /api/results` | — | List persisted disk results per category |
-| `GET /api/results/all-categories` | — | Combined disk + repo view with status filters |
-| `GET /api/results/sync-status` | — | Compare disk results with GitHub branch |
-| `GET /api/results/{category}` | — | Detailed results for one category |
-| `POST /api/create-pr-from-results` | JSON body | Create PR(s) from disk results (supports write mode) |
-| `POST /api/regenerate-metadata` | JSON body | Regenerate missing metadata via LLM |
-| `POST /api/update-repo-docs` | JSON body | Regenerate agents.md, index.json, README.md on repo |
-| `POST /api/patch-pr-branch` | JSON body | Add agents.md + index.json to an existing PR branch that was missing them |
+| `GET /results-v2` | — | Results Dashboard UI — [`routers/results.py`](routers/results.py), [`templates/results-v2.html`](templates/results-v2.html) |
+| `GET /api/results` | — | List persisted disk results per category — [`routers/jobs.py#api_results`](routers/jobs.py), [`persistence.py#scan_disk_results`](persistence.py) |
+| `GET /api/results/all-categories` | — | Combined disk + repo view with status filters — [`routers/jobs.py#api_results_all`](routers/jobs.py) |
+| `GET /api/results/sync-status` | — | Compare disk results with GitHub branch — [`routers/jobs.py#api_sync_status`](routers/jobs.py) |
+| `GET /api/results/{category}` | — | Detailed results for one category — [`routers/jobs.py#api_results_category`](routers/jobs.py) |
+| `POST /api/create-pr-from-results` | JSON body | Create PR(s) from disk results — [`routers/jobs.py#api_create_pr_from_results`](routers/jobs.py), [`jobs.py#create_pr_from_results`](jobs.py) |
+| `POST /api/regenerate-metadata` | JSON body | Regenerate missing metadata via LLM — [`routers/jobs.py#api_regenerate_metadata`](routers/jobs.py), [`jobs.py#regenerate_metadata`](jobs.py) |
+| `POST /api/update-repo-docs` | JSON body | Regenerate agents.md, index.json, README.md — [`routers/jobs.py#api_update_repo_docs`](routers/jobs.py), [`git_ops/repo_docs.py`](git_ops/repo_docs.py) |
+| `POST /api/patch-pr-branch` | JSON body | Add agents.md + index.json to existing PR branch — [`routers/jobs.py#api_patch_pr_branch`](routers/jobs.py) |
 
 #### Learned Rules
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `GET /api/auto-fixes` | — | List auto-learned rules (confidence, hits, stage) |
-| `POST /api/auto-fixes/{id}/approve` | — | Promote single auto rule to curated `error_fixes.json` |
-| `POST /api/auto-fixes/approve-all` | — | Promote all auto-learned rules at once |
-| `DELETE /api/auto-fixes/{id}` | — | Remove an auto-learned rule |
+| `GET /api/auto-fixes` | — | List auto-learned rules — [`routers/jobs.py#api_auto_fixes`](routers/jobs.py), [`knowledge/auto_fixes.py`](knowledge/auto_fixes.py) |
+| `POST /api/auto-fixes/{id}/approve` | — | Promote single auto rule — [`routers/jobs.py#api_approve_auto_fix`](routers/jobs.py) |
+| `POST /api/auto-fixes/approve-all` | — | Promote all auto-learned rules — [`routers/jobs.py#api_approve_all`](routers/jobs.py) |
+| `DELETE /api/auto-fixes/{id}` | — | Remove an auto-learned rule — [`routers/jobs.py#api_delete_auto_fix`](routers/jobs.py) |
 
 #### Data & Utilities
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| `GET /api/health` | — | Health check |
-| `GET /api/categories` | — | Fetch available categories from task API |
-| `GET /api/tasks` | — | Fetch tasks by category |
-| `POST /api/upload-files` | Multipart | Upload test input files |
-| `GET /api/repo-categories` | — | List categories present on the repo branch |
-| `POST /api/generate-category-docs` | JSON body | Generate agents.md + index.json for specific categories |
-| `POST /api/generate-index-json` | JSON body | Regenerate index.json for a category from existing .cs files |
+| `GET /api/health` | — | Health check — [`routers/health.py`](routers/health.py) |
+| `GET /api/categories` | — | Fetch available categories — [`routers/categories.py`](routers/categories.py) |
+| `GET /api/tasks` | — | Fetch tasks by category — [`routers/tasks.py`](routers/tasks.py) |
+| `POST /api/upload-files` | Multipart | Upload test input files — [`routers/files.py`](routers/files.py) |
+| `GET /api/repo-categories` | — | List categories on repo branch — [`routers/jobs.py#api_repo_categories`](routers/jobs.py) |
+| `POST /api/generate-category-docs` | JSON body | Generate agents.md + index.json — [`routers/jobs.py#api_generate_category_docs`](routers/jobs.py) |
+| `POST /api/generate-index-json` | JSON body | Regenerate index.json from .cs files — [`routers/jobs.py#api_generate_index_json`](routers/jobs.py) |
 
 #### POST /api/start — Parameters
 
@@ -470,7 +470,7 @@ Sweep mode processes ALL tasks across selected (or all) categories in a single j
 
 ## Parallel Generation
 
-A full release touches hundreds of tasks across 30+ categories. Running them one-at-a-time through a single app instance takes hours. `scripts/parallel_run.py` is an orchestrator that spawns **N uvicorn workers on separate ports**, splits work across them using greedy bin-packing, and monitors everything from one terminal.
+A full release touches hundreds of tasks across 30+ categories. Running them one-at-a-time through a single app instance takes hours. [`scripts/parallel_run.py`](scripts/parallel_run.py) is an orchestrator that spawns **N uvicorn workers on separate ports**, splits work across them using greedy bin-packing, and monitors everything from one terminal.
 
 Each worker is a full app instance — so there are no code changes to the pipeline. The script uses the existing HTTP API (`/api/start-tasks`, `/api/status/{job_id}`) as the coordination layer. Results land in the shared `results/{version}/` directory.
 
@@ -631,7 +631,7 @@ Every PR creation path (single job, CSV, sweep, "Create PR from Results" button)
 
 ## Usage Reporting
 
-Every job run sends a usage report to a configurable endpoint (Google Apps Script) and/or logs it locally.
+Every job run sends a usage report to a configurable endpoint (Google Apps Script) and/or logs it locally. Implementation: [`reporting.py`](reporting.py), token tracking via [`pipeline/usage_tracker.py`](pipeline/usage_tracker.py).
 
 **Report payload includes:**
 - Agent name, owner, job type, run ID
@@ -658,7 +658,7 @@ Token usage is read from the `usage.total_tokens` field of each LiteLLM API resp
 
 ## Configuration
 
-Configuration is managed through typed Python dataclasses in `config.py`. Every setting can be overridden with environment variables. Place them in a `.env` file (loaded automatically) or export them in your shell.
+Configuration is managed through typed Python dataclasses in [`config.py`](config.py). Every setting can be overridden with environment variables. Place them in a `.env` file (loaded automatically) or export them in your shell.
 
 **Environment-specific config:** Set `APP_ENV` to load a different env file:
 - `APP_ENV=production` loads `.env.production`
@@ -870,9 +870,9 @@ Task
 └─────────────────────────────┘
 ```
 
-**Result badges** indicate which stage produced the final code: `baseline`, `pattern_fix`, `llm_fix`, `regen`, `final_llm`.
+**Result badges** indicate which stage produced the final code: `baseline`, `pattern_fix`, `llm_fix`, `regen`, `final_llm`. See [`pipeline/runner.py#execute`](pipeline/runner.py) for the full orchestration and [`pipeline/stages.py`](pipeline/stages.py) for individual stage implementations.
 
-**Transient failures:** If the MCP API returns errors (timeouts, 5xx), the task is requeued up to 3 times with backoff instead of being marked as failed.
+**Transient failures:** If the MCP API returns errors (timeouts, 5xx), the task is requeued up to 3 times with backoff instead of being marked as failed. See retry logic in [`jobs.py`](jobs.py) (search for `API_FAILED`).
 
 ---
 
@@ -888,7 +888,7 @@ The pipeline automatically learns from its own successes. When a task fails at S
 4. **Save** — Rules are stored in `resources/auto_fixes.json` with confidence metadata
 5. **Apply** — Auto-learned rules are merged into the error fix pool on next pipeline run (curated rules always rank higher)
 
-All learning happens in fire-and-forget daemon threads, so it never blocks the pipeline.
+All learning happens in fire-and-forget daemon threads, so it never blocks the pipeline. Implementation: [`knowledge/auto_learner.py`](knowledge/auto_learner.py), [`knowledge/pattern_tracker.py`](knowledge/pattern_tracker.py).
 
 ### Confidence Scoring
 
@@ -919,14 +919,14 @@ Auto-learned rules can be reviewed in the **Learned Rules** tab in the Web UI, o
 
 When `repo_push=true` is enabled, the pipeline commits results to GitHub:
 
-1. **Clone/Pull** — `RepoManager` clones the repo (or pulls latest) with token auth
+1. **Clone/Pull** — [`git_ops/repo.py#RepoManager`](git_ops/repo.py) clones the repo (or pulls latest) with token auth
 2. **Branch** — Creates a feature branch from `REPO_BRANCH` (e.g., `examples/batch-abc123`)
-3. **Write Files** — Each passed example is saved as `{category}/{slug}.cs`
-4. **Verify** — Each `.cs` file is compiled locally before commit (`_verify_cs_files_compile`)
-5. **Sidecars** — `agents.md` and `index.json` generated per category and staged alongside `.cs` files
-6. **Commit** — LLM generates a commit message summarizing the changes
-7. **Push** — Branch pushed to origin
-8. **Create PR** — LLM generates PR title + body, creates via GitHub API targeting `effective_pr_target`
+3. **Write Files** — Each passed example is saved as `{category}/{slug}.cs` via [`git_ops/committer.py#CodeCommitter`](git_ops/committer.py)
+4. **Verify** — Each `.cs` file is compiled locally before commit ([`jobs.py#_verify_cs_files_compile`](jobs.py))
+5. **Sidecars** — `agents.md` and `index.json` generated per category ([`git_ops/agents_md.py`](git_ops/agents_md.py)) and staged alongside `.cs` files
+6. **Commit** — LLM generates a commit message via [`pipeline/llm_client.py#generate_commit_message`](pipeline/llm_client.py)
+7. **Push** — Branch pushed to origin via [`git_ops/repo.py`](git_ops/repo.py)
+8. **Create PR** — LLM generates PR title + body, creates via [`git_ops/pr.py#PRManager`](git_ops/pr.py) and [`git_ops/github_api.py#GitHubAPI`](git_ops/github_api.py)
 
 **File naming:** Tasks are slugified (lowercase, special chars removed). If a file already exists, it auto-versions: `file__v2.cs`, `file__v3.cs`.
 
@@ -935,7 +935,7 @@ When `repo_push=true` is enabled, the pipeline commits results to GitHub:
 PR_TARGET_BRANCH (if set) → REPO_BRANCH → "main"
 ```
 
-**Human-attributed merges:** The merge orchestrator uses `REPO_TOKEN` for Update Branch (bot action) and `MERGE_ACCT_GITHUB_TOKEN` for the actual merge — so the GitHub PR timeline shows a human reviewer, not the bot.
+**Human-attributed merges:** The merge orchestrator ([`scripts/merge_release_prs.py`](scripts/merge_release_prs.py)) uses `REPO_TOKEN` for Update Branch (bot action) and `MERGE_ACCT_GITHUB_TOKEN` for the actual merge — so the GitHub PR timeline shows a human reviewer, not the bot.
 
 ---
 
@@ -945,7 +945,7 @@ The pipeline uses three knowledge sources to improve code generation in retry st
 
 ### KB Rules (`kb_new.json`)
 
-Semantic search engine using SentenceTransformer (`all-MiniLM-L6-v2`) embeddings + IDF keyword matching. Each rule contains:
+Semantic search engine using SentenceTransformer (`all-MiniLM-L6-v2`) embeddings + IDF keyword matching ([`knowledge/rule_search.py`](knowledge/rule_search.py), [`knowledge/reranker.py`](knowledge/reranker.py)). Each rule contains:
 - `semantic_summary` — Natural language description
 - `api_surface` — Relevant API types/members
 - `rules` — Coding rules and constraints
@@ -955,11 +955,11 @@ Search weighting: 55% semantic similarity + 45% keyword match.
 
 ### Error Catalog (`error_catalog.json`)
 
-Regex-based pattern matching for common build errors. Each entry maps an error pattern to fix guidance text that's injected into the regeneration prompt.
+Regex-based pattern matching for common build errors ([`knowledge/error_catalog.py`](knowledge/error_catalog.py)). Each entry maps an error pattern to fix guidance text that's injected into the regeneration prompt.
 
 ### Error Fixes (`error_fixes.json`)
 
-Curated database of real error→fix pairs. Scored by error code matches (3 pts) and key phrase matches (2 pts). Top 10 fixes are included as context for LLM and regeneration stages. Auto-learned fixes from `auto_fixes.json` are merged in at lower confidence.
+Curated database of real error->fix pairs ([`knowledge/error_fixes.py`](knowledge/error_fixes.py)). Scored by error code matches (3 pts) and key phrase matches (2 pts). Top 10 fixes are included as context for LLM and regeneration stages. Auto-learned fixes from `auto_fixes.json` are merged in at lower confidence.
 
 ### Auto-Generation Rules (`auto_generation_rules.json`)
 
@@ -981,24 +981,24 @@ Auto-populated from successful fixes. Caps at 500 entries. Boosts future searche
 
 ## Results Dashboard
 
-The Results Dashboard at `/results-v2` provides a post-run view of persisted disk results across all categories.
+The Results Dashboard at `/results-v2` ([`templates/results-v2.html`](templates/results-v2.html), [`routers/results.py`](routers/results.py)) provides a post-run view of persisted disk results across all categories.
 
 **Features:**
-- **Per-category cards** with pass/fail/total counts and metadata quality badges
-- **Status filters** — `All`, `Completed`, `Needs Run`, `Has Failed`, `Not Run`
-- **Repo sync status** — compares disk results with GitHub branch (Synced / Partial / Pending badges)
-- **Create PR from results** — push any category to the repo without re-running the pipeline
+- **Per-category cards** with pass/fail/total counts and metadata quality badges — data from [`persistence.py#scan_disk_results`](persistence.py)
+- **Status filters** — `All`, `Completed`, `Needs Run`, `Has Failed`, `Not Run` — [`routers/jobs.py#api_results_all`](routers/jobs.py)
+- **Repo sync status** — compares disk results with GitHub branch — [`routers/jobs.py#api_sync_status`](routers/jobs.py)
+- **Create PR from results** — push any category to the repo without re-running the pipeline — [`jobs.py#create_pr_from_results`](jobs.py)
 - **Write mode** — `Replace` (clean old files first) or `Incremental` (add new files only)
-- **Regenerate metadata** — backfill missing titles, descriptions, tags, and API surface via LLM
-- **Update Repo Docs** — regenerate root + per-category `agents.md`, `index.json`, and `README.md`
-- **Merge to Main** — snapshot-promote staging branch to main, tag release, reset `.env`
-- **Patch PR Branch** — add `agents.md` + `index.json` to an existing PR branch that was created without them
+- **Regenerate metadata** — backfill missing titles, descriptions, tags via LLM — [`jobs.py#regenerate_metadata`](jobs.py), [`pipeline/llm_client.py#extract_metadata`](pipeline/llm_client.py)
+- **Update Repo Docs** — regenerate root + per-category `agents.md`, `index.json`, and `README.md` — [`git_ops/repo_docs.py`](git_ops/repo_docs.py)
+- **Merge to Main** — snapshot-promote staging branch to main — [`jobs.py#run_promote_to_main`](jobs.py)
+- **Patch PR Branch** — add `agents.md` + `index.json` to an existing PR branch — [`routers/jobs.py#api_patch_pr_branch`](routers/jobs.py)
 
 ---
 
 ## Rollback System
 
-`scripts/rollback.py` provides a CLI for undoing batch merge runs (Flow A) or promote-to-main operations (Flow B).
+[`scripts/rollback.py`](scripts/rollback.py) provides a CLI for undoing batch merge runs (Flow A) or promote-to-main operations (Flow B). Snapshot capture/load is handled by [`scripts/rollback_snapshot.py`](scripts/rollback_snapshot.py).
 
 ### Snapshots
 
