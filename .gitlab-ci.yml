@@ -48,6 +48,7 @@ generate-examples:
     # REPO_TOKEN       - GitHub PAT for pushing to aspose-pdf/agentic-net-examples
     # LITELLM_API_KEY  - LLM proxy API key
     # REPO_PATH        - local clone path for the examples repo (e.g. /tmp/examples-repo)
+    PYTHONUNBUFFERED: "1"
     NUGET_VERSION: "26.4.0"
     API_URL: "http://172.20.1.175:7050/mcp/generate"
     MCP_RETRIEVE_URL: "http://172.20.1.175:7050/mcp/retrieve"
