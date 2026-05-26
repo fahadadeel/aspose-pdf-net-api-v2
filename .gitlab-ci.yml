@@ -1,6 +1,9 @@
 stages:
   - test
+  - build-image
+  - generate
 
+# ── Stage 1: Unit tests (every push to main / MR) ──────────────────────────────
 unit-tests:
   stage: test
   image: python:3.12-slim
@@ -11,3 +14,65 @@ unit-tests:
   only:
     - main
     - merge_requests
+
+# ── Stage 2: Build CI image (Python 3.12 + .NET 10.0) ─────────────────────────
+# Runs only when Dockerfile.ci or requirements-ci.txt changes, or manually.
+build-ci-image:
+  stage: build-image
+  image: docker:latest
+  services:
+    - docker:dind
+  variables:
+    DOCKER_TLS_CERTDIR: "/certs"
+    IMAGE_TAG: "$CI_REGISTRY_IMAGE/ci-runner:latest"
+  before_script:
+    - docker login -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD" "$CI_REGISTRY"
+  script:
+    - docker build -f Dockerfile.ci -t "$IMAGE_TAG" .
+    - docker push "$IMAGE_TAG"
+  only:
+    changes:
+      - Dockerfile.ci
+      - requirements-ci.txt
+    refs:
+      - main
+  when: manual
+
+# ── Stage 3: Generate examples (scheduled releases only) ───────────────────────
+# Triggered via GitLab pipeline schedule.
+# Set CATEGORY variable in the schedule to run a specific category,
+# or leave unset to run all categories.
+generate-examples:
+  stage: generate
+  image: "$CI_REGISTRY_IMAGE/ci-runner:latest"
+  timeout: 3 hours
+  variables:
+    # These must be set as CI/CD variables in GitLab project settings:
+    # REPO_TOKEN       - GitHub PAT for pushing to aspose-pdf/agentic-net-examples
+    # LITELLM_API_KEY  - LLM proxy API key
+    # REPO_PATH        - local clone path for the examples repo (e.g. /tmp/examples-repo)
+    NUGET_VERSION: "26.4.0"
+    API_URL: "http://172.20.1.175:7050/mcp/generate"
+    MCP_RETRIEVE_URL: "http://172.20.1.175:7050/mcp/retrieve"
+    CATEGORIES_API_URL: "http://172.20.1.175:7061/api/categories"
+  before_script:
+    - pip install -q -r requirements-ci.txt --break-system-packages || true
+    - git config --global user.email "ci@aspose-examples.com"
+    - git config --global user.name "Aspose Examples CI"
+  script:
+    - |
+      if [ -n "$CATEGORY" ]; then
+        echo "Running category: $CATEGORY"
+        python cli.py --sweep --categories "$CATEGORY" --repo-push
+      else
+        echo "Running all categories"
+        python cli.py --sweep --repo-push
+      fi
+  only:
+    - schedules
+  artifacts:
+    when: always
+    expire_in: 7 days
+    paths:
+      - results/
+      - "*.log"
