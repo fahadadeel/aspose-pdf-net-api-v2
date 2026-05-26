@@ -31,13 +31,9 @@ build-ci-image:
   script:
     - docker build -f Dockerfile.ci -t "$IMAGE_TAG" .
     - docker push "$IMAGE_TAG"
-  only:
-    changes:
-      - Dockerfile.ci
-      - requirements-ci.txt
-    refs:
-      - main
-  when: manual
+  rules:
+    - if: '$CI_COMMIT_BRANCH == "main"'
+      when: manual
 
 # ── Stage 3: Generate examples (scheduled releases only) ───────────────────────
 # Triggered via GitLab pipeline schedule.
