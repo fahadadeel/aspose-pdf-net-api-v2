@@ -1,0 +1,14 @@
+# Lightweight requirements for CI test runs.
+# Excludes sentence-transformers (PyTorch, ~800MB) since it is lazily imported
+# and not needed for unit tests.
+fastapi
+uvicorn[standard]
+python-multipart
+jinja2
+requests
+python-dotenv
+openpyxl
+anthropic
+httpx
+pytest
+pytest-cov
