@@ -49,7 +49,7 @@ generate-examples:
     # LITELLM_API_KEY  - LLM proxy API key
     # REPO_PATH        - local clone path for the examples repo (e.g. /tmp/examples-repo)
     PYTHONUNBUFFERED: "1"
-    NUGET_VERSION: "26.4.0"
+    NUGET_VERSION: "26.5.0"
     API_URL: "http://172.20.1.175:7050/mcp/generate"
     MCP_RETRIEVE_URL: "http://172.20.1.175:7050/mcp/retrieve"
     CATEGORIES_API_URL: "http://172.20.1.175:7061/api/categories"
