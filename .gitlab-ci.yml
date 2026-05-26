@@ -5,9 +5,9 @@ unit-tests:
   stage: test
   image: python:3.12-slim
   before_script:
-    - pip install -q pytest python-dotenv
+    - pip install -q pytest pytest-cov python-dotenv
   script:
-    - python -m pytest tests/ -v
+    - python -m pytest tests/ -v --cov --cov-report=term-missing
   only:
     - main
     - merge_requests

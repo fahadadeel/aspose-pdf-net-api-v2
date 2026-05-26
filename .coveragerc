@@ -1,0 +1,24 @@
+[run]
+include =
+    config.py
+    state.py
+    persistence.py
+    pipeline/error_parser.py
+    pipeline/prompt_builder.py
+    pipeline/build.py
+    pipeline/models.py
+    pipeline/usage_tracker.py
+    knowledge/error_fixes.py
+    knowledge/error_catalog.py
+    knowledge/auto_fixes.py
+    knowledge/pattern_tracker.py
+    knowledge/fix_history.py
+
+omit =
+    tests/*
+    .venv/*
+    scripts/*
+
+[report]
+show_missing = true
+skip_covered = false

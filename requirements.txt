@@ -9,3 +9,4 @@ sentence-transformers
 numpy
 anthropic
 pytest
+pytest-cov
