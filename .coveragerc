@@ -8,6 +8,9 @@ include =
     pipeline/build.py
     pipeline/models.py
     pipeline/usage_tracker.py
+    pipeline/runner.py
+    routers/health.py
+    routers/jobs.py
     knowledge/error_fixes.py
     knowledge/error_catalog.py
     knowledge/auto_fixes.py
