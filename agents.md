@@ -283,17 +283,24 @@ Task Prompt
 
 ## Testing
 
-Unit tests cover core modules: persistence, error fixes, pattern tracker, config, and state management.
+117 unit tests across 11 files covering the pipeline, routers, build system, error handling, and knowledge base modules. Linting is enforced with ruff (zero violations).
 
 ```bash
-python -m pytest tests/ -v
+python -m pytest tests/ -v --cov --cov-report=term-missing
+python -m ruff check .
 ```
 
-Tests run automatically on every push via [`.gitlab-ci.yml`](.gitlab-ci.yml).
+Both run automatically on every push via [`.gitlab-ci.yml`](.gitlab-ci.yml) and [`.github/workflows/ci.yml`](.github/workflows/ci.yml).
 
 | Test File | Module | Tests |
 |-----------|--------|-------|
+| [`tests/test_error_parser.py`](tests/test_error_parser.py) | [`pipeline/error_parser.py`](pipeline/error_parser.py) | 22 |
+| [`tests/test_prompt_builder.py`](tests/test_prompt_builder.py) | [`pipeline/prompt_builder.py`](pipeline/prompt_builder.py) | 21 |
+| [`tests/test_routers.py`](tests/test_routers.py) | [`routers/health.py`](routers/health.py), [`routers/jobs.py`](routers/jobs.py) | 19 |
+| [`tests/test_runner_utils.py`](tests/test_runner_utils.py) | [`pipeline/runner.py`](pipeline/runner.py) | 15 |
+| [`tests/test_build.py`](tests/test_build.py) | [`pipeline/build.py`](pipeline/build.py) | 12 |
 | [`tests/test_persistence.py`](tests/test_persistence.py) | [`persistence.py`](persistence.py) | 8 |
+| [`tests/test_runner_pipeline.py`](tests/test_runner_pipeline.py) | [`pipeline/runner.py`](pipeline/runner.py) | 8 |
 | [`tests/test_error_fixes.py`](tests/test_error_fixes.py) | [`knowledge/error_fixes.py`](knowledge/error_fixes.py) | 5 |
 | [`tests/test_pattern_tracker.py`](tests/test_pattern_tracker.py) | [`knowledge/pattern_tracker.py`](knowledge/pattern_tracker.py) | 3 |
 | [`tests/test_config.py`](tests/test_config.py) | [`config.py`](config.py) | 2 |
