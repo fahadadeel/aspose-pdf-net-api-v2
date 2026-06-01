@@ -16,6 +16,7 @@ from contextlib import asynccontextmanager
 from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_mcp import FastApiMCP
 
 load_dotenv()
 
@@ -66,6 +67,27 @@ app.include_router(categories.router)
 app.include_router(jobs_router.router)
 app.include_router(files.router)
 app.include_router(tasks.router)
+
+# MCP server — exposes pipeline endpoints as standard MCP tools.
+# Any MCP-compatible client can connect at /mcp (SSE transport).
+# SSE stream and UI routes are excluded since they don't fit the request/response tool model.
+mcp = FastApiMCP(
+    app,
+    name="Aspose Examples Generator",
+    description=(
+        "Controls the Aspose PDF .NET examples generation pipeline. "
+        "Start and monitor code generation jobs, manage PRs, "
+        "browse results, and trigger repo operations."
+    ),
+    exclude_operations=[
+        "index__get",                             # HTML Build Monitor page
+        "results_page_results_get",               # HTML Results page
+        "results_v2_page_results_v2_get",         # HTML Results v2 page
+        "api_stream_api_stream__job_id__get",     # SSE stream — push-only, not a tool
+        "api_start_sweep_api_start_sweep_post",   # Deprecated, redirects to start-tasks
+    ],
+)
+mcp.mount()
 
 
 if __name__ == "__main__":

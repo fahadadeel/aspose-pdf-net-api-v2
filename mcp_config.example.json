@@ -1,0 +1,31 @@
+{
+  "_comment": "Copy the relevant block into your MCP client configuration. Replace the host with your server IP.",
+
+  "mcpServers": {
+    "aspose-examples-generator": {
+      "url": "http://172.20.1.175:7103/mcp"
+    }
+  },
+
+  "_claude_desktop_note": "In Claude Desktop (claude_desktop_config.json), use the 'mcpServers' block above directly.",
+  "_continue_note": "In Continue.dev (.continue/config.json), add the entry under 'mcpServers'.",
+  "_cursor_note": "In Cursor (.cursor/mcp.json), use the same 'mcpServers' format.",
+
+  "_available_tools": [
+    "health — check if the service is running",
+    "api_start_tasks — start a generation job (categories, prompts, or CSV)",
+    "api_status_{job_id} — poll job progress",
+    "api_cancel_{job_id} — cancel a running job",
+    "api_pause_{job_id} — pause after current task",
+    "api_resume_{job_id} — resume a paused job",
+    "api_results — list all generation results",
+    "api_results_{category} — get detailed results for one category",
+    "api_create_pr_from_results — create GitHub PRs from completed results",
+    "api_categories — list available categories",
+    "api_tasks — list available tasks",
+    "api_retry_pr_{job_id} — retry PR creation for a completed job",
+    "api_update_repo_docs — regenerate agents.md and index.json",
+    "api_version_bump — tag current version and create new release branch",
+    "api_promote_to_main — promote release branch to main"
+  ]
+}

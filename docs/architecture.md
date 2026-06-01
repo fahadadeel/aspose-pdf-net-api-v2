@@ -75,6 +75,41 @@ Each job runs through up to 6 stages, stopping as soon as one succeeds:
 - **`error_fixes.json`** — curated code fixes matched against compiler errors
 - **`auto_error_catalog.json`** / **`auto_fixes.json`** — auto-learned entries
 
+## MCP Server
+
+The app exposes a standard **Model Context Protocol (MCP)** server at `/mcp` (SSE transport). Any MCP-compatible client — Claude Desktop, Continue.dev, Cursor, or a custom agent — can connect and call pipeline operations as MCP tools.
+
+**Endpoint**: `http://<host>:7103/mcp`
+
+Tools exposed (subset of the REST API):
+
+| MCP Tool | REST Equivalent | Purpose |
+|----------|-----------------|---------|
+| `health` | `GET /api/health` | Check service status |
+| `api_start_tasks` | `POST /api/start-tasks` | Start generation job |
+| `api_status` | `GET /api/status/{job_id}` | Poll job status |
+| `api_cancel` | `POST /api/cancel/{job_id}` | Cancel a running job |
+| `api_results` | `GET /api/results` | List all results |
+| `api_create_pr` | `POST /api/create-pr-from-results` | Create GitHub PRs |
+| `api_categories` | `GET /api/categories` | List available categories |
+
+Excluded from MCP: the HTML UI route and the SSE streaming endpoint (those don't fit the request/response tool model).
+
+### Connecting a client
+
+For any client that supports SSE-based MCP:
+```json
+{
+  "mcpServers": {
+    "aspose-examples-generator": {
+      "url": "http://172.20.1.175:7103/mcp"
+    }
+  }
+}
+```
+
+See `mcp_config.example.json` at the repo root for a ready-to-use snippet.
+
 ## State Management
 
 The app is **fully in-memory** — no database.
