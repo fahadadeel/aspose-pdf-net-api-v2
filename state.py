@@ -7,7 +7,6 @@ must go through the helper functions or be protected with JOB_LOCK.
 Fully in-memory -- no database. Everything is lost on restart.
 """
 
-import json
 import time
 import threading
 from datetime import datetime, timezone

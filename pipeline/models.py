@@ -3,7 +3,6 @@ pipeline/models.py -- Data classes used throughout the pipeline.
 """
 
 from dataclasses import dataclass, field
-from typing import List, Optional
 
 
 @dataclass

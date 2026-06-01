@@ -41,7 +41,7 @@ def record_transformation(
 
         if found:
             found["count"] = found.get("count", 1) + 1
-            if not error_pattern in found.get("error_patterns", []):
+            if error_pattern not in found.get("error_patterns", []):
                 found.setdefault("error_patterns", []).append(error_pattern)
         else:
             candidates.append({

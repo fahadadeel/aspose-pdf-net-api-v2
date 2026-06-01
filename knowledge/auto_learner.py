@@ -16,7 +16,7 @@ import threading
 from typing import Optional
 
 from config import AppConfig
-from knowledge.auto_fixes import save_auto_fix, is_duplicate_rule, load_auto_fixes
+from knowledge.auto_fixes import save_auto_fix, is_duplicate_rule
 from knowledge.error_fixes import load_error_fixes
 
 

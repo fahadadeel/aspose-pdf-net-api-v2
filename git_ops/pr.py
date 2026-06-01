@@ -4,7 +4,7 @@ git_ops/pr.py -- PRManager: create PR, update agents.md, retry PR.
 
 import subprocess
 import uuid
-from typing import Callable, List, Optional
+from typing import Callable, Optional
 
 from config import AppConfig
 from git_ops.agents_md import (

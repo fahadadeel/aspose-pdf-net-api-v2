@@ -10,18 +10,17 @@ Stage 5: Final LLM Recovery
 
 import json
 import re
-from concurrent.futures import ThreadPoolExecutor, as_completed
-from typing import Callable, List, Optional, Tuple
+from concurrent.futures import ThreadPoolExecutor
+from typing import Callable, List, Optional
 
 from config import AppConfig
 from pipeline.models import StageOutcome, TaskInput
 from pipeline.build import DotnetBuilder
 from pipeline.mcp_client import MCPClient
 from pipeline.llm_client import LLMClient
-from pipeline.error_parser import extract_errors, parse_error_codes, detect_and_fix_known_patterns
+from pipeline.error_parser import extract_errors, parse_error_codes
 from pipeline.prompt_builder import (
-    build_enriched_prompt, build_namespace_restriction,
-    build_retry_instruction, format_rules_for_prompt,
+    build_enriched_prompt, build_retry_instruction, format_rules_for_prompt,
 )
 from knowledge.error_catalog import match_error_catalog
 from knowledge.error_fixes import match_error_fixes, format_error_fixes_for_prompt

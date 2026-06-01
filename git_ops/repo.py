@@ -96,7 +96,7 @@ class RepoManager:
                                 ["git", "checkout", "-b", self.repo_branch, f"origin/{self.repo_branch}"],
                                 cwd=self.repo_path, check=True, capture_output=True, text=True,
                             )
-                        except Exception as e:
+                        except Exception:
                             self._notify("git_error", f"Git: Failed to checkout {self.repo_branch}")
                             return False
             else:
@@ -117,7 +117,7 @@ class RepoManager:
                             ["git", "checkout", self.repo_branch],
                             cwd=self.repo_path, check=True, capture_output=True, text=True,
                         )
-                    except Exception as e:
+                    except Exception:
                         self._notify("git_error", f"Git: Failed to checkout {self.repo_branch}")
                         return False
 

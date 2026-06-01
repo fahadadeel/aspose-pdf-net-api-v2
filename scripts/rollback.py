@@ -32,7 +32,6 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Optional
 
 # Make project root importable
 _PROJECT_ROOT = Path(__file__).resolve().parent.parent
@@ -44,7 +43,6 @@ load_dotenv(_PROJECT_ROOT / ".env")
 from config import load_config  # noqa: E402
 from git_ops.github_api import GitHubAPI  # noqa: E402
 from scripts.rollback_snapshot import (  # noqa: E402
-    SNAPSHOT_DIR,
     create_flow_a_snapshot,
     create_flow_b_snapshot,
     list_snapshots,
@@ -217,14 +215,14 @@ def cmd_revert_flow_a(args: argparse.Namespace) -> None:
     for entry in merged_prs:
         print(f"    - #{entry.get('pr_number')}  ({entry.get('reason', '')})")
     print(f"\n  Action:            walk merge commits on {base} newer than the")
-    print(f"                     snapshot tip, revert each via `git revert -m 1`,")
-    print(f"                     push a revert branch, and open a revert PR.")
+    print("                     snapshot tip, revert each via `git revert -m 1`,")
+    print("                     push a revert branch, and open a revert PR.")
 
     if not _confirm("Proceed with revert?", args.yes):
         return
 
     # ── 1. Sync local repo ──
-    print(f"\n  → fetching origin...")
+    print("\n  → fetching origin...")
     _run_git(["fetch", "origin", "--prune"], local)
     _require_clean_worktree(local)
 
@@ -332,17 +330,17 @@ def cmd_revert_flow_b(args: argparse.Namespace) -> None:
     print(f"  PR:           #{pr_number if pr_number else '?'}")
     print(f"  New tag:      {new_tag}")
     print( "\n  Actions:")
-    print(f"    1. Create revert PR for squash commit on main")
+    print("    1. Create revert PR for squash commit on main")
     print(f"    2. Delete GitHub Release for {new_tag}")
     print(f"    3. Delete tag {new_tag}")
-    print(f"    4. Print .env restore instructions")
+    print("    4. Print .env restore instructions")
 
     if not _confirm("Proceed with revert?", args.yes):
         return
 
     # ── 1. Revert squash commit on main ──
     if main_sha_after:
-        print(f"\n  → fetching origin...")
+        print("\n  → fetching origin...")
         _run_git(["fetch", "origin", "--prune"], local)
         _require_clean_worktree(local)
 

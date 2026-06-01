@@ -509,7 +509,7 @@ def render_dashboard(workers: list[Worker], start_time: float):
             bar = "░" * bar_len
             pct = "0/0"
 
-        out.append(f"")
+        out.append("")
         out.append(f"  {icon} Worker {w.worker_id} (:{w.port})  [{bar}] {pct}")
         out.append(f"    ✓ {passed}  ✗ {failed}  rate: {pass_rate}%  |  {cats}")
         if current and status == "running":
@@ -517,18 +517,18 @@ def render_dashboard(workers: list[Worker], start_time: float):
 
     # Summary
     overall_rate = round(total_passed / total_processed * 100, 1) if total_processed > 0 else 0
-    out.append(f"")
+    out.append("")
     out.append(f"{'─' * 72}")
     out.append(f"  Total: {total_processed}/{total_tasks}  |  ✓ {total_passed}  ✗ {total_failed}  |  {overall_rate}%")
     out.append(f"{'─' * 72}")
 
     active = sum(1 for w in workers if w.status == "running")
     if active > 0:
-        out.append(f"")
+        out.append("")
         out.append(f"  {active} worker(s) still running. Press Ctrl+C to cancel.")
     else:
-        out.append(f"")
-        out.append(f"  All workers finished.")
+        out.append("")
+        out.append("  All workers finished.")
 
     # Write entire frame at once — cursor home + content + clear-to-end
     frame = "\033[H" + "\n".join(out) + "\033[J"
@@ -616,7 +616,7 @@ def print_plan(action: str, buckets: list[list[str]], categories: list[dict], ba
     """Print the execution plan for user confirmation."""
     total_tasks = sum(c.get("task_count", 0) for c in categories)
     print(f"\n{'═' * 60}")
-    print(f"  Execution Plan")
+    print("  Execution Plan")
     print(f"{'═' * 60}")
     print(f"  Action:     {action}")
     print(f"  Categories: {len(categories)}")

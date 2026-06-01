@@ -9,14 +9,14 @@ import json
 import re
 import threading
 from pathlib import Path
-from typing import Callable, Optional
+from typing import Callable
 
 from config import AppConfig
 from pipeline.models import TaskInput, PipelineResult
 from pipeline.build import DotnetBuilder
 from pipeline.mcp_client import MCPClient
 from pipeline.llm_client import LLMClient
-from pipeline.error_parser import detect_and_fix_known_patterns, extract_errors, parse_error_codes
+from pipeline.error_parser import detect_and_fix_known_patterns
 from pipeline import stages
 from pipeline.prompt_builder import build_namespace_restriction
 from knowledge.rule_search import RuleSearchEngine
