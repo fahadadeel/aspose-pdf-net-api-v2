@@ -59,7 +59,7 @@ def test_no_duplicate_promotion(tracker_paths):
 
     # Try to promote again with fresh candidates
     for _ in range(3):
-        result = record_transformation(
+        record_transformation(
             tracker_paths["candidates"], tracker_paths["patterns"],
             error_pattern="CS0104", old_text="old", new_text="new",
             promotion_threshold=3,

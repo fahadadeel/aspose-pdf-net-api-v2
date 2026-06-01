@@ -129,7 +129,7 @@ def run_csv(config, csv_path: str, repo_push: bool):
 
 def _commit_and_pr(config, task, category, code, results_summary):
     """Commit a single result and create a PR."""
-    notify = lambda s, m: print(f"  [{s}] {m}")
+    def notify(s, m): print(f"  [{s}] {m}")
     llm = LLMClient(config)
 
     repo = RepoManager(
@@ -214,7 +214,7 @@ def run_sweep_cli(config, categories: list, repo_push: bool):
 
 def _batch_commit_and_pr(config, commit_items, results_summary):
     """Batch commit multiple results and create a PR."""
-    notify = lambda s, m: print(f"  [{s}] {m}")
+    def notify(s, m): print(f"  [{s}] {m}")
     llm = LLMClient(config)
 
     repo = RepoManager(

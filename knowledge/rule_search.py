@@ -6,7 +6,7 @@ import json
 import math
 import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 _STOPWORDS = frozenset({
     'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
@@ -130,9 +130,12 @@ class RuleSearchEngine:
         for chunk in raw:
             for tok in self._split_camel(chunk):
                 if len(tok) > 4:
-                    if tok.endswith("ies"): tok = tok[:-3] + "y"
-                    elif tok.endswith("es") and len(tok) > 5: tok = tok[:-2]
-                    elif tok.endswith("s"): tok = tok[:-1]
+                    if tok.endswith("ies"):
+                        tok = tok[:-3] + "y"
+                    elif tok.endswith("es") and len(tok) > 5:
+                        tok = tok[:-2]
+                    elif tok.endswith("s"):
+                        tok = tok[:-1]
                 if tok and len(tok) > 2 and tok not in _STOPWORDS:
                     tokens.append(tok)
         return tokens

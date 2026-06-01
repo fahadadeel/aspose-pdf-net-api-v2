@@ -10,6 +10,7 @@ unit-tests:
   before_script:
     - pip install -q -r requirements-ci.txt
   script:
+    - python -m ruff check . --exclude .venv
     - python -m pytest tests/ -v --cov --cov-report=term-missing
   only:
     - main

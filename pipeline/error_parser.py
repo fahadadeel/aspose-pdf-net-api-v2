@@ -35,7 +35,7 @@ def extract_errors(error_output: str, limit: int = 30) -> List[str]:
 
     # Fallback: if no structured errors found
     if not lines and error_output.strip():
-        raw = [l.strip() for l in error_output.splitlines() if l.strip()]
+        raw = [ln.strip() for ln in error_output.splitlines() if ln.strip()]
         for t in raw[-5:]:
             lines.append(strip_local_paths(t[:200]))
     return lines

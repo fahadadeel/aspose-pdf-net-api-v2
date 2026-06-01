@@ -38,7 +38,7 @@ def test_extract_compiler_error():
 def test_extract_runtime_exception():
     output = "Unhandled exception.\nSystem.IndexOutOfRangeException: Index was outside bounds."
     lines = extract_errors(output)
-    assert any("IndexOutOfRangeException" in l or "exception" in l.lower() for l in lines)
+    assert any("IndexOutOfRangeException" in ln or "exception" in ln.lower() for ln in lines)
 
 
 def test_extract_multiple_errors():

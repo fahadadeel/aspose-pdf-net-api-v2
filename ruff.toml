@@ -1,0 +1,12 @@
+target-version = "py312"
+line-length = 120
+
+[lint]
+select = ["E", "F"]
+ignore = [
+    "E402",  # module-import-not-at-top — load_dotenv() before imports is intentional
+    "E501",  # line-too-long — codebase has many long subprocess/string lines; not worth reformatting
+]
+
+[lint.per-file-ignores]
+"tests/*" = ["F401"]  # test files import fixtures/helpers that look unused to ruff

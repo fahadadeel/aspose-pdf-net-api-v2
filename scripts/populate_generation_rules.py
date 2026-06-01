@@ -15,7 +15,6 @@ Usage:
 import argparse
 import json
 import re
-import sys
 import time
 from pathlib import Path
 from collections import OrderedDict
@@ -437,18 +436,15 @@ def main():
             all_rules.update(cat_rules)
             print(f"  ✓ {len(cat_rules)} unique rules\n")
         else:
-            print(f"  ✗ No rules generated\n")
+            print("  ✗ No rules generated\n")
 
     # Deduplicate across categories
     print("Deduplicating...")
-    # Separate section comments from rules for dedup
-    sections = {k: v for k, v in all_rules.items() if k.startswith("__section")}
     rule_entries = {k: v for k, v in all_rules.items() if not k.startswith("__section")}
     deduped = deduplicate_rules(rule_entries)
 
     # Rebuild with sections
     final_rules = OrderedDict()
-    current_section_cats = set()
     for key, value in all_rules.items():
         if key.startswith("__section"):
             final_rules[key] = value

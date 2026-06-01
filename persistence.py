@@ -358,8 +358,6 @@ def scan_disk_results(results_dir: str) -> dict:
                 },
             })
 
-        # Try to recover original category name from first entry or slug
-        original_name = cat_slug.replace("_", " ").title()
         for ex in examples:
             # The task text might hint at the category but we don't have it stored
             # The category slug is reliable enough

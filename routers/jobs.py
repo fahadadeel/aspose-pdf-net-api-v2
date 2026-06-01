@@ -63,7 +63,6 @@ async def api_start(
         return JSONResponse({"error": "Invalid mode"}, status_code=400)
 
     repo_push_bool = repo_push.lower() == "true"
-    force_bool = force == "true"
     job_id = str(uuid.uuid4())
 
     if mode == "single":
@@ -1171,7 +1170,6 @@ async def api_patch_pr_branch(data: dict = Body(...)):
     from git_ops.github_api import GitHubAPI
     from git_ops.repo_docs import generate_cumulative_category_agents_md
     from git_ops.agents_md import _generate_run_id
-    from git_ops.committer import normalize_category
 
     branch = (data.get("branch") or "").strip()
     if not branch:

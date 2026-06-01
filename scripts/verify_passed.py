@@ -15,7 +15,6 @@ import os
 import shutil
 import subprocess
 import sys
-import textwrap
 from pathlib import Path
 
 CSPROJ_TEMPLATE = """\
@@ -59,7 +58,7 @@ def try_build(cs_path: Path) -> tuple[bool, str]:
     )
     if result.returncode == 0:
         return True, ""
-    errors = [l.strip() for l in result.stdout.split("\n") if "error CS" in l]
+    errors = [ln.strip() for ln in result.stdout.split("\n") if "error CS" in ln]
     return False, "; ".join(errors[:3])
 
 
@@ -159,7 +158,7 @@ def main():
     print(f"\n{'='*70}")
     print(f"TOTAL: {total_failed} failures out of {total_tested} PASSED files")
     if args.dry_run and total_failed > 0:
-        print(f"\nRun without --dry-run to move failures and update JSONs")
+        print("\nRun without --dry-run to move failures and update JSONs")
 
 
 if __name__ == "__main__":

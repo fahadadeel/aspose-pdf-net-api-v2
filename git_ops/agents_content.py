@@ -11,7 +11,7 @@ sections (frontmatter, persona, boundaries, testing guide).
 import json
 import re
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 
 # ---------------------------------------------------------------------------
@@ -229,7 +229,7 @@ def _extract_code_block(code: str, marker: str) -> List[str]:
 
 def _truncate_code(code: str, max_lines: int = 12) -> str:
     """Return first N non-empty lines of code."""
-    lines = [l for l in code.splitlines() if l.strip()]
+    lines = [ln for ln in code.splitlines() if ln.strip()]
     if len(lines) > max_lines:
         return "\n".join(lines[:max_lines]) + "\n// ..."
     return "\n".join(lines)
