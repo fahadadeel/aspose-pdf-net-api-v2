@@ -13,16 +13,9 @@
 git clone <repo-url>
 cd aspose-pdf-api-v2
 
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate      # Linux/macOS
-# .venv\Scripts\activate       # Windows
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Copy and configure environment
-cp .env.example .env           # edit with your API keys and paths
+# Create venv, install dependencies, and set up .env in one step
+make install
+make env        # copies .env.example → .env; edit with your API keys
 ```
 
 ## Required Environment Variables
@@ -39,8 +32,8 @@ Minimum to run locally:
 ## Running the App
 
 ```bash
-# Always use a single worker — state is in-memory and not shared between processes
-uvicorn main:app --host 0.0.0.0 --port 7103 --workers 1
+make run          # single worker — required, state is in-memory
+make run-reload   # auto-reload for development
 ```
 
 Open `http://localhost:7103` for the Build Monitor UI.
@@ -48,7 +41,9 @@ Open `http://localhost:7103` for the Build Monitor UI.
 ## Running Tests
 
 ```bash
-pytest tests/ -v
+make test         # run all tests with coverage report
+make test-fast    # run tests without coverage (faster)
+make check        # lint + test — full quality gate before pushing
 ```
 
 Tests are unit tests only — they do not require external services (MCP server, LiteLLM, GitHub).

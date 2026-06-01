@@ -54,25 +54,10 @@ Automated C# code generation and testing pipeline for **Aspose.PDF for .NET**. G
 ### Installation
 
 ```bash
-# Clone the repo
 git clone https://github.com/fahadadeel/aspose-pdf-net-api-v2.git
 cd aspose-pdf-net-api-v2
-
-# Create virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Linux/macOS
-# .venv\Scripts\activate   # Windows
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Environment Setup
-
-Copy the example environment file and fill in your values:
-
-```bash
-cp .env.example .env
+make install   # creates .venv and installs all dependencies
+make env       # copies .env.example → .env
 ```
 
 Edit `.env` with your keys:
@@ -86,11 +71,8 @@ REPO_USER=your-email@example.com
 ### Run
 
 ```bash
-# Web UI (development)
-uvicorn main:app --host 0.0.0.0 --port 7103 --reload
-
-# Web UI (production) — must use single worker
-uvicorn main:app --host 0.0.0.0 --port 7103 --workers 1
+make run          # production — single worker on port 7103
+make run-reload   # development — auto-reload on file changes
 
 # CLI — single task
 python cli.py --task "Save a PDF document to disk"
@@ -99,7 +81,7 @@ python cli.py --task "Save a PDF document to disk"
 python cli.py --csv tasks.csv --repo-push
 ```
 
-> **Important:** Always use `--workers 1`. State is stored in-memory and is not shared across workers.
+> **Important:** Always use `--workers 1` (or `make run`). State is stored in-memory and is not shared across workers.
 
 ---
 
