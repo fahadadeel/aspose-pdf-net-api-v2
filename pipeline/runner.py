@@ -261,7 +261,25 @@ class PipelineRunner:
         return format_error_fixes_for_prompt(fixes) if fixes else ""
 
     def execute(self, task_input: TaskInput) -> PipelineResult:
-        """Run the 5-stage pipeline. Returns PipelineResult."""
+        """Run the 5-stage pipeline. Always returns PipelineResult — never raises."""
+        try:
+            return self._execute_inner(task_input)
+        except Exception as exc:
+            import traceback
+            tb = traceback.format_exc()
+            self._notify("error", f"Unexpected pipeline error: {exc}\n{tb}")
+            result = PipelineResult(
+                task=task_input.task,
+                category=task_input.category,
+                product=task_input.product,
+            )
+            result.status = "FAILED"
+            result.stage = "error"
+            result.build_log = f"Unexpected error: {exc}\n{tb}"
+            return result
+
+    def _execute_inner(self, task_input: TaskInput) -> PipelineResult:
+        """Internal pipeline execution — may raise; execute() wraps it."""
         result = PipelineResult(
             task=task_input.task,
             category=task_input.category,
