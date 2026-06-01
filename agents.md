@@ -11,6 +11,7 @@
 | **Language** | Python 3.12 |
 | **Framework** | FastAPI + Uvicorn |
 | **Runtime** | Single-process, multi-threaded |
+| **Interface** | REST API · MCP Server (SSE, `/mcp`) · Web UI · CLI |
 | **License** | Proprietary |
 
 ## Purpose
@@ -69,6 +70,12 @@ This repository (aspose-pdf-net-api-v2) is the **agent/pipeline** — it generat
 - Multi-worker orchestrator spawns N uvicorn instances with isolated workspaces ([`scripts/parallel_run.py`](scripts/parallel_run.py))
 - Greedy bin-packing distributes categories across workers
 - Human-attributed batch merge of release PRs ([`scripts/merge_release_prs.py`](scripts/merge_release_prs.py))
+
+### MCP Interface
+- Exposes all pipeline operations as standard MCP tools at `/mcp` (SSE transport) via [`fastapi-mcp`](https://github.com/tadata-org/fastapi_mcp) ([`main.py`](main.py))
+- Compatible with any MCP client: Claude Desktop, Continue.dev, Cursor, or custom agents
+- Tool schemas auto-derived from FastAPI's OpenAPI spec — stay in sync with REST API automatically
+- HTML UI routes and SSE stream excluded; all actionable endpoints available as tools
 
 ### Monitoring & Reporting
 - Real-time Server-Sent Events (SSE) for live progress ([`routers/jobs.py#api_stream`](routers/jobs.py))
@@ -139,13 +146,34 @@ This repository (aspose-pdf-net-api-v2) is the **agent/pipeline** — it generat
 | POST | `/api/upload-files` | [`routers/files.py`](routers/files.py) | Upload test input files |
 | GET | `/api/repo-categories` | [`routers/jobs.py#api_repo_categories`](routers/jobs.py) | List repo branch categories |
 
+### MCP Server
+
+| Transport | Endpoint | Description |
+|-----------|----------|-------------|
+| SSE | `GET /mcp` | MCP server connection endpoint |
+| SSE | `POST /mcp/messages/` | MCP tool call handler |
+
+All REST API endpoints (except HTML pages and the SSE stream) are exposed as MCP tools. Tool names and input schemas are auto-generated from the OpenAPI spec. Connect any MCP-compatible client using:
+
+```json
+{
+  "mcpServers": {
+    "aspose-examples-generator": {
+      "url": "http://<host>:7103/mcp"
+    }
+  }
+}
+```
+
+See [`mcp_config.example.json`](mcp_config.example.json) for a ready-to-use client configuration.
+
 ## Architecture
 
 ### Core Modules
 
 | Module | Purpose |
 |--------|---------|
-| [`main.py`](main.py) | FastAPI app entry point, router registration |
+| [`main.py`](main.py) | FastAPI app entry point, router registration, MCP server mount |
 | [`jobs.py`](jobs.py) | Background job runners (pipeline, PR creation, version bump, promote) |
 | [`state.py`](state.py) | Thread-safe in-memory job state, SSE notifications, pause/resume/cancel |
 | [`config.py`](config.py) | Typed dataclass configuration with .env overrides |
