@@ -14,6 +14,7 @@ Automated C# code generation and testing pipeline for **Aspose.PDF for .NET**. G
   - [Web UI](#web-ui)
   - [CLI](#cli)
   - [REST API](#rest-api)
+  - [MCP Server](#mcp-server)
 - [Category Sweep Mode](#category-sweep-mode)
 - [Parallel Generation](#parallel-generation)
 - [Version Lifecycle](#version-lifecycle)
@@ -446,6 +447,50 @@ The `GET /api/stream/{job_id}` endpoint pushes JSON messages with delta updates:
 ```
 
 A `done` event is sent when the job finishes.
+
+### MCP Server
+
+The app exposes a **standard Model Context Protocol (MCP) server** at `/mcp`. Any MCP-compatible client — Claude Desktop, Continue.dev, Cursor, or a custom agent — can connect and call pipeline operations directly as MCP tools. No Claude-specific setup required; the protocol is vendor-neutral.
+
+**Transport:** SSE (Server-Sent Events)
+**Endpoint:** `http://<host>:7103/mcp`
+
+#### Connecting a client
+
+Add the following to your MCP client configuration (the format is the same for Claude Desktop, Continue.dev, and Cursor):
+
+```json
+{
+  "mcpServers": {
+    "aspose-examples-generator": {
+      "url": "http://172.20.1.175:7103/mcp"
+    }
+  }
+}
+```
+
+A ready-to-copy snippet with per-client placement notes is in [`mcp_config.example.json`](mcp_config.example.json).
+
+#### Available tools (subset)
+
+| Tool | Endpoint | Description |
+|------|----------|-------------|
+| `health` | `GET /api/health` | Check if the service is running |
+| `api_start_tasks` | `POST /api/start-tasks` | Start a generation job |
+| `api_status` | `GET /api/status/{job_id}` | Poll job status |
+| `api_cancel` | `POST /api/cancel/{job_id}` | Cancel a running job |
+| `api_pause` / `api_resume` | `POST /api/pause/{job_id}` | Pause and resume |
+| `api_results` | `GET /api/results` | List all generation results |
+| `api_results_category` | `GET /api/results/{category}` | Results for one category |
+| `api_create_pr_from_results` | `POST /api/create-pr-from-results` | Create GitHub PRs |
+| `api_categories` / `api_tasks` | `GET /api/categories` | Browse categories and tasks |
+| `api_version_bump` | `POST /api/version-bump` | Tag old version, create release branch |
+| `api_promote_to_main` | `POST /api/promote-to-main` | Snapshot-promote release to main |
+| `api_update_repo_docs` | `POST /api/update-repo-docs` | Regenerate agents.md + index.json |
+
+HTML UI routes, the SSE streaming endpoint, and the deprecated sweep endpoint are excluded — they don't fit the request/response tool model.
+
+The MCP server is mounted via [`fastapi-mcp`](https://github.com/tadata-org/fastapi_mcp) in [`main.py`](main.py). Tool names and schemas are auto-derived from the FastAPI OpenAPI schema, so they stay in sync with the REST API automatically.
 
 ---
 
