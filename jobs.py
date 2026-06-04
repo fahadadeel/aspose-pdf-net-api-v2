@@ -1658,10 +1658,14 @@ def run_version_bump(job_id: str, new_version: str, repo_push: bool = True):
             else:
                 add_log(job_id, f"Tag {tag_name} creation failed -- continuing")
 
-            release_body = (
-                f"Examples generated for **Aspose.PDF for .NET {old_version}**.\n\n"
-                f"- Target framework: `{config.build.tfm}`\n"
-                f"- NuGet package: `Aspose.PDF {old_version}`\n"
+            from git_ops.release_notes import generate_release_notes
+            add_log(job_id, "Generating release notes from index.json...")
+            release_body = generate_release_notes(
+                gh, owner, repo_name,
+                release_branch="main",
+                base_branch=f"v{old_version}" if gh.tag_exists(owner, repo_name, f"v{old_version}") else "main",
+                new_version=old_version,
+                framework=config.build.tfm,
             )
             release_url = gh.create_release(
                 owner, repo_name, tag_name,
@@ -1863,10 +1867,14 @@ def run_promote_to_main(job_id: str, staging_branch: str, new_version: str):
             else:
                 add_log(job_id, "[WARN] Tag creation failed -- continuing")
 
-            release_body = (
-                f"Examples generated for **Aspose.PDF for .NET {new_version}**.\n\n"
-                f"- Target framework: `{config.build.tfm}`\n"
-                f"- NuGet package: `Aspose.PDF {new_version}`\n"
+            from git_ops.release_notes import generate_release_notes
+            add_log(job_id, "Generating release notes from index.json...")
+            release_body = generate_release_notes(
+                gh, owner, repo_name,
+                release_branch=staging_branch,
+                base_branch="main",
+                new_version=new_version,
+                framework=config.build.tfm,
             )
             release_url = gh.create_release(
                 owner, repo_name, tag_name,
