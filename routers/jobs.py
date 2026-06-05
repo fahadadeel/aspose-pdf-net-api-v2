@@ -30,7 +30,7 @@ from fastapi.responses import JSONResponse, StreamingResponse
 
 from jobs import (
     run_version_bump, run_promote_to_main,
-    retry_pr, create_pr, update_repo_docs,
+    retry_pr, create_pr, update_repo_docs, run_update_readme,
     run_pipeline, _fetch_tasks_for_category,
     create_pr_from_results, regenerate_metadata,
 )
@@ -931,6 +931,15 @@ async def api_update_repo_docs(data: dict = Body(None)):
         kwargs={"update_readme": update_readme},
         daemon=True,
     )
+    thread.start()
+    return {"job_id": job_id}
+
+
+@router.post("/api/update-readme")
+async def api_update_readme():
+    """Regenerate README.md in the examples repo from live scan data and push directly."""
+    job_id = str(uuid.uuid4())
+    thread = threading.Thread(target=run_update_readme, args=(job_id,), daemon=True)
     thread.start()
     return {"job_id": job_id}
 

@@ -355,6 +355,17 @@ def update_readme_categories(readme_content: str, scan: Dict[str, List[str]]) ->
     return readme_content
 
 
+_ECOSYSTEM_REPOS = [
+    ("Aspose.Words for .NET",   "aspose-words/agentic-net-examples",   "Word processing, DOCX, mail merge"),
+    ("Aspose.Cells for .NET",   "aspose-cells/agentic-net-examples",   "Spreadsheets, Excel, charts"),
+    ("Aspose.HTML for .NET",    "aspose-html/agentic-net-examples",    "HTML conversion, DOM editing"),
+    ("Aspose.Imaging for .NET", "aspose-imaging/agentic-net-examples", "Image conversion, manipulation"),
+    ("Aspose.Slides for .NET",  "aspose-slides/agentic-net-examples",  "Presentations, PowerPoint"),
+    ("Aspose.Email for .NET",   "aspose-email/agentic-net-examples",   "Email, calendars, messaging"),
+    ("Aspose.BarCode for .NET", "aspose-barcode/agentic-net-examples", "Barcode generation and recognition"),
+]
+
+
 def generate_readme(
     scan: Dict[str, List[str]],
     nuget_version: str = "26.2.0",
@@ -364,15 +375,21 @@ def generate_readme(
     total = sum(len(files) for files in scan.values())
     current_date = datetime.now().strftime("%Y-%m-%d")
 
-    # Category listing with links to per-category agents.md
-    cat_lines = []
+    # Category table with links to per-category agents.md
+    cat_rows = []
     for cat, files in sorted(scan.items()):
-        cat_lines.append(f"- `{cat}/` - {len(files)} example(s)")
-    cat_listing = "\n".join(cat_lines)
+        cat_rows.append(f"| `{cat}` | {len(files)} | [agents.md](./{cat}/agents.md) |")
+    cat_table = "\n".join(cat_rows)
 
-    return f"""# Aspose.PDF for .NET Examples
+    # Ecosystem table
+    eco_rows = []
+    for product, repo, focus in _ECOSYSTEM_REPOS:
+        eco_rows.append(f"| {product} | [{repo}](https://github.com/{repo}) | {focus} |")
+    eco_table = "\n".join(eco_rows)
 
-AI-friendly repository containing validated C# examples for Aspose.PDF for .NET API.
+    return f"""# Aspose.PDF for .NET — Agentic Examples
+
+Agentic, build-validated C# code examples for **Aspose.PDF for .NET** covering PDF creation, conversion, editing, annotations, forms, digital signatures, and text extraction. Every example compiles and runs successfully. Includes `agents.md` guides optimized for AI coding agents.
 
 ## Overview
 
@@ -386,10 +403,20 @@ This repository provides working code examples demonstrating Aspose.PDF for .NET
 | Aspose.PDF version | {nuget_version} |
 | Last updated | {current_date} |
 
-## Repository Structure
+## For AI Coding Agents
 
-Examples are organized by feature category:
-{cat_listing}
+This repository is structured for direct use by AI coding agents and LLM-powered tools:
+
+- **[`agents.md`](./agents.md)** — root-level guide covering API surface, anti-patterns, and category tips
+- **Per-category `agents.md`** — targeted guidance inside each category folder
+- **[`index.json`](./index.json)** — machine-readable manifest of all {total} examples with metadata
+- **MCP-compatible** — integrate with any MCP client (Claude Desktop, Cursor, Continue.dev)
+
+## Categories
+
+| Category | Examples | Agent Guide |
+|----------|----------|-------------|
+{cat_table}
 
 Each category contains standalone `.cs` files that can be compiled and run independently.
 
@@ -447,32 +474,33 @@ catch (Exception ex)
 - **Console output**: Success/error messages written to Console.WriteLine/Console.Error
 - **Fully qualified types**: Use `Aspose.Pdf.Drawing.Path` (not bare `Path`) to avoid ambiguity with `System.IO.Path`
 
-## Documentation
+## Agentic .NET Ecosystem
 
-- Each category folder contains an `agents.md` with category-specific guidance
-- Each category folder contains an `index.json` with per-example metadata
-- Root [`agents.md`](./agents.md) provides cumulative guidance across all categories
-- Root [`index.json`](./index.json) provides a machine-readable manifest of all examples
+Other Aspose products with agentic, build-validated example repositories:
+
+| Product | Repository | Focus |
+|---------|-----------|-------|
+{eco_table}
 
 ## Related Resources
 
 ### Official Documentation
-- [Aspose.PDF for .NET Documentation](https://docs.aspose.com/pdf/net/) -- Guides, tutorials, and feature overviews
-- [API Reference](https://reference.aspose.com/pdf/net/) -- Complete class/method reference
-- [Release Notes](https://releases.aspose.com/pdf/net/release-notes/) -- Version history and changelogs
+- [Aspose.PDF for .NET Documentation](https://docs.aspose.com/pdf/net/) — Guides, tutorials, and feature overviews
+- [API Reference](https://reference.aspose.com/pdf/net/) — Complete class/method reference
+- [Release Notes](https://releases.aspose.com/pdf/net/release-notes/) — Version history and changelogs
 
 ### Downloads & Packages
-- [NuGet Package](https://www.nuget.org/packages/Aspose.PDF) -- Install via `dotnet add package Aspose.PDF`
-- [Direct Downloads](https://releases.aspose.com/pdf/net/) -- MSI/ZIP installers and DLLs
+- [NuGet Package](https://www.nuget.org/packages/Aspose.PDF) — Install via `dotnet add package Aspose.PDF`
+- [Direct Downloads](https://releases.aspose.com/pdf/net/) — MSI/ZIP installers and DLLs
 
 ### Community & Support
-- [Aspose.PDF Forum](https://forum.aspose.com/c/pdf/10) -- Community Q&A and official support
-- [Aspose Blog - PDF](https://blog.aspose.com/category/pdf/) -- Tutorials, tips, and product updates
-- [GitHub Issues](https://github.com/aspose-pdf/agentic-net-examples/issues) -- Bug reports and feature requests
+- [Aspose.PDF Forum](https://forum.aspose.com/c/pdf/10) — Community Q&A and official support
+- [Aspose Blog - PDF](https://blog.aspose.com/category/pdf/) — Tutorials, tips, and product updates
+- [GitHub Issues](https://github.com/aspose-pdf/agentic-net-examples/issues) — Bug reports and feature requests
 
 ### Licensing & Purchase
-- [Purchase](https://purchase.aspose.com/buy) -- Commercial license options
-- [Temporary License](https://purchase.aspose.com/temporary-license/) -- Full-feature evaluation license
+- [Purchase](https://purchase.aspose.com/buy) — Commercial license options
+- [Temporary License](https://purchase.aspose.com/temporary-license/) — Full-feature evaluation license
 
 ## License
 

@@ -438,6 +438,7 @@
       <div class="spacer"></div>
       <button class="btn btn-primary" id="create-pr-btn" onclick="createPR()" disabled>Create PR</button>
       <button class="btn" id="regen-meta-btn" onclick="regenerateMetadata()" style="color:var(--yellow);border-color:var(--yellow-border);">Regen Metadata</button>
+      <button class="btn" id="update-readme-btn" onclick="updateReadme()" style="color:var(--blue);border-color:var(--blue);">Update README</button>
       <button class="btn btn-accent" id="update-docs-btn" onclick="updateRepoDocs()">Update Docs</button>
       <button class="btn btn-danger" id="promote-btn" onclick="promoteToMain()">Merge to Main</button>
     </div>
@@ -1043,6 +1044,27 @@
       if (resp.error) { alert('Error: ' + resp.error); btn.disabled = false; btn.textContent = 'Regen Metadata'; return; }
       _prJobId = resp.job_id; _prLogCount = 0; showPRConsole('running'); startMetaPoll();
     }).catch(function(err) { alert('Failed: ' + err); btn.disabled = false; btn.textContent = 'Regen Metadata'; });
+  };
+
+  // ── Update README ─────────────────────────────────────────
+  window.updateReadme = function() {
+    if (!confirm('Update README.md?\n\nThis will regenerate README.md in the examples repo with:\n• Current example counts from local scan\n• Agentic heading and ecosystem links\n• Category table with agents.md links\n\nThe file is pushed directly — no PR needed.')) return;
+    var btn = document.getElementById('update-readme-btn');
+    btn.disabled = true; btn.textContent = 'Updating…';
+    fetch('/api/update-readme', { method: 'POST' })
+      .then(function(r) { return r.json(); })
+      .then(function(data) {
+        if (data.job_id) {
+          pollLog(data.job_id, function(status) {
+            btn.disabled = false; btn.textContent = 'Update README';
+            if (status === 'done') showToast('README.md updated successfully');
+            else showToast('README update failed — check the log', true);
+          });
+        } else {
+          btn.disabled = false; btn.textContent = 'Update README';
+        }
+      })
+      .catch(function(err) { alert('Failed: ' + err); btn.disabled = false; btn.textContent = 'Update README'; });
   };
 
   // ── Update Repo Docs ──────────────────────────────────────

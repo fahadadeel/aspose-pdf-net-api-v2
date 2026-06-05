@@ -991,6 +991,75 @@ def retry_pr(job_id: str, old_pr_branch: str, results_summary: list):
         add_log(job_id, f"PR retry failed: {exc}")
 
 
+def run_update_readme(job_id: str):
+    """Regenerate README.md in the examples repo from live index.json data and push directly."""
+    import base64
+    from git_ops.github_api import GitHubAPI
+    from git_ops.repo_docs import generate_readme, scan_repo
+
+    config = load_config()
+    try:
+        init_build(job_id, total=0)
+        add_log(job_id, "Scanning repo for current file counts...")
+
+        if not config.git.repo_token:
+            add_log(job_id, "ERROR: REPO_TOKEN not configured")
+            set_status(job_id, "failed")
+            return
+
+        gh = GitHubAPI(config.git.repo_token)
+        owner, repo_name = GitHubAPI.extract_repo_info(config.git.repo_url)
+
+        # Scan local repo for accurate file counts
+        scan = scan_repo(config.git.repo_path)
+        if not scan:
+            add_log(job_id, "ERROR: Repo scan returned no categories — is REPO_PATH correct?")
+            set_status(job_id, "failed")
+            return
+
+        total = sum(len(f) for f in scan.values())
+        add_log(job_id, f"Scan complete: {len(scan)} categories, {total} examples")
+
+        add_log(job_id, "Generating README...")
+        new_content = generate_readme(scan, nuget_version=config.build.nuget_version, tfm=config.build.tfm)
+
+        # Get current README SHA (required for GitHub contents API update)
+        file_meta = gh.get_file(owner, repo_name, "README.md", config.git.repo_branch)
+        if not file_meta:
+            add_log(job_id, "ERROR: Could not fetch current README.md from repo")
+            set_status(job_id, "failed")
+            return
+
+        current_sha = file_meta.get("sha", "")
+        encoded = base64.b64encode(new_content.encode("utf-8")).decode("ascii")
+
+        add_log(job_id, "Pushing README.md to repo...")
+        branch = config.git.repo_branch or "main"
+        r = gh._session.put(
+            f"https://api.github.com/repos/{owner}/{repo_name}/contents/README.md",
+            headers=gh._headers,
+            json={
+                "message": f"Update README.md — {total} examples across {len(scan)} categories",
+                "content": encoded,
+                "sha": current_sha,
+                "branch": branch,
+            },
+            timeout=30,
+        )
+        if r.status_code in (200, 201):
+            commit_url = r.json().get("commit", {}).get("html_url", "")
+            add_log(job_id, f"[OK] README.md updated: {commit_url}")
+            set_status(job_id, "done")
+        else:
+            add_log(job_id, f"ERROR: GitHub API returned {r.status_code}: {r.text[:200]}")
+            set_status(job_id, "failed")
+
+    except Exception as exc:
+        import traceback
+        add_log(job_id, f"ERROR: {exc}\n{traceback.format_exc()}")
+        set_status(job_id, "failed")
+
+
 def update_repo_docs(job_id: str, update_readme: bool = True):
     """Scan the repo and create a PR with cumulative agents.md + README update.
 
