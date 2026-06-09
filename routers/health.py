@@ -32,6 +32,36 @@ async def version():
     }
 
 
+@router.get("/api/feature-flags")
+async def feature_flags():
+    """Read-only view of the feature flag registry with resolved values.
+
+    Source of truth is `resources/feature_flags.json`. Values shown
+    here reflect env-var overrides at the time of the request.
+    """
+    import features
+
+    registry = features.list_flags()
+    resolved = features.snapshot()
+
+    return {
+        "flags": [
+            {
+                "name": name,
+                "enabled": resolved.get(name, False),
+                "default": entry.get("default", False),
+                "env_var": entry.get("env_var", ""),
+                "owner": entry.get("owner", ""),
+                "scope": entry.get("scope", ""),
+                "description": entry.get("description", ""),
+                "added": entry.get("added", ""),
+            }
+            for name, entry in sorted(registry.items())
+        ],
+        "count": len(registry),
+    }
+
+
 @router.get("/api/metrics")
 async def metrics():
     """Lightweight operational metrics — uptime, active jobs, totals.
