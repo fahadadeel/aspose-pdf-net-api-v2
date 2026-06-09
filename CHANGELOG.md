@@ -2,6 +2,24 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased] - 2026-06-09
+### Security
+- Removed hardcoded `LITELLM_API_KEY` default from `config.py` — key now loads exclusively from the `LITELLM_API_KEY` env var
+- Replaced CORS `allow_origins=["*"]` wildcard in `main.py` with explicit origins from a new `CORS_ORIGINS` env var (defaults to `localhost:7103`)
+- Moved `reporting.py` endpoint token from URL query string to `Authorization: Bearer` header to prevent leakage via logs/proxies
+- Scrubbed previously committed `LITELLM_API_KEY` from all of git history via `git filter-repo` and force-pushed to both remotes
+
+### Added
+- Auto-generated GitHub Release notes (`git_ops/release_notes.py`) — diffs `index.json` between release branch and main to produce a rich release body with summary table, new/updated categories, and full category breakdown. Wired into `run_version_bump()` and `run_promote_to_main()` in `jobs.py`
+- **Update README** button on Results Dashboard + new `POST /api/update-readme` endpoint — scans live repo file counts, regenerates `README.md` with the improved Agentic format, and pushes directly to the examples repo (no PR)
+- `docs/runbook.md` — operations runbook with SLA targets, severity definitions, on-call contacts, 6 common failure scenarios with mitigation steps, rollback procedure, and secret rotation steps
+- `CORS_ORIGINS` env var documented in `.env.example` and `.claude/rules/env-vars.md`
+
+### Changed
+- `generate_readme()` in `git_ops/repo_docs.py` refactored — now produces the improved Agentic format with "For AI Coding Agents" section, category table with `agents.md` links, and the **Agentic .NET Ecosystem** table linking all 7 sibling repos (Words, Cells, HTML, Imaging, Slides, Email, BarCode); ecosystem list extracted to `_ECOSYSTEM_REPOS` constant
+- `pytest.ini` — added `--cov-fail-under=50` to prevent coverage regression (current 51%)
+- Updated `aspose-pdf/agentic-net-examples` repo description to start with "Agentic, build-validated..." and expanded GitHub topics to 20 (added `agentic`, `agentic-ai`, `llm`, `mcp`, `generative-ai`, `pdf-conversion`, `pdf-editing`, `pdf-forms`, `pdf-annotations`, `digital-signatures`) for better discoverability
+
 ## [Unreleased] - 2026-06-02
 ### Fixed
 - Pinned `scipy<1.16.0` to fix pipeline crash during KB load — scipy 1.16+ introduced an internal assertion (`"Warnings too long"`) triggered on `sentence_transformers` import, killing Stage 3+ jobs
