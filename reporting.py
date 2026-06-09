@@ -110,12 +110,14 @@ def _log_to_file(payload: dict):
 def _send_report(endpoint: str, token: str, payload: dict, timeout: int):
     """Send the report. Runs in a daemon thread. Swallows all errors."""
     try:
-        url = f"{endpoint}?token={token}" if token else endpoint
+        headers = {"Content-Type": "application/json"}
+        if token:
+            headers["Authorization"] = f"Bearer {token}"
         resp = requests.post(
-            url,
+            endpoint,
             json=payload,
             timeout=timeout,
-            headers={"Content-Type": "application/json"},
+            headers=headers,
         )
         if resp.status_code < 300:
             print(f"[reporting] Usage report sent for job {payload.get('run_id', '?')}")

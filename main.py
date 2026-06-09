@@ -53,9 +53,15 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
+_cors_env = os.getenv("CORS_ORIGINS", "")
+_allowed_origins = (
+    [o.strip() for o in _cors_env.split(",") if o.strip()]
+    if _cors_env
+    else ["http://localhost:7103", "http://127.0.0.1:7103"]
+)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=_allowed_origins,
     allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["*"],
 )

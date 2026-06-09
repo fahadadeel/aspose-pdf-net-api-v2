@@ -82,7 +82,7 @@ class MCPConfig:
 class LLMConfig:
     """LLM client config. Secrets from .env."""
     api_base: str = "https://llm.professionalize.com/v1"
-    api_key: str = "sk-removed-from-history"
+    api_key: str = ""
     model: str = "gpt-oss"
     timeout: int = 60
 
