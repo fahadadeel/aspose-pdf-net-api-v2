@@ -1,5 +1,7 @@
 # Mutation Testing
 
+> **Active schedule:** Weekly, Thursdays at 12:55 Asia/Karachi (`55 12 * * 4`). Configured via GitLab Pipeline Schedule `"Mutation testing (Thursday)"`.
+
 Mutation testing measures **test quality** — how good your tests are at catching bugs — by introducing tiny intentional bugs into the source code and checking whether tests fail. A test suite that catches lots of mutations is a real safety net; one that misses them is exercising lines without verifying behaviour.
 
 The Recruitize.AI agent treats mutation testing as a **P8 Proactive** signal alongside contract tests, dependabot, and feature flags.
@@ -12,7 +14,7 @@ The Recruitize.AI agent treats mutation testing as a **P8 Proactive** signal alo
 | Config | `[mutmut]` section in [`setup.cfg`](../setup.cfg) |
 | Initial scope | `pipeline/error_parser.py`, `pipeline/prompt_builder.py`, `pipeline/models.py`, `middleware/security.py`, `knowledge/error_fixes.py`, `knowledge/pattern_tracker.py`, `routers/health.py` |
 | CI job | `mutation-tests` stage in [`.gitlab-ci.yml`](../.gitlab-ci.yml) |
-| Cadence | Scheduled (alternate day recommended) |
+| Cadence | Scheduled weekly — currently `55 12 * * 4` (Thursdays at 12:55 Asia/Karachi) |
 | Blocking? | No — output is informational, uploaded as a CI artifact |
 
 The scope is intentionally narrow: stable, high-coverage, pure-logic modules where surviving mutations almost always indicate real test gaps. Expand the list in `setup.cfg` as test depth on other modules grows.
@@ -27,25 +29,27 @@ The scope is intentionally narrow: stable, high-coverage, pure-logic modules whe
 
 ## Enabling the scheduled run
 
-The CI job runs only when triggered by a Pipeline Schedule with `RUN_MUTATION_TESTS=true`. Set it up once:
+The CI job runs only when triggered by a Pipeline Schedule with `RUN_MUTATION_TESTS=true`. The schedule is already configured — these steps are kept for reference when changing cadence or recreating after a project move.
 
-1. Go to **Project → Build → Pipeline Schedules** (or *Settings → CI/CD → Schedules* on older GitLab)
+1. Go to **Project → Build → Pipeline Schedules**
    `https://gitlab.recruitize.ai/sialkot/faisalabad-openize/aspose-pdf-net-api-v2/-/pipeline_schedules`
 2. Click **New schedule**
 3. Fill in:
 
    | Field | Value |
    |-------|-------|
-   | Description | `Mutation testing (alternate day)` |
-   | Interval Pattern | `0 6 */2 * *` (06:00 every 2 days) — or use `Custom (Cron)` |
-   | Cron Timezone | Asia/Karachi (or your preference) |
+   | Description | `Mutation testing (Thursday)` |
+   | Interval Pattern | Custom (Cron) — `55 12 * * 4` (Thursdays 12:55) |
+   | Cron Timezone | Asia/Karachi |
    | Target Branch | `main` |
    | Variables | Add `RUN_MUTATION_TESTS` = `true` |
    | Activated | ✓ |
 
 4. **Save pipeline schedule**
 
-The schedule will fire at the configured time. Look for the `mutation-tests` job under that pipeline. Download the `mutmut-report.txt` artifact to review survived mutations.
+The schedule fires at the configured time. Look for the `mutation-tests` job under that pipeline. Download `mutmut-report.txt` from the job artifacts to review survived mutations.
+
+**GitLab cron worker constraint:** the platform's schedule worker only wakes at minutes matching `3-59/10 * * * *` (i.e. 3, 13, 23, 33, 43, 53). GitLab rejects a cron with minute `0` as "syntax invalid". Other minutes are accepted, but the actual run fires at the *next* worker wake after the configured minute — e.g. minute `55` fires at minute `03` of the following hour. Pick a minute from `{3, 13, 23, 33, 43, 53}` for exact-minute timing.
 
 ## Reading the report
 

@@ -4,7 +4,7 @@ All notable changes to this project are documented here.
 
 ## [Unreleased] - 2026-06-10
 ### Added
-- Mutation testing via `mutmut==3.6.0` — new `mutation-tests` CI job in a dedicated `mutation` stage, gated to scheduled runs only (`$CI_PIPELINE_SOURCE == "schedule" && $RUN_MUTATION_TESTS == "true"`). Recommended cadence: alternate day. Initial scope: 7 stable high-coverage modules (`pipeline/error_parser.py`, `pipeline/prompt_builder.py`, `pipeline/models.py`, `middleware/security.py`, `knowledge/error_fixes.py`, `knowledge/pattern_tracker.py`, `routers/health.py`). Output uploaded as a 30-day artifact, informational only — never blocks merges
+- Mutation testing via `mutmut==3.6.0` — new `mutation-tests` CI job in a dedicated `mutation` stage, gated to scheduled runs only (`$CI_PIPELINE_SOURCE == "schedule" && $RUN_MUTATION_TESTS == "true"`). Active cadence: weekly Thursdays 12:55 Asia/Karachi (`55 12 * * 4`), configured via GitLab Pipeline Schedule. Initial scope: 7 stable high-coverage modules (`pipeline/error_parser.py`, `pipeline/prompt_builder.py`, `pipeline/models.py`, `middleware/security.py`, `knowledge/error_fixes.py`, `knowledge/pattern_tracker.py`, `routers/health.py`). Output uploaded as a 30-day artifact, informational only — never blocks merges
 - `setup.cfg` introduced with a minimal `[mutmut]` config (source paths, pytest args, timeouts, coverage-only mutation)
 - `make mutation` target for local runs
 - `docs/mutation-testing.md` — operator guide covering how it works, safety guarantees, schedule setup, report interpretation, and scope-expansion criteria
