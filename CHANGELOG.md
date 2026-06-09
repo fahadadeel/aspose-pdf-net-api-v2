@@ -16,7 +16,7 @@ All notable changes to this project are documented here.
 - **Update README** button on Results Dashboard + new `POST /api/update-readme` endpoint — scans live repo file counts, regenerates `README.md` with the improved Agentic format, and pushes directly to the examples repo (no PR)
 - `docs/runbook.md` — operations runbook with SLA targets, severity definitions, on-call contacts, 6 common failure scenarios with mitigation steps, rollback procedure, and secret rotation steps
 - `CORS_ORIGINS` env var documented in `.env.example` and `.claude/rules/env-vars.md`
-- New `tests/integration/` suite covering full-app FastAPI boot, CORS configuration, MCP mount, and the `/api/update-readme` endpoint via `TestClient`
+- New `tests/integration/` suite — `test_app_integration.py` covers full-app FastAPI boot, CORS, MCP mount, `/api/update-readme`; `test_router_endpoints.py` covers 26 router endpoint scenarios (validation, dispatch, disk-backed results, auto-fixes) — pushing `routers/jobs.py` coverage from 22% to 45% and total coverage from 51% to 61%
 - `SECURITY.md` — vulnerability reporting policy with 48-hour ack SLA, supported versions, and links to security controls
 - `.github/dependabot.yml` — weekly grouped dependency updates for `pip` and `github-actions` ecosystems with separate runtime/dev groups
 - `.github/PULL_REQUEST_TEMPLATE.md` and `.github/ISSUE_TEMPLATE/{bug_report,feature_request}.md` — standardized PR/issue formats
@@ -24,7 +24,7 @@ All notable changes to this project are documented here.
 
 ### Changed
 - `generate_readme()` in `git_ops/repo_docs.py` refactored — now produces the improved Agentic format with "For AI Coding Agents" section, category table with `agents.md` links, and the **Agentic .NET Ecosystem** table linking all 7 sibling repos (Words, Cells, HTML, Imaging, Slides, Email, BarCode); ecosystem list extracted to `_ECOSYSTEM_REPOS` constant
-- `pytest.ini` — added `--cov-fail-under=50` to prevent coverage regression (current 51%)
+- `pytest.ini` — coverage gate raised to `--cov-fail-under=60` (current 61% — up from 51% via 26 new router integration tests covering version-bump, promote, resume, results, failed-tasks, retry-failed, update-repo-docs, generate-category-docs, patch-pr-branch, auto-fixes, repo-categories endpoints)
 - Updated `aspose-pdf/agentic-net-examples` repo description to start with "Agentic, build-validated..." and expanded GitHub topics to 20 (added `agentic`, `agentic-ai`, `llm`, `mcp`, `generative-ai`, `pdf-conversion`, `pdf-editing`, `pdf-forms`, `pdf-annotations`, `digital-signatures`) for better discoverability
 - Expanded `.github/CODEOWNERS` with per-component path mappings (pipeline, knowledge, git_ops, routers, CI, security, docs) so PR reviews are routed to the right owner
 
