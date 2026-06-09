@@ -132,7 +132,7 @@ If a secret is exposed:
 2. Generate a new credential
 3. Update `.env.production` on the Windows VM
 4. Restart the service: `nssm restart AsposePdfApi`
-5. If the secret was committed to git history, use `git filter-repo --replace-text` to scrub it from history, then force-push (requires branch protection bypass)
+5. If the secret was committed to git history, use `git filter-repo --replace-text` to scrub it from history, then force-push. This requires temporarily lifting force-push protection — see the bypass procedure in [`docs/branch-protection.md`](./branch-protection.md#bypass-procedure-force-push)
 
 ## Useful Commands
 
