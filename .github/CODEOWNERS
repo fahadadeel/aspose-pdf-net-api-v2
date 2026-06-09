@@ -1,1 +1,27 @@
+# Default owner — everything not matched below.
 * @fahadadeelqazi
+
+# Pipeline core — code generation, build, fix loop, stages.
+/pipeline/ @fahadadeelqazi
+
+# Knowledge base — rules, error catalog, semantic search, auto-learning.
+/knowledge/ @fahadadeelqazi
+/resources/*.json @fahadadeelqazi
+
+# Git operations — commit, push, PR creation, release/promote flows.
+/git_ops/ @fahadadeelqazi
+
+# FastAPI routers and entry point — service surface.
+/routers/ @fahadadeelqazi
+/main.py @fahadadeelqazi
+
+# CI / CD configuration and security policy.
+/.github/ @fahadadeelqazi
+/.gitlab-ci.yml @fahadadeelqazi
+/bandit.yaml @fahadadeelqazi
+/SECURITY.md @fahadadeelqazi
+
+# Documentation.
+/docs/ @fahadadeelqazi
+/README.md @fahadadeelqazi
+/CHANGELOG.md @fahadadeelqazi

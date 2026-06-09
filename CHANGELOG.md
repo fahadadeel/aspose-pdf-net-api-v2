@@ -17,11 +17,16 @@ All notable changes to this project are documented here.
 - `docs/runbook.md` — operations runbook with SLA targets, severity definitions, on-call contacts, 6 common failure scenarios with mitigation steps, rollback procedure, and secret rotation steps
 - `CORS_ORIGINS` env var documented in `.env.example` and `.claude/rules/env-vars.md`
 - New `tests/integration/` suite covering full-app FastAPI boot, CORS configuration, MCP mount, and the `/api/update-readme` endpoint via `TestClient`
+- `SECURITY.md` — vulnerability reporting policy with 48-hour ack SLA, supported versions, and links to security controls
+- `.github/dependabot.yml` — weekly grouped dependency updates for `pip` and `github-actions` ecosystems with separate runtime/dev groups
+- `.github/PULL_REQUEST_TEMPLATE.md` and `.github/ISSUE_TEMPLATE/{bug_report,feature_request}.md` — standardized PR/issue formats
+- `docs/ownership.md` — operational accountability doc with team contacts, component owners, RACI matrix, and escalation path
 
 ### Changed
 - `generate_readme()` in `git_ops/repo_docs.py` refactored — now produces the improved Agentic format with "For AI Coding Agents" section, category table with `agents.md` links, and the **Agentic .NET Ecosystem** table linking all 7 sibling repos (Words, Cells, HTML, Imaging, Slides, Email, BarCode); ecosystem list extracted to `_ECOSYSTEM_REPOS` constant
 - `pytest.ini` — added `--cov-fail-under=50` to prevent coverage regression (current 51%)
 - Updated `aspose-pdf/agentic-net-examples` repo description to start with "Agentic, build-validated..." and expanded GitHub topics to 20 (added `agentic`, `agentic-ai`, `llm`, `mcp`, `generative-ai`, `pdf-conversion`, `pdf-editing`, `pdf-forms`, `pdf-annotations`, `digital-signatures`) for better discoverability
+- Expanded `.github/CODEOWNERS` with per-component path mappings (pipeline, knowledge, git_ops, routers, CI, security, docs) so PR reviews are routed to the right owner
 
 ## [Unreleased] - 2026-06-02
 ### Fixed
