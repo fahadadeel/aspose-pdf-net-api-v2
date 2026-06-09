@@ -320,6 +320,136 @@ def test_results_sync_status_returns_shape(client, tmp_results_dir):
     assert isinstance(body, dict)
 
 
+# ── /api/start form-data paths ──────────────────────────────────────────────
+
+def test_start_single_dispatches_pipeline(client, monkeypatch):
+    def fake_pipeline(*args, **kwargs):
+        pass
+
+    monkeypatch.setattr("routers.jobs.run_pipeline", fake_pipeline)
+    r = client.post(
+        "/api/start",
+        data={
+            "mode": "single",
+            "prompt": "Convert PDF to HTML",
+            "category": "conversion",
+            "product": "aspose.pdf",
+            "repo_push": "false",
+        },
+    )
+    assert r.status_code == 200
+    assert "job_id" in r.json()
+
+
+def test_start_csv_with_file_dispatches_pipeline(client, monkeypatch):
+    def fake_pipeline(*args, **kwargs):
+        pass
+
+    monkeypatch.setattr("routers.jobs.run_pipeline", fake_pipeline)
+    csv_content = b"task,category\nConvert PDF,conversion\nMerge PDFs,document\n"
+    r = client.post(
+        "/api/start",
+        data={"mode": "csv"},
+        files={"csv": ("tasks.csv", csv_content, "text/csv")},
+    )
+    assert r.status_code == 200
+    assert "job_id" in r.json()
+
+
+# ── /api/start-tasks task formats ───────────────────────────────────────────
+
+def test_start_tasks_with_string_tasks(client, monkeypatch):
+    monkeypatch.setattr("routers.jobs.run_pipeline", lambda *a, **k: None)
+    r = client.post("/api/start-tasks", json={"tasks": ["Convert PDF", "Merge PDFs"]})
+    assert r.status_code == 200
+    body = r.json()
+    assert body["total_tasks"] == 2
+
+
+def test_start_tasks_with_dict_tasks(client, monkeypatch):
+    monkeypatch.setattr("routers.jobs.run_pipeline", lambda *a, **k: None)
+    r = client.post(
+        "/api/start-tasks",
+        json={
+            "tasks": [
+                {"task": "Convert PDF", "category": "conversion", "product": "aspose.pdf"},
+                {"task": "Merge PDFs", "category": "document"},
+            ],
+            "repo_push": False,
+        },
+    )
+    assert r.status_code == 200
+    assert r.json()["total_tasks"] == 2
+
+
+def test_start_tasks_empty_strings_filtered_returns_400(client, monkeypatch):
+    monkeypatch.setattr("routers.jobs.run_pipeline", lambda *a, **k: None)
+    r = client.post("/api/start-tasks", json={"tasks": ["", "  ", "\t"]})
+    assert r.status_code == 400
+
+
+def test_start_sweep_delegates_to_start_tasks(client, monkeypatch):
+    monkeypatch.setattr("routers.jobs.run_pipeline", lambda *a, **k: None)
+    # No categories + no tasks → 400
+    r = client.post("/api/start-sweep", json={})
+    assert r.status_code == 400
+
+
+# ── /api/retry-pr ───────────────────────────────────────────────────────────
+
+def test_retry_pr_no_passed_results_returns_400_explicit(client):
+    init_build("retry-pr-empty", total=5)
+    with JOB_LOCK:
+        BUILD_STATE["retry-pr-empty"]["status"] = "completed"
+    r = client.post("/api/retry-pr/retry-pr-empty")
+    assert r.status_code == 400
+
+
+def test_retry_pr_with_passed_dispatches_worker(client, monkeypatch):
+    init_build("retry-pr-ok", total=2)
+    with JOB_LOCK:
+        BUILD_STATE["retry-pr-ok"]["status"] = "completed"
+        BUILD_STATE["retry-pr-ok"]["passed"] = [
+            {"task": "t1", "category": "c1", "status": "PASSED", "code": "// t1"},
+            {"task": "t2", "category": "c1", "status": "PASSED", "code": "// t2"},
+        ]
+
+    monkeypatch.setattr("routers.jobs.create_pr", lambda *a, **k: None)
+    monkeypatch.setattr("routers.jobs.retry_pr", lambda *a, **k: None)
+    r = client.post("/api/retry-pr/retry-pr-ok")
+    assert r.status_code == 200
+    assert r.json()["status"] in ("retrying", "creating")
+
+
+# ── /api/results/all-categories ─────────────────────────────────────────────
+
+def test_results_all_categories_returns_shape(client, tmp_results_dir, monkeypatch):
+    # Stub the external fetch so the test doesn't make a network call
+    monkeypatch.setattr(
+        "routers.jobs._fetch_all_categories_cached",
+        lambda: [
+            {"name": "Conversion", "slug": "conversion", "task_count": 10},
+            {"name": "Document", "slug": "document", "task_count": 5},
+        ],
+    )
+
+    import config as config_module
+    cfg = config_module.load_config()
+    _write_results_file(
+        tmp_results_dir, cfg.build.nuget_version, "conversion",
+        passed=4, failed=2, original_name="Conversion",
+    )
+
+    r = client.get("/api/results/all-categories")
+    assert r.status_code == 200
+    body = r.json()
+    assert "categories" in body
+    assert isinstance(body["categories"], dict)
+    # The seeded "conversion" category should show through with passed=4, failed=2
+    assert body["categories"]["conversion"]["passed"] == 4
+    assert body["categories"]["conversion"]["failed"] == 2
+
+
 # ── /api/repo-categories ────────────────────────────────────────────────────
 
 def test_repo_categories_returns_list(client, monkeypatch):

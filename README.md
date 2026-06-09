@@ -1,5 +1,14 @@
 # Aspose.PDF for .NET — Examples Generator
 
+[![CI](https://github.com/fahadadeel/aspose-pdf-net-api-v2/actions/workflows/ci.yml/badge.svg)](https://github.com/fahadadeel/aspose-pdf-net-api-v2/actions/workflows/ci.yml)
+[![Coverage](https://img.shields.io/badge/coverage-64%25-yellow)](./pytest.ini)
+[![Tests](https://img.shields.io/badge/tests-170%20passing-brightgreen)](./tests/)
+[![Lint](https://img.shields.io/badge/ruff-passing-brightgreen)](./ruff.toml)
+[![Security](https://img.shields.io/badge/bandit-passing-brightgreen)](./bandit.yaml)
+[![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
+[![Framework](https://img.shields.io/badge/.NET-10.0-blue)](https://dotnet.microsoft.com/)
+[![License](https://img.shields.io/badge/license-Aspose-blueviolet)](./SECURITY.md)
+
 Automated C# code generation and testing pipeline for **Aspose.PDF for .NET**. Generates working code examples via an MCP API, compiles and runs them with `dotnet`, and auto-fixes errors through a multi-stage retry pipeline. Results are persisted to disk with crash recovery and can be committed to GitHub with auto-generated pull requests.
 
 **Output Repository:** Generated examples are published to [aspose-pdf/agentic-net-examples](https://github.com/aspose-pdf/agentic-net-examples) — this repo is the agent/pipeline, the output repo contains only the final passing C# examples.

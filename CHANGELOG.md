@@ -10,13 +10,17 @@ All notable changes to this project are documented here.
 - Scrubbed previously committed `LITELLM_API_KEY` from all of git history via `git filter-repo` and force-pushed to both remotes
 - Added `bandit` SAST scanner and `pip-audit` dependency vulnerability scan as required CI steps on both GitHub Actions and GitLab CI; bandit config in `bandit.yaml`
 - Marked SHA1 slug hash in `git_ops/committer.py` as `usedforsecurity=False` to reflect it's only used for filename truncation, not security
+- New `middleware/security.py` with two middlewares wired into `main.py`:
+  - `SecurityHeadersMiddleware` adds `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Permissions-Policy` (geo/mic/camera disabled), and `Strict-Transport-Security` to every response
+  - `APIKeyMiddleware` optionally gates `/api/*` behind `X-API-Key` or `Authorization: Bearer` when the new `API_KEY` env var is set; no-op when unset to keep local dev frictionless. `/api/health`, `/`, `/results`, `/results-v2` remain public for monitoring/UI
 
 ### Added
 - Auto-generated GitHub Release notes (`git_ops/release_notes.py`) — diffs `index.json` between release branch and main to produce a rich release body with summary table, new/updated categories, and full category breakdown. Wired into `run_version_bump()` and `run_promote_to_main()` in `jobs.py`
 - **Update README** button on Results Dashboard + new `POST /api/update-readme` endpoint — scans live repo file counts, regenerates `README.md` with the improved Agentic format, and pushes directly to the examples repo (no PR)
 - `docs/runbook.md` — operations runbook with SLA targets, severity definitions, on-call contacts, 6 common failure scenarios with mitigation steps, rollback procedure, and secret rotation steps
 - `CORS_ORIGINS` env var documented in `.env.example` and `.claude/rules/env-vars.md`
-- New `tests/integration/` suite — `test_app_integration.py` covers full-app FastAPI boot, CORS, MCP mount, `/api/update-readme`; `test_router_endpoints.py` covers 26 router endpoint scenarios (validation, dispatch, disk-backed results, auto-fixes) — pushing `routers/jobs.py` coverage from 22% to 45% and total coverage from 51% to 61%
+- New `tests/integration/` suite — `test_app_integration.py` covers full-app FastAPI boot, CORS, MCP mount, `/api/update-readme`; `test_router_endpoints.py` covers 35 router endpoint scenarios (validation, dispatch, disk-backed results, auto-fixes, `/api/start` form-data, `/api/start-tasks`, `/api/retry-pr`, `/api/results/all-categories`); `test_middleware.py` covers 9 scenarios for security headers and the API key gate — pushing `routers/jobs.py` coverage from 22% to 57% and total coverage from 51% to 64%
+- README CI/quality badges (CI, coverage, tests, ruff, bandit, Python version, .NET framework version)
 - `SECURITY.md` — vulnerability reporting policy with 48-hour ack SLA, supported versions, and links to security controls
 - `.github/dependabot.yml` — weekly grouped dependency updates for `pip` and `github-actions` ecosystems with separate runtime/dev groups
 - `.github/PULL_REQUEST_TEMPLATE.md` and `.github/ISSUE_TEMPLATE/{bug_report,feature_request}.md` — standardized PR/issue formats
@@ -24,7 +28,8 @@ All notable changes to this project are documented here.
 
 ### Changed
 - `generate_readme()` in `git_ops/repo_docs.py` refactored — now produces the improved Agentic format with "For AI Coding Agents" section, category table with `agents.md` links, and the **Agentic .NET Ecosystem** table linking all 7 sibling repos (Words, Cells, HTML, Imaging, Slides, Email, BarCode); ecosystem list extracted to `_ECOSYSTEM_REPOS` constant
-- `pytest.ini` — coverage gate raised to `--cov-fail-under=60` (current 61% — up from 51% via 26 new router integration tests covering version-bump, promote, resume, results, failed-tasks, retry-failed, update-repo-docs, generate-category-docs, patch-pr-branch, auto-fixes, repo-categories endpoints)
+- `pytest.ini` — coverage gate raised to `--cov-fail-under=60` (current 64%)
+- `API_KEY` env var added to `.env.example` and `.claude/rules/env-vars.md`
 - Updated `aspose-pdf/agentic-net-examples` repo description to start with "Agentic, build-validated..." and expanded GitHub topics to 20 (added `agentic`, `agentic-ai`, `llm`, `mcp`, `generative-ai`, `pdf-conversion`, `pdf-editing`, `pdf-forms`, `pdf-annotations`, `digital-signatures`) for better discoverability
 - Expanded `.github/CODEOWNERS` with per-component path mappings (pipeline, knowledge, git_ops, routers, CI, security, docs) so PR reviews are routed to the right owner
 

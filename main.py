@@ -23,6 +23,7 @@ load_dotenv()
 from routers import categories, files, tasks, health, results
 from routers import jobs as jobs_router
 from routers import ui
+from middleware.security import SecurityHeadersMiddleware, APIKeyMiddleware
 
 
 def _prewarm_models():
@@ -65,6 +66,8 @@ app.add_middleware(
     allow_methods=["GET", "POST", "DELETE"],
     allow_headers=["*"],
 )
+app.add_middleware(SecurityHeadersMiddleware)
+app.add_middleware(APIKeyMiddleware)
 
 app.include_router(ui.router)
 app.include_router(results.router)
