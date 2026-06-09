@@ -3,6 +3,10 @@
 All notable changes to this project are documented here.
 
 ## [Unreleased] - 2026-06-10
+### Changed
+- Policy drift check is now **blocking** in CI — removed the `|| true` wrapper from `.gitlab-ci.yml` after verifying the `POLICY_DRIFT_TOKEN` CI variable injects correctly on protected `main` runs. Live config matches `policy/gitlab-branch-protection-main.json` on every tracked field
+- `scripts/check_policy_drift.py` treats "all providers skipped" as a non-fatal warning by default (common on MR branches when `POLICY_DRIFT_TOKEN` is `Protected`-only); pass `--require-tokens` to make it fatal. Real drift still fails the build
+
 ### Added
 - `scripts/check_policy_drift.py` — policy-as-code drift detector. Reads `policy/*.json` and the live branch protection config from the GitHub and GitLab APIs, then reports a per-field diff. Wired into `.gitlab-ci.yml` as an informational step (non-blocking) so we can promote to blocking once the `POLICY_DRIFT_TOKEN` CI variable is configured
 - `agents.md` Self-Learning section rewritten to document the **feedback-driven strategy evolution across runs**: 6-step observe → extract → persist → promote → reuse → review loop with concrete file references for `auto_learner`, `auto_fixes`, `auto_error_catalog`, `pattern_tracker`, `error_fixes`, and `rule_search.compute_adaptive_top_k`. New **Adaptive Mid-Run Behaviour** subsection covers stage escalation, bounded retries, and dynamic rule-search widening

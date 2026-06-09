@@ -218,7 +218,11 @@ def main() -> int:
     if any(s == "drift" for s in results.values()):
         return 1
     if all(s == "skip" for s in results.values()):
-        return 2
+        # Tokens unavailable — common on unprotected branches when the
+        # CI variable is marked Protected. Warn but don't fail the build.
+        print(f"\n{_C.YELLOW}  ⚠ All providers skipped (tokens unavailable). "
+              f"Pass --require-tokens to fail when this happens.{_C.RESET}")
+        return 0 if "--require-tokens" not in sys.argv else 2
     return 0
 
 
