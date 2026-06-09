@@ -106,8 +106,17 @@ def normalize_repo_folders(repo_path: str) -> Dict[str, str]:
 
 
 def scan_repo(repo_path: str) -> Dict[str, List[str]]:
-    """Walk the repo and return ``{category_name: [filename.cs, ...]}``."""
+    """Walk the repo and return ``{category_name: [filename.cs, ...]}``.
+
+    Returns an empty dict if ``repo_path`` is unset or does not exist on
+    disk — callers should treat that as "no local clone available" rather
+    than crash. Set ``REPO_PATH`` to point at a real checkout.
+    """
+    if not repo_path:
+        return {}
     root = Path(repo_path)
+    if not root.is_dir():
+        return {}
     categories: Dict[str, List[str]] = {}
 
     for child in sorted(root.iterdir()):

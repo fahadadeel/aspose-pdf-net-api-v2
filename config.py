@@ -121,7 +121,7 @@ class ReportingConfig:
 class GitConfig:
     """Git repo and PR config. Secrets from .env."""
     repo_url: str = "https://github.com/aspose-pdf/agentic-net-examples.git"
-    repo_path: str = "/Users/fahadadeelqazi/Projects/Aspose/agentic-net-examples-v2"
+    repo_path: str = ""
     repo_branch: str = "main"
     pr_target_branch: str = ""  # PR base branch override; falls back to repo_branch if empty
     repo_push: bool = False

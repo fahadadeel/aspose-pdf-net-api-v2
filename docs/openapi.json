@@ -1,0 +1,1452 @@
+{
+  "components": {
+    "schemas": {
+      "Body_api_start_api_start_post": {
+        "properties": {
+          "api_url": {
+            "title": "Api Url",
+            "type": "string"
+          },
+          "category": {
+            "title": "Category",
+            "type": "string"
+          },
+          "csv": {
+            "contentMediaType": "application/octet-stream",
+            "title": "Csv",
+            "type": "string"
+          },
+          "force": {
+            "default": "false",
+            "title": "Force",
+            "type": "string"
+          },
+          "mode": {
+            "title": "Mode",
+            "type": "string"
+          },
+          "pr_target_branch": {
+            "default": "",
+            "title": "Pr Target Branch",
+            "type": "string"
+          },
+          "product": {
+            "default": "aspose.pdf",
+            "title": "Product",
+            "type": "string"
+          },
+          "prompt": {
+            "title": "Prompt",
+            "type": "string"
+          },
+          "repo_push": {
+            "default": "",
+            "title": "Repo Push",
+            "type": "string"
+          }
+        },
+        "required": [
+          "mode"
+        ],
+        "title": "Body_api_start_api_start_post",
+        "type": "object"
+      },
+      "Body_api_upload_files_api_upload_files_post": {
+        "properties": {
+          "files": {
+            "items": {
+              "contentMediaType": "application/octet-stream",
+              "type": "string"
+            },
+            "title": "Files",
+            "type": "array"
+          }
+        },
+        "required": [
+          "files"
+        ],
+        "title": "Body_api_upload_files_api_upload_files_post",
+        "type": "object"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "title": "Detail",
+            "type": "array"
+          }
+        },
+        "title": "HTTPValidationError",
+        "type": "object"
+      },
+      "ValidationError": {
+        "properties": {
+          "ctx": {
+            "title": "Context",
+            "type": "object"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "title": "Location",
+            "type": "array"
+          },
+          "msg": {
+            "title": "Message",
+            "type": "string"
+          },
+          "type": {
+            "title": "Error Type",
+            "type": "string"
+          }
+        },
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError",
+        "type": "object"
+      }
+    }
+  },
+  "info": {
+    "description": "Automated code generation and testing pipeline.",
+    "title": "Aspose Examples Generator",
+    "version": "2.0.0"
+  },
+  "openapi": "3.1.0",
+  "paths": {
+    "/": {
+      "get": {
+        "operationId": "index__get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Index"
+      }
+    },
+    "/api/auto-fixes": {
+      "get": {
+        "description": "List all auto-learned error fix rules with confidence and hit counts.",
+        "operationId": "api_auto_fixes_api_auto_fixes_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Api Auto Fixes"
+      }
+    },
+    "/api/auto-fixes/approve-all": {
+      "post": {
+        "description": "Move all auto-learned rules to the curated error_fixes.json.",
+        "operationId": "api_approve_all_auto_fixes_api_auto_fixes_approve_all_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Api Approve All Auto Fixes"
+      }
+    },
+    "/api/auto-fixes/{rule_id}": {
+      "delete": {
+        "description": "Remove an auto-learned rule.",
+        "operationId": "api_delete_auto_fix_api_auto_fixes__rule_id__delete",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "title": "Rule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Delete Auto Fix"
+      }
+    },
+    "/api/auto-fixes/{rule_id}/approve": {
+      "post": {
+        "description": "Move an auto-learned rule to the curated error_fixes.json.",
+        "operationId": "api_approve_auto_fix_api_auto_fixes__rule_id__approve_post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "rule_id",
+            "required": true,
+            "schema": {
+              "title": "Rule Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Approve Auto Fix"
+      }
+    },
+    "/api/cancel/{job_id}": {
+      "post": {
+        "operationId": "api_cancel_api_cancel__job_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Cancel"
+      }
+    },
+    "/api/categories": {
+      "get": {
+        "description": "Fetch categories from external API with fallback.",
+        "operationId": "api_categories_api_categories_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": false,
+            "schema": {
+              "default": "aspose.pdf",
+              "title": "Product",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Categories"
+      }
+    },
+    "/api/create-pr-from-results": {
+      "post": {
+        "description": "Create PR(s) from persisted disk results -- no running pipeline needed.\n\nBody:\n    {\n        \"categories\": [\"working-with-images\", ...],  // optional -- omit for all\n        \"version\": \"26.3.0\",                         // optional -- default from config\n        \"pr_style\": \"per-category\",                  // \"per-category\" or \"single\"\n        \"pr_target_branch\": \"\"                       // optional override\n    }\n\nThe PR will include:\n- All passed .cs files from disk results\n- Rich PR description with example titles, APIs, tags, difficulty stats\n- Per-category agents.md and index.json",
+        "operationId": "api_create_pr_from_results_api_create_pr_from_results_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Create Pr From Results"
+      }
+    },
+    "/api/failed-tasks/{category}": {
+      "get": {
+        "description": "Return failed task dicts for a category from disk results.\n\nUsed by the Results Dashboard to send failed tasks to the Build Monitor\nfor retry.  Returns the same task-dict format that /api/start-tasks expects.\n\nThe category param is the disk slug (e.g. \"securing_and_signing_pdf\").\nThe returned task dicts use the original category name from the JSON file\n(e.g. \"Securing and signing PDF\") so run_pipeline handles them correctly.",
+        "operationId": "api_failed_tasks_api_failed_tasks__category__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "category",
+            "required": true,
+            "schema": {
+              "title": "Category",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Failed Tasks"
+      }
+    },
+    "/api/generate-category-docs": {
+      "post": {
+        "description": "Generate agents.md for a single category and push it via PR.\n\nReturns the generated agents.md content and PR URL (if create_pr=true).",
+        "operationId": "api_generate_category_docs_api_generate_category_docs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "examples": [
+                  {
+                    "category": "working-with-xml",
+                    "create_pr": true
+                  }
+                ],
+                "title": "Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Generate Category Docs"
+      }
+    },
+    "/api/generate-index-json": {
+      "post": {
+        "description": "Generate index.json for the repository and push it via PR.\n\nScans the repo, extracts per-category metadata (files, namespaces, key APIs),\nand returns the index.json content. Optionally creates a PR (default: true).",
+        "operationId": "api_generate_index_json_api_generate_index_json_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "default": {
+                  "create_pr": true
+                },
+                "examples": [
+                  {
+                    "create_pr": true
+                  }
+                ],
+                "title": "Data",
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Generate Index Json"
+      }
+    },
+    "/api/health": {
+      "get": {
+        "operationId": "health_api_health_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Health"
+      }
+    },
+    "/api/metrics": {
+      "get": {
+        "description": "Lightweight operational metrics \u2014 uptime, active jobs, totals.\n\nDesigned for status pages, dashboards, and simple polling \u2014 not a\nPrometheus replacement. For Prometheus scraping, expose this via a\nsidecar or extend with the prometheus_client library.",
+        "operationId": "metrics_api_metrics_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Metrics"
+      }
+    },
+    "/api/patch-pr-branch": {
+      "post": {
+        "description": "Add agents.md and index.json to an existing PR branch that was missing them.\n\nUseful when a PR was created before these files were included in the sweep.\nReads the .cs files already on the branch from GitHub, generates agents.md\nand index.json, then pushes them directly onto that same branch.\n\nBody: { \"branch\": \"examples/abc123-accessibility-and-tagged-pdfs\" }",
+        "operationId": "api_patch_pr_branch_api_patch_pr_branch_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Patch Pr Branch"
+      }
+    },
+    "/api/pause/{job_id}": {
+      "post": {
+        "operationId": "api_pause_api_pause__job_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Pause"
+      }
+    },
+    "/api/promote-to-main": {
+      "post": {
+        "description": "Promote staging branch to main: merge PR, tag release, reset config.",
+        "operationId": "api_promote_to_main_api_promote_to_main_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Promote To Main"
+      }
+    },
+    "/api/regenerate-metadata": {
+      "post": {
+        "description": "Regenerate metadata (title, description, APIs, tags) for passed examples\nthat are missing metadata. Uses LLM to analyze code and extract metadata.\n\nBody:\n    {\n        \"categories\": [\"working_with_images\", ...],  // optional -- omit for all\n        \"version\": \"26.3.0\"                          // optional -- default from config\n    }",
+        "operationId": "api_regenerate_metadata_api_regenerate_metadata_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Regenerate Metadata"
+      }
+    },
+    "/api/repo-categories": {
+      "get": {
+        "description": "List all category folders in the repo with their file counts.",
+        "operationId": "api_repo_categories_api_repo_categories_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Api Repo Categories"
+      }
+    },
+    "/api/results": {
+      "get": {
+        "description": "List persisted results from disk -- per-category stats and metadata.\n\nShows what's available for PR creation without needing a running job.\nQuery params:\n    version: NuGet version subfolder (e.g. \"26.3.0\"). Empty = config default.",
+        "operationId": "api_results_api_results_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Results"
+      }
+    },
+    "/api/results/all-categories": {
+      "get": {
+        "description": "Merge external categories with disk results -- shows completed AND not-run categories.",
+        "operationId": "api_results_all_categories_api_results_all_categories_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Results All Categories"
+      }
+    },
+    "/api/results/sync-status": {
+      "get": {
+        "description": "Compare disk results with GitHub branch -- returns per-category sync badges.\n\nUses a 24-hour in-memory cache. Pass ``?refresh=true`` to force a fresh fetch.\nRuns blocking GitHub API calls in a thread to avoid blocking the event loop.",
+        "operationId": "api_results_sync_status_api_results_sync_status_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Version",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "refresh",
+            "required": false,
+            "schema": {
+              "default": false,
+              "title": "Refresh",
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Results Sync Status"
+      }
+    },
+    "/api/results/{category}": {
+      "get": {
+        "description": "Get detailed results for a specific category, including example list.",
+        "operationId": "api_results_category_api_results__category__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "category",
+            "required": true,
+            "schema": {
+              "title": "Category",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "version",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Version",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Results Category"
+      }
+    },
+    "/api/resume/{job_id}": {
+      "post": {
+        "operationId": "api_resume_api_resume__job_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Resume"
+      }
+    },
+    "/api/retry-failed/{job_id}": {
+      "post": {
+        "description": "Start a new job that re-runs only the failed tasks from a completed job.\n\nPasses category_branches from the original job so new passing examples\nare pushed to the same branches (Option B -- same PR auto-updated).",
+        "operationId": "api_retry_failed_api_retry_failed__job_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Data",
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Retry Failed"
+      }
+    },
+    "/api/retry-pr/{job_id}": {
+      "post": {
+        "description": "Create or re-create a PR for already-generated examples.\n\nIf a PR branch already exists (job ran with repo_push=true), uses retry_pr\nto recover files from the old branch. Otherwise uses create_pr to commit\nthe code stored in the passed results directly.",
+        "operationId": "api_retry_pr_api_retry_pr__job_id__post",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Retry Pr"
+      }
+    },
+    "/api/start": {
+      "post": {
+        "operationId": "api_start_api_start_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_api_start_api_start_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Start"
+      }
+    },
+    "/api/start-sweep": {
+      "post": {
+        "description": "Start a category sweep job -- delegates to /api/start-tasks.\n\nDEPRECATED: Use /api/start-tasks with {\"categories\": [...]} instead.\nThis endpoint is kept for backward compatibility.",
+        "operationId": "api_start_sweep_api_start_sweep_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Start Sweep"
+      }
+    },
+    "/api/start-tasks": {
+      "post": {
+        "description": "Start a job from selected tasks or categories.\n\nAccepts either:\n  - {\"tasks\": [...]}  -- Task Generator mode (list of task dicts or strings)\n  - {\"categories\": [...]} -- Sweep mode (fetch all tasks for each category)\n  - Both -- categories are fetched and merged with explicit tasks\n\nTask dicts: {task, category, product, id}\nCategory entries: strings (category names).",
+        "operationId": "api_start_tasks_api_start_tasks_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Start Tasks"
+      }
+    },
+    "/api/status/{job_id}": {
+      "get": {
+        "operationId": "api_status_api_status__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Status"
+      }
+    },
+    "/api/stream/{job_id}": {
+      "get": {
+        "description": "SSE endpoint -- pushes build state updates in real time.",
+        "operationId": "api_stream_api_stream__job_id__get",
+        "parameters": [
+          {
+            "in": "path",
+            "name": "job_id",
+            "required": true,
+            "schema": {
+              "title": "Job Id",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Stream"
+      }
+    },
+    "/api/tasks": {
+      "get": {
+        "description": "Fetch tasks for a given category from the external API.",
+        "operationId": "api_tasks_api_tasks_get",
+        "parameters": [
+          {
+            "in": "query",
+            "name": "product",
+            "required": false,
+            "schema": {
+              "default": "aspose.pdf",
+              "title": "Product",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "category",
+            "required": false,
+            "schema": {
+              "default": "",
+              "title": "Category",
+              "type": "string"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page",
+            "required": false,
+            "schema": {
+              "default": 1,
+              "title": "Page",
+              "type": "integer"
+            }
+          },
+          {
+            "in": "query",
+            "name": "page_size",
+            "required": false,
+            "schema": {
+              "default": 50,
+              "title": "Page Size",
+              "type": "integer"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Tasks"
+      }
+    },
+    "/api/update-readme": {
+      "post": {
+        "description": "Regenerate README.md in the examples repo from live scan data and push directly.",
+        "operationId": "api_update_readme_api_update_readme_post",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Api Update Readme"
+      }
+    },
+    "/api/update-repo-docs": {
+      "post": {
+        "description": "Scan the repo and create a PR with cumulative agents.md + optional README update.",
+        "operationId": "api_update_repo_docs_api_update_repo_docs_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Data",
+                "type": "object"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Update Repo Docs"
+      }
+    },
+    "/api/upload-files": {
+      "post": {
+        "description": "Upload test files to the build workspace directory.",
+        "operationId": "api_upload_files_api_upload_files_post",
+        "requestBody": {
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "$ref": "#/components/schemas/Body_api_upload_files_api_upload_files_post"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Upload Files"
+      }
+    },
+    "/api/version": {
+      "get": {
+        "description": "Service version and build identity. Useful for deployment verification.",
+        "operationId": "version_api_version_get",
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Version"
+      }
+    },
+    "/api/version-bump": {
+      "post": {
+        "description": "Version bump setup: tag old version, create empty staging branch, update .env.",
+        "operationId": "api_version_bump_api_version_bump_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "additionalProperties": true,
+                "title": "Data",
+                "type": "object"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            },
+            "description": "Successful Response"
+          },
+          "422": {
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            },
+            "description": "Validation Error"
+          }
+        },
+        "summary": "Api Version Bump"
+      }
+    },
+    "/results": {
+      "get": {
+        "operationId": "results_page_results_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Results Page"
+      }
+    },
+    "/results-v2": {
+      "get": {
+        "description": "Redesigned Results Dashboard (v2).",
+        "operationId": "results_v2_page_results_v2_get",
+        "responses": {
+          "200": {
+            "content": {
+              "text/html": {
+                "schema": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Successful Response"
+          }
+        },
+        "summary": "Results V2 Page"
+      }
+    }
+  }
+}

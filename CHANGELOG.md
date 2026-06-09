@@ -2,6 +2,20 @@
 
 All notable changes to this project are documented here.
 
+## [Unreleased] - 2026-06-10
+### Security / Fixed
+- `config.py`: removed hardcoded local path `/Users/fahadadeelqazi/...` from the `repo_path` default (leaked PII; now defaults to empty string and must be set via `REPO_PATH`)
+- `scan_repo()` in `git_ops/repo_docs.py`: returns empty dict when `REPO_PATH` is unset or points at a missing directory instead of raising `FileNotFoundError` — fixes CI crash in the contract test for `/api/repo-categories`
+
+### Added
+- Contract tests with `schemathesis==4.21.3` — `tests/integration/test_contract.py` loads the live OpenAPI schema from the ASGI app and generates property-based requests for every documented endpoint. Currently runs against an allowlist of 6 well-defined READ-ONLY endpoints (`/api/health`, `/api/version`, `/api/metrics`, `/api/auto-fixes`, `/api/results`, `/api/repo-categories`); 32 endpoints are deliberately skipped pending schema tightening (listed in `_TODO_PATHS`). Foundation for full contract coverage as endpoint response models get explicit
+- `scripts/export_openapi.py` — dumps the FastAPI OpenAPI schema to `docs/openapi.json` for repo-browsable API contract. Wired into GitLab CI as an artifact (30-day retention)
+- `docs/openapi.json` — committed snapshot of the API contract (38 endpoints, 41 KB)
+
+### Changed
+- `requirements.txt` switched from ranged version pins (`>=current,<next_major`) to exact pins (`==`) for reproducible builds. `python-multipart` bumped to `0.0.27` and `requests` to `2.33.0` to clear the CVEs flagged by `pip-audit`. Dependabot will continue to propose minor/major bumps as PRs
+- `requirements-ci.txt` — added `schemathesis==4.21.3`
+
 ## [Unreleased] - 2026-06-09
 ### Security
 - Removed hardcoded `LITELLM_API_KEY` default from `config.py` — key now loads exclusively from the `LITELLM_API_KEY` env var
