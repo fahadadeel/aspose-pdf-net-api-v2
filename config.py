@@ -202,14 +202,19 @@ def load_config() -> AppConfig:
     cfg.pipeline.llm_fix_attempts = _env_int("LLM_FIX_ATTEMPTS", cfg.pipeline.llm_fix_attempts)
     cfg.pipeline.regen_attempts = _env_int("REGEN_ATTEMPTS", cfg.pipeline.regen_attempts)
     cfg.pipeline.retrieve_limit = _env_int("RETRIEVE_LIMIT", cfg.pipeline.retrieve_limit)
-    cfg.pipeline.use_retrieve_on_llm_fail = _env_bool("USE_RETRIEVE_ON_LLM_FAIL", cfg.pipeline.use_retrieve_on_llm_fail)
-    cfg.pipeline.decompose_on_llm_fail = _env_bool("DECOMPOSE_ON_LLM_FAIL", cfg.pipeline.decompose_on_llm_fail)
-    cfg.pipeline.final_llm_after_regen_fail = _env_bool("FINAL_LLM_AFTER_REGEN_FAIL", cfg.pipeline.final_llm_after_regen_fail)
+    # Boolean toggles route through the feature flag registry so the
+    # operator-visible behaviour surface lives in one place
+    # (resources/feature_flags.json). The dataclass defaults still
+    # apply when a flag is undeclared.
+    from features import is_enabled as _flag
+    cfg.pipeline.use_retrieve_on_llm_fail = _flag("use_retrieve_on_llm_fail", cfg.pipeline.use_retrieve_on_llm_fail)
+    cfg.pipeline.decompose_on_llm_fail = _flag("decompose_on_llm_fail", cfg.pipeline.decompose_on_llm_fail)
+    cfg.pipeline.final_llm_after_regen_fail = _flag("final_llm_after_regen_fail", cfg.pipeline.final_llm_after_regen_fail)
     cfg.pipeline.retry_mode = _env("RETRY_MODE", cfg.pipeline.retry_mode)
-    cfg.pipeline.learn_rules_from_failures = _env_bool("LEARN_RULES_FROM_FAILURES", cfg.pipeline.learn_rules_from_failures)
-    cfg.pipeline.use_own_llm = _env_bool("USE_OWN_LLM", cfg.pipeline.use_own_llm)
-    cfg.pipeline.auto_learn_on_success = _env_bool("AUTO_LEARN_ON_SUCCESS", cfg.pipeline.auto_learn_on_success)
-    cfg.pipeline.auto_learn_catalog = _env_bool("AUTO_LEARN_CATALOG", cfg.pipeline.auto_learn_catalog)
+    cfg.pipeline.learn_rules_from_failures = _flag("learn_rules_from_failures", cfg.pipeline.learn_rules_from_failures)
+    cfg.pipeline.use_own_llm = _flag("use_own_llm", cfg.pipeline.use_own_llm)
+    cfg.pipeline.auto_learn_on_success = _flag("auto_learn_on_success", cfg.pipeline.auto_learn_on_success)
+    cfg.pipeline.auto_learn_catalog = _flag("auto_learn_catalog", cfg.pipeline.auto_learn_catalog)
     cfg.pipeline.auto_learn_min_diff_lines = _env_int("AUTO_LEARN_MIN_DIFF_LINES", cfg.pipeline.auto_learn_min_diff_lines)
 
     # MCP
