@@ -22,6 +22,7 @@ help:
 	@echo "    test-fast    Run unit tests without coverage"
 	@echo "    typecheck    Run mypy type checker (informational)"
 	@echo "    security     Run bandit + pip-audit security scans"
+	@echo "    mutation     Run mutation tests (slow, informational)"
 	@echo "    check        lint + test (full quality gate)"
 	@echo ""
 	@echo "  Docker"
@@ -74,6 +75,11 @@ typecheck:
 security:
 	$(PYTHON) -m bandit -c bandit.yaml -r . -lll
 	$(PYTHON) -m pip_audit -r requirements-ci.txt || true
+
+.PHONY: mutation
+mutation:
+	$(PYTHON) -m mutmut run || true
+	$(PYTHON) -m mutmut results
 
 .PHONY: check
 check: lint test

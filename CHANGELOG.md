@@ -3,6 +3,14 @@
 All notable changes to this project are documented here.
 
 ## [Unreleased] - 2026-06-10
+### Added
+- Mutation testing via `mutmut==3.6.0` — new `mutation-tests` CI job in a dedicated `mutation` stage, gated to scheduled runs only (`$CI_PIPELINE_SOURCE == "schedule" && $RUN_MUTATION_TESTS == "true"`). Recommended cadence: alternate day. Initial scope: 7 stable high-coverage modules (`pipeline/error_parser.py`, `pipeline/prompt_builder.py`, `pipeline/models.py`, `middleware/security.py`, `knowledge/error_fixes.py`, `knowledge/pattern_tracker.py`, `routers/health.py`). Output uploaded as a 30-day artifact, informational only — never blocks merges
+- `setup.cfg` introduced with a minimal `[mutmut]` config (source paths, pytest args, timeouts, coverage-only mutation)
+- `make mutation` target for local runs
+- `docs/mutation-testing.md` — operator guide covering how it works, safety guarantees, schedule setup, report interpretation, and scope-expansion criteria
+- `.gitignore` entries for `mutants/`, `mutmut-report.txt`, `.mutmut-cache`
+
+
 ### Changed
 - Policy drift check is now **blocking** in CI — removed the `|| true` wrapper from `.gitlab-ci.yml` after verifying the `POLICY_DRIFT_TOKEN` CI variable injects correctly on protected `main` runs. Live config matches `policy/gitlab-branch-protection-main.json` on every tracked field
 - `scripts/check_policy_drift.py` treats "all providers skipped" as a non-fatal warning by default (common on MR branches when `POLICY_DRIFT_TOKEN` is `Protected`-only); pass `--require-tokens` to make it fatal. Real drift still fails the build
