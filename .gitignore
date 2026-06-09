@@ -65,5 +65,10 @@ rollback_snapshots/
 .pytest_cache/
 .backups/
 
+# Mutation testing artifacts (CI uploads these; never commit)
+mutants/
+mutmut-report.txt
+.mutmut-cache
+
 # Keep these HTML files (templates)
 !templates/*.html

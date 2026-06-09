@@ -1,5 +1,6 @@
 stages:
   - test
+  - mutation
   - build-image
   - generate
 
@@ -26,7 +27,34 @@ unit-tests:
     - main
     - merge_requests
 
-# ── Stage 2: Build CI image (Python 3.12 + .NET 10.0) ─────────────────────────
+# ── Stage 2: Mutation testing (scheduled, informational) ──────────────────────
+# Runs only when a Pipeline Schedule fires with RUN_MUTATION_TESTS=true.
+# Set the schedule via GitLab UI: Settings → CI/CD → Schedules.
+# Recommended cadence: alternate day cron `0 6 */2 * *` (06:00 every 2 days).
+# Never blocks merges — output uploaded as artifact for review.
+mutation-tests:
+  stage: mutation
+  image: python:3.12-slim
+  before_script:
+    - pip install -q -r requirements-ci.txt
+  script:
+    # Runs the full mutation suite against the modules in setup.cfg [mutmut].
+    # Exit code is always non-zero when any mutation survives (expected) —
+    # `|| true` keeps the job result informational.
+    - python -m mutmut run || true
+    - python -m mutmut results > mutmut-report.txt 2>&1 || true
+    - echo "─── MUTATION REPORT SUMMARY ───"
+    - tail -50 mutmut-report.txt
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $RUN_MUTATION_TESTS == "true"'
+  artifacts:
+    when: always
+    expire_in: 30 days
+    paths:
+      - mutmut-report.txt
+      - mutants/
+
+# ── Stage 3: Build CI image (Python 3.12 + .NET 10.0) ─────────────────────────
 # Runs only when Dockerfile.ci or requirements-ci.txt changes, or manually.
 build-ci-image:
   stage: build-image
