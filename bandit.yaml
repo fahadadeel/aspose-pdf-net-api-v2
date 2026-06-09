@@ -1,0 +1,23 @@
+# Bandit security scanner config
+# Run: bandit -c bandit.yaml -r .
+
+exclude_dirs:
+  - .venv
+  - venv
+  - tests
+  - .git
+  - .claude
+  - __pycache__
+  - .parallel-workspaces
+  - results
+
+skips:
+  # B101: assert used — false positives in non-test code are rare
+  # B311: random — we don't use random for security
+  - B311
+  # B404: subprocess import — required for dotnet build/run + git
+  - B404
+  # B603: subprocess without shell=True — actually safer than shell=True
+  - B603
+  # B607: partial process path — `git`/`dotnet` rely on PATH, fine for our use
+  - B607

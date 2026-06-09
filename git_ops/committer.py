@@ -29,7 +29,7 @@ def slugify(text: str, max_len: int = 100) -> str:
     slug = re.sub(r"[^a-z0-9._-]", "-", slug)
     slug = re.sub(r"-+", "-", slug).strip("-._")
     if len(slug) > max_len:
-        digest = hashlib.sha1(slug.encode("utf-8")).hexdigest()[:8]
+        digest = hashlib.sha1(slug.encode("utf-8"), usedforsecurity=False).hexdigest()[:8]
         slug = f"{slug[:max_len-9]}-{digest}"
     return slug or "untitled"
 

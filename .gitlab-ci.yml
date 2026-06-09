@@ -11,6 +11,8 @@ unit-tests:
     - pip install -q -r requirements-ci.txt
   script:
     - python -m ruff check . --exclude .venv
+    - python -m bandit -c bandit.yaml -r . -lll
+    - python -m pip_audit -r requirements-ci.txt || true
     - python -m pytest tests/ -v --cov --cov-report=term-missing
   only:
     - main

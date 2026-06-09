@@ -8,12 +8,15 @@ All notable changes to this project are documented here.
 - Replaced CORS `allow_origins=["*"]` wildcard in `main.py` with explicit origins from a new `CORS_ORIGINS` env var (defaults to `localhost:7103`)
 - Moved `reporting.py` endpoint token from URL query string to `Authorization: Bearer` header to prevent leakage via logs/proxies
 - Scrubbed previously committed `LITELLM_API_KEY` from all of git history via `git filter-repo` and force-pushed to both remotes
+- Added `bandit` SAST scanner and `pip-audit` dependency vulnerability scan as required CI steps on both GitHub Actions and GitLab CI; bandit config in `bandit.yaml`
+- Marked SHA1 slug hash in `git_ops/committer.py` as `usedforsecurity=False` to reflect it's only used for filename truncation, not security
 
 ### Added
 - Auto-generated GitHub Release notes (`git_ops/release_notes.py`) — diffs `index.json` between release branch and main to produce a rich release body with summary table, new/updated categories, and full category breakdown. Wired into `run_version_bump()` and `run_promote_to_main()` in `jobs.py`
 - **Update README** button on Results Dashboard + new `POST /api/update-readme` endpoint — scans live repo file counts, regenerates `README.md` with the improved Agentic format, and pushes directly to the examples repo (no PR)
 - `docs/runbook.md` — operations runbook with SLA targets, severity definitions, on-call contacts, 6 common failure scenarios with mitigation steps, rollback procedure, and secret rotation steps
 - `CORS_ORIGINS` env var documented in `.env.example` and `.claude/rules/env-vars.md`
+- New `tests/integration/` suite covering full-app FastAPI boot, CORS configuration, MCP mount, and the `/api/update-readme` endpoint via `TestClient`
 
 ### Changed
 - `generate_readme()` in `git_ops/repo_docs.py` refactored — now produces the improved Agentic format with "For AI Coding Agents" section, category table with `agents.md` links, and the **Agentic .NET Ecosystem** table linking all 7 sibling repos (Words, Cells, HTML, Imaging, Slides, Email, BarCode); ecosystem list extracted to `_ECOSYSTEM_REPOS` constant

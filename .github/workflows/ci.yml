@@ -24,5 +24,12 @@ jobs:
       - name: Lint with ruff
         run: python -m ruff check .
 
+      - name: Security scan (bandit)
+        run: python -m bandit -c bandit.yaml -r . -lll
+
+      - name: Dependency vulnerability audit (pip-audit)
+        run: python -m pip_audit -r requirements-ci.txt
+        continue-on-error: true
+
       - name: Run unit tests
         run: python -m pytest tests/ -v --cov --cov-report=term-missing
