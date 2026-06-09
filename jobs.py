@@ -1210,7 +1210,7 @@ def update_repo_docs(job_id: str, update_readme: bool = True):
 
             # Build index.json in the same format as _write_examples_to_repo
             from datetime import datetime as _dt, timezone as _tz
-            index_data = {
+            index_data: dict = {
                 "category": cat_name,
                 "nuget_version": config.build.nuget_version,
                 "last_updated": _dt.now(_tz.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
@@ -2675,8 +2675,8 @@ def _build_rich_pr_description(category: str, examples: list, nuget_version: str
     titles = []
     all_apis = set()
     all_tags = set()
-    difficulties = {}
-    stages = {}
+    difficulties: dict[str, int] = {}
+    stages: dict[str, int] = {}
 
     for ex in examples:
         meta = ex.get("metadata", {})
@@ -2848,7 +2848,7 @@ def create_pr_from_results(
         base_branch = config.git.effective_pr_target
 
         pr_urls = []
-        results_summary = []
+        results_summary: list[dict] = []
 
         if pr_style == "single":
             # ── Single PR for all categories ──
@@ -2952,7 +2952,7 @@ def create_pr_from_results(
                         add_log(job_id, f"[{cat_dir_name}] Cleaned old directory ({write_mode} mode)")
 
                     # Write files AFTER branch is clean and checked out
-                    cat_results = []
+                    cat_results: list[dict] = []
                     _write_examples_to_repo(config, cat_dir_name, examples, cat_dir, run_id, cat_results)
 
                     # Pre-commit compile verification -- remove files that don't compile

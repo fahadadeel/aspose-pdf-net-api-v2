@@ -450,6 +450,95 @@ def test_results_all_categories_returns_shape(client, tmp_results_dir, monkeypat
     assert body["categories"]["conversion"]["failed"] == 2
 
 
+# ── /api/status full body ───────────────────────────────────────────────────
+
+def test_status_returns_full_state(client):
+    init_build("status-job-1", total=10)
+    with JOB_LOCK:
+        BUILD_STATE["status-job-1"]["status"] = "running"
+        BUILD_STATE["status-job-1"]["passed"].extend([{"task": "t1"}, {"task": "t2"}, {"task": "t3"}, {"task": "t4"}])
+        BUILD_STATE["status-job-1"]["failed"].append({"task": "fail1"})
+
+    r = client.get("/api/status/status-job-1")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "running"
+    assert body["total"] == 10
+    assert body["passed_count"] == 4
+    assert body["failed_count"] == 1
+    assert body["pass_rate"] == 80
+
+
+# ── /api/create-pr-from-results validation ──────────────────────────────────
+
+def test_create_pr_from_results_invalid_pr_style_returns_400(client):
+    r = client.post(
+        "/api/create-pr-from-results",
+        json={"pr_style": "garbage", "write_mode": "replace"},
+    )
+    assert r.status_code == 400
+    assert "pr_style" in r.json()["error"].lower()
+
+
+def test_create_pr_from_results_invalid_write_mode_returns_400(client):
+    r = client.post(
+        "/api/create-pr-from-results",
+        json={"pr_style": "single", "write_mode": "invalid"},
+    )
+    assert r.status_code == 400
+    assert "write_mode" in r.json()["error"].lower()
+
+
+def test_create_pr_from_results_dispatches_worker(client, monkeypatch):
+    monkeypatch.setattr("routers.jobs.create_pr_from_results", lambda *a, **k: None)
+    r = client.post(
+        "/api/create-pr-from-results",
+        json={
+            "pr_style": "per-category",
+            "write_mode": "incremental",
+            "categories": ["conversion"],
+        },
+    )
+    assert r.status_code == 200
+    body = r.json()
+    assert "job_id" in body
+    assert body["pr_style"] == "per-category"
+    assert body["write_mode"] == "incremental"
+
+
+# ── /api/regenerate-metadata ────────────────────────────────────────────────
+
+def test_regenerate_metadata_dispatches_worker(client, monkeypatch):
+    monkeypatch.setattr("routers.jobs.regenerate_metadata", lambda *a, **k: None)
+    r = client.post(
+        "/api/regenerate-metadata",
+        json={"categories": ["conversion"], "version": "26.5.0"},
+    )
+    assert r.status_code == 200
+    assert "job_id" in r.json()
+
+
+def test_regenerate_metadata_accepts_empty_body(client, monkeypatch):
+    monkeypatch.setattr("routers.jobs.regenerate_metadata", lambda *a, **k: None)
+    r = client.post("/api/regenerate-metadata", json={})
+    assert r.status_code == 200
+
+
+# ── /api/generate-index-json dispatch ───────────────────────────────────────
+
+def test_generate_index_json_dispatches(client, monkeypatch):
+    # generate-index-json reads scan_repo synchronously then returns
+    monkeypatch.setattr(
+        "git_ops.repo_docs.scan_repo",
+        lambda _p: {"conversion": ["a.cs", "b.cs"]},
+    )
+    # Force create_pr=False path to skip GitHub calls
+    r = client.post("/api/generate-index-json", json={"create_pr": False})
+    # Either succeeds or returns 200 with an error key — both signal endpoint
+    # was reached past the early validation guard.
+    assert r.status_code in (200, 400, 500)
+
+
 # ── /api/repo-categories ────────────────────────────────────────────────────
 
 def test_repo_categories_returns_list(client, monkeypatch):

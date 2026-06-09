@@ -13,13 +13,18 @@ All notable changes to this project are documented here.
 - New `middleware/security.py` with two middlewares wired into `main.py`:
   - `SecurityHeadersMiddleware` adds `X-Content-Type-Options: nosniff`, `X-Frame-Options: DENY`, `Referrer-Policy: no-referrer`, `Permissions-Policy` (geo/mic/camera disabled), and `Strict-Transport-Security` to every response
   - `APIKeyMiddleware` optionally gates `/api/*` behind `X-API-Key` or `Authorization: Bearer` when the new `API_KEY` env var is set; no-op when unset to keep local dev frictionless. `/api/health`, `/`, `/results`, `/results-v2` remain public for monitoring/UI
+- Type checking with `mypy==2.1.0` — added `mypy.ini` (lenient config, strict_optional disabled), wired as non-blocking CI step in GitHub Actions and GitLab CI, and `make typecheck` target
+- `.pre-commit-config.yaml` — local hooks for ruff, bandit, trailing whitespace, end-of-file fixer, large-file guard, private-key detection
+- `/api/metrics` endpoint — uptime, active/paused/completed/failed job counts, total examples processed, pass rate percentage. Lightweight observability without Prometheus dependency
+- `/api/version` endpoint — service version, NuGet version, .NET TFM for deployment verification
+- `make security` target — runs bandit + pip-audit locally with same flags as CI
 
 ### Added
 - Auto-generated GitHub Release notes (`git_ops/release_notes.py`) — diffs `index.json` between release branch and main to produce a rich release body with summary table, new/updated categories, and full category breakdown. Wired into `run_version_bump()` and `run_promote_to_main()` in `jobs.py`
 - **Update README** button on Results Dashboard + new `POST /api/update-readme` endpoint — scans live repo file counts, regenerates `README.md` with the improved Agentic format, and pushes directly to the examples repo (no PR)
 - `docs/runbook.md` — operations runbook with SLA targets, severity definitions, on-call contacts, 6 common failure scenarios with mitigation steps, rollback procedure, and secret rotation steps
 - `CORS_ORIGINS` env var documented in `.env.example` and `.claude/rules/env-vars.md`
-- New `tests/integration/` suite — `test_app_integration.py` covers full-app FastAPI boot, CORS, MCP mount, `/api/update-readme`; `test_router_endpoints.py` covers 35 router endpoint scenarios (validation, dispatch, disk-backed results, auto-fixes, `/api/start` form-data, `/api/start-tasks`, `/api/retry-pr`, `/api/results/all-categories`); `test_middleware.py` covers 9 scenarios for security headers and the API key gate — pushing `routers/jobs.py` coverage from 22% to 57% and total coverage from 51% to 64%
+- New `tests/integration/` suite — `test_app_integration.py` (full-app FastAPI boot, CORS, MCP mount, `/api/update-readme`); `test_router_endpoints.py` (42 router endpoint scenarios); `test_middleware.py` (9 security header / API key scenarios); `test_metrics_endpoints.py` (7 scenarios for `/api/health`, `/api/version`, `/api/metrics`). Pushed `routers/jobs.py` coverage from 22% to 62%, `routers/health.py` to 95%, and total coverage from 51% to 66.6%
 - README CI/quality badges (CI, coverage, tests, ruff, bandit, Python version, .NET framework version)
 - `SECURITY.md` — vulnerability reporting policy with 48-hour ack SLA, supported versions, and links to security controls
 - `.github/dependabot.yml` — weekly grouped dependency updates for `pip` and `github-actions` ecosystems with separate runtime/dev groups

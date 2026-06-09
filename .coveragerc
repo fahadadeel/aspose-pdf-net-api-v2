@@ -11,6 +11,7 @@ include =
     ./pipeline/runner.py
     ./routers/health.py
     ./routers/jobs.py
+    ./middleware/security.py
     ./knowledge/error_fixes.py
     ./knowledge/error_catalog.py
     ./knowledge/auto_fixes.py

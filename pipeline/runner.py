@@ -162,7 +162,7 @@ class PipelineRunner:
         self._auto_learner = AutoLearner(config, self.llm) if config.pipeline.auto_learn_on_success else None
 
         # Generation rules (lazy-loaded when use_own_llm is enabled)
-        self._generation_rules_raw = {}   # raw dict from JSON (for per-task filtering)
+        self._generation_rules_raw: dict = {}   # raw dict from JSON (for per-task filtering)
         self._generation_rules = ""       # formatted text (fallback / backward compat)
         self._generation_rules_loaded = False
 

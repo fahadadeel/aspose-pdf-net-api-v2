@@ -20,6 +20,8 @@ help:
 	@echo "    lint-fix     Run ruff linter and auto-fix violations"
 	@echo "    test         Run unit tests with coverage"
 	@echo "    test-fast    Run unit tests without coverage"
+	@echo "    typecheck    Run mypy type checker (informational)"
+	@echo "    security     Run bandit + pip-audit security scans"
 	@echo "    check        lint + test (full quality gate)"
 	@echo ""
 	@echo "  Docker"
@@ -63,6 +65,15 @@ test:
 .PHONY: test-fast
 test-fast:
 	$(PYTHON) -m pytest tests/ -q
+
+.PHONY: typecheck
+typecheck:
+	$(PYTHON) -m mypy --config-file mypy.ini .
+
+.PHONY: security
+security:
+	$(PYTHON) -m bandit -c bandit.yaml -r . -lll
+	$(PYTHON) -m pip_audit -r requirements-ci.txt || true
 
 .PHONY: check
 check: lint test

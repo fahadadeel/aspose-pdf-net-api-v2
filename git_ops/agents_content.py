@@ -256,8 +256,8 @@ def load_anti_patterns(
                 continue
 
             # Split into CORRECT and WRONG blocks
-            correct_lines = []
-            wrong_lines = []
+            correct_lines: list[str] = []
+            wrong_lines: list[str] = []
             current_target = None
             for line in code.splitlines():
                 stripped = line.strip()
@@ -463,7 +463,7 @@ def load_domain_knowledge(kb_path: str, max_count: int = 7) -> str:
     ))
 
     # Deduplicate semantically
-    selected = []
+    selected: list[dict] = []
     selected_texts: List[str] = []
     for item in candidates:
         if len(selected) >= max_count:

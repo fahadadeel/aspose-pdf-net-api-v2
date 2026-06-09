@@ -152,7 +152,7 @@ class RuleSearchEngine:
 
     def _build_idf(self, texts: List[str]) -> dict:
         n = len(texts)
-        df = {}
+        df: dict[str, int] = {}
         for text in texts:
             for tok in set(self._tokenize(text)):
                 df[tok] = df.get(tok, 0) + 1

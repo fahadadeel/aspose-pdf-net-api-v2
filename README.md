@@ -1,8 +1,8 @@
 # Aspose.PDF for .NET — Examples Generator
 
 [![CI](https://github.com/fahadadeel/aspose-pdf-net-api-v2/actions/workflows/ci.yml/badge.svg)](https://github.com/fahadadeel/aspose-pdf-net-api-v2/actions/workflows/ci.yml)
-[![Coverage](https://img.shields.io/badge/coverage-64%25-yellow)](./pytest.ini)
-[![Tests](https://img.shields.io/badge/tests-170%20passing-brightgreen)](./tests/)
+[![Coverage](https://img.shields.io/badge/coverage-66%25-yellow)](./pytest.ini)
+[![Tests](https://img.shields.io/badge/tests-184%20passing-brightgreen)](./tests/)
 [![Lint](https://img.shields.io/badge/ruff-passing-brightgreen)](./ruff.toml)
 [![Security](https://img.shields.io/badge/bandit-passing-brightgreen)](./bandit.yaml)
 [![Python](https://img.shields.io/badge/python-3.12-blue)](https://www.python.org/)
