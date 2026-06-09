@@ -16,6 +16,7 @@ unit-tests:
     - python -m mypy --config-file mypy.ini . || true
     - python -m pytest tests/ -v --cov --cov-report=term-missing
     - python scripts/export_openapi.py
+    - GITLAB_TOKEN="${POLICY_DRIFT_TOKEN:-}" GITLAB_PROJECT_ID="${CI_PROJECT_ID}" GITLAB_HOST="${CI_SERVER_HOST}" python scripts/check_policy_drift.py || true
   artifacts:
     when: always
     expire_in: 30 days

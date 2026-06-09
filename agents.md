@@ -40,12 +40,36 @@ This repository (aspose-pdf-net-api-v2) is the **agent/pipeline** — it generat
 - 5-stage auto-fix pipeline: baseline → pattern fix → LLM fix → context enrichment + regen → final LLM recovery ([`pipeline/runner.py`](pipeline/runner.py), [`pipeline/stages.py`](pipeline/stages.py))
 - Regex-based deterministic error pattern fixes ([`pipeline/error_parser.py`](pipeline/error_parser.py))
 
-### Self-Learning
-- Auto-learn reusable fix rules from mid-pipeline successes ([`knowledge/auto_learner.py`](knowledge/auto_learner.py))
-- Auto-expand error catalog from successful fixes ([`knowledge/error_catalog.py`](knowledge/error_catalog.py))
-- Track recurring code transformations and auto-promote at threshold ([`knowledge/pattern_tracker.py`](knowledge/pattern_tracker.py))
-- Confidence-weighted error fix matching with curated and auto-learned rules ([`knowledge/error_fixes.py`](knowledge/error_fixes.py))
-- Semantic + keyword hybrid KB search with LLM reranking ([`knowledge/rule_search.py`](knowledge/rule_search.py), [`knowledge/reranker.py`](knowledge/reranker.py))
+### Self-Learning (Feedback-Driven Strategy Evolution Across Runs)
+
+The pipeline does not just react — it **learns from its own successes and changes its behaviour across runs**. Every mid-pipeline fix that produces a passing build is mined for reusable signal and fed back into the rule base used by future runs. This is the feedback loop in plain terms:
+
+1. **Observe** — a generation fails, an LLM/pattern/regen fix succeeds, the result compiles and runs
+2. **Extract** — `AutoLearner` diffs the failing vs passing code, identifies the transformation, captures the error pattern that triggered it
+3. **Persist** — new rules write to `resources/auto_fixes.json` and `resources/auto_error_catalog.json` (curated rules in `resources/error_fixes.json` and `resources/error_catalog.json` are never overwritten)
+4. **Promote at threshold** — `PatternTracker` counts how often a transformation recurs; once it hits the configured threshold it is promoted to a first-class pattern in `resources/auto_patterns.json`
+5. **Reuse next run** — `_ensure_error_fixes()` merges curated + auto-learned rules at job start; recurring failures are pattern-matched before reaching the LLM, cutting tokens and time
+6. **Human-in-the-loop review** — auto-learned rules surface in the Results Dashboard for approve / promote-to-curated / delete
+
+This is **adaptive strategy revision based on outcomes across cycles** (calibration A8 → A9 territory) — not just per-task retry. Each successful generation increases the agent's odds on the *next* generation, even for tasks it has never seen.
+
+Concrete artifacts:
+- Auto-learn driver: [`knowledge/auto_learner.py`](knowledge/auto_learner.py)
+- Auto-fix rule store: [`knowledge/auto_fixes.py`](knowledge/auto_fixes.py) → `resources/auto_fixes.json`
+- Auto-catalog: [`knowledge/error_catalog.py`](knowledge/error_catalog.py) → `resources/auto_error_catalog.json`
+- Pattern-frequency tracker + auto-promote: [`knowledge/pattern_tracker.py`](knowledge/pattern_tracker.py) → `resources/auto_patterns.json`
+- Confidence-weighted matching against curated + auto: [`knowledge/error_fixes.py`](knowledge/error_fixes.py)
+- Hybrid semantic + keyword search with LLM reranking: [`knowledge/rule_search.py`](knowledge/rule_search.py), [`knowledge/reranker.py`](knowledge/reranker.py)
+- Adaptive top-k retrieval: [`RuleSearchEngine.compute_adaptive_top_k()`](knowledge/rule_search.py) widens / narrows search breadth based on prior failure signals
+
+### Adaptive Mid-Run Behaviour
+
+The pipeline also adapts **within a single run**, not just across runs:
+
+- Stage escalation: pattern-fix → LLM-fix → context enrichment → regeneration → final LLM recovery — each stage uses the failure signal from the previous to choose a different strategy ([`pipeline/runner.py`](pipeline/runner.py))
+- Bounded retries with explicit exit conditions per stage ([`pipeline/stages.py`](pipeline/stages.py))
+- Rule selection broadens dynamically when the initial top-k yields no usable matches (`compute_adaptive_top_k`)
+- Stage 5 (final LLM recovery) falls back to pre-regen code when regen produced no candidates
 
 ### Git & PR Management
 - Clone, branch, commit, and push to GitHub repositories ([`git_ops/repo.py`](git_ops/repo.py), [`git_ops/committer.py`](git_ops/committer.py))

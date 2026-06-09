@@ -3,6 +3,10 @@
 All notable changes to this project are documented here.
 
 ## [Unreleased] - 2026-06-10
+### Added
+- `scripts/check_policy_drift.py` — policy-as-code drift detector. Reads `policy/*.json` and the live branch protection config from the GitHub and GitLab APIs, then reports a per-field diff. Wired into `.gitlab-ci.yml` as an informational step (non-blocking) so we can promote to blocking once the `POLICY_DRIFT_TOKEN` CI variable is configured
+- `agents.md` Self-Learning section rewritten to document the **feedback-driven strategy evolution across runs**: 6-step observe → extract → persist → promote → reuse → review loop with concrete file references for `auto_learner`, `auto_fixes`, `auto_error_catalog`, `pattern_tracker`, `error_fixes`, and `rule_search.compute_adaptive_top_k`. New **Adaptive Mid-Run Behaviour** subsection covers stage escalation, bounded retries, and dynamic rule-search widening
+
 ### Security / Fixed
 - `config.py`: removed hardcoded local path `/Users/fahadadeelqazi/...` from the `repo_path` default (leaked PII; now defaults to empty string and must be set via `REPO_PATH`)
 - `scan_repo()` in `git_ops/repo_docs.py`: returns empty dict when `REPO_PATH` is unset or points at a missing directory instead of raising `FileNotFoundError` — fixes CI crash in the contract test for `/api/repo-categories`
