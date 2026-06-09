@@ -18,6 +18,11 @@ All notable changes to this project are documented here.
 - `/api/metrics` endpoint — uptime, active/paused/completed/failed job counts, total examples processed, pass rate percentage. Lightweight observability without Prometheus dependency
 - `/api/version` endpoint — service version, NuGet version, .NET TFM for deployment verification
 - `make security` target — runs bandit + pip-audit locally with same flags as CI
+- Branch protection enabled on `main` (GitHub): blocks direct pushes, requires `test` status check, disables force pushes and deletions, requires conversation resolution before merge
+- `policy/` directory introduced as policy-as-code: `policy/github-branch-protection-main.json` is the exact API body applied to GitHub via `gh api --method PUT`; `policy/README.md` documents how to apply and verify
+- `docs/branch-protection.md` — human-readable branch protection policy for both GitHub and GitLab, with the documented bypass procedure for secret-history rewrites
+- `CONTRIBUTING.md` — new "Branch Protection & PR Workflow" section linking the protection policy and PR template
+- `docs/runbook.md` — secret rotation step 5 now links to the bypass procedure in `docs/branch-protection.md`
 
 ### Added
 - Auto-generated GitHub Release notes (`git_ops/release_notes.py`) — diffs `index.json` between release branch and main to produce a rich release body with summary table, new/updated categories, and full category breakdown. Wired into `run_version_bump()` and `run_promote_to_main()` in `jobs.py`

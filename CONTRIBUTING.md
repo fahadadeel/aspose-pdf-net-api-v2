@@ -64,6 +64,16 @@ dotnet build && dotnet run
 - **Rules are lazy-loaded** — editing `resources/generation_rules.json` or `resources/error_fixes.json` takes effect on the next job, no restart needed
 - **Git operations are serialized** — all git subprocess calls go through `_git_lock`; do not add concurrent git calls
 
+## Branch Protection & PR Workflow
+
+`main` is protected on both GitHub and GitLab — direct pushes are blocked, CI must pass, and force pushes are disabled. See [`docs/branch-protection.md`](./docs/branch-protection.md) for the full policy and the machine-readable form in [`policy/`](./policy/). All changes must:
+
+1. Land on a feature branch
+2. Open a PR using the [PR template](./.github/PULL_REQUEST_TEMPLATE.md)
+3. Pass the CI status check (`test` job — ruff + bandit + pytest)
+4. Update [`CHANGELOG.md`](./CHANGELOG.md) under the current `[Unreleased]` section
+5. Resolve all review conversations before merge
+
 ## Project Structure
 
 ```

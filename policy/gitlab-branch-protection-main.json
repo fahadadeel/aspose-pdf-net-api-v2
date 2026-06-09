@@ -1,0 +1,21 @@
+{
+  "_documentation": "Target state for GitLab branch protection on main. Composed of one PUT to /projects/:id/protected_branches and one PUT to /projects/:id for the project-level merge-request settings. See policy/README.md for apply commands and docs/branch-protection.md for the human-readable policy.",
+  "protected_branch": {
+    "name": "main",
+    "allowed_to_push": [{"access_level": 40}],
+    "allowed_to_merge": [{"access_level": 40}],
+    "allow_force_push": false,
+    "code_owner_approval_required": true
+  },
+  "project_settings": {
+    "only_allow_merge_if_pipeline_succeeds": true,
+    "only_allow_merge_if_all_discussions_are_resolved": true,
+    "merge_requests_require_code_owner_approval": true,
+    "allow_merge_on_skipped_pipeline": false
+  },
+  "access_level_reference": {
+    "30": "Developer",
+    "40": "Maintainer",
+    "50": "Owner"
+  }
+}
