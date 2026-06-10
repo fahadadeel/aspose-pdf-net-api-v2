@@ -134,6 +134,7 @@ dotnet build && dotnet run
 |-----|---------|
 | [`docs/architecture.md`](./docs/architecture.md) | System architecture and component boundaries |
 | [`docs/deployment.md`](./docs/deployment.md) | Production deployment on the Windows VM |
+| [`docs/deployment-container.md`](./docs/deployment-container.md) | Reproducible container stack (Docker Compose: app + Prometheus + Grafana) |
 | [`docs/runbook.md`](./docs/runbook.md) | On-call procedures, SLAs, common failure scenarios |
 | [`docs/observability.md`](./docs/observability.md) | Prometheus scraping setup, Grafana dashboard import, alert rules |
 | [`docs/ownership.md`](./docs/ownership.md) | RACI matrix, component owners, escalation path |

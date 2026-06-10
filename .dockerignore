@@ -1,0 +1,56 @@
+# Keep the production image small and free of host-only state.
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.winvenv/
+
+# Environment / secrets — supplied at runtime via compose env_file
+.env
+.env.production
+.env.staging
+
+# Tests, dev tooling
+tests/
+.pytest_cache/
+.coverage
+mutants/
+mutmut-report.txt
+.mutmut-cache
+
+# IDE / OS
+.git/
+.github/
+.gitlab/
+.claude/
+.idea/
+.vscode/
+.DS_Store
+
+# Generated outputs and runtime state — should live on host volumes, not in the image
+results/
+logs/
+uploads/
+fix_history.json
+usage_reports.jsonl
+.parallel-workspaces/
+rollback_snapshots/
+
+# Build artefacts from the .NET side
+_build/
+bin/
+obj/
+Program.cs
+
+# Generated output files
+*.pdf
+*.html
+*.xps
+*.epub
+output.*
+
+# CI / scratch
+blog-post-march-2026.md
+validation_log.txt
