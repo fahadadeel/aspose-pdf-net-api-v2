@@ -53,6 +53,8 @@ For incidents that cannot be resolved by the primary on-call within the SLA wind
 
 ## Contribution Sign-off
 
+For the detailed roles × resources matrix (who can push, who can merge, who can rotate secrets, who can RDP into the VM), see [`docs/access-control.md`](./access-control.md). For data classification, retention, and deletion procedures, see [`docs/data-handling.md`](./data-handling.md).
+
 All PRs require:
 
 - At least one CODEOWNERS approval (enforced by branch protection on `main`)
