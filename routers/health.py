@@ -1,5 +1,5 @@
 """
-routers/health.py -- GET /api/health, /api/metrics, /api/version, /api/health/ready
+routers/health.py -- GET /api/health, /api/health/ready, /api/version, /api/metrics, /api/metrics/prometheus
 """
 
 import os
@@ -263,6 +263,25 @@ async def health_ready():
             "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
         },
     )
+
+
+# ── Prometheus exposition ──────────────────────────────────────────────────
+# Standard scraping endpoint for Prometheus / Grafana / etc. Returns the
+# text format defined in https://prometheus.io/docs/instrumenting/exposition_formats/.
+
+@router.get("/api/metrics/prometheus")
+async def metrics_prometheus():
+    """Prometheus exposition format. Returns all defined counters, gauges,
+    and histograms in plain text for scraping."""
+    from fastapi.responses import Response
+    from prometheus_client import CONTENT_TYPE_LATEST, generate_latest
+
+    import metrics as m
+
+    # Keep the uptime gauge fresh on every scrape
+    m.UPTIME_SECONDS.set(time.time() - _START_TS)
+
+    return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 def _format_uptime(seconds: int) -> str:

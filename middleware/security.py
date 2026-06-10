@@ -15,7 +15,7 @@ from starlette.responses import JSONResponse
 
 # Routes that the middleware should never gate, even when API_KEY is set.
 # Health and the index page must remain reachable for monitoring + UI.
-_PUBLIC_PATHS = {"/api/health", "/api/health/ready", "/", "/results", "/results-v2"}
+_PUBLIC_PATHS = {"/api/health", "/api/health/ready", "/api/metrics/prometheus", "/", "/results", "/results-v2"}
 
 
 class SecurityHeadersMiddleware(BaseHTTPMiddleware):

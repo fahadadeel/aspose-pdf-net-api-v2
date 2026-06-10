@@ -73,6 +73,11 @@ def init_build(job_id: str, total: int = 0):
         pause_evt = threading.Event()
         pause_evt.set()
         JOB_PAUSE_EVENTS[job_id] = pause_evt
+    try:
+        from metrics import JOBS_ACTIVE
+        JOBS_ACTIVE.inc()
+    except Exception:
+        pass  # metrics are advisory — never fail a job over them
     _notify_listeners(job_id)
 
 
@@ -85,6 +90,11 @@ def add_passed(job_id: str, task_id: str, task: str, badge: str, code: str = "",
                 "code": code, "category": category, "product": product,
                 "metadata": metadata or {},
             })
+    try:
+        from metrics import EXAMPLES_PROCESSED
+        EXAMPLES_PROCESSED.labels(outcome="passed").inc()
+    except Exception:
+        pass
     _notify_listeners(job_id)
 
 
@@ -93,6 +103,11 @@ def add_failed(job_id: str, task_id: str, task: str, badge: str, code: str = "",
         state = BUILD_STATE.get(job_id)
         if state:
             state["failed"].append({"id": task_id, "task": task, "badge": badge, "code": code, "category": category, "product": product})
+    try:
+        from metrics import EXAMPLES_PROCESSED
+        EXAMPLES_PROCESSED.labels(outcome="failed").inc()
+    except Exception:
+        pass
     _notify_listeners(job_id)
 
 
@@ -180,6 +195,13 @@ def set_status(job_id: str, status: str):
         if state:
             state["status"] = status
             state["current_task"] = "All tasks complete." if status == "completed" else f"Job {status}."
+    try:
+        from metrics import JOBS_ACTIVE, JOBS_TOTAL, is_terminal_status
+        if is_terminal_status(status):
+            JOBS_ACTIVE.dec()
+            JOBS_TOTAL.labels(final_status=status).inc()
+    except Exception:
+        pass
     _notify_listeners(job_id)
 
 

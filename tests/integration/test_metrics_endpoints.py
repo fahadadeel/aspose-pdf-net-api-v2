@@ -224,3 +224,83 @@ def test_probe_mcp_handles_missing_url():
 def test_probe_llm_handles_missing_base():
     import routers.health as h
     assert h._probe_llm("", "")["status"] == "unhealthy"
+
+
+# ── /api/metrics/prometheus (Prometheus exposition) ─────────────────────────
+
+def test_prometheus_endpoint_returns_text(client):
+    r = client.get("/api/metrics/prometheus")
+    assert r.status_code == 200
+    # Prometheus content type per spec
+    assert "text/plain" in r.headers.get("content-type", "")
+
+
+def test_prometheus_exposes_uptime_gauge(client):
+    r = client.get("/api/metrics/prometheus")
+    body = r.text
+    assert "service_uptime_seconds" in body
+    # HELP + TYPE lines are part of the exposition format
+    assert "# HELP service_uptime_seconds" in body
+    assert "# TYPE service_uptime_seconds gauge" in body
+
+
+def test_prometheus_exposes_jobs_active(client):
+    r = client.get("/api/metrics/prometheus")
+    assert "pipeline_jobs_active" in r.text
+
+
+def test_prometheus_exposes_examples_counter(client):
+    r = client.get("/api/metrics/prometheus")
+    assert "pipeline_examples_total" in r.text
+
+
+def test_state_increments_jobs_active(client):
+    """init_build() bumps the active-jobs gauge."""
+    from metrics import JOBS_ACTIVE
+
+    before = JOBS_ACTIVE._value.get()
+    init_build("metrics-job-1", total=5)
+    after = JOBS_ACTIVE._value.get()
+    assert after == before + 1
+
+
+def test_state_terminal_status_increments_total(client):
+    """set_status('completed') decrements active and increments _total{status='completed'}."""
+    from metrics import JOBS_ACTIVE, JOBS_TOTAL
+
+    init_build("metrics-job-2", total=1)
+    active_before_terminal = JOBS_ACTIVE._value.get()
+    completed_before = JOBS_TOTAL.labels(final_status="completed")._value.get()
+
+    from state import set_status
+    set_status("metrics-job-2", "completed")
+
+    assert JOBS_ACTIVE._value.get() == active_before_terminal - 1
+    assert JOBS_TOTAL.labels(final_status="completed")._value.get() == completed_before + 1
+
+
+def test_state_non_terminal_status_does_not_touch_counter(client):
+    """set_status with an unknown / non-terminal label must not bump counters."""
+    from metrics import JOBS_ACTIVE, JOBS_TOTAL
+
+    init_build("metrics-job-3", total=1)
+    active_before = JOBS_ACTIVE._value.get()
+    other_before = JOBS_TOTAL.labels(final_status="weird")._value.get()
+
+    from state import set_status
+    set_status("metrics-job-3", "weird")
+
+    # Job is still active — no decrement, no terminal counter increment
+    assert JOBS_ACTIVE._value.get() == active_before
+    assert JOBS_TOTAL.labels(final_status="weird")._value.get() == other_before
+
+
+def test_metrics_module_is_terminal_status():
+    from metrics import is_terminal_status
+    assert is_terminal_status("completed") is True
+    assert is_terminal_status("failed") is True
+    assert is_terminal_status("cancelled") is True
+    assert is_terminal_status("done") is True
+    assert is_terminal_status("running") is False
+    assert is_terminal_status("paused") is False
+    assert is_terminal_status("") is False
