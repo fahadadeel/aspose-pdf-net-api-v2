@@ -135,6 +135,7 @@ dotnet build && dotnet run
 | [`docs/architecture.md`](./docs/architecture.md) | System architecture and component boundaries |
 | [`docs/deployment.md`](./docs/deployment.md) | Production deployment on the Windows VM |
 | [`docs/runbook.md`](./docs/runbook.md) | On-call procedures, SLAs, common failure scenarios |
+| [`docs/observability.md`](./docs/observability.md) | Prometheus scraping setup, Grafana dashboard import, alert rules |
 | [`docs/ownership.md`](./docs/ownership.md) | RACI matrix, component owners, escalation path |
 | [`docs/branch-protection.md`](./docs/branch-protection.md) | Branch protection policy (GitHub + GitLab) |
 | [`SECURITY.md`](./SECURITY.md) | Vulnerability reporting policy |
