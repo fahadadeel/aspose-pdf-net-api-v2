@@ -69,6 +69,44 @@ app.add_middleware(
 app.add_middleware(SecurityHeadersMiddleware)
 app.add_middleware(APIKeyMiddleware)
 
+
+@app.middleware("http")
+async def _prometheus_request_middleware(request, call_next):
+    """Record per-request metrics: count and end-to-end duration.
+
+    Safe for streaming responses (SSE): we never iterate ``response.body``
+    or buffer the response. We only record AFTER ``call_next`` returns.
+    For SSE the response is returned immediately (status set, headers
+    written) — the stream runs from a background generator. The duration
+    captured here is therefore "time to first byte" for SSE, not the
+    lifetime of the stream. That's what we want — streams can run for
+    hours and we don't want unbounded histogram values.
+    """
+    import time as _t
+
+    from metrics import REQUEST_DURATION, REQUESTS_TOTAL
+
+    method = request.method
+    start = _t.monotonic()
+    code = "500"
+    try:
+        response = await call_next(request)
+        code = str(response.status_code)
+        return response
+    finally:
+        duration = _t.monotonic() - start
+        # Route is populated by Starlette during dispatch, so we can read
+        # the route template (e.g. /api/status/{job_id}) here AFTER the
+        # call to avoid cardinality explosion on dynamic path segments.
+        route = request.scope.get("route")
+        path = route.path if route is not None else request.url.path
+        try:
+            REQUESTS_TOTAL.labels(method=method, path=path, code=code).inc()
+            REQUEST_DURATION.labels(method=method, path=path).observe(duration)
+        except Exception:
+            pass
+
+
 app.include_router(ui.router)
 app.include_router(results.router)
 app.include_router(health.router)
