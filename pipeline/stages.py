@@ -22,6 +22,9 @@ from pipeline.error_parser import extract_errors, parse_error_codes
 from pipeline.prompt_builder import (
     build_enriched_prompt, build_retry_instruction, format_rules_for_prompt,
 )
+from logging_config import get_logger
+
+logger = get_logger(__name__)
 from knowledge.error_catalog import match_error_catalog
 from knowledge.error_fixes import match_error_fixes, format_error_fixes_for_prompt
 from knowledge.fix_history import get_boosted_rule_ids, record_successful_fix
@@ -277,7 +280,7 @@ def run_regen_loop(
                     if re.search(pat, last_err):
                         matched_catalog.append(pat)
                 except re.error as rex:
-                    print(f"[stages] Skipping invalid catalog pattern {pat!r}: {rex}")
+                    logger.warning(f"[stages] Skipping invalid catalog pattern {pat!r}: {rex}")
             fixes = match_error_fixes(error_fixes_data or {}, last_err, error_codes)
             fixes_text = format_error_fixes_for_prompt(fixes)
 

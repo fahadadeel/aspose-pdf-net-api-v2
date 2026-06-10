@@ -6,6 +6,8 @@ import json
 import re
 from pathlib import Path
 from typing import List
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 
 def load_error_catalog(path: str) -> List[dict]:
@@ -13,10 +15,10 @@ def load_error_catalog(path: str) -> List[dict]:
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
     except FileNotFoundError:
-        print(f"Error catalog not found at {path}")
+        logger.error(f"Error catalog not found at {path}")
         return []
     except json.JSONDecodeError as e:
-        print(f"Error catalog has invalid JSON: {e}")
+        logger.error(f"Error catalog has invalid JSON: {e}")
         return []
 
 
@@ -37,5 +39,5 @@ def match_error_catalog(catalog: List[dict], error_output: str) -> List[str]:
                 seen.add(pat)
                 guidance.append(entry.get("fix_guidance", ""))
         except re.error as rex:
-            print(f"[error_catalog] Skipping invalid pattern {pat!r}: {rex}")
+            logger.error(f"[error_catalog] Skipping invalid pattern {pat!r}: {rex}")
     return [g for g in guidance if g]

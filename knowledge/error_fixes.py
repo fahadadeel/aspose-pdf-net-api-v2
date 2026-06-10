@@ -6,6 +6,8 @@ import json
 import re
 from pathlib import Path
 from typing import Dict, List
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 
 def load_error_fixes(path: str) -> Dict[str, dict]:
@@ -13,10 +15,10 @@ def load_error_fixes(path: str) -> Dict[str, dict]:
     try:
         return json.loads(Path(path).read_text(encoding="utf-8"))
     except FileNotFoundError:
-        print(f"Error fixes not found at {path}")
+        logger.error(f"Error fixes not found at {path}")
         return {}
     except json.JSONDecodeError as e:
-        print(f"Error fixes has invalid JSON: {e}")
+        logger.error(f"Error fixes has invalid JSON: {e}")
         return {}
 
 

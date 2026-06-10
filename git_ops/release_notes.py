@@ -7,6 +7,8 @@ import base64
 import json
 from datetime import date
 from typing import Optional
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 
 def _fetch_index(gh, owner: str, repo: str, branch: str) -> Optional[dict]:
@@ -44,7 +46,7 @@ def _fetch_index(gh, owner: str, repo: str, branch: str) -> Optional[dict]:
         raw = base64.b64decode(rb.json()["content"]).decode("utf-8")
         return json.loads(raw)
     except Exception as e:
-        print(f"[ReleaseNotes] Could not fetch index.json from {branch} via blob API: {e}")
+        logger.error(f"[ReleaseNotes] Could not fetch index.json from {branch} via blob API: {e}")
         return None
 
 

@@ -9,6 +9,8 @@ from typing import List
 
 from fastapi import APIRouter, File, UploadFile
 from fastapi.responses import JSONResponse
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 router = APIRouter()
 
@@ -33,9 +35,9 @@ async def api_upload_files(files: List[UploadFile] = File(...)):
                 content = await file.read()
                 filepath.write_bytes(content)
                 uploaded_count += 1
-                print(f"Uploaded file: {filepath}")
+                logger.info(f"Uploaded file: {filepath}")
             except Exception as e:
-                print(f"Failed to upload {filename}: {e}")
+                logger.error(f"Failed to upload {filename}: {e}")
                 return JSONResponse({"error": f"Failed to upload {filename}: {e}"}, status_code=500)
 
     return {"count": uploaded_count, "message": f"{uploaded_count} file(s) uploaded successfully"}

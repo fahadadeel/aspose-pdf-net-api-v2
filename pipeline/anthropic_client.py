@@ -12,6 +12,8 @@ from typing import Optional
 import anthropic
 
 from config import AppConfig
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 
 class AnthropicClient:
@@ -150,11 +152,11 @@ class AnthropicClient:
             }
 
         except anthropic.APIError as e:
-            print(f"Anthropic API error: {e}")
+            logger.error(f"Anthropic API error: {e}")
             return None
         except json.JSONDecodeError as e:
-            print(f"Failed to parse Anthropic response as JSON: {e}")
+            logger.error(f"Failed to parse Anthropic response as JSON: {e}")
             return None
         except Exception as e:
-            print(f"Anthropic client error: {e}")
+            logger.error(f"Anthropic client error: {e}")
             return None

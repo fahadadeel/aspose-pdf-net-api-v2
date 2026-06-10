@@ -9,6 +9,8 @@ import json
 import threading
 from pathlib import Path
 from typing import Dict
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 _LOCK = threading.Lock()
 _MAX_RULES = 200
@@ -58,7 +60,7 @@ def save_auto_fix(path: str, rule_id: str, rule: dict) -> bool:
             )
             return True
         except Exception as e:
-            print(f"Failed to save auto fix: {e}")
+            logger.error(f"Failed to save auto fix: {e}")
             return False
 
 
@@ -115,7 +117,7 @@ def approve_auto_fix(auto_path: str, curated_path: str, rule_id: str) -> bool:
             p_auto.write_text(json.dumps(auto_data, indent=2, ensure_ascii=False), encoding="utf-8")
             return True
         except Exception as e:
-            print(f"Failed to approve auto fix: {e}")
+            logger.error(f"Failed to approve auto fix: {e}")
             return False
 
 
@@ -146,7 +148,7 @@ def approve_all_auto_fixes(auto_path: str, curated_path: str) -> int:
             p_auto.write_text(json.dumps({}, indent=2, ensure_ascii=False), encoding="utf-8")
             return count
         except Exception as e:
-            print(f"Failed to approve all auto fixes: {e}")
+            logger.error(f"Failed to approve all auto fixes: {e}")
             return 0
 
 

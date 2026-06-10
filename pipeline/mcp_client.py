@@ -10,6 +10,8 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from config import AppConfig
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 _MAX_RETRIES = 3
 _RETRY_BACKOFF = 2  # seconds between retries
@@ -36,13 +38,13 @@ class MCPClient:
                 return resp
             except (requests.exceptions.Timeout, requests.exceptions.ConnectionError) as e:
                 if attempt < _MAX_RETRIES:
-                    print(f"MCP request failed (attempt {attempt}/{_MAX_RETRIES}): {e} -- retrying in {_RETRY_BACKOFF}s...")
+                    logger.error(f"MCP request failed (attempt {attempt}/{_MAX_RETRIES}): {e} -- retrying in {_RETRY_BACKOFF}s...")
                     time.sleep(_RETRY_BACKOFF)
                 else:
-                    print(f"MCP request failed after {_MAX_RETRIES} attempts: {e}")
+                    logger.error(f"MCP request failed after {_MAX_RETRIES} attempts: {e}")
                     return None
             except Exception as e:
-                print(f"MCP request error: {e}")
+                logger.error(f"MCP request error: {e}")
                 return None
         return None
 
