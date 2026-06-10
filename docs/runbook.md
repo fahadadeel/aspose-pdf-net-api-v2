@@ -139,6 +139,17 @@ If a secret is exposed:
 4. Restart the service: `nssm restart AsposePdfApi`
 5. If the secret was committed to git history, use `git filter-repo --replace-text` to scrub it from history, then force-push. This requires temporarily lifting force-push protection — see the bypass procedure in [`docs/branch-protection.md`](./branch-protection.md#bypass-procedure-force-push)
 
+## Monitoring
+
+The service exposes a Prometheus scrape endpoint at `/api/metrics/prometheus` and a deep health check at `/api/health/ready`. See [`docs/observability.md`](./observability.md) for:
+
+- Prometheus scrape config snippet
+- Grafana dashboard JSON (`docs/grafana/aspose-pdf-api-v2-overview.json`)
+- Suggested alert rules (`ServiceDown`, `HighErrorRate`, `PipelineFailureRateHigh`, `NoActivity`, `P99LatencyHigh`)
+- Local Prometheus + Grafana docker-compose stack for testing
+
+Each alert above maps to a section in this runbook — when one fires, find the matching scenario under **Common Failure Scenarios** below.
+
 ## Useful Commands
 
 ```bash
