@@ -41,6 +41,30 @@ EXAMPLES_PROCESSED = Counter(
     labelnames=["outcome"],
 )
 
+# ── Self-learning convergence ──────────────────────────────────────────────
+# These reflect the state of resources/auto_patterns.json. Refreshed on
+# every /api/metrics/prometheus scrape so external dashboards can chart
+# whether the self-learning loop is converging (hit_rate trending up) or
+# producing rules that nothing ever uses (hit_rate flat / falling).
+
+PATTERN_HIT_RATE = Gauge(
+    "pipeline_pattern_hit_rate",
+    "Fraction of promoted auto-learned patterns that have fired at least once (0.0 to 1.0).",
+)
+
+PATTERN_TOTAL = Gauge(
+    "pipeline_pattern_total",
+    "Number of promoted auto-learned patterns currently stored.",
+)
+
+PATTERN_HITS = Counter(
+    "pipeline_pattern_hits_total",
+    "Cumulative auto-learned pattern firings since process start. Not "
+    "the same as the on-disk hit_count — this is a process-lifetime "
+    "counter that resets when the service restarts, useful for "
+    "rate() queries in Prometheus.",
+)
+
 # ── HTTP layer ─────────────────────────────────────────────────────────────
 
 REQUESTS_TOTAL = Counter(

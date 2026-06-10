@@ -100,6 +100,26 @@ def test_metrics_uptime_human_format(client):
     assert "m" in body["uptime_human"]
 
 
+def test_metrics_exposes_pattern_effectiveness(client):
+    """The JSON /api/metrics endpoint surfaces pattern effectiveness stats."""
+    r = client.get("/api/metrics")
+    body = r.json()
+    assert "patterns" in body
+    for key in ("total_patterns", "active_patterns", "dormant_patterns", "total_hits", "hit_rate"):
+        assert key in body["patterns"], f"missing {key} in patterns"
+    # Hit rate is a float in [0, 1]
+    assert 0.0 <= body["patterns"]["hit_rate"] <= 1.0
+
+
+def test_prometheus_exposes_pattern_metrics(client):
+    """The Prometheus exposition surfaces pattern_hit_rate and pattern_total."""
+    r = client.get("/api/metrics/prometheus")
+    body = r.text
+    assert "pipeline_pattern_hit_rate" in body
+    assert "pipeline_pattern_total" in body
+    assert "pipeline_pattern_hits_total" in body
+
+
 # ── /api/health (regression) ───────────────────────────────────────────────
 
 def test_health_endpoint_still_works(client):

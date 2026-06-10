@@ -98,6 +98,23 @@ async def metrics():
     total_processed = total_passed + total_failed
     pass_rate = round(100.0 * total_passed / total_processed, 2) if total_processed else None
 
+    # Self-learning convergence: how many promoted patterns have actually
+    # fired since promotion. Defensive: never let a metrics read crash
+    # the endpoint.
+    try:
+        from config import load_config
+        from knowledge.pattern_tracker import get_effectiveness_stats
+        cfg = load_config()
+        patterns = get_effectiveness_stats(cfg.auto_patterns_path)
+    except Exception:
+        patterns = {
+            "total_patterns": 0,
+            "active_patterns": 0,
+            "dormant_patterns": 0,
+            "total_hits": 0,
+            "hit_rate": 0.0,
+        }
+
     return {
         "service": "aspose-examples-generator",
         "version": _VERSION,
@@ -117,6 +134,7 @@ async def metrics():
             "total_processed": total_processed,
             "pass_rate_pct": pass_rate,
         },
+        "patterns": patterns,
     }
 
 
@@ -280,6 +298,18 @@ async def metrics_prometheus():
 
     # Keep the uptime gauge fresh on every scrape
     m.UPTIME_SECONDS.set(time.time() - _START_TS)
+
+    # Refresh pattern-effectiveness gauges from disk on every scrape
+    # (cheap — the patterns file is small)
+    try:
+        from config import load_config
+        from knowledge.pattern_tracker import get_effectiveness_stats
+        cfg = load_config()
+        stats = get_effectiveness_stats(cfg.auto_patterns_path)
+        m.PATTERN_HIT_RATE.set(stats["hit_rate"])
+        m.PATTERN_TOTAL.set(stats["total_patterns"])
+    except Exception:
+        pass
 
     return Response(content=generate_latest(), media_type=CONTENT_TYPE_LATEST)
 

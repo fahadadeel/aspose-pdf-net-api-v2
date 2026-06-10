@@ -293,7 +293,7 @@ def detect_and_fix_known_patterns(
     # Then try auto-learned patterns
     if auto_patterns_path:
         try:
-            from knowledge.pattern_tracker import load_auto_patterns
+            from knowledge.pattern_tracker import load_auto_patterns, record_hit
             for fix in load_auto_patterns(auto_patterns_path):
                 pattern = fix.get("pattern", "")
                 if pattern and re.search(pattern, error_output):
@@ -302,6 +302,22 @@ def detect_and_fix_known_patterns(
                     else:
                         fixed = code.replace(fix["old"], fix["new"])
                     if fixed != code:
+                        # Fire-and-forget hit-count update so the hot
+                        # path isn't blocked on disk I/O. Daemon thread
+                        # so it won't keep the process alive at shutdown.
+                        import threading as _t
+                        _t.Thread(
+                            target=record_hit,
+                            args=(auto_patterns_path, fix.get("old", ""), fix.get("new", "")),
+                            daemon=True,
+                        ).start()
+                        # Bump the Prometheus process-lifetime counter so
+                        # rate(pipeline_pattern_hits_total[5m]) works.
+                        try:
+                            from metrics import PATTERN_HITS
+                            PATTERN_HITS.inc()
+                        except Exception:
+                            pass
                         rule = fix.get("rule", {"description": "Auto-learned pattern fix"})
                         return fixed, json.dumps(rule, indent=2)
         except Exception:

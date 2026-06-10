@@ -4,10 +4,16 @@ knowledge/pattern_tracker.py -- Track recurring code transformations for auto-pa
 When the same text substitution (old -> new) appears 3+ times across different tasks,
 it's promoted to auto_patterns.json so future runs can apply it instantly via
 detect_and_fix_known_patterns() without needing an LLM call.
+
+After promotion, each pattern carries hit counters so we can answer
+"how often does this promoted pattern actually fire on subsequent runs?"
+That's the convergence metric the self-learning loop needs to know if its
+predictions hold up.
 """
 
 import json
 import threading
+import time
 from pathlib import Path
 from typing import List, Optional
 from logging_config import get_logger
@@ -75,6 +81,70 @@ def load_auto_patterns(path: str) -> List[dict]:
     """Load promoted auto patterns for use in detect_and_fix_known_patterns."""
     with _LOCK:
         return _load_json_list(path)
+
+
+def record_hit(patterns_path: str, old_text: str, new_text: str) -> bool:
+    """Record that a promoted pattern fired in a subsequent run.
+
+    Called fire-and-forget (e.g. from a background thread) when the pattern
+    fix loop in pipeline/error_parser.py applies an auto-learned pattern.
+    Returns True if the pattern was found and incremented, False otherwise.
+
+    Idempotent on concurrent calls — the lock serialises read-modify-write.
+    """
+    if not old_text or not new_text:
+        return False
+
+    try:
+        with _LOCK:
+            patterns = _load_json_list(patterns_path)
+            for p in patterns:
+                if p.get("old") == old_text and p.get("new") == new_text:
+                    p["_hit_count"] = int(p.get("_hit_count", 0)) + 1
+                    p["_last_hit"] = time.time()
+                    _save_json_list(patterns_path, patterns)
+                    return True
+        return False
+    except Exception as e:
+        # Never let metric writes crash the pipeline
+        logger.warning("record_hit_failed", extra={"error": str(e)})
+        return False
+
+
+def get_effectiveness_stats(patterns_path: str) -> dict:
+    """Return summary stats on promoted-pattern effectiveness.
+
+    Shape:
+        {
+            "total_patterns":   N,     # promoted patterns on disk
+            "active_patterns":  M,     # promoted patterns with hit_count > 0
+            "dormant_patterns": N - M, # promoted but never fired
+            "total_hits":       sum(hit_count),
+            "hit_rate":         active/total (0.0..1.0; 0.0 if no patterns),
+        }
+
+    "active" means "has fired at least once since promotion". The hit_rate
+    is the convergence signal — a self-learning loop that promotes rules
+    nothing ever uses isn't actually learning.
+    """
+    try:
+        with _LOCK:
+            patterns = _load_json_list(patterns_path)
+    except Exception:
+        patterns = []
+
+    total = len(patterns)
+    active = sum(1 for p in patterns if int(p.get("_hit_count", 0)) > 0)
+    total_hits = sum(int(p.get("_hit_count", 0)) for p in patterns)
+    hit_rate = round(active / total, 4) if total else 0.0
+
+    return {
+        "total_patterns": total,
+        "active_patterns": active,
+        "dormant_patterns": total - active,
+        "total_hits": total_hits,
+        "hit_rate": hit_rate,
+    }
 
 
 def _promote_candidate(patterns_path: str, candidate: dict) -> Optional[dict]:
