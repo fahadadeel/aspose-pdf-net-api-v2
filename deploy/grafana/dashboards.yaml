@@ -1,0 +1,23 @@
+# Grafana dashboard-provider provisioning.
+# Auto-loaded by Grafana on startup from
+# /etc/grafana/provisioning/dashboards/dashboards.yaml.
+#
+# Points Grafana at /var/lib/grafana/dashboards, which compose.production.yaml
+# mounts from the host directory docs/grafana/. New dashboard JSON files
+# committed to docs/grafana/ are picked up on container restart.
+
+apiVersion: 1
+
+providers:
+  - name: "aspose-dashboards"
+    orgId: 1
+    folder: "Aspose"
+    folderUid: aspose
+    type: file
+    disableDeletion: false
+    editable: false
+    updateIntervalSeconds: 30
+    allowUiUpdates: false
+    options:
+      path: /var/lib/grafana/dashboards
+      foldersFromFilesStructure: false
