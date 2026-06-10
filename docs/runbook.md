@@ -139,6 +139,13 @@ If a secret is exposed:
 4. Restart the service: `nssm restart AsposePdfApi`
 5. If the secret was committed to git history, use `git filter-repo --replace-text` to scrub it from history, then force-push. This requires temporarily lifting force-push protection — see the bypass procedure in [`docs/branch-protection.md`](./branch-protection.md#bypass-procedure-force-push)
 
+## Related Compliance Docs
+
+- [`docs/data-handling.md`](./data-handling.md) — data inventory, retention, deletion procedures, compliance posture (what's satisfied, what isn't)
+- [`docs/access-control.md`](./access-control.md) — roles × resources matrix, onboarding / offboarding procedures
+- [`docs/branch-protection.md`](./branch-protection.md) — branch-protection policy and the documented bypass procedure for secret scrubs
+- [`docs/ownership.md`](./ownership.md) — RACI matrix and escalation path
+
 ## Monitoring
 
 The service exposes a Prometheus scrape endpoint at `/api/metrics/prometheus` and a deep health check at `/api/health/ready`. See [`docs/observability.md`](./observability.md) for:
