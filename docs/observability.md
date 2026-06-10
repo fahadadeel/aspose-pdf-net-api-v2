@@ -64,6 +64,14 @@ The dashboard has six panels:
 | `pipeline_jobs_total` | counter | `final_status` | Increments only on terminal states (`completed`, `done`, `failed`, `cancelled`) — typos in `set_status()` won't blow up cardinality |
 | `pipeline_examples_total` | counter | `outcome` | `outcome ∈ {passed, failed}` |
 
+### Self-learning convergence
+
+| Metric | Type | Labels | Notes |
+|--------|------|--------|-------|
+| `pipeline_pattern_hit_rate` | gauge | — | Fraction (0.0–1.0) of promoted auto-learned patterns that have fired at least once. Refreshed from disk on every scrape. A flat or falling line means the learner is promoting rules nothing ever uses |
+| `pipeline_pattern_total` | gauge | — | Number of promoted patterns currently stored in `resources/auto_patterns.json` |
+| `pipeline_pattern_hits_total` | counter | — | Process-lifetime count of auto-learned pattern firings. `rate(pipeline_pattern_hits_total[5m])` shows the live cadence |
+
 ### HTTP layer
 
 | Metric | Type | Labels | Notes |
