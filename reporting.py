@@ -19,6 +19,8 @@ from pathlib import Path
 import requests
 
 from config import AppConfig
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 # Local log file -- one JSON object per line, appended after each run
 _LOG_FILE = Path("usage_reports.jsonl")
@@ -62,7 +64,7 @@ def report_job_usage(
             )
             thread.start()
     except Exception as e:
-        print(f"[reporting] Failed to start report: {e}")
+        logger.error(f"[reporting] Failed to start report: {e}")
 
 
 def _build_payload(
@@ -102,9 +104,9 @@ def _log_to_file(payload: dict):
     try:
         with open(_LOG_FILE, "a", encoding="utf-8") as f:
             f.write(json.dumps(payload) + "\n")
-        print(f"[reporting] Logged to {_LOG_FILE}")
+        logger.info(f"[reporting] Logged to {_LOG_FILE}")
     except Exception as e:
-        print(f"[reporting] File log failed: {e}")
+        logger.error(f"[reporting] File log failed: {e}")
 
 
 def _send_report(endpoint: str, token: str, payload: dict, timeout: int):
@@ -120,8 +122,8 @@ def _send_report(endpoint: str, token: str, payload: dict, timeout: int):
             headers=headers,
         )
         if resp.status_code < 300:
-            print(f"[reporting] Usage report sent for job {payload.get('run_id', '?')}")
+            logger.info(f"[reporting] Usage report sent for job {payload.get('run_id', '?')}")
         else:
-            print(f"[reporting] Report failed: HTTP {resp.status_code} - {resp.text[:200]}")
+            logger.error(f"[reporting] Report failed: HTTP {resp.status_code} - {resp.text[:200]}")
     except Exception as e:
-        print(f"[reporting] Report failed: {e}")
+        logger.error(f"[reporting] Report failed: {e}")

@@ -7,6 +7,8 @@ import math
 import re
 from pathlib import Path
 from typing import Dict, List
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 _STOPWORDS = frozenset({
     'a', 'an', 'the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for',
@@ -43,7 +45,7 @@ class RuleSearchEngine:
         try:
             from sentence_transformers import SentenceTransformer
         except ImportError:
-            print("sentence-transformers not installed -- rule search disabled")
+            logger.info("sentence-transformers not installed -- rule search disabled")
             return False
 
         try:
@@ -76,11 +78,11 @@ class RuleSearchEngine:
             self._items = items
             self._texts = texts
             self._loaded = True
-            print(f"Rule search ready: {len(items)} rules indexed")
+            logger.info(f"Rule search ready: {len(items)} rules indexed")
             return True
 
         except Exception as e:
-            print(f"Failed to load rules: {e}")
+            logger.error(f"Failed to load rules: {e}")
             return False
 
     def find_top_rules(self, query: str, top_k: int, error_codes: List[str] = None, history_boosts: Dict[str, float] = None) -> List[dict]:
@@ -90,7 +92,7 @@ class RuleSearchEngine:
         try:
             return self._hybrid_search(query, top_k, error_codes, history_boosts)
         except Exception as e:
-            print(f"Rule search error: {e}")
+            logger.error(f"Rule search error: {e}")
             return []
 
     def _hybrid_search(self, query: str, top_k: int, error_codes: List[str] = None, history_boosts: Dict[str, float] = None) -> List[dict]:

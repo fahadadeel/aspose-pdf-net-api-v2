@@ -11,6 +11,8 @@ import time
 import threading
 from datetime import datetime, timezone
 from typing import Dict, List, Optional
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 JOB_LOCK = threading.Lock()
 
@@ -120,7 +122,7 @@ def add_log(job_id: str, message: str):
             state["logs"].append(line)
             if len(state["logs"]) > _MAX_LOGS:
                 state["logs"] = state["logs"][-_MAX_LOGS:]
-    print(f"[LOG] {line}")
+    logger.info(f"[LOG] {line}")
     _notify_listeners(job_id)
 
 

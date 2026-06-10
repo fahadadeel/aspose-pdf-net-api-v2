@@ -23,6 +23,8 @@ from knowledge.rule_search import RuleSearchEngine
 from knowledge.error_catalog import load_error_catalog
 from knowledge.error_fixes import load_error_fixes, match_error_fixes, format_error_fixes_for_prompt
 from knowledge.auto_learner import AutoLearner, load_auto_error_catalog
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 
 _ALWAYS_INCLUDE = {
@@ -206,7 +208,7 @@ class PipelineRunner:
                 data = json.loads(rules_path.read_text(encoding="utf-8"))
                 self._generation_rules_raw = data.get("rules", {})
             except Exception as e:
-                print(f"Warning: could not load generation rules: {e}")
+                logger.error(f"Warning: could not load generation rules: {e}")
 
     def _get_rules_for_task(self, task: str, category: str = "") -> str:
         """Return baseline + task-relevant rules as compact one-liners."""

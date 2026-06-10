@@ -20,6 +20,10 @@ from fastapi_mcp import FastApiMCP
 
 load_dotenv()
 
+from logging_config import setup_logging, get_logger
+setup_logging()
+logger = get_logger(__name__)
+
 from routers import categories, files, tasks, health, results
 from routers import jobs as jobs_router
 from routers import ui
@@ -34,17 +38,17 @@ def _prewarm_models():
     try:
         from sentence_transformers import SentenceTransformer
         SentenceTransformer("all-MiniLM-L6-v2")
-        print("Sentence-transformer model pre-loaded")
+        logger.info("sentence_transformer_preloaded")
     except Exception as exc:
-        print(f"Model pre-warm skipped: {exc}")
+        logger.warning("sentence_transformer_preload_skipped", extra={"error": str(exc)})
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("Starting Examples Generator API...")
+    logger.info("service_starting")
     _prewarm_models()
     yield
-    print("Shutting down")
+    logger.info("service_shutting_down")
 
 
 app = FastAPI(

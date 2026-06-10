@@ -18,6 +18,8 @@ from typing import Optional
 from config import AppConfig
 from knowledge.auto_fixes import save_auto_fix, is_duplicate_rule
 from knowledge.error_fixes import load_error_fixes
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 
 _GENERALIZE_SYSTEM = """\
@@ -83,14 +85,14 @@ class AutoLearner:
         try:
             self._learn_error_fix(task, category, failing_code, fixed_code, error_output, error_codes, stage)
         except Exception as e:
-            print(f"[AutoLearner] Error in learn_from_success: {e}")
+            logger.error(f"[AutoLearner] Error in learn_from_success: {e}")
 
         # Phase 3: Also try to generate a catalog entry
         if self.config.pipeline.auto_learn_catalog:
             try:
                 self._learn_catalog_entry(task, failing_code, fixed_code, error_output, error_codes)
             except Exception as e:
-                print(f"[AutoLearner] Error in catalog learning: {e}")
+                logger.error(f"[AutoLearner] Error in catalog learning: {e}")
 
     def _learn_error_fix(
         self, task, category, failing_code, fixed_code, error_output, error_codes, stage
@@ -150,7 +152,7 @@ class AutoLearner:
             return
 
         save_auto_fix(self.config.auto_fixes_path, rule_id, rule)
-        print(f"[AutoLearner] Learned rule: '{rule_id}' from {stage} success")
+        logger.info(f"[AutoLearner] Learned rule: '{rule_id}' from {stage} success")
 
     def _learn_catalog_entry(self, task, failing_code, fixed_code, error_output, error_codes):
         """Generate an error_catalog.json entry from a successful fix."""
@@ -281,10 +283,10 @@ def _save_auto_catalog_entry(path: str, entry: dict) -> bool:
                 existing = existing[-_MAX_CATALOG_ENTRIES:]
 
             p.write_text(json.dumps(existing, indent=2, ensure_ascii=False), encoding="utf-8")
-            print(f"[AutoLearner] Learned catalog entry: {entry['pattern'][:60]}...")
+            logger.info(f"[AutoLearner] Learned catalog entry: {entry['pattern'][:60]}...")
             return True
         except Exception as e:
-            print(f"[AutoLearner] Failed to save catalog entry: {e}")
+            logger.error(f"[AutoLearner] Failed to save catalog entry: {e}")
             return False
 
 

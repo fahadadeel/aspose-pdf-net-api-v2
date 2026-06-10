@@ -11,6 +11,8 @@ from requests.adapters import HTTPAdapter
 from urllib3.util.retry import Retry
 
 from config import AppConfig
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 
 class LLMClient:
@@ -68,7 +70,7 @@ class LLMClient:
                 return text.strip() if text else None
             return None
         except Exception as e:
-            print(f"LLM chat error: {e}")
+            logger.error(f"LLM chat error: {e}")
             return None
 
     def validate_against_rules(self, code: str, rules_text: str) -> Optional[str]:

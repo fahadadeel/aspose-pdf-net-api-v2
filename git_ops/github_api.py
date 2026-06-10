@@ -9,6 +9,8 @@ import time
 from typing import Callable, Optional
 
 import requests
+from logging_config import get_logger
+logger = get_logger(__name__)
 
 
 class GitHubAPI:
@@ -34,7 +36,7 @@ class GitHubAPI:
             )
             return r.json() if r.status_code == 200 else None
         except Exception as e:
-            print(f"[GitHub] Error getting file {path}: {e}")
+            logger.error(f"[GitHub] Error getting file {path}: {e}")
             return None
 
     def list_directory(self, owner: str, repo: str, path: str, branch: str) -> list:
@@ -52,7 +54,7 @@ class GitHubAPI:
                     return data
             return []
         except Exception as e:
-            print(f"[GitHub] Error listing directory {path}: {e}")
+            logger.error(f"[GitHub] Error listing directory {path}: {e}")
             return []
 
     def list_branch_cs_files(self, owner: str, repo: str, branch: str) -> dict:
@@ -123,10 +125,10 @@ class GitHubAPI:
             if r.status_code in (200, 201):
                 return True
             error_msg = r.json().get("message", r.text[:200])
-            print(f"[GitHub] Failed to create/update {path}: {error_msg}")
+            logger.error(f"[GitHub] Failed to create/update {path}: {error_msg}")
             return False
         except Exception as e:
-            print(f"[GitHub] Error creating/updating {path}: {e}")
+            logger.error(f"[GitHub] Error creating/updating {path}: {e}")
             return False
 
     def create_pull_request(
@@ -149,10 +151,10 @@ class GitHubAPI:
                 if existing:
                     return existing
             error_msg = r.json().get("message", r.text[:200])
-            print(f"[GitHub] PR creation failed ({r.status_code}): {error_msg}")
+            logger.error(f"[GitHub] PR creation failed ({r.status_code}): {error_msg}")
             return None
         except Exception as e:
-            print(f"[GitHub] PR creation error: {e}")
+            logger.error(f"[GitHub] PR creation error: {e}")
             return None
 
     def get_branch_sha(self, owner: str, repo: str, branch: str) -> Optional[str]:
@@ -167,7 +169,7 @@ class GitHubAPI:
                 return r.json()["object"]["sha"]
             return None
         except Exception as e:
-            print(f"[GitHub] Error getting branch SHA: {e}")
+            logger.error(f"[GitHub] Error getting branch SHA: {e}")
             return None
 
     def create_branch(self, owner: str, repo: str, branch: str, from_sha: str) -> bool:
@@ -182,10 +184,10 @@ class GitHubAPI:
             if r.status_code in (200, 201):
                 return True
             error_msg = r.json().get("message", r.text[:200])
-            print(f"[GitHub] Branch creation failed: {error_msg}")
+            logger.error(f"[GitHub] Branch creation failed: {error_msg}")
             return False
         except Exception as e:
-            print(f"[GitHub] Error creating branch: {e}")
+            logger.error(f"[GitHub] Error creating branch: {e}")
             return False
 
     def find_existing_pr(self, owner: str, repo: str, head: str, base: str) -> Optional[str]:
@@ -202,7 +204,7 @@ class GitHubAPI:
                 if pulls:
                     return pulls[0].get("html_url", "")
         except Exception as e:
-            print(f"[GitHub] Could not look up existing PR: {e}")
+            logger.error(f"[GitHub] Could not look up existing PR: {e}")
         return None
 
     def tag_exists(self, owner: str, repo: str, tag_name: str) -> bool:
@@ -234,10 +236,10 @@ class GitHubAPI:
             if r.status_code == 200:
                 return True
             error_msg = r.json().get("message", r.text[:200])
-            print(f"[GitHub] Force-update ref failed ({r.status_code}): {error_msg}")
+            logger.error(f"[GitHub] Force-update ref failed ({r.status_code}): {error_msg}")
             return False
         except Exception as e:
-            print(f"[GitHub] Error force-updating ref: {e}")
+            logger.error(f"[GitHub] Error force-updating ref: {e}")
             return False
 
     def update_ref(self, owner: str, repo: str, ref: str, sha: str) -> bool:
@@ -258,10 +260,10 @@ class GitHubAPI:
             if r.status_code == 200:
                 return True
             error_msg = r.json().get("message", r.text[:200])
-            print(f"[GitHub] Fast-forward update of {ref} failed ({r.status_code}): {error_msg}")
+            logger.error(f"[GitHub] Fast-forward update of {ref} failed ({r.status_code}): {error_msg}")
             return False
         except Exception as e:
-            print(f"[GitHub] Error fast-forwarding ref: {e}")
+            logger.error(f"[GitHub] Error fast-forwarding ref: {e}")
             return False
 
     def get_commit_tree_sha(self, owner: str, repo: str, commit_sha: str) -> Optional[str]:
@@ -275,10 +277,10 @@ class GitHubAPI:
             if r.status_code == 200:
                 return r.json().get("tree", {}).get("sha")
             error_msg = r.json().get("message", r.text[:200])
-            print(f"[GitHub] Could not read commit {commit_sha[:10]}: {error_msg}")
+            logger.error(f"[GitHub] Could not read commit {commit_sha[:10]}: {error_msg}")
             return None
         except Exception as e:
-            print(f"[GitHub] Error reading commit tree: {e}")
+            logger.error(f"[GitHub] Error reading commit tree: {e}")
             return None
 
     def create_commit(
@@ -302,10 +304,10 @@ class GitHubAPI:
             if r.status_code in (200, 201):
                 return r.json().get("sha")
             error_msg = r.json().get("message", r.text[:200])
-            print(f"[GitHub] Commit creation failed ({r.status_code}): {error_msg}")
+            logger.error(f"[GitHub] Commit creation failed ({r.status_code}): {error_msg}")
             return None
         except Exception as e:
-            print(f"[GitHub] Error creating commit: {e}")
+            logger.error(f"[GitHub] Error creating commit: {e}")
             return None
 
     def create_tag(self, owner: str, repo: str, tag_name: str, sha: str, message: str = "") -> bool:
@@ -320,10 +322,10 @@ class GitHubAPI:
             if r.status_code in (200, 201):
                 return True
             error_msg = r.json().get("message", r.text[:200])
-            print(f"[GitHub] Tag creation failed: {error_msg}")
+            logger.error(f"[GitHub] Tag creation failed: {error_msg}")
             return False
         except Exception as e:
-            print(f"[GitHub] Error creating tag: {e}")
+            logger.error(f"[GitHub] Error creating tag: {e}")
             return False
 
     def create_release(
@@ -347,10 +349,10 @@ class GitHubAPI:
             if r.status_code in (200, 201):
                 return r.json().get("html_url", "")
             error_msg = r.json().get("message", r.text[:200])
-            print(f"[GitHub] Release creation failed: {error_msg}")
+            logger.error(f"[GitHub] Release creation failed: {error_msg}")
             return None
         except Exception as e:
-            print(f"[GitHub] Error creating release: {e}")
+            logger.error(f"[GitHub] Error creating release: {e}")
             return None
 
     def create_empty_branch(self, owner: str, repo: str, branch: str,
@@ -364,7 +366,7 @@ class GitHubAPI:
         def _log(msg: str):
             if log_fn:
                 log_fn(msg)
-            print(msg)
+            logger.info(msg)
 
         try:
             # 1. Create a minimal tree with a .gitkeep blob (empty trees fail on GitHub)
@@ -432,7 +434,7 @@ class GitHubAPI:
         def _log(msg: str):
             if log_fn:
                 log_fn(msg)
-            print(msg)
+            logger.info(msg)
 
         try:
             # Try as a single file first. The contents API returns a dict
@@ -508,10 +510,10 @@ class GitHubAPI:
             if r.status_code in (200, 201):
                 return True
             error_msg = r.json().get("message", r.text[:200])
-            print(f"[GitHub] PR merge failed ({r.status_code}): {error_msg}")
+            logger.error(f"[GitHub] PR merge failed ({r.status_code}): {error_msg}")
             return False
         except Exception as e:
-            print(f"[GitHub] Error merging PR: {e}")
+            logger.error(f"[GitHub] Error merging PR: {e}")
             return False
 
     def list_open_prs(self, owner: str, repo: str, base: str,
@@ -540,7 +542,7 @@ class GitHubAPI:
                     timeout=15,
                 )
                 if r.status_code != 200:
-                    print(f"[GitHub] list_open_prs failed ({r.status_code}): {r.text[:200]}")
+                    logger.error(f"[GitHub] list_open_prs failed ({r.status_code}): {r.text[:200]}")
                     return prs
                 batch = r.json() or []
                 if not batch:
@@ -553,7 +555,7 @@ class GitHubAPI:
                 prs = [p for p in prs if (p.get("user") or {}).get("login") == author]
             return prs
         except Exception as e:
-            print(f"[GitHub] Error listing open PRs: {e}")
+            logger.error(f"[GitHub] Error listing open PRs: {e}")
             return []
 
     def get_pull_request(self, owner: str, repo: str, pr_number: int) -> Optional[dict]:
@@ -566,10 +568,10 @@ class GitHubAPI:
             )
             if r.status_code == 200:
                 return r.json()
-            print(f"[GitHub] get_pull_request failed ({r.status_code}): {r.text[:200]}")
+            logger.error(f"[GitHub] get_pull_request failed ({r.status_code}): {r.text[:200]}")
             return None
         except Exception as e:
-            print(f"[GitHub] Error getting PR #{pr_number}: {e}")
+            logger.error(f"[GitHub] Error getting PR #{pr_number}: {e}")
             return None
 
     def get_combined_check_status(self, owner: str, repo: str, commit_sha: str) -> dict:
@@ -594,11 +596,11 @@ class GitHubAPI:
                 timeout=15,
             )
             if r.status_code != 200:
-                print(f"[GitHub] check-runs failed ({r.status_code}): {r.text[:200]}")
+                logger.error(f"[GitHub] check-runs failed ({r.status_code}): {r.text[:200]}")
                 return result
             runs = (r.json() or {}).get("check_runs", [])
         except Exception as e:
-            print(f"[GitHub] Error fetching check-runs: {e}")
+            logger.error(f"[GitHub] Error fetching check-runs: {e}")
             return result
 
         checks = []
@@ -631,7 +633,7 @@ class GitHubAPI:
                     has_failure = True
                 # "success" or "" = OK
         except Exception as e:
-            print(f"[GitHub] Error fetching legacy status: {e}")
+            logger.error(f"[GitHub] Error fetching legacy status: {e}")
 
         if has_failure:
             state = "failure"
@@ -701,10 +703,10 @@ class GitHubAPI:
                 error_msg = r.json().get("message", r.text[:200])
             except Exception:
                 error_msg = r.text[:200]
-            print(f"[GitHub] update_pr_branch failed ({r.status_code}): {error_msg}")
+            logger.error(f"[GitHub] update_pr_branch failed ({r.status_code}): {error_msg}")
             return False
         except Exception as e:
-            print(f"[GitHub] Error updating PR branch: {e}")
+            logger.error(f"[GitHub] Error updating PR branch: {e}")
             return False
 
     def create_pr_review(self, owner: str, repo: str, pr_number: int,
@@ -734,10 +736,10 @@ class GitHubAPI:
                 error_msg = r.json().get("message", r.text[:200])
             except Exception:
                 error_msg = r.text[:200]
-            print(f"[GitHub] create_pr_review failed ({r.status_code}): {error_msg}")
+            logger.error(f"[GitHub] create_pr_review failed ({r.status_code}): {error_msg}")
             return False
         except Exception as e:
-            print(f"[GitHub] Error creating PR review: {e}")
+            logger.error(f"[GitHub] Error creating PR review: {e}")
             return False
 
     def get_pr_number(self, owner: str, repo: str, head: str, base: str) -> Optional[int]:
@@ -754,7 +756,7 @@ class GitHubAPI:
                 if pulls:
                     return pulls[0].get("number")
         except Exception as e:
-            print(f"[GitHub] Could not get PR number: {e}")
+            logger.error(f"[GitHub] Could not get PR number: {e}")
         return None
 
     def delete_branch(self, owner: str, repo: str, branch: str) -> bool:
@@ -767,7 +769,7 @@ class GitHubAPI:
             )
             return r.status_code == 204
         except Exception as e:
-            print(f"[GitHub] Error deleting branch {branch}: {e}")
+            logger.error(f"[GitHub] Error deleting branch {branch}: {e}")
             return False
 
     def delete_tag(self, owner: str, repo: str, tag_name: str) -> bool:
@@ -784,10 +786,10 @@ class GitHubAPI:
             )
             if r.status_code == 204:
                 return True
-            print(f"[GitHub] Tag delete failed ({r.status_code}): {r.text[:200]}")
+            logger.error(f"[GitHub] Tag delete failed ({r.status_code}): {r.text[:200]}")
             return False
         except Exception as e:
-            print(f"[GitHub] Error deleting tag {tag_name}: {e}")
+            logger.error(f"[GitHub] Error deleting tag {tag_name}: {e}")
             return False
 
     def get_release_by_tag(self, owner: str, repo: str, tag_name: str) -> Optional[dict]:
@@ -802,7 +804,7 @@ class GitHubAPI:
                 return r.json()
             return None
         except Exception as e:
-            print(f"[GitHub] Error fetching release {tag_name}: {e}")
+            logger.error(f"[GitHub] Error fetching release {tag_name}: {e}")
             return None
 
     def delete_release(self, owner: str, repo: str, tag_name: str) -> bool:
@@ -825,10 +827,10 @@ class GitHubAPI:
             )
             if r.status_code == 204:
                 return True
-            print(f"[GitHub] Release delete failed ({r.status_code}): {r.text[:200]}")
+            logger.error(f"[GitHub] Release delete failed ({r.status_code}): {r.text[:200]}")
             return False
         except Exception as e:
-            print(f"[GitHub] Error deleting release {tag_name}: {e}")
+            logger.error(f"[GitHub] Error deleting release {tag_name}: {e}")
             return False
 
     @staticmethod

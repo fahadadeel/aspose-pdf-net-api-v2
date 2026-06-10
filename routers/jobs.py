@@ -35,6 +35,7 @@ from jobs import (
     create_pr_from_results, regenerate_metadata,
 )
 from knowledge.auto_fixes import load_auto_fixes, approve_auto_fix, approve_all_auto_fixes, delete_auto_fix
+from logging_config import get_logger
 from state import (
     JOB_CANCEL_FLAGS, JOB_LOCK,
     get_build_state, add_log,
@@ -42,6 +43,7 @@ from state import (
     pause_job, resume_job,
 )
 
+logger = get_logger(__name__)
 router = APIRouter()
 
 _FINISHED_STATUSES = frozenset({"completed", "failed", "cancelled"})
@@ -755,7 +757,7 @@ def _compute_sync_status(effective_version: str) -> dict:
             if owner and repo_name:
                 repo_category_status = gh.list_branch_category_status(owner, repo_name, target_branch)
     except Exception as e:
-        print(f"[results] Repo sync check failed: {e}")
+        logger.error(f"[results] Repo sync check failed: {e}")
         return {"categories": {}, "error": str(e)}
 
     # Build per-category sync info
