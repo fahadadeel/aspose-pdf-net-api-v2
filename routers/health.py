@@ -1,11 +1,19 @@
 """
-routers/health.py -- GET /api/health, /api/metrics, /api/version
+routers/health.py -- GET /api/health, /api/metrics, /api/version, /api/health/ready
 """
 
 import os
+import shutil
+import subprocess
 import time
+import urllib.error
+import urllib.request
+from datetime import datetime, timezone
+from pathlib import Path
+from urllib.parse import urlparse
 
 from fastapi import APIRouter
+from fastapi.responses import JSONResponse
 
 router = APIRouter()
 
@@ -110,6 +118,151 @@ async def metrics():
             "pass_rate_pct": pass_rate,
         },
     }
+
+
+# ── Deep health check ────────────────────────────────────────────────────────
+# Probes downstream dependencies so external monitoring can distinguish
+# "service responding" (/api/health) from "service can actually do work"
+# (/api/health/ready). Each probe is isolated so tests can patch one at a time.
+
+_HTTP_PROBE_TIMEOUT = 3.0
+_DOTNET_PROBE_TIMEOUT = 5.0
+_DISK_MIN_HEALTHY_GB = 1.0
+_DISK_MIN_DEGRADED_GB = 0.1
+
+
+def _probe_http(url: str, headers: dict | None = None, timeout: float = _HTTP_PROBE_TIMEOUT) -> dict:
+    """Probe an HTTP endpoint. Any HTTP response (even 4xx) proves the server
+    is reachable; only connection-level failures count as unhealthy."""
+    start = time.time()
+    try:
+        req = urllib.request.Request(url, headers=headers or {})
+        with urllib.request.urlopen(req, timeout=timeout) as resp:
+            return {
+                "status": "healthy",
+                "code": resp.status,
+                "latency_ms": int((time.time() - start) * 1000),
+            }
+    except urllib.error.HTTPError as e:
+        return {
+            "status": "degraded" if e.code >= 500 else "healthy",
+            "code": e.code,
+            "latency_ms": int((time.time() - start) * 1000),
+        }
+    except urllib.error.URLError as e:
+        reason = getattr(e, "reason", e)
+        return {"status": "unhealthy", "detail": str(reason)[:80]}
+    except (TimeoutError, OSError) as e:
+        return {"status": "unhealthy", "detail": str(e)[:80]}
+
+
+def _probe_mcp(generate_url: str) -> dict:
+    """Probe the MCP server root (not the /generate path — we don't want to
+    actually trigger generation)."""
+    parsed = urlparse(generate_url)
+    if not parsed.scheme or not parsed.netloc:
+        return {"status": "unhealthy", "detail": "MCP URL not configured"}
+    base = f"{parsed.scheme}://{parsed.netloc}"
+    return _probe_http(base)
+
+
+def _probe_llm(api_base: str, api_key: str) -> dict:
+    """Probe the LLM proxy's /models endpoint (standard, cheap, returns the
+    model list)."""
+    if not api_base:
+        return {"status": "unhealthy", "detail": "LLM api_base not configured"}
+    headers = {}
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    url = api_base.rstrip("/") + "/models"
+    return _probe_http(url, headers=headers)
+
+
+def _probe_disk(path: str = ".") -> dict:
+    """Probe free disk space on the partition holding ``path``."""
+    try:
+        usage = shutil.disk_usage(path)
+    except Exception as e:
+        return {"status": "unhealthy", "detail": str(e)[:80]}
+    free_gb = usage.free / (1024 ** 3)
+    if free_gb < _DISK_MIN_DEGRADED_GB:
+        status = "unhealthy"
+    elif free_gb < _DISK_MIN_HEALTHY_GB:
+        status = "degraded"
+    else:
+        status = "healthy"
+    return {"status": status, "free_gb": round(free_gb, 2)}
+
+
+def _probe_dotnet(timeout: float = _DOTNET_PROBE_TIMEOUT) -> dict:
+    """Probe the dotnet CLI — the .NET SDK is required for the build stage."""
+    try:
+        result = subprocess.run(
+            ["dotnet", "--version"],
+            timeout=timeout,
+            capture_output=True,
+            text=True,
+            check=False,
+        )
+    except FileNotFoundError:
+        return {"status": "unhealthy", "detail": "dotnet CLI not found in PATH"}
+    except subprocess.TimeoutExpired:
+        return {"status": "unhealthy", "detail": "dotnet --version timed out"}
+    except Exception as e:
+        return {"status": "unhealthy", "detail": str(e)[:80]}
+
+    if result.returncode != 0:
+        return {"status": "unhealthy", "detail": (result.stderr or "non-zero exit")[:80]}
+    return {"status": "healthy", "version": result.stdout.strip()}
+
+
+def _probe_repo_path(repo_path: str) -> dict:
+    """Probe that REPO_PATH is set and points at an existing directory."""
+    if not repo_path:
+        return {"status": "unhealthy", "detail": "REPO_PATH not configured"}
+    if not Path(repo_path).is_dir():
+        return {"status": "unhealthy", "detail": f"not a directory: {repo_path}"}
+    return {"status": "healthy", "path": repo_path}
+
+
+@router.get("/api/health/ready")
+async def health_ready():
+    """Deep health check — probes downstream dependencies.
+
+    Returns:
+        200 + `status: healthy` — every probe passed
+        200 + `status: degraded` — at least one degraded probe, no unhealthy
+        503 + `status: unhealthy` — at least one unhealthy probe
+    """
+    from config import load_config
+    cfg = load_config()
+
+    checks = {
+        "mcp": _probe_mcp(cfg.mcp.generate_url),
+        "llm": _probe_llm(cfg.llm.api_base, cfg.llm.api_key),
+        "disk": _probe_disk(),
+        "dotnet": _probe_dotnet(),
+        "repo_path": _probe_repo_path(cfg.git.repo_path),
+    }
+
+    has_unhealthy = any(c.get("status") == "unhealthy" for c in checks.values())
+    has_degraded = any(c.get("status") == "degraded" for c in checks.values())
+
+    if has_unhealthy:
+        overall, code = "unhealthy", 503
+    elif has_degraded:
+        overall, code = "degraded", 200
+    else:
+        overall, code = "healthy", 200
+
+    return JSONResponse(
+        status_code=code,
+        content={
+            "status": overall,
+            "checks": checks,
+            "timestamp": datetime.now(timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z"),
+        },
+    )
 
 
 def _format_uptime(seconds: int) -> str:

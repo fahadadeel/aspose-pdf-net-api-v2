@@ -106,3 +106,121 @@ def test_health_endpoint_still_works(client):
     r = client.get("/api/health")
     assert r.status_code == 200
     assert r.json()["status"] == "ok"
+
+
+# ── /api/health/ready (deep health check) ───────────────────────────────────
+
+def _stub_all_healthy(monkeypatch):
+    """Patch every probe to return a healthy result."""
+    import routers.health as h
+    monkeypatch.setattr(h, "_probe_mcp", lambda _u: {"status": "healthy", "code": 200, "latency_ms": 5})
+    monkeypatch.setattr(h, "_probe_llm", lambda _b, _k: {"status": "healthy", "code": 200, "latency_ms": 12})
+    monkeypatch.setattr(h, "_probe_disk", lambda *a, **k: {"status": "healthy", "free_gb": 84.2})
+    monkeypatch.setattr(h, "_probe_dotnet", lambda *a, **k: {"status": "healthy", "version": "10.0.100"})
+    monkeypatch.setattr(h, "_probe_repo_path", lambda _p: {"status": "healthy", "path": "/repo"})
+
+
+def test_health_ready_all_healthy(client, monkeypatch):
+    _stub_all_healthy(monkeypatch)
+    r = client.get("/api/health/ready")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "healthy"
+    for name in ("mcp", "llm", "disk", "dotnet", "repo_path"):
+        assert body["checks"][name]["status"] == "healthy"
+    assert "timestamp" in body
+
+
+def test_health_ready_unhealthy_mcp_returns_503(client, monkeypatch):
+    _stub_all_healthy(monkeypatch)
+    import routers.health as h
+    monkeypatch.setattr(h, "_probe_mcp", lambda _u: {"status": "unhealthy", "detail": "Connection refused"})
+
+    r = client.get("/api/health/ready")
+    assert r.status_code == 503
+    body = r.json()
+    assert body["status"] == "unhealthy"
+    assert body["checks"]["mcp"]["status"] == "unhealthy"
+
+
+def test_health_ready_degraded_disk_returns_200(client, monkeypatch):
+    _stub_all_healthy(monkeypatch)
+    import routers.health as h
+    monkeypatch.setattr(h, "_probe_disk", lambda *a, **k: {"status": "degraded", "free_gb": 0.5})
+
+    r = client.get("/api/health/ready")
+    assert r.status_code == 200
+    body = r.json()
+    assert body["status"] == "degraded"
+    assert body["checks"]["disk"]["status"] == "degraded"
+
+
+def test_health_ready_dotnet_missing(client, monkeypatch):
+    _stub_all_healthy(monkeypatch)
+    import routers.health as h
+    monkeypatch.setattr(
+        h, "_probe_dotnet",
+        lambda *a, **k: {"status": "unhealthy", "detail": "dotnet CLI not found in PATH"},
+    )
+
+    r = client.get("/api/health/ready")
+    assert r.status_code == 503
+    body = r.json()
+    assert body["checks"]["dotnet"]["status"] == "unhealthy"
+    assert "not found" in body["checks"]["dotnet"]["detail"]
+
+
+def test_health_ready_repo_path_unset(client, monkeypatch):
+    _stub_all_healthy(monkeypatch)
+    import routers.health as h
+    monkeypatch.setattr(h, "_probe_repo_path", lambda _p: {"status": "unhealthy", "detail": "REPO_PATH not configured"})
+
+    r = client.get("/api/health/ready")
+    assert r.status_code == 503
+    assert r.json()["checks"]["repo_path"]["status"] == "unhealthy"
+
+
+# ── Probe-level unit-ish tests ──────────────────────────────────────────────
+
+def test_probe_disk_classifies_levels(monkeypatch):
+    """Disk probe boundary tests — use a stub that returns controllable usage."""
+    import routers.health as h
+    from collections import namedtuple
+    Usage = namedtuple("Usage", "total used free")
+    GB = 1024 ** 3
+
+    monkeypatch.setattr(h.shutil, "disk_usage", lambda _p: Usage(100 * GB, 0, 50 * GB))
+    assert h._probe_disk()["status"] == "healthy"
+
+    monkeypatch.setattr(h.shutil, "disk_usage", lambda _p: Usage(100 * GB, 0, int(0.5 * GB)))
+    assert h._probe_disk()["status"] == "degraded"
+
+    monkeypatch.setattr(h.shutil, "disk_usage", lambda _p: Usage(100 * GB, 0, int(0.05 * GB)))
+    assert h._probe_disk()["status"] == "unhealthy"
+
+
+def test_probe_repo_path_unset():
+    import routers.health as h
+    assert h._probe_repo_path("")["status"] == "unhealthy"
+
+
+def test_probe_repo_path_missing_dir():
+    import routers.health as h
+    assert h._probe_repo_path("/no/such/path/exists")["status"] == "unhealthy"
+
+
+def test_probe_repo_path_exists(tmp_path):
+    import routers.health as h
+    res = h._probe_repo_path(str(tmp_path))
+    assert res["status"] == "healthy"
+    assert res["path"] == str(tmp_path)
+
+
+def test_probe_mcp_handles_missing_url():
+    import routers.health as h
+    assert h._probe_mcp("")["status"] == "unhealthy"
+
+
+def test_probe_llm_handles_missing_base():
+    import routers.health as h
+    assert h._probe_llm("", "")["status"] == "unhealthy"

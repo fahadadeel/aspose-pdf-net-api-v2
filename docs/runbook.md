@@ -44,13 +44,18 @@ On-call window is informal — best-effort during business hours (PKT). For afte
 
 1. **Acknowledge** the alert/report within 30 minutes
 2. **Check the Build Monitor UI** (`http://<host>:7103/`) — is the service responding?
-3. **Tail the service logs**:
+3. **Run the deep health check** to localize the failure:
+   ```bash
+   curl -s http://<host>:7103/api/health/ready | python -m json.tool
+   ```
+   Returns per-dependency status (`mcp`, `llm`, `disk`, `dotnet`, `repo_path`). HTTP 503 = at least one dependency is unhealthy; 200 + `status: degraded` = soft issue worth investigating.
+4. **Tail the service logs**:
    ```powershell
    nssm status AsposePdfApi
    Get-Content C:\fahad\aspose-pdf-net-api-v2\logs\service.log -Tail 200
    ```
-4. **Classify severity** (P1-P4) and document in the incident channel
-5. **Mitigate before investigating** — see scenarios below
+5. **Classify severity** (P1-P4) and document in the incident channel
+6. **Mitigate before investigating** — see scenarios below
 
 ## Common Failure Scenarios
 
