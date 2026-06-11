@@ -1,6 +1,7 @@
 stages:
   - test
   - mutation
+  - trigger
   - build-image
   - generate
 
@@ -54,7 +55,39 @@ mutation-tests:
       - mutmut-report.txt
       - mutants/
 
-# ── Stage 3: Build CI image (Python 3.12 + .NET 10.0) ─────────────────────────
+# ── Stage 3: Scheduled sweep trigger (Path B — VM does the work) ──────────────
+# Fires when a Pipeline Schedule sets TRIGGER_SWEEP=true.
+# Calls the production VM's /api/start-tasks endpoint, polls until done,
+# fails the job if pass rate falls below SWEEP_PASS_RATE_THRESHOLD.
+#
+# Required CI/CD variables (set under Settings → CI/CD → Variables):
+#   VM_BASE_URL                  e.g. http://172.20.1.175:7103  (protected)
+#   VM_API_KEY                   matches API_KEY env var on the VM (masked + protected)
+#   SWEEP_PASS_RATE_THRESHOLD    0.95 (protected)
+#
+# To activate, create a Pipeline Schedule with:
+#   Cron: 13 21 * * 0   (Sunday 02:13 PKT — minute 13 satisfies GitLab worker)
+#   Branch: main
+#   Variable: TRIGGER_SWEEP=true
+#
+# See docs/automation.md for the full workflow.
+scheduled-sweep:
+  stage: trigger
+  image: alpine:3.20
+  timeout: 6 hours
+  before_script:
+    - apk add --no-cache curl jq bc coreutils
+  script:
+    - sh scripts/ci/scheduled-sweep.sh
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule" && $TRIGGER_SWEEP == "true"'
+  artifacts:
+    when: always
+    expire_in: 90 days
+    paths:
+      - sweep_result.json
+
+# ── Stage 4: Build CI image (Python 3.12 + .NET 10.0) ─────────────────────────
 # Runs only when Dockerfile.ci or requirements-ci.txt changes, or manually.
 build-ci-image:
   stage: build-image
@@ -74,7 +107,11 @@ build-ci-image:
     - if: '$CI_COMMIT_BRANCH == "main"'
       when: manual
 
-# ── Stage 3: Generate examples (scheduled releases only) ───────────────────────
+# ── Stage 5: Generate examples directly in the CI runner (Path A — fallback) ──
+# Legacy path: runs the pipeline inside the runner container instead of on the
+# VM. Useful if the VM is unreachable, or for one-off runs that shouldn't touch
+# production state. The scheduled-sweep job (Path B) is the preferred path
+# because it lets learned state accumulate on the VM.
 # Triggered via GitLab pipeline schedule.
 # Set CATEGORY variable in the schedule to run a specific category,
 # or leave unset to run all categories.
