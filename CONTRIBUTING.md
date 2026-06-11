@@ -137,6 +137,7 @@ dotnet build && dotnet run
 | [`docs/deployment-container.md`](./docs/deployment-container.md) | Reproducible container stack (Docker Compose: app + Prometheus + Grafana) |
 | [`docs/runbook.md`](./docs/runbook.md) | On-call procedures, SLAs, common failure scenarios |
 | [`docs/observability.md`](./docs/observability.md) | Prometheus scraping setup, Grafana dashboard import, alert rules |
+| [`docs/automation.md`](./docs/automation.md) | Scheduled sweep (GitLab → VM API), activation steps, smoke test, troubleshooting |
 | [`docs/ownership.md`](./docs/ownership.md) | RACI matrix, component owners, escalation path |
 | [`docs/data-handling.md`](./docs/data-handling.md) | Data inventory, classification, retention, deletion, compliance posture |
 | [`docs/access-control.md`](./docs/access-control.md) | Roles, resource × action matrix, onboarding / offboarding procedures |
