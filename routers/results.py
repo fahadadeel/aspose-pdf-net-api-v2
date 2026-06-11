@@ -2,6 +2,7 @@
 routers/results.py -- Serves the standalone Results Dashboard UI.
 """
 
+import os
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -12,6 +13,11 @@ from config import load_config
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
+
+
+def _api_key_for_ui() -> str:
+    """See routers/ui.py::_api_key_for_ui for rationale."""
+    return os.getenv("API_KEY", "")
 
 
 @router.get("/results", response_class=HTMLResponse)
@@ -26,6 +32,7 @@ async def results_page(request: Request):
         context={
             "pr_target_branch": pr_target_branch,
             "nuget_version": nuget_version,
+            "api_key": _api_key_for_ui(),
         },
     )
 
@@ -43,5 +50,6 @@ async def results_v2_page(request: Request):
         context={
             "pr_target_branch": pr_target_branch,
             "nuget_version": nuget_version,
+            "api_key": _api_key_for_ui(),
         },
     )

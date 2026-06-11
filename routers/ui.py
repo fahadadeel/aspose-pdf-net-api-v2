@@ -2,6 +2,7 @@
 routers/ui.py -- Serves the Build Monitor HTML UI.
 """
 
+import os
 from pathlib import Path
 
 from fastapi import APIRouter, Request
@@ -12,6 +13,18 @@ from config import load_config
 
 router = APIRouter()
 templates = Jinja2Templates(directory=str(Path(__file__).resolve().parent.parent / "templates"))
+
+
+def _api_key_for_ui() -> str:
+    """Return the API_KEY env var so templates can embed it for fetch calls.
+
+    The UI is served behind VPN; embedding the key lets browser-driven
+    write actions (Create PR, Update README, etc.) work without manual
+    auth, while CI and other external callers still gate through the
+    same key. When API_KEY is unset (dev), this returns an empty string
+    and the UI behaves identically to before — no header sent.
+    """
+    return os.getenv("API_KEY", "")
 
 
 @router.get("/", response_class=HTMLResponse)
@@ -39,5 +52,6 @@ async def index(request: Request):
             "repo_branch": repo_branch,
             "pr_target_branch": pr_target_branch,
             "nuget_version": cfg.build.nuget_version,
+            "api_key": _api_key_for_ui(),
         },
     )

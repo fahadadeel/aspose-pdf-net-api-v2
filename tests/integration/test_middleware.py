@@ -179,3 +179,54 @@ def test_api_key_does_not_gate_non_api_paths(monkeypatch):
     client = TestClient(app)
     r = client.get("/")
     assert r.status_code == 200
+
+
+def test_api_key_accepts_query_string(monkeypatch):
+    """EventSource (SSE) can't send custom headers, so the middleware
+    falls back to the ?api_key=... query string."""
+    monkeypatch.setenv("API_KEY", "secret-key-xyz")
+
+    app = FastAPI()
+    app.add_middleware(APIKeyMiddleware)
+
+    @app.get("/api/protected")
+    def protected():
+        return {"ok": True}
+
+    client = TestClient(app)
+    r = client.get("/api/protected?api_key=secret-key-xyz")
+    assert r.status_code == 200
+
+
+def test_api_key_query_string_rejects_wrong_value(monkeypatch):
+    monkeypatch.setenv("API_KEY", "secret-key-xyz")
+
+    app = FastAPI()
+    app.add_middleware(APIKeyMiddleware)
+
+    @app.get("/api/protected")
+    def protected():
+        return {"ok": True}
+
+    client = TestClient(app)
+    r = client.get("/api/protected?api_key=wrong")
+    assert r.status_code == 401
+
+
+def test_api_key_header_takes_precedence_over_query_string(monkeypatch):
+    """If both are present, the header wins (defence in depth: a leaked
+    URL with a stale ?api_key=... won't override a fresh header)."""
+    monkeypatch.setenv("API_KEY", "secret-key-xyz")
+
+    app = FastAPI()
+    app.add_middleware(APIKeyMiddleware)
+
+    @app.get("/api/protected")
+    def protected():
+        return {"ok": True}
+
+    client = TestClient(app)
+    # Right header, wrong query — should pass because header is checked first
+    r = client.get("/api/protected?api_key=wrong",
+                   headers={"X-API-Key": "secret-key-xyz"})
+    assert r.status_code == 200

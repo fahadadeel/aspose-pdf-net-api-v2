@@ -2,9 +2,14 @@
 middleware/security.py -- Security headers and optional API key auth.
 
 - SecurityHeadersMiddleware: adds common defensive headers to every response.
-- APIKeyMiddleware: if API_KEY env var is set, requires X-API-Key header
-  matching it on every /api/* request (read endpoints excluded by default).
-  When API_KEY is unset, the middleware is a no-op — keeps local dev simple.
+- APIKeyMiddleware: if API_KEY env var is set, requires the key on every
+  /api/* request, accepting it via any of:
+      X-API-Key: <key>            (browser fetch, curl, CI scripts)
+      Authorization: Bearer <key> (alternative header)
+      ?api_key=<key>              (query string — for EventSource SSE
+                                   which cannot send custom headers)
+  Unauthenticated requests get 401.
+  Local dev: leave API_KEY unset and the middleware is a no-op.
 """
 
 import os
@@ -14,7 +19,9 @@ from starlette.responses import JSONResponse
 
 
 # Routes that the middleware should never gate, even when API_KEY is set.
-# Health and the index page must remain reachable for monitoring + UI.
+# Health and the UI HTML pages must remain reachable; once the UI loads,
+# the embedded API key (see routers/ui.py) authenticates subsequent
+# fetch/EventSource calls.
 _PUBLIC_PATHS = {"/api/health", "/api/health/ready", "/api/metrics/prometheus", "/", "/results", "/results-v2"}
 
 
@@ -65,6 +72,10 @@ class APIKeyMiddleware(BaseHTTPMiddleware):
             auth = request.headers.get("Authorization", "")
             if auth.lower().startswith("bearer "):
                 provided = auth.split(" ", 1)[1].strip()
+        if not provided:
+            # Query-string fallback for EventSource (SSE) — the browser's
+            # EventSource API cannot attach custom headers.
+            provided = request.query_params.get("api_key", "").strip()
 
         if provided != self._expected_key:
             return JSONResponse({"error": "Unauthorized"}, status_code=401)

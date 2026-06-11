@@ -3,7 +3,39 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-api-key" content="{{ api_key|default('', true) }}" />
   <title>Results Dashboard - Aspose.Pdf Examples</title>
+  <script>
+    // Patch global fetch() to attach the X-API-Key header read from the
+    // <meta name="x-api-key"> tag. Server injects the key when API_KEY
+    // env var is set; when unset, the meta content is empty and this
+    // is a no-op.
+    (function () {
+      var meta = document.querySelector('meta[name="x-api-key"]');
+      var apiKey = meta && meta.getAttribute('content');
+      if (!apiKey) return;
+      var origFetch = window.fetch.bind(window);
+      window.fetch = function (input, init) {
+        init = init || {};
+        var headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
+        if (!headers.has('X-API-Key')) headers.set('X-API-Key', apiKey);
+        init.headers = headers;
+        return origFetch(input, init);
+      };
+      // Same for EventSource (SSE): append ?api_key=... to the URL since
+      // EventSource cannot send custom headers. Server reads the query
+      // param as a fallback in the security middleware.
+      if (window.EventSource) {
+        var OrigES = window.EventSource;
+        window.EventSource = function (url, init) {
+          var u = url.indexOf('?') === -1 ? url + '?api_key=' + encodeURIComponent(apiKey)
+                                          : url + '&api_key=' + encodeURIComponent(apiKey);
+          return new OrigES(u, init);
+        };
+        window.EventSource.prototype = OrigES.prototype;
+      }
+    })();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 

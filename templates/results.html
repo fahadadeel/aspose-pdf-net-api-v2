@@ -3,7 +3,33 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="x-api-key" content="{{ api_key|default('', true) }}" />
   <title>Results Dashboard - Aspose.Pdf Examples</title>
+  <script>
+    // See routers/ui.py for rationale.
+    (function () {
+      var meta = document.querySelector('meta[name="x-api-key"]');
+      var apiKey = meta && meta.getAttribute('content');
+      if (!apiKey) return;
+      var origFetch = window.fetch.bind(window);
+      window.fetch = function (input, init) {
+        init = init || {};
+        var headers = new Headers(init.headers || (input instanceof Request ? input.headers : undefined));
+        if (!headers.has('X-API-Key')) headers.set('X-API-Key', apiKey);
+        init.headers = headers;
+        return origFetch(input, init);
+      };
+      if (window.EventSource) {
+        var OrigES = window.EventSource;
+        window.EventSource = function (url, init) {
+          var u = url.indexOf('?') === -1 ? url + '?api_key=' + encodeURIComponent(apiKey)
+                                          : url + '&api_key=' + encodeURIComponent(apiKey);
+          return new OrigES(u, init);
+        };
+        window.EventSource.prototype = OrigES.prototype;
+      }
+    })();
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
